@@ -981,7 +981,7 @@ object JGitUtil {
       val blame = blamer.call()
       var blameMap = Map[String, JGitUtil.BlameInfo]()
       var idLine = List[(String, Int)]()
-      val commits = 0.to(blame.getResultContents().size() - 1).map{ i =>
+      val commits = 0.to(blame.getResultContents().size() - 1).map { i =>
         val c = blame.getSourceCommit(i)
         if(!blameMap.contains(c.name)){
           blameMap += c.name -> JGitUtil.BlameInfo(
