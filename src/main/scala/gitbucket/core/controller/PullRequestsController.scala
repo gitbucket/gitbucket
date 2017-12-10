@@ -261,9 +261,18 @@ trait PullRequestsControllerBase extends ControllerBase {
 
             // merge git repository
             // TODO Implement merge strategy!
-            mergePullRequest(git, pullreq.branch, issueId,
-              s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
-               new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+            println(form.strategy)
+            form.strategy match {
+              case "merge-commit" =>
+                println("** merge commit **")
+                mergePullRequest(git, pullreq.branch, issueId,
+                  s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+              case "rebase" =>
+                println("** rebase **")
+                rebasePullRequest(git, pullreq.branch, issueId,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+            }
 
             val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
               pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)

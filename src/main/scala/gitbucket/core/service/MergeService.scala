@@ -35,9 +35,14 @@ trait MergeService {
     }
   }
 
-  /** merge pull request */
-  def mergePullRequest(git:Git, branch: String, issueId: Int, message:String, committer: PersonIdent): Unit = {
+  /** merge the pull request with a merge commit */
+  def mergePullRequest(git: Git, branch: String, issueId: Int, message: String, committer: PersonIdent): Unit = {
     new MergeCacheInfo(git, branch, issueId).merge(message, committer)
+  }
+
+  /** rebase to the pull request branch */
+  def rebasePullRequest(git: Git, branch: String, issueId: Int, committer: PersonIdent): Unit = {
+    new MergeCacheInfo(git, branch, issueId).rebase(committer)
   }
 
   /** fetch remote branch to my repository refs/pull/{issueId}/head */
@@ -207,6 +212,14 @@ object MergeService{
       val mergeCommitId = createMergeCommit(mergeResultCommit.getTree().getId(), committer, message)
       // update refs
       Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged"))
+    }
+
+    def rebase(committer: PersonIdent) = {
+      if(checkConflict()){
+        throw new RuntimeException("This pull request can't merge automatically.")
+      }
+      val mergeTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeTip ))
+      Util.updateRefs(repository, s"refs/heads/${branch}", mergeTipCommit.getId, false, committer, Some("merged"))
     }
 
     // return treeId
