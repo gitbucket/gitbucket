@@ -618,12 +618,6 @@ span.simplified-path {
   line-height: 15px;
 }
 
-.new-branch-name {
-  font-weight: bold;
-  font-size: 1.2em;
-  padding-left: 16px;
-}
-
 .btn-pullrequest-branch{
   background: none;
   border: 1px solid #0088cc;
