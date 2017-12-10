@@ -139,8 +139,34 @@
         <span id="error-message" class="error"></span>
         <textarea name="message" style="height: 80px; margin-top: 8px; margin-bottom: 8px;" class="form-control">@issue.title</textarea>
         <div>
-          <input type="button" class="btn btn-default" value="Cancel" id="cancel-merge-pull-request"/>
-          <input type="submit" class="btn btn-success" value="Confirm merge"/>
+          <div class="btn-group">
+            <button id="merge-strategy-btn" class="dropdown-toggle btn btn-default" data-toggle="dropdown">
+              <span class="strong">Merge commit</span>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="javascript:void(0);" class="merge-strategy" data-value="merge-commit">
+                  <strong>Merge commit</strong><br>These commits will be added to the base branch via a merge commit.
+                </a>
+              </li>
+              <li>
+                <a href="javascript:void(0);" class="merge-strategy" data-value="squash">
+                  <strong>Squash</strong><br>These commits will be combined into one commit in the base branch.
+                </a>
+              </li>
+              <li>
+                <a href="javascript:void(0);" class="merge-strategy" data-value="rebase">
+                  <strong>Rebase</strong><br>These commits will be rebased and added to the base branch.
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div class="pull-right">
+            <input type="button" class="btn btn-default" value="Cancel" id="cancel-merge-pull-request"/>
+            <input type="submit" class="btn btn-success" value="Confirm merge"/>
+            <input type="hidden" name="strategy" value="merge-commit"/>
+          </div>
         </div>
       </form>
     </div>
@@ -194,5 +220,10 @@ $(function(){
       $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
     });
   }
+
+  $('.merge-strategy').click(function(){
+    $('button#merge-strategy-btn > span.strong').text($(this).find('strong').text());
+    $('hidden[name=strategy]').val($(this).data('value'));
+  });
 });
 </script>

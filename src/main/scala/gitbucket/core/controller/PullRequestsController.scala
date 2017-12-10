@@ -50,7 +50,8 @@ trait PullRequestsControllerBase extends ControllerBase {
   )(PullRequestForm.apply)
 
   val mergeForm = mapping(
-    "message" -> trim(label("Message", text(required)))
+    "message"  -> trim(label("Message", text(required))),
+    "strategy" -> trim(label("Strategy", text(required)))
   )(MergeForm.apply)
 
   case class PullRequestForm(
@@ -69,7 +70,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     labelNames: Option[String]
   )
 
-  case class MergeForm(message: String)
+  case class MergeForm(message: String, strategy: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     val q = request.getParameter("q")
@@ -259,6 +260,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
             // merge git repository
+            // TODO Implement merge strategy!
             mergePullRequest(git, pullreq.branch, issueId,
               s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
                new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
