@@ -260,17 +260,18 @@ trait PullRequestsControllerBase extends ControllerBase {
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
             // merge git repository
-            // TODO Implement merge strategy!
             println(form.strategy)
             form.strategy match {
               case "merge-commit" =>
-                println("** merge commit **")
                 mergePullRequest(git, pullreq.branch, issueId,
                   s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
                   new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
               case "rebase" =>
-                println("** rebase **")
                 rebasePullRequest(git, pullreq.branch, issueId,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+              case "squash" =>
+                squashPullRequest(git, pullreq.branch, issueId,
+                  s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
                   new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
             }
 

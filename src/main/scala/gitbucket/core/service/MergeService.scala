@@ -8,7 +8,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
-import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
+import org.eclipse.jgit.revwalk.RevWalk
 
 trait MergeService {
   import MergeService._
@@ -43,6 +43,10 @@ trait MergeService {
   /** rebase to the pull request branch */
   def rebasePullRequest(git: Git, branch: String, issueId: Int, committer: PersonIdent): Unit = {
     new MergeCacheInfo(git, branch, issueId).rebase(committer)
+  }
+
+  def squashPullRequest(git: Git, branch: String, issueId: Int, message: String, committer: PersonIdent): Unit = {
+    new MergeCacheInfo(git, branch, issueId).squash(message, committer)
   }
 
   /** fetch remote branch to my repository refs/pull/{issueId}/head */
@@ -101,14 +105,15 @@ trait MergeService {
   def pullRemote(localUserName: String, localRepositoryName: String, localBranch: String,
                       remoteUserName: String, remoteRepositoryName: String, remoteBranch: String,
                       loginAccount: Account, message: String): Option[ObjectId] = {
-    tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch).map{ case (newTreeId, oldBaseId, oldHeadId) =>
-      using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
-        val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-        val newCommit = Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
-        Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
+    tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch)
+      .map { case (newTreeId, oldBaseId, oldHeadId) =>
+        using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+          val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+          val newCommit = Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
+          Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
+        }
+        oldBaseId
       }
-      oldBaseId
-    }
   }
 
 }
@@ -184,24 +189,24 @@ object MergeService{
       val mergeTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeTip ))
       val committer = mergeTipCommit.getCommitterIdent
 
-      def updateBranch(treeId: ObjectId, message: String, branchName: String){
+      def _updateBranch(treeId: ObjectId, message: String, branchName: String){
         // creates merge commit
         val mergeCommitId = createMergeCommit(treeId, committer, message)
         Util.updateRefs(repository, branchName, mergeCommitId, true, committer)
       }
 
       if(!conflicted){
-        updateBranch(merger.getResultTreeId, s"Merge ${mergeTip.name} into ${mergeBaseTip.name}", mergedBranchName)
+        _updateBranch(merger.getResultTreeId, s"Merge ${mergeTip.name} into ${mergeBaseTip.name}", mergedBranchName)
         git.branchDelete().setForce(true).setBranchNames(conflictedBranchName).call()
       } else {
-        updateBranch(mergeTipCommit.getTree().getId(), s"can't merge ${mergeTip.name} into ${mergeBaseTip.name}", conflictedBranchName)
+        _updateBranch(mergeTipCommit.getTree().getId(), s"can't merge ${mergeTip.name} into ${mergeBaseTip.name}", conflictedBranchName)
         git.branchDelete().setForce(true).setBranchNames(mergedBranchName).call()
       }
       conflicted
     }
 
     // update branch from cache
-    def merge(message: String, committer: PersonIdent) = {
+    def merge(message: String, committer: PersonIdent): Unit = {
       if(checkConflict()){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
@@ -211,15 +216,43 @@ object MergeService{
       // creates merge commit
       val mergeCommitId = createMergeCommit(mergeResultCommit.getTree().getId(), committer, message)
       // update refs
-      Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged"))
+      Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged")) // TODO reflog message
     }
 
-    def rebase(committer: PersonIdent) = {
+    def rebase(committer: PersonIdent): Unit = {
       if(checkConflict()){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
       val mergeTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeTip ))
-      Util.updateRefs(repository, s"refs/heads/${branch}", mergeTipCommit.getId, false, committer, Some("merged"))
+      Util.updateRefs(repository, s"refs/heads/${branch}", mergeTipCommit.getId, false, committer, Some("merged")) // TODO reflog message
+    }
+
+    def squash(message: String, committer: PersonIdent): Unit = {
+      if(checkConflict()){
+        throw new RuntimeException("This pull request can't merge automatically.")
+      }
+
+      val baseCommit = using(new RevWalk( repository ))(_.parseCommit(mergeBaseTip))
+      val mergeBranchHeadCommit = using(new RevWalk( repository ))(_.parseCommit(repository.resolve(mergedBranchName)))
+
+      // Create squash commit
+      val mergeCommit = new CommitBuilder()
+      mergeCommit.setTreeId(mergeBranchHeadCommit.getTree.getId)
+      mergeCommit.setParentId(baseCommit)
+      mergeCommit.setAuthor(mergeBranchHeadCommit.getAuthorIdent)
+      mergeCommit.setCommitter(committer)
+      mergeCommit.setMessage(message)
+
+      // insertObject and got squash commit Object Id
+      val inserter = repository.newObjectInserter
+      val newCommitId = inserter.insert(mergeCommit)
+      inserter.flush()
+      inserter.close()
+
+      Util.updateRefs(repository, mergedBranchName, newCommitId, true, committer)
+
+      // rebase to squash commit
+      Util.updateRefs(repository, s"refs/heads/${branch}", repository.resolve(mergedBranchName), false, committer, Some("merged")) // TODO reflog message
     }
 
     // return treeId
