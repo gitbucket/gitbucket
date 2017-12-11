@@ -517,14 +517,18 @@ trait PullRequestsControllerBase extends ControllerBase {
     val targetRepository = (for {
       parentUserName <- repository.repository.parentUserName
       parentRepoName <- repository.repository.parentRepositoryName
-      parentRepository <- getRepository(parentUserName, parentRepoName).orElse(Some(repository))
+      parentRepository <- getRepository(parentUserName, parentRepoName)
     } yield {
       parentRepository
     }).getOrElse {
       repository
     }
 
-    html.proposals(branches, targetRepository, repository)
+    val proposedBranches = branches.filter { branch =>
+      getPullRequestsByRequest(repository.owner, repository.name, branch, None).isEmpty
+    }
+
+    html.proposals(proposedBranches, targetRepository, repository)
   })
 
   /**

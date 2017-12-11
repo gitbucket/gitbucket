@@ -79,7 +79,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
       commitIdFrom,
       commitIdTo)
 
-  def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Boolean)
+  def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Option[Boolean])
                               (implicit s: Session): List[PullRequest] =
     PullRequests
       .join(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
@@ -87,7 +87,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         (t1.requestUserName       === userName.bind) &&
         (t1.requestRepositoryName === repositoryName.bind) &&
         (t1.requestBranch         === branch.bind) &&
-        (t2.closed                === closed.bind)
+        (t2.closed                === closed.get.bind, closed.isDefined)
       }
       .map { case (t1, t2) => t1 }
       .list
@@ -118,7 +118,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
    */
   def updatePullRequests(owner: String, repository: String, branch: String)(implicit s: Session): Unit =
-    getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
+    getPullRequestsByRequest(owner, repository, branch, Some(false)).foreach { pullreq =>
       if(Repositories.filter(_.byRepository(pullreq.userName, pullreq.repositoryName)).exists.run){
         // Update the git repository
         val (commitIdTo, commitIdFrom) = JGitUtil.updatePullRequest(
