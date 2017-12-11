@@ -95,9 +95,9 @@ trait RepositoryService { self: AccountService =>
 
         RepositoryWebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         RepositoryWebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Milestones   .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Priorities   .insertAll(priorities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        IssueId      .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
+        Milestones             .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Priorities             .insertAll(priorities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        IssueId                .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
 
         val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
         val newPriorities = Priorities.filter(_.byRepository(newUserName, newRepositoryName)).list
@@ -159,21 +159,21 @@ trait RepositoryService { self: AccountService =>
   }
 
   def deleteRepository(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    Activities    .filter(_.byRepository(userName, repositoryName)).delete
-    Collaborators .filter(_.byRepository(userName, repositoryName)).delete
-    CommitComments.filter(_.byRepository(userName, repositoryName)).delete
-    IssueLabels   .filter(_.byRepository(userName, repositoryName)).delete
-    Labels        .filter(_.byRepository(userName, repositoryName)).delete
-    IssueComments .filter(_.byRepository(userName, repositoryName)).delete
-    PullRequests  .filter(_.byRepository(userName, repositoryName)).delete
-    Issues        .filter(_.byRepository(userName, repositoryName)).delete
-    Priorities    .filter(_.byRepository(userName, repositoryName)).delete
-    IssueId       .filter(_.byRepository(userName, repositoryName)).delete
-    Milestones    .filter(_.byRepository(userName, repositoryName)).delete
+    Activities              .filter(_.byRepository(userName, repositoryName)).delete
+    Collaborators           .filter(_.byRepository(userName, repositoryName)).delete
+    CommitComments          .filter(_.byRepository(userName, repositoryName)).delete
+    IssueLabels             .filter(_.byRepository(userName, repositoryName)).delete
+    Labels                  .filter(_.byRepository(userName, repositoryName)).delete
+    IssueComments           .filter(_.byRepository(userName, repositoryName)).delete
+    PullRequests            .filter(_.byRepository(userName, repositoryName)).delete
+    Issues                  .filter(_.byRepository(userName, repositoryName)).delete
+    Priorities              .filter(_.byRepository(userName, repositoryName)).delete
+    IssueId                 .filter(_.byRepository(userName, repositoryName)).delete
+    Milestones              .filter(_.byRepository(userName, repositoryName)).delete
     RepositoryWebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     RepositoryWebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
-    DeployKeys    .filter(_.byRepository(userName, repositoryName)).delete
-    Repositories  .filter(_.byRepository(userName, repositoryName)).delete
+    DeployKeys              .filter(_.byRepository(userName, repositoryName)).delete
+    Repositories            .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
     Repositories
@@ -390,7 +390,7 @@ trait RepositoryService { self: AccountService =>
     Collaborators
       .join(Accounts).on(_.collaboratorName === _.userName)
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
-      .map { case (t1, t2) => (t1, t2.groupAccount) }
+      .map    { case (t1, t2) => (t1, t2.groupAccount) }
       .sortBy { case (t1, t2) => t1.collaboratorName }
       .list
 
@@ -402,13 +402,13 @@ trait RepositoryService { self: AccountService =>
     val q1 = Collaborators
       .join(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
-      .map { case (t1, t2) => (t1.collaboratorName, t1.role) }
+      .map    { case (t1, t2) => (t1.collaboratorName, t1.role) }
 
     val q2 = Collaborators
       .join(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
       .join(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
       .filter { case ((t1, t2), t3) => t1.byRepository(userName, repositoryName) }
-      .map { case ((t1, t2), t3) => (t3.userName, t1.role) }
+      .map    { case ((t1, t2), t3) => (t3.userName, t1.role) }
 
     q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x._2) }.map(_._1)
   }
