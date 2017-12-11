@@ -115,13 +115,13 @@ trait PullRequestsControllerBase extends ControllerBase {
       val owner = repository.owner
       val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-        val hasConflict = LockUtil.lock(s"${owner}/${name}"){
+        val conflictMessage = LockUtil.lock(s"${owner}/${name}"){
           checkConflict(owner, name, pullreq.branch, issueId)
         }
         val hasMergePermission = hasDeveloperRole(owner, name, context.loginAccount)
         val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
         val mergeStatus = PullRequestService.MergeStatus(
-           hasConflict         = hasConflict,
+          conflictMessage      = conflictMessage,
            commitStatues       = getCommitStatues(owner, name, pullreq.commitIdTo),
            branchProtection    = branchProtection,
            branchIsOutOfDate   = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
@@ -437,7 +437,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           checkConflict(originRepository.owner, originRepository.name, originBranch,
                         forkedRepository.owner, forkedRepository.name, forkedBranch)
         }
-        html.mergecheck(conflict)
+        html.mergecheck(conflict.isDefined)
       }
     }) getOrElse NotFound()
   })
