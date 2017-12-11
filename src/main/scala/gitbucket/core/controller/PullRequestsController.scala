@@ -16,6 +16,7 @@ import gitbucket.core.util._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.revwalk.RevWalk
 
 import scala.collection.JavaConverters._
 
@@ -259,24 +260,29 @@ trait PullRequestsControllerBase extends ControllerBase {
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
+            val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
+              pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
+
+            val revCommits = using(new RevWalk( git.getRepository )){ revWalk =>
+              commits.flatten.map { commit =>
+                revWalk.parseCommit(git.getRepository.resolve(commit.id))
+              }
+            }.reverse
+
             // merge git repository
-            println(form.strategy)
             form.strategy match {
               case "merge-commit" =>
                 mergePullRequest(git, pullreq.branch, issueId,
                   s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
                   new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
               case "rebase" =>
-                rebasePullRequest(git, pullreq.branch, issueId,
+                rebasePullRequest(git, pullreq.branch, issueId, revCommits,
                   new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
               case "squash" =>
                 squashPullRequest(git, pullreq.branch, issueId,
-                  s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
+                  s"${issue.title} (#${issueId})\n\n" + form.message,
                   new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
             }
-
-            val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
-              pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
 
             // close issue by content of pull request
             val defaultBranch = getRepository(owner, name).get.repository.defaultBranch

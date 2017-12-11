@@ -8,7 +8,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
-import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 
 trait MergeService {
   import MergeService._
@@ -40,11 +40,12 @@ trait MergeService {
     new MergeCacheInfo(git, branch, issueId).merge(message, committer)
   }
 
-  /** rebase to the pull request branch */
-  def rebasePullRequest(git: Git, branch: String, issueId: Int, committer: PersonIdent): Unit = {
-    new MergeCacheInfo(git, branch, issueId).rebase(committer)
+  /** rebase to the head of the pull request branch */
+  def rebasePullRequest(git: Git, branch: String, issueId: Int, commits: Seq[RevCommit], committer: PersonIdent): Unit = {
+    new MergeCacheInfo(git, branch, issueId).rebase(committer, commits)
   }
 
+  /** squash commits in the pull request and append it */
   def squashPullRequest(git: Git, branch: String, issueId: Int, message: String, committer: PersonIdent): Unit = {
     new MergeCacheInfo(git, branch, issueId).squash(message, committer)
   }
@@ -205,7 +206,6 @@ object MergeService{
       conflicted
     }
 
-    // update branch from cache
     def merge(message: String, committer: PersonIdent): Unit = {
       if(checkConflict()){
         throw new RuntimeException("This pull request can't merge automatically.")
@@ -219,12 +219,37 @@ object MergeService{
       Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged")) // TODO reflog message
     }
 
-    def rebase(committer: PersonIdent): Unit = {
+    def rebase(committer: PersonIdent, commits: Seq[RevCommit]): Unit = {
       if(checkConflict()){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
-      val mergeTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeTip ))
-      Util.updateRefs(repository, s"refs/heads/${branch}", mergeTipCommit.getId, false, committer, Some("merged")) // TODO reflog message
+
+      def _cloneCommit(commit: RevCommit, parents: Array[ObjectId]): CommitBuilder = {
+        val newCommit = new CommitBuilder()
+        newCommit.setTreeId(commit.getTree.getId)
+        parents.foreach { parentId =>
+          newCommit.addParentId(parentId)
+        }
+        newCommit.setAuthor(commit.getAuthorIdent)
+        newCommit.setCommitter(committer)
+        newCommit.setMessage(commit.getFullMessage)
+        newCommit
+      }
+
+      val mergeBaseTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeBaseTip ))
+      var previousId = mergeBaseTipCommit.getId
+
+      val inserter = repository.newObjectInserter
+
+      commits.foreach { commit =>
+        val nextCommit = _cloneCommit(commit, Array(previousId))
+        previousId = inserter.insert(nextCommit)
+      }
+
+      inserter.flush()
+      inserter.close()
+
+      Util.updateRefs(repository, s"refs/heads/${branch}", previousId, false, committer, Some("merged")) // TODO reflog message
     }
 
     def squash(message: String, committer: PersonIdent): Unit = {
@@ -232,13 +257,13 @@ object MergeService{
         throw new RuntimeException("This pull request can't merge automatically.")
       }
 
-      val baseCommit = using(new RevWalk( repository ))(_.parseCommit(mergeBaseTip))
+      val mergeBaseTipCommit = using(new RevWalk( repository ))(_.parseCommit(mergeBaseTip))
       val mergeBranchHeadCommit = using(new RevWalk( repository ))(_.parseCommit(repository.resolve(mergedBranchName)))
 
       // Create squash commit
       val mergeCommit = new CommitBuilder()
       mergeCommit.setTreeId(mergeBranchHeadCommit.getTree.getId)
-      mergeCommit.setParentId(baseCommit)
+      mergeCommit.setParentId(mergeBaseTipCommit)
       mergeCommit.setAuthor(mergeBranchHeadCommit.getAuthorIdent)
       mergeCommit.setCommitter(committer)
       mergeCommit.setMessage(message)
@@ -259,7 +284,7 @@ object MergeService{
     private def createMergeCommit(treeId: ObjectId, committer: PersonIdent, message: String) =
       Util.createMergeCommit(repository, treeId, committer, message, Seq[ObjectId](mergeBaseTip, mergeTip))
 
-    private def parseCommit(id:ObjectId) = using(new RevWalk( repository ))(_.parseCommit(id))
+    private def parseCommit(id: ObjectId) = using(new RevWalk( repository ))(_.parseCommit(id))
 
   }
 }
