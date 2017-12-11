@@ -122,7 +122,7 @@ trait MergeService {
 object MergeService{
 
   object Util{
-    // return treeId
+    // return merge commit id
     def createMergeCommit(repository: Repository, treeId: ObjectId, committer: PersonIdent, message: String, parents: Seq[ObjectId]): ObjectId = {
       val mergeCommit = new CommitBuilder()
       mergeCommit.setTreeId(treeId)
@@ -131,15 +131,14 @@ object MergeService{
       mergeCommit.setCommitter(committer)
       mergeCommit.setMessage(message)
       // insertObject and got mergeCommit Object Id
-      val inserter = repository.newObjectInserter
-      val mergeCommitId = inserter.insert(mergeCommit)
-      inserter.flush()
-      inserter.close()
-      mergeCommitId
+      using(repository.newObjectInserter){ inserter =>
+        val mergeCommitId = inserter.insert(mergeCommit)
+        inserter.flush()
+        mergeCommitId
+      }
     }
 
     def updateRefs(repository: Repository, ref: String, newObjectId: ObjectId, force: Boolean, committer: PersonIdent, refLogMessage: Option[String] = None): Unit = {
-      // update refs
       val refUpdate = repository.updateRef(ref)
       refUpdate.setNewObjectId(newObjectId)
       refUpdate.setForceUpdate(force)
@@ -239,15 +238,13 @@ object MergeService{
       val mergeBaseTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeBaseTip ))
       var previousId = mergeBaseTipCommit.getId
 
-      val inserter = repository.newObjectInserter
-
-      commits.foreach { commit =>
-        val nextCommit = _cloneCommit(commit, Array(previousId))
-        previousId = inserter.insert(nextCommit)
+      using(repository.newObjectInserter){ inserter =>
+        commits.foreach { commit =>
+          val nextCommit = _cloneCommit(commit, Array(previousId))
+          previousId = inserter.insert(nextCommit)
+        }
+        inserter.flush()
       }
-
-      inserter.flush()
-      inserter.close()
 
       Util.updateRefs(repository, s"refs/heads/${branch}", previousId, false, committer, Some("merged")) // TODO reflog message
     }
@@ -269,10 +266,11 @@ object MergeService{
       mergeCommit.setMessage(message)
 
       // insertObject and got squash commit Object Id
-      val inserter = repository.newObjectInserter
-      val newCommitId = inserter.insert(mergeCommit)
-      inserter.flush()
-      inserter.close()
+      val newCommitId = using(repository.newObjectInserter){ inserter =>
+        val newCommitId = inserter.insert(mergeCommit)
+        inserter.flush()
+        newCommitId
+      }
 
       Util.updateRefs(repository, mergedBranchName, newCommitId, true, committer)
 
