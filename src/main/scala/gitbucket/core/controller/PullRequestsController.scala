@@ -16,6 +16,7 @@ import gitbucket.core.util._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.revwalk.RevWalk
 
 import scala.collection.JavaConverters._
 
@@ -50,7 +51,8 @@ trait PullRequestsControllerBase extends ControllerBase {
   )(PullRequestForm.apply)
 
   val mergeForm = mapping(
-    "message" -> trim(label("Message", text(required)))
+    "message"  -> trim(label("Message", text(required))),
+    "strategy" -> trim(label("Strategy", text(required)))
   )(MergeForm.apply)
 
   case class PullRequestForm(
@@ -69,7 +71,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     labelNames: Option[String]
   )
 
-  case class MergeForm(message: String)
+  case class MergeForm(message: String, strategy: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     val q = request.getParameter("q")
@@ -258,13 +260,29 @@ trait PullRequestsControllerBase extends ControllerBase {
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
-            // merge git repository
-            mergePullRequest(git, pullreq.branch, issueId,
-              s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
-               new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-
             val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
               pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
+
+            val revCommits = using(new RevWalk( git.getRepository )){ revWalk =>
+              commits.flatten.map { commit =>
+                revWalk.parseCommit(git.getRepository.resolve(commit.id))
+              }
+            }.reverse
+
+            // merge git repository
+            form.strategy match {
+              case "merge-commit" =>
+                mergePullRequest(git, pullreq.branch, issueId,
+                  s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+              case "rebase" =>
+                rebasePullRequest(git, pullreq.branch, issueId, revCommits,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+              case "squash" =>
+                squashPullRequest(git, pullreq.branch, issueId,
+                  s"${issue.title} (#${issueId})\n\n" + form.message,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+            }
 
             // close issue by content of pull request
             val defaultBranch = getRepository(owner, name).get.repository.defaultBranch
