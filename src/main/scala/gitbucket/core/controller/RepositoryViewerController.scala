@@ -25,6 +25,7 @@ import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
+import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.i18n.Messages
 
@@ -403,7 +404,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     contentType = formats("json")
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val last = git.log.add(git.getRepository.resolve(id)).addPath(path).setMaxCount(1).call.iterator.next.name
-      Map(
+      Serialization.write(Map(
         "root"  -> s"${context.baseUrl}/${repository.owner}/${repository.name}",
         "id"    -> id,
         "path"  -> path,
@@ -419,7 +420,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             "commited" -> blame.commitTime.getTime,
             "message"  -> blame.message,
             "lines"    -> blame.lines)
-        })
+        }))
     }
   })
 
@@ -497,7 +498,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
         } getOrElse {
           contentType = formats("json")
-          org.json4s.jackson.Serialization.write(
+          Serialization.write(
             Map(
               "content" -> view.Markdown.toHtml(
                 markdown = x.content,
