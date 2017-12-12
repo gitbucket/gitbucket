@@ -216,7 +216,7 @@ object MergeService{
         throw new RuntimeException("This pull request can't merge automatically.")
       }
       val mergeResultCommit = parseCommit(Option(repository.resolve(mergedBranchName)).getOrElse {
-        throw new RuntimeException(s"not found branch ${mergedBranchName}")
+        throw new RuntimeException(s"Not found branch ${mergedBranchName}")
       })
       // creates merge commit
       val mergeCommitId = createMergeCommit(mergeResultCommit.getTree().getId(), committer, message)
@@ -295,7 +295,7 @@ object MergeService{
   private def createConflictMessage(mergeTip: ObjectId, mergeBaseTip: ObjectId, merger: Merger): String = {
     val mergeResults = merger.asInstanceOf[RecursiveMerger].getMergeResults
 
-    s"can't merge ${mergeTip.name} into ${mergeBaseTip.name}\n\n" +
+    s"Can't merge ${mergeTip.name} into ${mergeBaseTip.name}\n\n" +
       "Conflicting files:\n" +
       mergeResults.asScala.map { case (key, _) => "- " + key + "\n" }.mkString
   }
