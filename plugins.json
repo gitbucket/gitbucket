@@ -37,5 +37,18 @@
       }
     ],
     "default": false
+  },
+  {
+    "id": "pages",
+    "name": "Pages Plugin",
+    "description": "Project pages for gitbucket",
+    "versions": [
+      {
+        "version": "v1.6.0",
+        "range": ">=4.19.0",
+        "file": "gitbucket-pages-plugin_2.12-1.6.0.jar"
+      }
+    ],
+    "default": false
   }
 ]
