@@ -3,21 +3,12 @@ package gitbucket.core.service
 import gitbucket.core.model.Account
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.SyntaxSugars._
-<<<<<<< HEAD
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.{Git, MergeResult}
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
-import org.eclipse.jgit.revwalk.RevWalk
-=======
-import org.eclipse.jgit.merge.MergeStrategy
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.transport.RefSpec
-import org.eclipse.jgit.errors.NoMergeBaseException
-import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
->>>>>>> master
 
 import scala.collection.JavaConverters._
 
@@ -117,7 +108,6 @@ trait MergeService {
   def pullRemote(localUserName: String, localRepositoryName: String, localBranch: String,
                       remoteUserName: String, remoteRepositoryName: String, remoteBranch: String,
                       loginAccount: Account, message: String): Option[ObjectId] = {
-<<<<<<< HEAD
     tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch).map { case (newTreeId, oldBaseId, oldHeadId) =>
       using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
         val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
@@ -126,17 +116,6 @@ trait MergeService {
       }
       oldBaseId
     }.toOption
-=======
-    tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch)
-      .map { case (newTreeId, oldBaseId, oldHeadId) =>
-        using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
-          val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-          val newCommit = Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
-          Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
-        }
-        oldBaseId
-      }
->>>>>>> master
   }
 
 }
