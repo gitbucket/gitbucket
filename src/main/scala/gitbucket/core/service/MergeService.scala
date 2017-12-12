@@ -3,12 +3,14 @@ package gitbucket.core.service
 import gitbucket.core.model.Account
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.SyntaxSugars._
-import org.eclipse.jgit.merge.MergeStrategy
-import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
+import org.eclipse.jgit.api.{Git, MergeResult}
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
+
+import scala.collection.JavaConverters._
 
 trait MergeService {
   import MergeService._
@@ -17,7 +19,7 @@ trait MergeService {
    * Checks whether conflict will be caused in merging within pull request.
    * Returns true if conflict will be caused.
    */
-  def checkConflict(userName: String, repositoryName: String, branch: String, issueId: Int): Boolean = {
+  def checkConflict(userName: String, repositoryName: String, branch: String, issueId: Int): Option[String] = {
     using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
       new MergeCacheInfo(git, branch, issueId).checkConflict()
     }
@@ -29,7 +31,7 @@ trait MergeService {
    * Returns Some(true) if conflict will be caused.
    * Returns None if cache has not created yet.
    */
-  def checkConflictCache(userName: String, repositoryName: String, branch: String, issueId: Int): Option[Boolean] = {
+  def checkConflictCache(userName: String, repositoryName: String, branch: String, issueId: Int): Option[Option[String]] = {
     using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
       new MergeCacheInfo(git, branch, issueId).checkConflictCache()
     }
@@ -64,7 +66,7 @@ trait MergeService {
    * Checks whether conflict will be caused in merging. Returns true if conflict will be caused.
    */
   def tryMergeRemote(localUserName: String, localRepositoryName: String, localBranch: String,
-                      remoteUserName: String, remoteRepositoryName: String, remoteBranch: String): Option[(ObjectId, ObjectId, ObjectId)] = {
+                      remoteUserName: String, remoteRepositoryName: String, remoteBranch: String): Either[String, (ObjectId, ObjectId, ObjectId)] = {
     using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
       val remoteRefName = s"refs/heads/${remoteBranch}"
       val tmpRefName = s"refs/remote-temp/${remoteUserName}/${remoteRepositoryName}/${remoteBranch}"
@@ -81,12 +83,12 @@ trait MergeService {
         val mergeTip = git.getRepository.resolve(tmpRefName)
         try {
           if(merger.merge(mergeBaseTip, mergeTip)){
-            Some((merger.getResultTreeId, mergeBaseTip, mergeTip))
+            Right((merger.getResultTreeId, mergeBaseTip, mergeTip))
           } else {
-            None
+            Left(createConflictMessage(mergeTip, mergeBaseTip, merger))
           }
         } catch {
-          case e: NoMergeBaseException =>  None
+          case e: NoMergeBaseException => Left(e.toString)
         }
       } finally {
         val refUpdate = git.getRepository.updateRef(refSpec.getDestination)
@@ -97,24 +99,23 @@ trait MergeService {
   }
 
   /**
-   * Checks whether conflict will be caused in merging. Returns true if conflict will be caused.
+   * Checks whether conflict will be caused in merging. Returns `Some(errorMessage)` if conflict will be caused.
    */
   def checkConflict(userName: String, repositoryName: String, branch: String,
-                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean =
-    tryMergeRemote(userName, repositoryName, branch, requestUserName, requestRepositoryName, requestBranch).isEmpty
+                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Option[String] =
+    tryMergeRemote(userName, repositoryName, branch, requestUserName, requestRepositoryName, requestBranch).left.toOption
 
   def pullRemote(localUserName: String, localRepositoryName: String, localBranch: String,
                       remoteUserName: String, remoteRepositoryName: String, remoteBranch: String,
                       loginAccount: Account, message: String): Option[ObjectId] = {
-    tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch)
-      .map { case (newTreeId, oldBaseId, oldHeadId) =>
-        using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
-          val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-          val newCommit = Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
-          Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
-        }
-        oldBaseId
+    tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch).map { case (newTreeId, oldBaseId, oldHeadId) =>
+      using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+        val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+        val newCommit = Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
+        Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
       }
+      oldBaseId
+    }.toOption
   }
 
 }
@@ -151,35 +152,37 @@ object MergeService{
   class MergeCacheInfo(git: Git, branch: String, issueId: Int){
 
     private val repository = git.getRepository
-    private val mergedBranchName = s"refs/pull/${issueId}/merge"
+
+    private val mergedBranchName     = s"refs/pull/${issueId}/merge"
     private val conflictedBranchName = s"refs/pull/${issueId}/conflict"
 
     lazy val mergeBaseTip = repository.resolve(s"refs/heads/${branch}")
-    lazy val mergeTip = repository.resolve(s"refs/pull/${issueId}/head")
+    lazy val mergeTip     = repository.resolve(s"refs/pull/${issueId}/head")
 
-    def checkConflictCache(): Option[Boolean] = {
+    def checkConflictCache(): Option[Option[String]] = {
       Option(repository.resolve(mergedBranchName)).flatMap { merged =>
-        if(parseCommit(merged).getParents().toSet == Set( mergeBaseTip, mergeTip )){
-          // merged branch exists
-          Some(false)
-        } else {
-          None
-        }
-      }.orElse(Option(repository.resolve(conflictedBranchName)).flatMap { conflicted =>
-        if(parseCommit(conflicted).getParents().toSet == Set( mergeBaseTip, mergeTip )){
+          if(parseCommit(merged).getParents().toSet == Set( mergeBaseTip, mergeTip )){
+            // merged branch exists
+            Some(None)
+          } else {
+            None
+          }
+      }.orElse(Option(repository.resolve(conflictedBranchName)).flatMap{ conflicted =>
+        val commit = parseCommit(conflicted)
+        if(commit.getParents().toSet == Set( mergeBaseTip, mergeTip )){
           // conflict branch exists
-          Some(true)
+          Some(Some(commit.getFullMessage))
         } else {
           None
         }
       })
     }
 
-    def checkConflict(): Boolean = {
+    def checkConflict(): Option[String] ={
       checkConflictCache.getOrElse(checkConflictForce)
     }
 
-    def checkConflictForce(): Boolean = {
+    def checkConflictForce(): Option[String] ={
       val merger = MergeStrategy.RECURSIVE.newMerger(repository, true)
       val conflicted = try {
         !merger.merge(mergeBaseTip, mergeTip)
@@ -198,19 +201,22 @@ object MergeService{
       if(!conflicted){
         _updateBranch(merger.getResultTreeId, s"Merge ${mergeTip.name} into ${mergeBaseTip.name}", mergedBranchName)
         git.branchDelete().setForce(true).setBranchNames(conflictedBranchName).call()
+        None
       } else {
-        _updateBranch(mergeTipCommit.getTree().getId(), s"can't merge ${mergeTip.name} into ${mergeBaseTip.name}", conflictedBranchName)
+        val message = createConflictMessage(mergeTip, mergeBaseTip, merger)
+        _updateBranch(mergeTipCommit.getTree().getId(), message, conflictedBranchName)
         git.branchDelete().setForce(true).setBranchNames(mergedBranchName).call()
+        Some(message)
       }
-      conflicted
     }
 
-    def merge(message: String, committer: PersonIdent): Unit = {
-      if(checkConflict()){
+    // update branch from cache
+    def merge(message:String, committer:PersonIdent) = {
+      if(checkConflict().isDefined){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
       val mergeResultCommit = parseCommit(Option(repository.resolve(mergedBranchName)).getOrElse {
-        throw new RuntimeException(s"not found branch ${mergedBranchName}")
+        throw new RuntimeException(s"Not found branch ${mergedBranchName}")
       })
       // creates merge commit
       val mergeCommitId = createMergeCommit(mergeResultCommit.getTree().getId(), committer, message)
@@ -219,7 +225,7 @@ object MergeService{
     }
 
     def rebase(committer: PersonIdent, commits: Seq[RevCommit]): Unit = {
-      if(checkConflict()){
+      if(checkConflict().isDefined){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
 
@@ -250,7 +256,7 @@ object MergeService{
     }
 
     def squash(message: String, committer: PersonIdent): Unit = {
-      if(checkConflict()){
+      if(checkConflict().isDefined){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
 
@@ -285,4 +291,13 @@ object MergeService{
     private def parseCommit(id: ObjectId) = using(new RevWalk( repository ))(_.parseCommit(id))
 
   }
+
+  private def createConflictMessage(mergeTip: ObjectId, mergeBaseTip: ObjectId, merger: Merger): String = {
+    val mergeResults = merger.asInstanceOf[RecursiveMerger].getMergeResults
+
+    s"Can't merge ${mergeTip.name} into ${mergeBaseTip.name}\n\n" +
+      "Conflicting files:\n" +
+      mergeResults.asScala.map { case (key, _) => "- " + key + "\n" }.mkString
+  }
+
 }

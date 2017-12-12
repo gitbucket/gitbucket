@@ -41,6 +41,10 @@
               Only those with write access to this repository can merge pull requests.
             }
           </div>
+          <div>
+            <hr>
+            @status.conflictMessage.map { message => @helpers.markdown(message, originRepository, false, true, false) }
+          </div>
         } else {
           @if(status.branchIsOutOfDate){
             @if(status.hasUpdatePermission){
