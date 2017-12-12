@@ -33,7 +33,7 @@ class MergeServiceSpec extends FunSpec {
       assert(service.checkConflictCache("user1", "repo1", branch, issueId) == None)
       val conflicted = service.checkConflict("user1", "repo1", branch, issueId)
       assert(service.checkConflictCache("user1", "repo1", branch, issueId) == Some(false))
-      assert(conflicted  == false)
+      assert(conflicted.isEmpty)
     }
     it("checkConflict true if not conflicted, and create cache") {
       val repo2Dir = initRepository("user1","repo2")
@@ -42,7 +42,7 @@ class MergeServiceSpec extends FunSpec {
       }
       assert(service.checkConflictCache("user1", "repo2", branch, issueId) == None)
       val conflicted = service.checkConflict("user1", "repo2", branch, issueId)
-      assert(conflicted  == true)
+      assert(conflicted.isDefined)
       assert(service.checkConflictCache("user1", "repo2", branch, issueId) == Some(true))
     }
   }
