@@ -215,7 +215,7 @@ object MergeService{
       // creates merge commit
       val mergeCommitId = createMergeCommit(mergeResultCommit.getTree().getId(), committer, message)
       // update refs
-      Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged")) // TODO reflog message
+      Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged"))
     }
 
     def rebase(committer: PersonIdent, commits: Seq[RevCommit]): Unit = {
@@ -246,7 +246,7 @@ object MergeService{
         inserter.flush()
       }
 
-      Util.updateRefs(repository, s"refs/heads/${branch}", previousId, false, committer, Some("merged")) // TODO reflog message
+      Util.updateRefs(repository, s"refs/heads/${branch}", previousId, false, committer, Some("rebased"))
     }
 
     def squash(message: String, committer: PersonIdent): Unit = {
@@ -275,7 +275,7 @@ object MergeService{
       Util.updateRefs(repository, mergedBranchName, newCommitId, true, committer)
 
       // rebase to squash commit
-      Util.updateRefs(repository, s"refs/heads/${branch}", repository.resolve(mergedBranchName), false, committer, Some("merged")) // TODO reflog message
+      Util.updateRefs(repository, s"refs/heads/${branch}", repository.resolve(mergedBranchName), false, committer, Some("squashed"))
     }
 
     // return treeId
