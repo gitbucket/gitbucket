@@ -53,5 +53,5 @@ object ApiCommit{
       committer = ApiPersonIdent.committer(commit)
     )(repositoryName, urlIsHtmlUrl)
   }
-  def forPushPayload(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit = apply(git, repositoryName, commit, true)
+  def forWebhookPayload(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit = apply(git, repositoryName, commit, true)
 }

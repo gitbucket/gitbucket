@@ -306,6 +306,18 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   newId = command.getNewId(), oldId = command.getOldId())
               }
             }
+            if (command.getType ==  ReceiveCommand.Type.CREATE) {
+              callWebHookOf(owner, repository, WebHook.Create) {
+                for {
+                  pusherAccount <- getAccountByUserName(pusher)
+                  ownerAccount  <- getAccountByUserName(owner)
+                } yield {
+                  val refType = if (refName(1) == "tags") "tag" else "branch"
+                  WebHookCreatePayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount,
+                    ref = branchName, refType = refType)
+                }
+              }
+            }
 
             // call post-commit hook
             PluginRegistry().getReceiveHooks.foreach(_.postReceive(owner, repository, receivePack, command, pusher))
