@@ -51,7 +51,7 @@ object ApiRepository{
   def apply(repositoryInfo: RepositoryInfo, owner: Account): ApiRepository =
     this(repositoryInfo.repository, ApiUser(owner))
 
-  def forPushPayload(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
+  def forWebhookPayload(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
     ApiRepository(repositoryInfo.repository, owner, forkedCount=repositoryInfo.forkedCount, urlIsHtmlUrl=true)
 
   def forDummyPayload(owner: ApiUser): ApiRepository =

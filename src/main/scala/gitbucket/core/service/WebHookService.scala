@@ -362,6 +362,35 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
 object WebHookService {
   trait WebHookPayload
 
+  // https://developer.github.com/v3/activity/events/types/#createevent
+  case class WebHookCreatePayload(
+    sender: ApiUser,
+    description: String,
+    ref: String,
+    ref_type: String,
+    master_branch: String,
+    repository: ApiRepository
+  ) extends FieldSerializable with WebHookPayload {
+    val pusher_type = "user"
+  }
+
+  object WebHookCreatePayload {
+
+    def apply(git: Git, sender: Account, refName: String, repositoryInfo: RepositoryInfo,
+              commits: List[CommitInfo], repositoryOwner: Account,
+              ref: String, refType: String): WebHookCreatePayload =
+      WebHookCreatePayload(
+        sender        = ApiUser(sender),
+        ref           = ref,
+        ref_type      = refType,
+        description   = repositoryInfo.repository.description.getOrElse(""),
+        master_branch = repositoryInfo.repository.defaultBranch,
+        repository    = ApiRepository.forWebhookPayload(
+          repositoryInfo,
+          owner= ApiUser(repositoryOwner))
+      )
+  }
+
   // https://developer.github.com/v3/activity/events/types/#pushevent
   case class WebHookPushPayload(
     pusher: ApiPusher,
@@ -391,8 +420,8 @@ object WebHookService {
         ref        = refName,
         before     = ObjectId.toString(oldId),
         after      = ObjectId.toString(newId),
-        commits    = commits.map{ commit => ApiCommit.forPushPayload(git, RepositoryName(repositoryInfo), commit) },
-        repository = ApiRepository.forPushPayload(
+        commits    = commits.map{ commit => ApiCommit.forWebhookPayload(git, RepositoryName(repositoryInfo), commit) },
+        repository = ApiRepository.forWebhookPayload(
           repositoryInfo,
           owner= ApiUser(repositoryOwner))
       )
