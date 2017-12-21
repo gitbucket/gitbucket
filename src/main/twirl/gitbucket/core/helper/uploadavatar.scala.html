@@ -1,7 +1,7 @@
 @(account: Option[gitbucket.core.model.Account])(implicit context: gitbucket.core.controller.Context)
 <div id="avatar" class="muted">
   @if(account.nonEmpty && account.get.image.nonEmpty){
-    <img src="@context.path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
+    <img src="@context.path/@account.get.userName/_avatar" style="width: 120px; height: 120px;"/>
   } else {
     <div id="clickable">Upload Image</div>
   }
