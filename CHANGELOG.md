@@ -1,6 +1,20 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.19.3 - 7 Dec 2017
+
+- Fix file uploading bug
+- Fix reply comment form behavior in the diff view
+
+## 4.19.2 - 3 Dec 2017
+
+- Fix routing bug in `CompositeScalatraFilter`
+- Resolve id attribute collision in the web hook editing form
+
+## 4.19.1 - 2 Dec 2017
+
+- Update gitbucket-notifications-plugin because it had a version compatibility issue
+
 ## 4.19.0 - 2 Dec 2017
 - [gitbucket-maven-repository-plugin](https://github.com/takezoe/gitbucket-maven-repository-plugin) is available
 - Upgrade to Scalatra 2.6

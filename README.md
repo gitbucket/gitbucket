@@ -68,29 +68,18 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.19.x
+What's New in 4.20.x
 -------------
 
-### 4.19.3 - 7 Dec 2017
+### 4.20.0 - 23 Dec 2017
 
-- Fix file uploading bug
-- Fix reply comment form behavior in the diff view
-
-### 4.19.2 - 3 Dec 2017
-
-- Fix routing bug in `CompositeScalatraFilter`
-- Resolve id attribute collision in the web hook editing form
-
-### 4.19.1 - 2 Dec 2017
-
-- Update gitbucket-notifications-plugin because it had a version compatibility issue
-
-### 4.19.0 - 2 Dec 2017
-
-- [gitbucket-maven-repository-plugin](https://github.com/takezoe/gitbucket-maven-repository-plugin) is available
-- Upgrade to Scalatra 2.6
-- Improve layout of the system settings page
-- New extension point (`sshCommandProvider`)
-- Dropped [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin) from bundled plugins temporary because we couldn't complete update for Scalatra 2.6 before this release.
+- Download patch from the diff view
+- Quick pull request creation
+- Squash and rebase merge strategy for pull requests
+- Fork and create repository are proceeded asynchronously
+- Create new repository by copying existing git repository
+- Hide overflowed repository names in the sidebar
+- Support CreateEvent web hook
+- Display conflicting files if pull request can't be merged
 
 See the [change log](CHANGELOG.md) for all of the updates.
