@@ -1850,6 +1850,12 @@ body.page-load * {
   transition: none !important;
 }
 
+body:not(.sidebar-collapse) .main-sidebar li.menu-item-hover > a,
+body.sidebar-collapse .main-sidebar li:hover > a > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-right-container {
   display: inline !important;
   position: absolute;
