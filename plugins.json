@@ -7,7 +7,7 @@
       {
         "version": "1.4.0",
         "range": ">=4.19.0",
-        "file": "gitbucket-notifications-plugin_2.12-1.4.0.jar"
+        "url": "https://github.com/gitbucket/gitbucket-notifications-plugin/releases/download/1.4.0/gitbucket-notifications-plugin_2.12-1.4.0.jar"
       }
     ],
     "default": true
@@ -20,7 +20,7 @@
       {
         "version": "4.5.0",
         "range": ">=4.18.0",
-        "file": "gitbucket-emoji-plugin_2.12-4.5.0.jar"
+        "url": "https://github.com/gitbucket/gitbucket-emoji-plugin/releases/download/4.5.0/gitbucket-emoji-plugin_2.12-4.5.0.jar"
       }
     ],
     "default": false
@@ -33,7 +33,7 @@
       {
         "version": "4.11.0",
         "range": ">=4.19.0",
-        "file": "gitbucket-gist-plugin-assembly-4.11.0.jar"
+        "url": "https://github.com/gitbucket/gitbucket-gist-plugin/releases/download/4.11.0/gitbucket-gist-plugin-assembly-4.11.0.jar"
       }
     ],
     "default": false
@@ -44,9 +44,9 @@
     "description": "Project pages for gitbucket",
     "versions": [
       {
-        "version": "v1.6.0",
+        "version": "1.6.0",
         "range": ">=4.19.0",
-        "file": "gitbucket-pages-plugin_2.12-1.6.0.jar"
+        "url": "https://github.com/gitbucket/gitbucket-pages-plugin/releases/download/v1.6.0/gitbucket-pages-plugin_2.12-1.6.0.jar"
       }
     ],
     "default": false

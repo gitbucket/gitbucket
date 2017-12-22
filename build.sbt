@@ -160,10 +160,9 @@ executableKey := {
   IO copyFile(Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
 
   val json = IO read(Keys.baseDirectory.value / "plugins.json")
-  PluginsJson.parse(json).foreach { case (plugin, version, file) =>
-    val url = s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${file}"
+  PluginsJson.getUrls(json).foreach { url =>
     log info s"Download: ${url}"
-    IO transfer(new java.net.URL(url).openStream, pluginsDir / file)
+    IO transfer(new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
   }
 
   // zip it up
