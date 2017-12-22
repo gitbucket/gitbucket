@@ -1,6 +1,17 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.20.0 - 23 Dec 2017
+
+- Squash and rebase merge strategy for pull requests
+- Quick pull request creation
+- Download patch from the diff view
+- Fork and create repository are proceeded asynchronously
+- Create new repository by copying existing git repository
+- Hide overflowed repository names in the sidebar
+- Support CreateEvent web hook
+- Display conflicting files if pull request can't be merged
+
 ## 4.19.3 - 7 Dec 2017
 
 - Fix file uploading bug
