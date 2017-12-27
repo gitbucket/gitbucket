@@ -219,10 +219,13 @@ trait WikiControllerBase extends ControllerBase {
 
   get("/:owner/:repository/wiki/_blob/*")(referrersOnly { repository =>
     val path = multiParams("splat").head
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("master"))
 
-    getFileContent(repository.owner, repository.name, path).map { bytes =>
-      RawData(FileUtil.getContentType(path, bytes), bytes)
-    } getOrElse NotFound()
+      getPathObjectId(git, path, revCommit).map { objectId =>
+        responseRawFile(git, objectId, path, repository)
+      } getOrElse NotFound()
+    }
   })
 
   private def unique: Constraint = new Constraint(){
