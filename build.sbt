@@ -26,8 +26,8 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.9.1.201712030800-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.9.1.201712030800-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.9.2.201712150930-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.9.2.201712150930-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"               % ScalatraVersion,
