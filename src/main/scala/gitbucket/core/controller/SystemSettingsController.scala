@@ -13,15 +13,19 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
 import org.scalatra.forms._
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.IOUtils
 import org.scalatra.i18n.Messages
 import com.github.zafarkhaja.semver.{Version => Semver}
 import gitbucket.core.GitBucketCoreModule
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
+
+case class Table(name: String, columns: Seq[Column])
+case class Column(name: String)
 
 trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with AdminAuthenticator =>
@@ -153,7 +157,23 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
 
   get("/admin/dbviewer")(adminOnly {
-    html.dbviewer()
+    val conn = request2Session(request).conn
+    val meta = conn.getMetaData
+    val tables = ListBuffer[Table]()
+    using(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))){ rs =>
+      while(rs.next()){
+        val tableName = rs.getString("TABLE_NAME")
+        val columns = ListBuffer[Column]()
+        using(meta.getColumns(null, "%", tableName, "%")){ rs =>
+          while(rs.next()){
+            columns += Column(rs.getString("COLUMN_NAME").toUpperCase)
+          }
+        }
+
+        tables += Table(tableName.toUpperCase, columns)
+      }
+    }
+    html.dbviewer(tables)
   })
 
   get("/admin/system")(adminOnly {

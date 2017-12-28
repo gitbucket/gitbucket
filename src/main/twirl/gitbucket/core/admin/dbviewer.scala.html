@@ -1,15 +1,45 @@
-@()(implicit context: gitbucket.core.controller.Context)
+@(tables: Seq[gitbucket.core.controller.Table])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Database viewer") {
   @gitbucket.core.admin.html.menu("dbviewer") {
-    <div id="editor" style="width: 100%; height: 300px;"></div>
-    <div id="result"></div>
+    <div>
+      <div class="col-md-3">
+        <div id="table-tree">
+          <ul>
+          @tables.map { table =>
+            <li>@table.name
+            <ul>
+            @table.columns.map { column =>
+              <li>@column.name</li>
+            }
+            </ul>
+            </li>
+          }
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <div id="editor" style="width: 100%; height: 300px;"></div>
+        <div class="block">
+          <input type="button" value="Run query" id="run-query" class="btn btn-success">
+        </div>
+        <div id="result"></div>
+      </div>
+    </div>
   }
 }
 <script src="@gitbucket.core.view.helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
+<script src="@gitbucket.core.view.helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
+<link rel="stylesheet" href="@gitbucket.core.view.helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
+
+  $('#table-tree').jstree();
+
+  $('#run-query').click(function(){
+    console.log(editor.getValue());
+  });
 });
 </script>
