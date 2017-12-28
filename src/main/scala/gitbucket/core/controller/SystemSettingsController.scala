@@ -152,6 +152,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   )(EditGroupForm.apply)
 
 
+  get("/admin/dbviewer")(adminOnly {
+    html.dbviewer()
+  })
+
   get("/admin/system")(adminOnly {
     html.system(flash.get("info"))
   })

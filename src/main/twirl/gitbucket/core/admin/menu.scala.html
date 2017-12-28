@@ -25,10 +25,10 @@
           <span>Data export / import</span>
         </a>
       </li>
-      <li class="menu-item-hover">
-        <a href="@context.path/console/login.jsp" target="_blank">
+      <li class="menu-item-hover @if(active=="dbviewer"){active}">
+        <a href="@context.path/admin/dbviewer">
           <i class="menu-icon octicon octicon-database"></i>
-          <span>H2 console</span>
+          <span>Database viewer</span>
         </a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>

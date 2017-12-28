@@ -1,0 +1,15 @@
+@()(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Database viewer") {
+  @gitbucket.core.admin.html.menu("dbviewer") {
+    <div id="editor" style="width: 100%; height: 300px;"></div>
+    <div id="result"></div>
+  }
+}
+<script src="@gitbucket.core.view.helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
+<script>
+$(function(){
+  $('#editor').text($('#initial').val());
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+});
+</script>
