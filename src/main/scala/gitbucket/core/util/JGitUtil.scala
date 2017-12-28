@@ -22,7 +22,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-import org.cache2k.{Cache2kBuilder, CacheEntry}
+import org.cache2k.Cache2kBuilder
 import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter, RawTextComparator}
 import org.eclipse.jgit.dircache.DirCacheEntry
@@ -189,11 +189,9 @@ object JGitUtil {
     val dir = git.getRepository.getDirectory
     val keyPrefix = dir.getAbsolutePath + "@"
 
-    cache.forEach(new Consumer[CacheEntry[String, Int]] {
-      override def accept(entry: CacheEntry[String, Int]): Unit = {
-        if(entry.getKey.startsWith(keyPrefix)){
-          cache.remove(entry.getKey)
-        }
+    cache.keys.forEach(key => {
+      if (key.startsWith(keyPrefix)) {
+        cache.remove(key)
       }
     })
   }
