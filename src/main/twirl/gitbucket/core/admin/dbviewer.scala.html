@@ -1,17 +1,18 @@
 @(tables: Seq[gitbucket.core.controller.Table])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Database viewer") {
   @gitbucket.core.admin.html.menu("dbviewer") {
-    <div>
+    <div class="container">
       <div class="col-md-3">
         <div id="table-tree">
           <ul>
           @tables.map { table =>
-            <li>@table.name
-            <ul>
-            @table.columns.map { column =>
-              <li>@column.name</li>
-            }
-            </ul>
+            <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}'><a href="javascript:void(0);" class="table-link">@table.name</a>
+              <ul>
+              @table.columns.map { column =>
+                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}'>@column.name</li>
+              }
+              </ul>
             </li>
           }
           </ul>
@@ -27,19 +28,60 @@
     </div>
   }
 }
-<script src="@gitbucket.core.view.helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
-<script src="@gitbucket.core.view.helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
-<link rel="stylesheet" href="@gitbucket.core.view.helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
+<script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
+<script src="@helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
+<link rel="stylesheet" href="@helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
+  editor.getSession().setMode("ace/mode/sql");
+
 
   $('#table-tree').jstree();
 
+  $('.table-link').click(function(e){
+    var query = editor.getValue();
+    if(query != ''){
+      query = query + '\n';
+    }
+    console.log(e);
+    editor.setValue(query + 'SELECT * FROM ' + $(e.target).text());
+  });
+
   $('#run-query').click(function(){
     console.log(editor.getValue());
+    $.post('@context.path/admin/dbviewer/_query', { query: editor.getValue() }, function(data){
+      if(data.type == "query"){
+        var table = $('<table class="table table-bordered table-hover table-scroll">');
+
+        var header = $('<tr>');
+        $.each(data.columns, function(i, column){
+          header.append($('<th>').text(column));
+        });
+        table.append($('<thead>').append(header));
+
+        var body = $('<tbody>');
+        $.each(data.rows, function(i, rs){
+          var row = $('<tr>');
+          $.each(data.columns, function(i, column){
+            row.append($('<td>').text(rs[column]));
+          });
+          body.append(row);
+        });
+
+        table.append(body);
+        $('#result').empty().append(table);
+
+      } else if(data.type == "update"){
+        $('#result').empty().append($('<span>').text('Updated ' + data.rows + ' rows.'));
+
+      } else if(data.type == "error"){
+        $('#result').empty().append($('<span class="error">').text(data.message));
+      }
+    });
+
   });
 });
 </script>

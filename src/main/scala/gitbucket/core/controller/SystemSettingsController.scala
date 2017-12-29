@@ -17,6 +17,8 @@ import org.apache.commons.io.IOUtils
 import org.scalatra.i18n.Messages
 import com.github.zafarkhaja.semver.{Version => Semver}
 import gitbucket.core.GitBucketCoreModule
+import org.scalatra._
+import org.json4s.jackson.Serialization
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -174,6 +176,42 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       }
     }
     html.dbviewer(tables)
+  })
+
+  post("/admin/dbviewer/_query")(adminOnly {
+    contentType = formats("json")
+    params.get("query").collectFirst { case query if query.trim.nonEmpty =>
+      val trimmedQuery = query.trim
+      if(trimmedQuery.nonEmpty){
+        try {
+          val conn = request2Session(request).conn
+          using(conn.prepareStatement(query)){ stmt =>
+            if(trimmedQuery.toUpperCase.startsWith("SELECT")){
+              using(stmt.executeQuery()){ rs =>
+                val meta = rs.getMetaData
+                val columns = for(i <- 1 to meta.getColumnCount) yield {
+                  meta.getColumnName(i)
+                }
+                val result = ListBuffer[Map[String, String]]()
+                while(rs.next()){
+                  val row = columns.map { columnName =>
+                    columnName -> Option(rs.getObject(columnName)).map(_.toString).getOrElse("<NULL>")
+                  }.toMap
+                  result += row
+                }
+                Ok(Serialization.write(Map("type" -> "query", "columns" -> columns, "rows" -> result)))
+              }
+            } else {
+              val rows = stmt.executeUpdate()
+              Ok(Serialization.write(Map("type" -> "update", "rows" -> rows)))
+            }
+          }
+        } catch {
+          case e: Exception =>
+            Ok(Serialization.write(Map("type" -> "error", "message" -> e.toString)))
+        }
+      }
+    } getOrElse Ok(Serialization.write(Map("type" -> "error", "message" -> "query is empty")))
   })
 
   get("/admin/system")(adminOnly {

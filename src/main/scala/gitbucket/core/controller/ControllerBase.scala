@@ -43,25 +43,11 @@ abstract class ControllerBase extends ScalatraFilter
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
-    val httpRequest  = request.asInstanceOf[HttpServletRequest]
-    val httpResponse = response.asInstanceOf[HttpServletResponse]
-    val context      = request.getServletContext.getContextPath
-    val path         = httpRequest.getRequestURI.substring(context.length)
+    val httpRequest = request.asInstanceOf[HttpServletRequest]
+    val context     = request.getServletContext.getContextPath
+    val path        = httpRequest.getRequestURI.substring(context.length)
 
-    if(path.startsWith("/console/")){
-      val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-      val baseUrl = this.baseUrl(httpRequest)
-      if(account == null){
-        // Redirect to login form
-        httpResponse.sendRedirect(baseUrl + "/signin?redirect=" + StringUtil.urlEncode(path))
-      } else if(account.isAdmin){
-        // H2 Console (administrators only)
-        chain.doFilter(request, response)
-      } else {
-        // Redirect to dashboard
-        httpResponse.sendRedirect(baseUrl + "/")
-      }
-    } else if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
+    if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
       // Git repository
       chain.doFilter(request, response)
     } else {
