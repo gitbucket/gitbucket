@@ -4,6 +4,15 @@
 <div class="panel panel-default">
   <div class="panel-heading strong">Sign in</div>
   <ul class="list-group list-group-flush">
+    @if(context.settings.oidcAuthentication){
+      <li class="list-group-item">
+        <form action="@context.path/signin/oidc" method="POST">
+          <input type="hidden" name="hash"/>
+          <input type="submit" class="btn btn-success" value="Sign in with OpenID Connect"
+          onClick="this.form.hash.value = window.location.hash;"/>
+        </form>
+      </li>
+    }
     <li class="list-group-item">
       <form action="@context.path/signin" method="POST" validate="true">
         <div class="form-group">

@@ -2,23 +2,23 @@ package gitbucket.core.controller
 
 import java.io.FileInputStream
 
-import gitbucket.core.admin.html
-import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
-import gitbucket.core.util.{AdminAuthenticator, Mailer}
-import gitbucket.core.ssh.SshServer
-import gitbucket.core.plugin.{PluginInfoBase, PluginRegistry, PluginRepository}
-import SystemSettingsService._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.StringUtil._
-import org.scalatra.forms._
-import org.apache.commons.io.IOUtils
-import org.scalatra.i18n.Messages
 import com.github.zafarkhaja.semver.{Version => Semver}
 import gitbucket.core.GitBucketCoreModule
-import org.scalatra._
+import gitbucket.core.admin.html
+import gitbucket.core.plugin.{PluginInfoBase, PluginRegistry, PluginRepository}
+import gitbucket.core.service.SystemSettingsService._
+import gitbucket.core.service.{AccountService, RepositoryService}
+import gitbucket.core.ssh.SshServer
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.StringUtil._
+import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.util.{AdminAuthenticator, Mailer}
+import org.apache.commons.io.IOUtils
 import org.json4s.jackson.Serialization
+import org.scalatra._
+import org.scalatra.forms._
+import org.scalatra.i18n.Messages
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -70,6 +70,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply)),
+    "oidcAuthentication"       -> trim(label("OIDC", boolean())),
+    "oidc"                     -> optionalIfNotChecked("oidcAuthentication", mapping(
+        "issuer"                   -> trim(label("Issuer", text(required))),
+        "clientID"                 -> trim(label("Client ID", text(required))),
+        "clientSecret"             -> trim(label("Client secret", text(required))),
+        "jwsAlgorithm"             -> trim(label("Signature algorithm", optional(text())))
+    )(OIDC.apply)),
     "skinName" -> trim(label("AdminLTE skin name", text(required)))
   )(SystemSettings.apply).verifying { settings =>
     Vector(

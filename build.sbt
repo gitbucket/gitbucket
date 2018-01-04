@@ -1,4 +1,4 @@
-import com.typesafe.sbt.license.{LicenseInfo, DepModuleInfo}
+import com.typesafe.sbt.license.{DepModuleInfo, LicenseInfo}
 import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
@@ -55,6 +55,7 @@ libraryDependencies ++= Seq(
   "com.enragedginger"               %% "akka-quartz-scheduler"        % "1.6.1-akka-2.5.x" exclude("c3p0","c3p0"),
   "net.coobird"                     %  "thumbnailator"                % "0.4.8",
   "com.github.zafarkhaja"           %  "java-semver"                  % "0.9.0",
+  "com.nimbusds"                    %  "oauth2-oidc-sdk"              % "5.45",
   "org.eclipse.jetty"               %  "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
@@ -127,8 +128,8 @@ libraryDependencies ++= Seq(
 
 val executableKey = TaskKey[File]("executable")
 executableKey := {
-  import java.util.jar.{ Manifest => JarManifest }
-  import java.util.jar.Attributes.{ Name => AttrName }
+  import java.util.jar.Attributes.{Name => AttrName}
+  import java.util.jar.{Manifest => JarManifest}
 
   val workDir   = Keys.target.value / "executable"
   val warName   = Keys.name.value + ".war"

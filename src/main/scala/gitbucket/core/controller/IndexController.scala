@@ -1,23 +1,38 @@
 package gitbucket.core.controller
 
+import java.net.URI
+
+import com.nimbusds.oauth2.sdk.id.State
+import com.nimbusds.openid.connect.sdk.Nonce
 import gitbucket.core.helper.xml
 import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, UsersAuthenticator}
-import org.scalatra.forms._
 import org.scalatra.Ok
+import org.scalatra.forms._
 
 
 class IndexController extends IndexControllerBase
-  with RepositoryService with ActivityService with AccountService with RepositorySearchService with IssuesService
-  with UsersAuthenticator with ReferrerAuthenticator
+  with RepositoryService
+  with ActivityService
+  with AccountService
+  with RepositorySearchService
+  with IssuesService
+  with UsersAuthenticator
+  with ReferrerAuthenticator
+  with OpenIDConnectService
 
 
 trait IndexControllerBase extends ControllerBase {
-  self: RepositoryService with ActivityService with AccountService with RepositorySearchService
-    with UsersAuthenticator with ReferrerAuthenticator =>
+  self: RepositoryService
+    with ActivityService
+    with AccountService
+    with RepositorySearchService
+    with UsersAuthenticator
+    with ReferrerAuthenticator
+    with OpenIDConnectService =>
 
   case class SignInForm(userName: String, password: String, hash: Option[String])
 
@@ -55,13 +70,61 @@ trait IndexControllerBase extends ControllerBase {
 
   post("/signin", signinForm){ form =>
     authenticate(context.settings, form.userName, form.password) match {
-      case Some(account) => signin(account, form.hash)
-      case None          => {
+      case Some(account) =>
+        flash.get(Keys.Flash.Redirect) match {
+          case Some(redirectUrl: String) => signin(account, redirectUrl + form.hash.getOrElse(""))
+          case _ => signin(account)
+        }
+      case None =>
         flash += "userName" -> form.userName
         flash += "password" -> form.password
         flash += "error" -> "Sorry, your Username and/or Password is incorrect. Please try again."
         redirect("/signin")
+    }
+  }
+
+  /**
+    * Initiate an OpenID Connect authentication request.
+    */
+  post("/signin/oidc") {
+    context.settings.oidc.map { oidc =>
+      val redirectURI = new URI(s"$baseUrl/signin/oidc")
+      val authenticationRequest = createOIDCAuthenticationRequest(oidc.issuer, oidc.clientID, redirectURI)
+      session.setAttribute(Keys.Session.OidcState, authenticationRequest.getState)
+      session.setAttribute(Keys.Session.OidcNonce, authenticationRequest.getNonce)
+      session.setAttribute(Keys.Session.OidcRedirectBackURI,
+        flash.get(Keys.Flash.Redirect) match {
+          case Some(redirectBackURI: String) => redirectBackURI + params.getOrElse("hash", "")
+          case _ => "/"
+        })
+      redirect(authenticationRequest.toURI.toString)
+    } getOrElse {
+      NotFound()
+    }
+  }
+
+  /**
+    * Handle an OpenID Connect authentication response.
+    */
+  get("/signin/oidc") {
+    context.settings.oidc.map { oidc =>
+      val redirectURI = new URI(s"$baseUrl/signin/oidc")
+      Seq(Keys.Session.OidcState, Keys.Session.OidcNonce, Keys.Session.OidcRedirectBackURI).map(session.get(_)) match {
+        case Seq(Some(state: State), Some(nonce: Nonce), Some(redirectBackURI: String)) =>
+          authenticate(params, redirectURI, state, nonce, oidc) map { account =>
+            signin(account, redirectBackURI)
+          } orElse {
+            flash += "error" -> "Sorry, authentication failed. Please try again."
+            session.invalidate()
+            redirect("/signin")
+          }
+        case _ =>
+          flash += "error" -> "Sorry, something wrong. Please try again."
+          session.invalidate()
+          redirect("/signin")
       }
+    } getOrElse {
+      NotFound()
     }
   }
 
@@ -85,9 +148,9 @@ trait IndexControllerBase extends ControllerBase {
   }
 
   /**
-   * Set account information into HttpSession and redirect.
-   */
-  private def signin(account: Account, hash: Option[String]) = {
+    * Set account information into HttpSession and redirect.
+    */
+  private def signin(account: Account, redirectUrl: String = "/") = {
     session.setAttribute(Keys.Session.LoginAccount, account)
     updateLastLoginDate(account.userName)
 
@@ -95,14 +158,10 @@ trait IndexControllerBase extends ControllerBase {
       redirect("/" + account.userName + "/_edit")
     }
 
-    flash.get(Keys.Flash.Redirect).asInstanceOf[Option[String]].map { redirectUrl =>
-      if(redirectUrl.stripSuffix("/") == request.getContextPath){
-        redirect("/")
-      } else {
-        redirect(redirectUrl + hash.getOrElse(""))
-      }
-    }.getOrElse {
+    if (redirectUrl.stripSuffix("/") == request.getContextPath) {
       redirect("/")
+    } else {
+      redirect(redirectUrl)
     }
   }
 

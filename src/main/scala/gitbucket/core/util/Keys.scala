@@ -26,6 +26,21 @@ object Keys {
     val DashboardPulls = "dashboard/pulls"
 
     /**
+      * Session key for the OpenID Connect authentication.
+      */
+    val OidcState = "oidc/state"
+
+    /**
+      * Session key for the OpenID Connect authentication.
+      */
+    val OidcNonce = "oidc/nonce"
+
+    /**
+      * Session key for the redirect back to after SSO.
+      */
+    val OidcRedirectBackURI = "oidc/redirectBackURI"
+
+    /**
      * Generate session key for the issue search condition.
      */
     def Issues(owner: String, name: String) = s"${owner}/${name}/issues"
