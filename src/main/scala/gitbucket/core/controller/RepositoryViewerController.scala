@@ -400,13 +400,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   private def isLfsFile(git: Git, objectId: ObjectId): Boolean = {
-    JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-      if(loader.isLarge){
-        false
-      } else {
-        new String(loader.getCachedBytes, "UTF-8").startsWith("version https://git-lfs.github.com/spec/v1")
-      }
-    }.getOrElse(false)
+    JGitUtil.getObjectLoaderFromId(git, objectId)(JGitUtil.isLfsPointer).getOrElse(false)
   }
 
   get("/:owner/:repository/blame/*"){
