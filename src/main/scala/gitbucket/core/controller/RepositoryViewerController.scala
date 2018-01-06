@@ -841,7 +841,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
             val lastModifiedCommit = if(path == ".") revCommit else JGitUtil.getLastModifiedCommit(git, revCommit, path)
             // get files
-            val files = JGitUtil.getFileList(git, revision, path)
+            val files = JGitUtil.getFileList(git, revision, path, context.settings.baseUrl)
             val parentPath = if (path == ".") Nil else path.split("/").toList
             // process README.md or README.markdown
             val readme = files.find { file =>
