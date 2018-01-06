@@ -10,7 +10,9 @@
             <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}'><a href="javascript:void(0);" class="table-link">@table.name</a>
               <ul>
               @table.columns.map { column =>
-                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}'>@column.name</li>
+                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}'>@column.name
+                  @if(column.primaryKey){ (PK) }
+                </li>
               }
               </ul>
             </li>

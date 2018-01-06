@@ -27,7 +27,7 @@ class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
 
 case class Table(name: String, columns: Seq[Column])
-case class Column(name: String)
+case class Column(name: String, primaryKey: Boolean)
 
 trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with AdminAuthenticator =>
@@ -165,10 +165,19 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     using(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))){ rs =>
       while(rs.next()){
         val tableName = rs.getString("TABLE_NAME")
+
+        val pkColumns = ListBuffer[String]()
+        using(meta.getPrimaryKeys(null, null, tableName)){ rs =>
+          while(rs.next()){
+            pkColumns += rs.getString("COLUMN_NAME").toUpperCase
+          }
+        }
+
         val columns = ListBuffer[Column]()
         using(meta.getColumns(null, "%", tableName, "%")){ rs =>
           while(rs.next()){
-            columns += Column(rs.getString("COLUMN_NAME").toUpperCase)
+            val columnName = rs.getString("COLUMN_NAME").toUpperCase
+            columns += Column(columnName, pkColumns.contains(columnName))
           }
         }
 
