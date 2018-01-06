@@ -40,7 +40,7 @@
     <servlet-name>GitRepositoryServlet</servlet-name>
     <servlet-class>gitbucket.core.servlet.GitRepositoryServlet</servlet-class>
   </servlet>
-  
+
   <servlet-mapping>
     <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
@@ -68,30 +68,6 @@
   <servlet-mapping>
     <servlet-name>PluginAssetsServlet</servlet-name>
     <url-pattern>/plugin-assets/*</url-pattern>
-  </servlet-mapping>
-
-  <!-- ===================================================================== -->
-  <!-- H2 console configuration -->
-  <!-- ===================================================================== -->
-  <servlet>
-    <servlet-name>H2Console</servlet-name>
-    <servlet-class>org.h2.server.web.WebServlet</servlet-class>
-    <init-param>
-        <param-name>webAllowOthers</param-name>
-        <param-value></param-value>
-    </init-param>
-      <!--
-      <init-param>
-          <param-name>trace</param-name>
-          <param-value></param-value>
-      </init-param>
-      -->
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>H2Console</servlet-name>
-    <url-pattern>/console/*</url-pattern>
   </servlet-mapping>
 
   <!-- ===================================================================== -->

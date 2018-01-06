@@ -124,6 +124,12 @@ div.content-wrapper {
   background-color: white;
 }
 
+.table-scroll {
+  display: block;
+  position: relative;
+  overflow: scroll;
+}
+
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */

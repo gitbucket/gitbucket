@@ -13,15 +13,21 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
 import org.scalatra.forms._
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.IOUtils
 import org.scalatra.i18n.Messages
 import com.github.zafarkhaja.semver.{Version => Semver}
 import gitbucket.core.GitBucketCoreModule
-import scala.collection.JavaConverters._
+import org.scalatra._
+import org.json4s.jackson.Serialization
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
+
+case class Table(name: String, columns: Seq[Column])
+case class Column(name: String, primaryKey: Boolean)
 
 trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with AdminAuthenticator =>
@@ -151,6 +157,71 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "removed"    -> trim(label("Disable"     ,boolean()))
   )(EditGroupForm.apply)
 
+
+  get("/admin/dbviewer")(adminOnly {
+    val conn = request2Session(request).conn
+    val meta = conn.getMetaData
+    val tables = ListBuffer[Table]()
+    using(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))){ rs =>
+      while(rs.next()){
+        val tableName = rs.getString("TABLE_NAME")
+
+        val pkColumns = ListBuffer[String]()
+        using(meta.getPrimaryKeys(null, null, tableName)){ rs =>
+          while(rs.next()){
+            pkColumns += rs.getString("COLUMN_NAME").toUpperCase
+          }
+        }
+
+        val columns = ListBuffer[Column]()
+        using(meta.getColumns(null, "%", tableName, "%")){ rs =>
+          while(rs.next()){
+            val columnName = rs.getString("COLUMN_NAME").toUpperCase
+            columns += Column(columnName, pkColumns.contains(columnName))
+          }
+        }
+
+        tables += Table(tableName.toUpperCase, columns)
+      }
+    }
+    html.dbviewer(tables)
+  })
+
+  post("/admin/dbviewer/_query")(adminOnly {
+    contentType = formats("json")
+    params.get("query").collectFirst { case query if query.trim.nonEmpty =>
+      val trimmedQuery = query.trim
+      if(trimmedQuery.nonEmpty){
+        try {
+          val conn = request2Session(request).conn
+          using(conn.prepareStatement(query)){ stmt =>
+            if(trimmedQuery.toUpperCase.startsWith("SELECT")){
+              using(stmt.executeQuery()){ rs =>
+                val meta = rs.getMetaData
+                val columns = for(i <- 1 to meta.getColumnCount) yield {
+                  meta.getColumnName(i)
+                }
+                val result = ListBuffer[Map[String, String]]()
+                while(rs.next()){
+                  val row = columns.map { columnName =>
+                    columnName -> Option(rs.getObject(columnName)).map(_.toString).getOrElse("<NULL>")
+                  }.toMap
+                  result += row
+                }
+                Ok(Serialization.write(Map("type" -> "query", "columns" -> columns, "rows" -> result)))
+              }
+            } else {
+              val rows = stmt.executeUpdate()
+              Ok(Serialization.write(Map("type" -> "update", "rows" -> rows)))
+            }
+          }
+        } catch {
+          case e: Exception =>
+            Ok(Serialization.write(Map("type" -> "error", "message" -> e.toString)))
+        }
+      }
+    } getOrElse Ok(Serialization.write(Map("type" -> "error", "message" -> "query is empty")))
+  })
 
   get("/admin/system")(adminOnly {
     html.system(flash.get("info"))

@@ -37,7 +37,7 @@ class CompositeScalatraFilter extends Filter {
     }
 
     if(!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
-       !checkPath.startsWith("/plugin-assets/") && !checkPath.startsWith("/console/")){
+       !checkPath.startsWith("/plugin-assets/")){
       filters
         .filter { case (_, path) =>
           val start = path.replaceFirst("/\\*$", "/")
