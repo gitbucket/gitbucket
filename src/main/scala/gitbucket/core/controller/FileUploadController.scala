@@ -21,12 +21,7 @@ import org.apache.commons.io.{FileUtils, IOUtils}
  */
 class FileUploadController extends ScalatraServlet with FileUploadSupport with RepositoryService with AccountService {
 
-  val maxFileSize = if (System.getProperty("gitbucket.maxFileSize") != null)
-    System.getProperty("gitbucket.maxFileSize").toLong
-  else
-    3 * 1024 * 1024
-
-  configureMultipartHandling(MultipartConfig(maxFileSize = Some(maxFileSize)))
+  configureMultipartHandling(MultipartConfig(maxFileSize = Some(FileUtil.MaxFileSize)))
 
   post("/image"){
     execute({ (file, fileId) =>

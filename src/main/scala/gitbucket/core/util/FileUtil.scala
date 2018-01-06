@@ -76,4 +76,9 @@ object FileUtil {
     file
   }
 
+  lazy val MaxFileSize = if (System.getProperty("gitbucket.maxFileSize") != null)
+    System.getProperty("gitbucket.maxFileSize").toLong
+  else
+    3 * 1024 * 1024
+
 }
