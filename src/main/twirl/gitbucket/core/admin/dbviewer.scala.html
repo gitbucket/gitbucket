@@ -34,6 +34,8 @@
 <script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
 <script src="@helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
 <link rel="stylesheet" href="@helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
+<script src="@helpers.assets("/vendors/jquery-contextmenu/jquery.contextMenu.min.js")" type="text/javascript" charset="utf-8"></script>
+<link rel="stylesheet" href="@helpers.assets("/vendors/jquery-contextmenu/jquery.contextMenu.min.css")" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
@@ -41,15 +43,25 @@ $(function(){
   editor.setTheme("ace/theme/monokai");
   editor.getSession().setMode("ace/mode/sql");
 
-
   $('#table-tree').jstree();
 
-  $('.table-link').click(function(e){
-    var query = editor.getValue();
-    if(query != ''){
-      query = query + '\n';
+  $.contextMenu({
+    selector: '.table-link',
+    trigger: 'left',
+    items: {
+      "select": { name: "Select",
+        callback: function(itemKey, opt){
+          editor.setValue('SELECT * FROM ' + opt.$trigger.text());
+        }
+      }@*,
+      "cut": {name: "Cut", icon: "cut"},
+      "copy": {name: "Copy", icon: "copy"},
+      "paste": {name: "Paste", icon: "paste"},
+      "delete": {name: "Delete", icon: "delete"},
+      "sep1": "---------",
+      "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
+      *@
     }
-    editor.setValue(query + 'SELECT * FROM ' + $(e.target).text());
   });
 
   $('#clear-query').click(function(){
@@ -57,36 +69,39 @@ $(function(){
   });
 
   $('#run-query').click(function(){
-    $.post('@context.path/admin/dbviewer/_query', { query: editor.getValue() }, function(data){
-      if(data.type == "query"){
-        var table = $('<table class="table table-bordered table-hover table-scroll">');
+    var selectedText = editor.getSession().doc.getTextRange(editor.selection.getRange()).trim();
 
-        var header = $('<tr>');
-        $.each(data.columns, function(i, column){
-          header.append($('<th>').text(column));
-        });
-        table.append($('<thead>').append(header));
+    $.post('@context.path/admin/dbviewer/_query', { query: selectedText == '' ? editor.getValue() : selectedText },
+      function(data){
+        if(data.type == "query"){
+          var table = $('<table class="table table-bordered table-hover table-scroll">');
 
-        var body = $('<tbody>');
-        $.each(data.rows, function(i, rs){
-          var row = $('<tr>');
+          var header = $('<tr>');
           $.each(data.columns, function(i, column){
-            row.append($('<td>').text(rs[column]));
+            header.append($('<th>').text(column));
           });
-          body.append(row);
-        });
+          table.append($('<thead>').append(header));
 
-        table.append(body);
-        $('#result').empty().append(table);
+          var body = $('<tbody>');
+          $.each(data.rows, function(i, rs){
+            var row = $('<tr>');
+            $.each(data.columns, function(i, column){
+              row.append($('<td>').text(rs[column]));
+            });
+            body.append(row);
+          });
 
-      } else if(data.type == "update"){
-        $('#result').empty().append($('<span>').text('Updated ' + data.rows + ' rows.'));
+          table.append(body);
+          $('#result').empty().append(table);
 
-      } else if(data.type == "error"){
-        $('#result').empty().append($('<span class="error">').text(data.message));
+        } else if(data.type == "update"){
+          $('#result').empty().append($('<span>').text('Updated ' + data.rows + ' rows.'));
+
+        } else if(data.type == "error"){
+          $('#result').empty().append($('<span class="error">').text(data.message));
+        }
       }
-    });
-
+    );
   });
 });
 </script>
