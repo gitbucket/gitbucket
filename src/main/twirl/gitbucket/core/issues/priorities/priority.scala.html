@@ -1,0 +1,49 @@
+@(priority: gitbucket.core.model.Priority,
+  counts: Map[String, Int],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<tr id="priority-row-@priority.priorityId" class="priority-row">
+  <td style="padding-top: 15px; padding-bottom: 15px;">
+    <div class="milestone row" id="priority-@priority.priorityId">
+      <div class="col-md-2">
+        @if(hasWritePermission) {
+        <div class="pull-left priority-sort-handle" style="margin-top: 3px"><i class="octicon octicon-grabber"></i></div>
+        }
+        <div>
+          <a href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" id="priority-row-content-@priority.priorityId">
+            <span style="background-color: #@priority.color; color: #@priority.fontColor; padding: 8px; border-radius: 4px;">
+              <i class="octicon octicon-flame" style="color: #@priority.fontColor;"></i>&nbsp;@priority.priorityName
+            </span>
+          </a>
+        </div>
+      </div>
+      <div class="@if(hasWritePermission){col-md-6} else {col-md-8}">
+        <span>@priority.description.getOrElse("")</span>
+      </div>
+      <div class="col-md-1">
+        <div class="pull-right">
+          @if(hasWritePermission){
+            <a href="javascript:void(0);" onclick="setDefaultPriority(@priority.priorityId)" data-id="@priority.priorityId" data-default="@priority.isDefault" class="priority-default@if(priority.isDefault){ priority-default-selected}" title="@if(priority.isDefault){Unset as default} else {Set as default}"><i class="octicon octicon-star"></i></a>
+          } else if(priority.isDefault) {
+            <i class="octicon octicon-star priority-default priority-default-selected" title="Default"></i>
+          }
+        </div>
+      </div>
+      <div class="col-md-1">
+        <div class="pull-right">
+          <span class="muted">@counts.get(priority.priorityName).getOrElse(0) open issues</span>
+        </div>
+      </div>
+      @if(hasWritePermission){
+        <div class="col-md-2">
+          <div class="pull-right">
+            <a href="javascript:void(0);" onclick="editPriority(@priority.priorityId)">Edit</a>
+            &nbsp;&nbsp;
+            <a href="javascript:void(0);" onclick="deletePriority(@priority.priorityId)">Delete</a>
+          </div>
+        </div>
+      }
+    </div>
+  </td>
+</tr>

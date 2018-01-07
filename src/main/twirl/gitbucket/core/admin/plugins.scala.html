@@ -1,18 +1,32 @@
-@(plugins: List[gitbucket.core.plugin.PluginInfo])(implicit context: gitbucket.core.controller.Context)
+@(plugins: List[(gitbucket.core.plugin.PluginInfoBase, Boolean)], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
-    <h1>Installed plugins</h1>
-
+    @gitbucket.core.helper.html.information(info)
+    <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
+      <input type="submit" value="Reload plugins" class="btn btn-default">
+    </form>
+    <h1>Plugins</h1>
     @if(plugins.size > 0) {
       <ul>
-      @plugins.map { plugin =>
+      @plugins.map { case (plugin, enabled) =>
         <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
       }
       </ul>
 
-      @plugins.map { plugin =>
+      @plugins.map { case (plugin, enabled) =>
         <div class="panel panel-default">
-          <div class="panel-heading strong" id="@plugin.pluginId">@plugin.pluginName</div>
+          <div class="panel-heading strong" id="@plugin.pluginId">
+            @if(enabled){
+              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_uninstall" method="POST" class="pull-right uninstall-form">
+                <input type="submit" value="Uninstall" class="btn btn-danger btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
+              </form>
+            } else {
+              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_install" method="POST" class="pull-right install-form">
+                <input type="submit" value="Install" class="btn btn-success btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
+              </form>
+            }
+            @plugin.pluginName
+          </div>
           <div class="panel-body">
             <div class="row">
               <label class="col-md-2">Id</label>
@@ -38,3 +52,16 @@
     }
   }
 }
+<script>
+  $(function(){
+    $('.uninstall-form').click(function(e){
+      var name = $(e.target).data('name');
+      return confirm('Uninstall ' + name + '. Are you sure?');
+    });
+
+    $('.install-form').click(function(e){
+      var name = $(e.target).data('name');
+      return confirm('Install ' + name + '. Are you sure?');
+    });
+  });
+</script>

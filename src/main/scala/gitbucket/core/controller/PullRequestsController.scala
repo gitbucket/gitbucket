@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.WebHook
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
@@ -12,9 +13,10 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.revwalk.RevWalk
 
 import scala.collection.JavaConverters._
 
@@ -23,14 +25,14 @@ class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator
-  with CommitStatusService with MergeService with ProtectedBranchService
+  with CommitStatusService with MergeService with ProtectedBranchService with PrioritiesService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator
-    with CommitStatusService with MergeService with ProtectedBranchService =>
+    with CommitStatusService with MergeService with ProtectedBranchService with PrioritiesService =>
 
   val pullRequestForm = mapping(
     "title"                 -> trim(label("Title"  , text(required, maxlength(100)))),
@@ -44,11 +46,13 @@ trait PullRequestsControllerBase extends ControllerBase {
     "commitIdTo"            -> trim(text(required, maxlength(40))),
     "assignedUserName"      -> trim(optional(text())),
     "milestoneId"           -> trim(optional(number())),
+    "priorityId"            -> trim(optional(number())),
     "labelNames"            -> trim(optional(text()))
   )(PullRequestForm.apply)
 
   val mergeForm = mapping(
-    "message" -> trim(label("Message", text(required)))
+    "message"  -> trim(label("Message", text(required))),
+    "strategy" -> trim(label("Strategy", text(required)))
   )(MergeForm.apply)
 
   case class PullRequestForm(
@@ -63,10 +67,11 @@ trait PullRequestsControllerBase extends ControllerBase {
     commitIdTo: String,
     assignedUserName: Option[String],
     milestoneId: Option[Int],
+    priorityId: Option[Int],
     labelNames: Option[String]
   )
 
-  case class MergeForm(message: String)
+  case class MergeForm(message: String, strategy: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     val q = request.getParameter("q")
@@ -92,12 +97,15 @@ trait PullRequestsControllerBase extends ControllerBase {
             getIssueLabels(owner, name, issueId),
             getAssignableUserNames(owner, name),
             getMilestonesWithIssueCount(owner, name),
+            getPriorities(owner, name),
             getLabels(owner, name),
             commits,
             diffs,
             isEditable(repository),
             isManageable(repository),
+            hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
             repository,
+            getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
             flash.toMap.map(f => f._1 -> f._2.toString))
         }
       }
@@ -109,13 +117,13 @@ trait PullRequestsControllerBase extends ControllerBase {
       val owner = repository.owner
       val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-        val hasConflict = LockUtil.lock(s"${owner}/${name}"){
+        val conflictMessage = LockUtil.lock(s"${owner}/${name}"){
           checkConflict(owner, name, pullreq.branch, issueId)
         }
         val hasMergePermission = hasDeveloperRole(owner, name, context.loginAccount)
         val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
         val mergeStatus = PullRequestService.MergeStatus(
-           hasConflict         = hasConflict,
+          conflictMessage      = conflictMessage,
            commitStatues       = getCommitStatues(owner, name, pullreq.commitIdTo),
            branchProtection    = branchProtection,
            branchIsOutOfDate   = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
@@ -138,22 +146,36 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:owner/:repository/pull/:id/delete/*")(writableUsersOnly { repository =>
-    params("id").toIntOpt.map { issueId =>
-      val branchName = multiParams("splat").head
-      val userName   = context.loginAccount.get.userName
-      if(repository.repository.defaultBranch != branchName){
-        using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-          git.branchDelete().setForce(true).setBranchNames(branchName).call()
-          recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+  get("/:owner/:repository/pull/:id/delete_branch")(readableUsersOnly { baseRepository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      loginAccount <- context.loginAccount
+      (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      owner = pullreq.requestUserName
+      name  = pullreq.requestRepositoryName
+      if hasDeveloperRole(owner, name, context.loginAccount)
+    } yield {
+      val repository = getRepository(owner, name).get
+      val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
+      if(branchProtection.enabled){
+        flash += "error" -> s"branch ${pullreq.requestBranch} is protected."
+      } else {
+        if(repository.repository.defaultBranch != pullreq.requestBranch){
+          val userName = context.loginAccount.get.userName
+          using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+            git.branchDelete().setForce(true).setBranchNames(pullreq.requestBranch).call()
+            recordDeleteBranchActivity(repository.owner, repository.name, userName, pullreq.requestBranch)
+          }
+          createComment(baseRepository.owner, baseRepository.name, userName, issueId, pullreq.requestBranch, "delete_branch")
+        } else {
+          flash += "error" -> s"""Can't delete the default branch "${pullreq.requestBranch}"."""
         }
       }
-      createComment(repository.owner, repository.name, userName, issueId, branchName, "delete_branch")
-      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-    } getOrElse NotFound()
+      redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
+    }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/update_branch")(writableUsersOnly { baseRepository =>
+  post("/:owner/:repository/pull/:id/update_branch")(readableUsersOnly { baseRepository =>
     (for {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
@@ -217,7 +239,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           }
         }
       }
-      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+      redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
 
     }) getOrElse NotFound()
   })
@@ -231,20 +253,36 @@ trait PullRequestsControllerBase extends ControllerBase {
           using(Git.open(getRepositoryDir(owner, name))) { git =>
             // mark issue as merged and close.
             val loginAccount = context.loginAccount.get
-            createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
+            val commentId = createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
             createComment(owner, name, loginAccount.userName, issueId, "Close", "close")
             updateClosed(owner, name, issueId, true)
 
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
-            // merge git repository
-            mergePullRequest(git, pullreq.branch, issueId,
-              s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
-               new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-
             val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
               pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
+
+            val revCommits = using(new RevWalk( git.getRepository )){ revWalk =>
+              commits.flatten.map { commit =>
+                revWalk.parseCommit(git.getRepository.resolve(commit.id))
+              }
+            }.reverse
+
+            // merge git repository
+            form.strategy match {
+              case "merge-commit" =>
+                mergePullRequest(git, pullreq.branch, issueId,
+                  s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+              case "rebase" =>
+                rebasePullRequest(git, pullreq.branch, issueId, revCommits,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+              case "squash" =>
+                squashPullRequest(git, pullreq.branch, issueId,
+                  s"${issue.title} (#${issueId})\n\n" + form.message,
+                  new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+            }
 
             // close issue by content of pull request
             val defaultBranch = getRepository(owner, name).get.repository.defaultBranch
@@ -261,9 +299,10 @@ trait PullRequestsControllerBase extends ControllerBase {
             // call web hook
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
-            // notifications
-            Notifier().toNotify(repository, issue, "merge"){
-              Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
+            // call hooks
+            PluginRegistry().getPullRequestHooks.foreach{ h =>
+              h.addedComment(commentId, form.message, issue, repository)
+              h.merged(issue, repository)
             }
 
             redirect(s"/${owner}/${name}/pull/${issueId}")
@@ -303,8 +342,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   get("/:owner/:repository/compare/*...*")(referrersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, originId) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, forkedId) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, originId) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, forkedId) = parseCompareIdentifier(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner) {
@@ -312,7 +351,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         Some(forkedRepository.name)
       } else if(forkedRepository.repository.originUserName.isEmpty){
         // when ForkedRepository is the original repository
-        getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
+        getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_.userName == originOwner).map(_.repositoryName)
       } else if(Some(originOwner) == forkedRepository.repository.originUserName){
         // Original repository
         forkedRepository.repository.originRepositoryName
@@ -359,10 +398,13 @@ trait PullRequestsControllerBase extends ControllerBase {
               title,
               commits,
               diffs,
-              (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-                case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
-                case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-              },
+              ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+                case (Some(userName), Some(repositoryName)) => getRepository(userName, repositoryName) match {
+                  case Some(x) => x.repository :: getForkedRepositories(userName, repositoryName)
+                  case None    => getForkedRepositories(userName, repositoryName)
+                }
+                case _ => forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+              }).map { repository => (repository.userName, repository.repositoryName) },
               commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
               originId,
               forkedId,
@@ -375,6 +417,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               hasDeveloperRole(originRepository.owner, originRepository.name, context.loginAccount),
               getAssignableUserNames(originRepository.owner, originRepository.name),
               getMilestones(originRepository.owner, originRepository.name),
+              getPriorities(originRepository.owner, originRepository.name),
               getLabels(originRepository.owner, originRepository.name)
             )
           }
@@ -389,15 +432,15 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(readableUsersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifier(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner){
         Some(forkedRepository.name)
       } else {
         forkedRepository.repository.originRepositoryName.orElse {
-          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
+          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_.userName == originOwner).map(_.repositoryName)
         }
       };
       originRepository <- getRepository(originOwner, originRepositoryName)
@@ -412,7 +455,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           checkConflict(originRepository.owner, originRepository.name, originBranch,
                         forkedRepository.owner, forkedRepository.name, forkedBranch)
         }
-        html.mergecheck(conflict)
+        html.mergecheck(conflict.isDefined)
       }
     }) getOrElse NotFound()
   })
@@ -430,6 +473,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         content = form.content,
         assignedUserName = if (manageable) form.assignedUserName else None,
         milestoneId = if (manageable) form.milestoneId else None,
+        priorityId = if (manageable) form.priorityId else None,
         isPullRequest = true)
 
       createPullRequest(
@@ -468,14 +512,41 @@ trait PullRequestsControllerBase extends ControllerBase {
         // extract references and create refer comment
         createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
 
-        // notifications
-        Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
-          Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
-        }
+        // call hooks
+        PluginRegistry().getPullRequestHooks.foreach(_.created(issue, repository))
       }
 
       redirect(s"/${owner}/${name}/pull/${issueId}")
     }
+  })
+
+  ajaxGet("/:owner/:repository/pulls/proposals")(readableUsersOnly { repository =>
+    val branches = JGitUtil.getBranches(
+      owner         = repository.owner,
+      name          = repository.name,
+      defaultBranch = repository.repository.defaultBranch,
+      origin        = repository.repository.originUserName.isEmpty
+    )
+    .filter(x => x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0)
+    .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+    .map(_.name)
+    .reverse
+
+    val targetRepository = (for {
+      parentUserName <- repository.repository.parentUserName
+      parentRepoName <- repository.repository.parentRepositoryName
+      parentRepository <- getRepository(parentUserName, parentRepoName)
+    } yield {
+      parentRepository
+    }).getOrElse {
+      repository
+    }
+
+    val proposedBranches = branches.filter { branch =>
+      getPullRequestsByRequest(repository.owner, repository.name, branch, None).isEmpty
+    }
+
+    html.proposals(proposedBranches, targetRepository, repository)
   })
 
   /**
@@ -484,7 +555,7 @@ trait PullRequestsControllerBase extends ControllerBase {
    * - "owner:branch" to ("owner", "branch")
    * - "branch" to ("defaultOwner", "branch")
    */
-  private def parseCompareIdentifie(value: String, defaultOwner: String): (String, String) =
+  private def parseCompareIdentifier(value: String, defaultOwner: String): (String, String) =
     if(value.contains(':')){
       val array = value.split(":")
       (array(0), array(1))
@@ -505,6 +576,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         page,
         getAssignableUserNames(owner, repoName),
         getMilestones(owner, repoName),
+        getPriorities(owner, repoName),
         getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),
         countIssue(condition.copy(state = "closed"), true, owner -> repoName),

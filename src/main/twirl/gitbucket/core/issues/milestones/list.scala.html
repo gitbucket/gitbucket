@@ -13,15 +13,13 @@
     <table class="table table-bordered table-hover table-issues">
       <thead>
         <tr>
-          <th style="background-color: #eee;">
-            <span class="small">
-              <a class="button-link@if(state == "open"){ selected}" href="?state=open">
-                @milestones.count(_._1.closedDate.isEmpty) Open
-              </a>&nbsp;&nbsp;
-              <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
-                @milestones.count(_._1.closedDate.isDefined) Closed
-              </a>
-            </span>
+          <th>
+            <a class="button-link@if(state == "open"){ selected}" href="?state=open">
+              @milestones.count(_._1.closedDate.isEmpty) Open
+            </a>&nbsp;&nbsp;
+            <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
+              @milestones.count(_._1.closedDate.isDefined) Closed
+            </a>
           </th>
         </tr>
       </thead>

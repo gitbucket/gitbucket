@@ -13,14 +13,14 @@
       </div>
       <div style="padding-left: 10px; padding-right: 10px;">
         @account.description.map{ description =>
-          <p style="color: white;">@description</p>
+          <p>@description</p>
         }
         @if(account.url.isDefined){
           <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             <i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a>
           </p>
         }
-        <p style="color: white;">
+        <p>
           <i class="octicon octicon-clock"></i> Joined on @helpers.date(account.registeredDate)
         </p>
       </div>
@@ -43,6 +43,9 @@
         } else {
           <li@if(active == "activity"){ class="active"}><a href="@helpers.url(account.userName)?tab=activity">Public activity</a></li>
         }
+        @*
+        <li@if(active == "webhooks"){ class="active"}><a href="@helpers.url(account.userName)?tab=webhooks">Webhooks</a></li>
+        *@
         @gitbucket.core.plugin.PluginRegistry().getProfileTabs.map { tab =>
           @tab(account, context).map { link =>
             <li@if(active == link.id){ class="active"}><a href="@context.path/@link.path">@link.label</a></li>

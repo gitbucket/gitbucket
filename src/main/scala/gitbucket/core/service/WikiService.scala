@@ -76,22 +76,6 @@ trait WikiService {
   }
 
   /**
-   * Returns the content of the specified file.
-   */
-  def getFileContent(owner: String, repository: String, path: String): Option[Array[Byte]] =
-    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
-      if(!JGitUtil.isEmpty(git)){
-        val index = path.lastIndexOf('/')
-        val parentPath = if(index < 0) "."  else path.substring(0, index)
-        val fileName   = if(index < 0) path else path.substring(index + 1)
-
-        JGitUtil.getFileList(git, "master", parentPath).find(_.name == fileName).map { file =>
-          git.getRepository.open(file.id).getBytes
-        }
-      } else None
-    }
-
-  /**
    * Returns the list of wiki page names.
    */
   def getWikiPageList(owner: String, repository: String): List[String] = {
@@ -237,7 +221,7 @@ trait WikiService {
           builder.finish()
           val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
             Constants.HEAD, committer.fullName, committer.mailAddress,
-            if(message.trim.length == 0) {
+            if(message.trim.isEmpty) {
               if(removed){
                 s"Rename ${currentPageName} to ${newPageName}"
               } else if(created){

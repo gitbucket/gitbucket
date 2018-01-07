@@ -149,7 +149,7 @@ $.extend(JsDiffRender.prototype,{
             $('<tr>').append(
               lineNum('old',o.base, o.change),
               $('<td class="body">').html(o.base ? baseTextDom(o.base): "").addClass(o.change),
-              lineNum('old',o.head, o.change),
+              lineNum('new',o.head, o.change),
               $('<td class="body">').html(o.head ? headTextDom(o.head): "").addClass(o.change)
               ).appendTo(tbody);
             break;
@@ -158,7 +158,7 @@ $.extend(JsDiffRender.prototype,{
             $('<tr>').append(
               lineNum('old',o.base, 'delete'),
               $('<td class="body">').append(ld.base).addClass('delete'),
-              lineNum('old',o.head, 'insert'),
+              lineNum('new',o.head, 'insert'),
               $('<td class="body">').append(ld.head).addClass('insert')
               ).appendTo(tbody);
             break;
@@ -379,7 +379,7 @@ function string_score(string, word) {
       strLength = string.length,
       lWord = word.toUpperCase(),
       wordLength = word.length;
-      
+
   return   calc(zero,        0,    0,            0, 0,                []);
   function calc(score, startAt, skip, runningScore, i, matchingPositions){
     if( i < wordLength) {
@@ -443,7 +443,7 @@ function string_score(string, word) {
  * @param word    {String}        search word
  * @param strings {Array[String]} search targets
  * @param limit   {Integer}       result limit
- * @return {Array[{score:"float matching score", string:"string target string", matchingPositions:"Array[Interger] matchng positions"}]}
+ * @return {Array[{score:"float matching score", string:"string target string", matchingPositions:"Array[Integer] matching positions"}]}
  */
 function string_score_sort(word, strings, limit){
   var ret = [], i=0, l = (word==="")?Math.min(strings.length, limit):strings.length;
@@ -466,7 +466,7 @@ function string_score_sort(word, strings, limit){
 }
 /**
  * highlight by result.
- * @param score {string:"string target string", matchingPositions:"Array[Interger] matchng positions"}
+ * @param score {string:"string target string", matchingPositions:"Array[Integer] matching positions"}
  * @param highlight tag ex: '<b>'
  * @return array of highlighted html elements.
  */

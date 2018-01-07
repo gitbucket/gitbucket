@@ -123,19 +123,22 @@ object StringUtil {
     "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r
       .findAllIn(message).matchData.map(_.group(1)).toSeq.distinct
 
+  private val GitBucketUrlPattern = "^(https?://.+)/git/(.+?)/(.+?)\\.git$".r
+  private val GitHubUrlPattern    = "^https://(.+@)?github\\.com/(.+?)/(.+?)\\.git$".r
+  private val BitBucketUrlPattern = "^https?://(.+@)?bitbucket\\.org/(.+?)/(.+?)\\.git$".r
+  private val GitLabUrlPattern    = "^https?://(.+@)?gitlab\\.com/(.+?)/(.+?)\\.git$".r
 
-//  /**
-//   * Encode search string for LIKE condition.
-//   * This method has been copied from Slick's SqlUtilsComponent.
-//   */
-//  def likeEncode(s: String) = {
-//    val b = new StringBuilder
-//    for(c <- s) c match {
-//      case '%' | '_' | '^' => b append '^' append c
-//      case _ => b append c
-//    }
-//    b.toString
-//  }
+  def getRepositoryViewerUrl(gitRepositoryUrl: String, baseUrl: Option[String]): String = {
+    def removeUserName(baseUrl: String): String = baseUrl.replaceFirst("(https?://).+@", "$1")
 
+    gitRepositoryUrl match {
+      case GitBucketUrlPattern(base, user, repository) if baseUrl.map(removeUserName(base).startsWith).getOrElse(false)
+                                                    => s"${removeUserName(base)}/$user/$repository"
+      case GitHubUrlPattern   (_, user, repository) => s"https://github.com/$user/$repository"
+      case BitBucketUrlPattern(_, user, repository) => s"https://bitbucket.org/$user/$repository"
+      case GitLabUrlPattern   (_, user, repository) => s"https://gitlab.com/$user/$repository"
+      case _ => gitRepositoryUrl
+    }
+  }
 
 }

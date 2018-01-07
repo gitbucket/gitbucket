@@ -1,9 +1,9 @@
 package gitbucket.core.service
 
-import gitbucket.core.util.{Directory, SyntaxSugars}
 import gitbucket.core.util.Implicits._
-import Directory._
-import SyntaxSugars._
+import gitbucket.core.util.ConfigUtil._
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.SyntaxSugars._
 import SystemSettingsService._
 import javax.servlet.http.HttpServletRequest
 
@@ -54,6 +54,7 @@ trait SystemSettingsService {
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
+      props.setProperty(SkinName, settings.skinName.toString)
       using(new java.io.FileOutputStream(GitBucketConf)){ out =>
         props.store(out, null)
       }
@@ -111,7 +112,8 @@ trait SystemSettingsService {
             getOptionValue(props, LdapKeystore, None)))
         } else {
           None
-        }
+        },
+        getValue(props, SkinName, "skin-blue")
       )
     }
   }
@@ -136,18 +138,18 @@ object SystemSettingsService {
     useSMTP: Boolean,
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
-    ldap: Option[Ldap]){
-    def baseUrl(request: HttpServletRequest): String = baseUrl.fold(request.baseUrl)(_.stripSuffix("/"))
+    ldap: Option[Ldap],
+    skinName: String){
 
-    def sshAddress:Option[SshAddress] =
-      for {
-        host <- sshHost if ssh
-      }
-      yield SshAddress(
-        host,
-        sshPort.getOrElse(DefaultSshPort),
-        "git"
-      )
+    def baseUrl(request: HttpServletRequest): String = baseUrl.fold {
+      val url = request.getRequestURL.toString
+      val len = url.length - (request.getRequestURI.length - request.getContextPath.length)
+      url.substring(0, len).stripSuffix("/")
+    } (_.stripSuffix("/"))
+
+    def sshAddress:Option[SshAddress] = sshHost.collect { case host if ssh =>
+      SshAddress(host, sshPort.getOrElse(DefaultSshPort), "git")
+    }
   }
 
   case class Ldap(
@@ -219,24 +221,30 @@ object SystemSettingsService {
   private val LdapTls = "ldap.tls"
   private val LdapSsl = "ldap.ssl"
   private val LdapKeystore = "ldap.keystore"
+  private val SkinName = "skinName"
 
-  private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =
-    defining(props.getProperty(key)){ value =>
-      if(value == null || value.isEmpty) default
-      else convertType(value).asInstanceOf[A]
-    }
+  private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
+    getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {
+      defining(props.getProperty(key)){ value =>
+        if(value == null || value.isEmpty){
+          default
+        } else {
+          convertType(value).asInstanceOf[A]
+        }
+      }
+    })
+  }
 
-  private def getOptionValue[A: ClassTag](props: java.util.Properties, key: String, default: Option[A]): Option[A] =
-    defining(props.getProperty(key)){ value =>
-      if(value == null || value.isEmpty) default
-      else Some(convertType(value)).asInstanceOf[Option[A]]
-    }
-
-  private def convertType[A: ClassTag](value: String) =
-    defining(implicitly[ClassTag[A]].runtimeClass){ c =>
-      if(c == classOf[Boolean])  value.toBoolean
-      else if(c == classOf[Int]) value.toInt
-      else value
-    }
+  private def getOptionValue[A: ClassTag](props: java.util.Properties, key: String, default: Option[A]): Option[A] = {
+    getSystemProperty(key).orElse(getEnvironmentVariable(key).orElse {
+      defining(props.getProperty(key)){ value =>
+        if(value == null || value.isEmpty){
+          default
+        } else {
+          Some(convertType(value)).asInstanceOf[Option[A]]
+        }
+      }
+    })
+  }
 
 }

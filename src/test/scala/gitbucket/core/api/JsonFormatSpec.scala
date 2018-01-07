@@ -22,7 +22,7 @@ class JsonFormatSpec extends FunSuite {
   }
   val sha1 = "6dcb09b5b57875f334f61aebed695e2e4193db5e"
   val repo1Name = RepositoryName("octocat/Hello-World")
-  implicit val context = JsonFormat.Context("http://gitbucket.exmple.com")
+  implicit val context = JsonFormat.Context("http://gitbucket.exmple.com", None)
 
   val apiUser = ApiUser(
     login = "octocat",
@@ -281,7 +281,8 @@ class JsonFormatSpec extends FunSuite {
     merged_by     = Some(apiUser),
     title         = "new-feature",
     body          = "Please pull these awesome changes",
-    user          = apiUser
+    user          = apiUser,
+    assignee      = Some(apiUser)
   )
 
   val apiPullRequestJson = s"""{
@@ -311,6 +312,7 @@ class JsonFormatSpec extends FunSuite {
     "title": "new-feature",
     "body": "Please pull these awesome changes",
     "user": $apiUserJson,
+    "assignee": $apiUserJson,
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347",
     "commits_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347/commits",

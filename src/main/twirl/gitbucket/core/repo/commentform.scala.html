@@ -8,10 +8,7 @@
 @import gitbucket.core.view.helpers
 @if(context.loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
-  <form method="POST" validate="true" style="max-width: 874px;">
-    @if(!fileName.isDefined){
-      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
-    }
+  <form method="POST" validate="true">
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
         @gitbucket.core.helper.html.preview(
@@ -47,7 +44,7 @@
   <script>
     $('.btn-inline-comment').click(function(e) {
       e.preventDefault();
-      $form = $(e.target).attr('disabled', 'disabled').closest('form');
+      var $form = $(e.target).attr('disabled', 'disabled').closest('form');
       var param = {};
       $($form.serializeArray()).each(function(i, v) {
         param[v.name] = v.value;
@@ -67,7 +64,27 @@
         } else {
           tmp = '<td colspan="3" class="comment-box-container"></td>'
         }
-        $form.closest('tr').removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+        var $tr = $form.closest('tr.not-diff');
+
+        // Apply comment
+        $tr.removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+
+        // Show reply comment form
+        var replyComment = $tr.prev().find('.reply-comment').closest('.not-diff').show();
+        if(replyComment.length != 0){
+          replyComment.remove();
+          $tr.after(replyComment);
+        } else {
+          var $v = $('<div class="commit-comment-box reply-comment-box">')
+            .append($('<input type="text" class="form-control reply-comment" placeholder="Reply...">')
+              .data('filename', '@fileName')
+              .data('newline',  @newLineNumber.getOrElse("undefined"))
+              .data('oldline',  @oldLineNumber.getOrElse("undefined")));
+          var tmp = getInlineContainer();
+          tmp.children('td:last').html($v)
+          $tr.after(tmp);
+        }
+
         $('#comment-list').append(data);
         if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
           $('#comment-list').children('.inline-comment').hide();
@@ -76,6 +93,19 @@
         $('.btn-inline-comment').removeAttr('disabled');
         $('#error-content', $form).html($.parseJSON(req.responseText).content);
       });
-    })
+    });
+
+    function getInlineContainer() {
+      console.log(window.viewType);
+      if (window.viewType == 0) {
+        if(@newLineNumber.isDefined){
+          return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
+        }
+        if(@oldLineNumber.isDefined){
+          return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
+        }
+      }
+      return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
+    }
   </script>
 }

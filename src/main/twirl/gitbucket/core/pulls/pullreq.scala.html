@@ -4,12 +4,15 @@
   issueLabels: List[gitbucket.core.model.Label],
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   dayByDayCommits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   isEditable: Boolean,
   isManageable: Boolean,
+  isManageableForkedRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  forkedRepository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo],
   flash: Map[String, String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
@@ -20,7 +23,7 @@
       <div>
         <div class="show-title pull-right">
           @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
-            <a class="btn" href="#" id="edit">Edit</a>
+            <a class="btn btn-default" href="#" id="edit">Edit</a>
           }
           @if(context.loginAccount.isDefined){
             <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
@@ -83,13 +86,17 @@
           @flash.get("info").map{ info =>
             <div class="alert alert-info">@info</div>
           }
-          @gitbucket.core.pulls.html.conversation(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, isEditable, isManageable, repository)
+          @gitbucket.core.pulls.html.conversation(issue, pullreq, commits, comments, issueLabels, collaborators, milestones, priorities, labels, isEditable, isManageable, isManageableForkedRepository, repository, forkedRepository)
         </div>
         <div class="tab-pane" id="commits">
-          @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
+          @if(commits.nonEmpty){
+            @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
+          }
         </div>
         <div class="tab-pane" id="files">
-          @gitbucket.core.helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true, Some(pullreq.issueId), isManageable, true)
+          @if(commits.nonEmpty){
+            @gitbucket.core.helper.html.diff(diffs, repository, commits.headOption.map(_.id), commits.lastOption.map(_.id), true, Some(pullreq.issueId), isManageable, true)
+          }
         </div>
       </div>
     }

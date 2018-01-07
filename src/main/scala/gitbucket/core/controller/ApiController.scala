@@ -5,15 +5,19 @@ import gitbucket.core.model._
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JGitUtil._
-import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.view.helpers.{renderMarkup, isRenderable}
+import gitbucket.core.util.JGitUtil._
+import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.util._
+import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import org.eclipse.jgit.api.Git
-import org.scalatra.{NoContent, UnprocessableEntity, Created}
+import org.eclipse.jgit.revwalk.RevWalk
+import org.scalatra.{Created, NoContent, UnprocessableEntity}
+
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class ApiController extends ApiControllerBase
   with RepositoryService
@@ -33,6 +37,7 @@ class ApiController extends ApiControllerBase
   with WebHookIssueCommentService
   with WikiService
   with ActivityService
+  with PrioritiesService
   with OwnerAuthenticator
   with UsersAuthenticator
   with GroupManagerAuthenticator
@@ -48,10 +53,12 @@ trait ApiControllerBase extends ControllerBase {
     with LabelsService
     with MilestonesService
     with PullRequestService
+    with CommitsService
     with CommitStatusService
     with RepositoryCreationService
     with IssueCreationService
     with HandleCommentService
+    with PrioritiesService
     with OwnerAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator
@@ -122,10 +129,10 @@ trait ApiControllerBase extends ControllerBase {
   /**
     * https://developer.github.com/v3/repos/branches/#get-branch
     */
-  get ("/api/v3/repos/:owner/:repo/branches/:branch")(referrersOnly { repository =>
+  get ("/api/v3/repos/:owner/:repo/branches/*")(referrersOnly { repository =>
     //import gitbucket.core.api._
     (for{
-      branch     <- params.get("branch") if repository.branchList.contains(branch)
+      branch <- params.get("splat") if repository.branchList.contains(branch)
       br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {
       val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
@@ -244,7 +251,8 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       LockUtil.lock(s"${owner}/${data.name}") {
         if(getRepository(owner, data.name).isEmpty){
-          createRepository(context.loginAccount.get, owner, data.name, data.description, data.`private`, data.auto_init)
+          val f = createRepository(context.loginAccount.get, owner, data.name, data.description, data.`private`, data.auto_init)
+          Await.result(f, Duration.Inf)
           val repository = getRepository(owner, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
         } else {
@@ -268,7 +276,8 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       LockUtil.lock(s"${groupName}/${data.name}") {
         if(getRepository(groupName, data.name).isEmpty){
-          createRepository(context.loginAccount.get, groupName, data.name, data.description, data.`private`, data.auto_init)
+          val f = createRepository(context.loginAccount.get, groupName, data.name, data.description, data.`private`, data.auto_init)
+          Await.result(f, Duration.Inf)
           val repository = getRepository(groupName, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
         } else {
@@ -284,10 +293,10 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection
    */
-  patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
+  patch("/api/v3/repos/:owner/:repo/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
     (for{
-      branch     <- params.get("branch") if repository.branchList.contains(branch)
+      branch     <- params.get("splat") if repository.branchList.contains(branch)
       protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
       br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {
@@ -365,6 +374,7 @@ trait ApiControllerBase extends ControllerBase {
           data.body,
           data.assignees.headOption,
           milestone.map(_.milestoneId),
+          None,
           data.labels,
           loginAccount)
         JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))
@@ -378,7 +388,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
     (for{
       issueId  <- params("id").toIntOpt
-      comments =  getCommentsForApi(repository.owner, repository.name, issueId.toInt)
+      comments =  getCommentsForApi(repository.owner, repository.name, issueId)
     } yield {
       JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
     }) getOrElse NotFound()
@@ -495,7 +505,7 @@ trait ApiControllerBase extends ControllerBase {
     val condition = IssueSearchCondition(request)
     val baseOwner = getAccountByUserName(repository.owner).get
 
-    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account)] =
+    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] =
       searchPullRequestByApi(
         condition = condition,
         offset    = (page - 1) * PullRequestLimit,
@@ -503,13 +513,14 @@ trait ApiControllerBase extends ControllerBase {
         repos     = repository.owner -> repository.name
       )
 
-    JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+    JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner, assignee) =>
       ApiPullRequest(
         issue         = issue,
         pullRequest   = pullRequest,
         headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
         user          = ApiUser(issueUser),
+        assignee      = assignee.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       )
     })
@@ -526,6 +537,7 @@ trait ApiControllerBase extends ControllerBase {
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
       issueUser <- users.get(issue.openedUserName)
+      assignee  =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
       JsonFormat(ApiPullRequest(
@@ -534,6 +546,7 @@ trait ApiControllerBase extends ControllerBase {
         headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
         user          = ApiUser(issueUser),
+        assignee      = assignee.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       ))
     }) getOrElse NotFound()
@@ -623,6 +636,52 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
     }) getOrElse NotFound()
   })
+
+  /**
+   * https://developer.github.com/v3/repos/commits/#get-a-single-commit
+   */
+  get("/api/v3/repos/:owner/:repo/commits/:sha")(referrersOnly { repository =>
+    val owner = repository.owner
+    val name  = repository.name
+    val sha   = params("sha")
+
+    using(Git.open(getRepositoryDir(owner, name))){ git =>
+      val repo = git.getRepository
+      val objectId = repo.resolve(sha)
+      val commitInfo = using(new RevWalk(repo)){ revWalk =>
+        new CommitInfo(revWalk.parseCommit(objectId))
+      }
+
+      JsonFormat(ApiCommits(
+        repositoryName = RepositoryName(repository),
+        commitInfo     = commitInfo,
+        diffs          = JGitUtil.getDiffs(git, Some(commitInfo.parents.head), commitInfo.id, false, true),
+        author         = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
+        committer      = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
+        commentCount   = getCommitComment(repository.owner, repository.name, sha).size
+      ))
+    }
+  })
+
+  private def getAccount(userName: String, email: String): Account = {
+    getAccountByMailAddress(email).getOrElse {
+      Account(
+        userName = userName,
+        fullName = userName,
+        mailAddress = email,
+        password = "xxx",
+        isAdmin = false,
+        url = None,
+        registeredDate = new java.util.Date(),
+        updatedDate = new java.util.Date(),
+        lastLoginDate = None,
+        image = None,
+        isGroupAccount = false,
+        isRemoved = true,
+        description = None
+      )
+    }
+  }
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName

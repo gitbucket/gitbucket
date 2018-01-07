@@ -1,0 +1,194 @@
+@(webHook: gitbucket.core.model.WebHook,
+  events: Set[gitbucket.core.model.WebHook.Event],
+  create: Boolean,
+  newButtonUrl: String,
+  editButtonUrl: String,
+  deleteButtonUrl: String,
+  testButtonUrl: String)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@import gitbucket.core.model.WebHook._
+@import gitbucket.core.model.WebHookContentType
+@check(name: String, event: Event) = {
+  name="@(name).@event.name" value="on" @if(events(event)){checked}
+}
+<div class="panel panel-default">
+  <div class="panel-heading strong">Webhook / Manage webhook</div>
+  <div class="panel-body">
+    <form method="POST" validate="true">
+      <fieldset class="form-group">
+        <label class="strong">Payload URL</label>
+        <div>
+          <span class="error" id="error-url"></span>
+        </div>
+        @if(create){
+          <input type="text" name="url" id="url" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" required />
+        } else {
+          <input type="text" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" disabled />
+          <input type="hidden" value="@webHook.url" name="url" />
+        }
+        <button class="btn btn-default" id="test-hook">Test Hook</button>
+      </fieldset>
+      <fieldset class="form-group">
+        <label class="strong">Content type</label>
+        <div></div>
+        <select name="ctype" class="form-control" style="width: 500px;">
+          <option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>
+          <option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>
+        </select>
+      </fieldset>
+      <fieldset class="form-group">
+        <label class="strong">Security Token</label>
+        <div></div>
+        <input type="text" name="token" id="token" placeholder="leave blank for no X-Hub-Signature usage" value="@webHook.token" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" />
+      </fieldset>
+      <hr />
+      <label class="strong">Which events would you like to trigger this webhook?</label>
+      <div>
+        <span class="error" id="error-events"></span>
+      </div>
+      <!--
+      <label class="checkbox"><input type="checkbox" @check("events",CommitComment) />Commit comment <small class="help-block">Commit or diff commented on. </small> </label>
+      -->
+      <label class="checkbox"><input type="checkbox" @check("events",Create) />Create <small class="help-block normal">Branch, or tag created. </small> </label>
+      <!--
+      <label class="checkbox"><input type="checkbox" @check("events",Delete) />Delete <small class="help-block">Branch, or tag deleted. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Deployment) />Deployment <small class="help-block">Repository deployed. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",DeploymentStatus) />Deployment status <small class="help-block">Deployment status updated from the API. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Fork) />Fork <small class="help-block">Repository forked. </small> </label>
+      -->
+      <label class="checkbox"><input type="checkbox" @check("events",Gollum) />Gollum <span class="help-block normal">Wiki page updated. </span> </label>
+      <!--
+      <label class="checkbox"><input type="checkbox" @check("events",Member) />Member <small class="help-block">Collaborator added to a non-organization repository. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",PageBuild) />Page build <small class="help-block">Pages site built. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Public) />Public <small class="help-block">Repository changes from private to public. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Release) />Release <small class="help-block">Release published in a repository. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",TeamAdd) />Team add <small class="help-block">Team added or modified on a repository. </small> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Watch) />Watch <small class="help-block">User stars a repository.</small></label>
+      <label class="checkbox"><input type="checkbox" @check("events",Status) />Status <small class="help-block">Commit status updated from the API. </small> </label>
+      -->
+      <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <span class="help-block normal">Issue commented on. </span> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <span class="help-block normal">Issue opened, closed<!-- , assigned, or labeled -->. </span> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull request <span class="help-block normal">Pull request opened, closed<!-- , assigned, labeled -->, or synchronized. </span> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull request review comment <span class="help-block normal">Pull request diff commented on. </span> </label>
+      <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <span class="help-block normal">Git push to a repository. </span> </label>
+      <div class="text-right">
+      @if(!create){
+        <input type="submit" class="btn btn-success" value="Update webhook" formaction="@editButtonUrl" />
+        <a href="@deleteButtonUrl?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+          Delete webhook
+        </a>
+      } else {
+        <input type="submit" class="btn btn-success" value="Add webhook" formaction="@newButtonUrl" />
+      }
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal" id="test-report-modal" role="dialog" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>WebHook Test</h3>
+      </div>
+      <div class="modal-body" style="max-height: 300px; overflow: auto;">
+        <p>request to <span id="test-modal-url" style="word-break: break-all; word-wrap: break-word; white-space: pre; white-space: pre-wrap;"></span></p>
+        <div id="test-report" style="display:none">
+          <ul class="nav nav-tabs" id="test-report-tab">
+            <li class="active"><a href="#request">Request</a></li>
+            <li><a href="#response">Response <span class="badge badge-success" id="res-status"></span></a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="request">
+              <div id="req-errors" class="alert alert-error">
+                      ERROR<span id="req-errors-body"></span>
+                    </div>
+              <div id="req-success" style="display:none">
+                      Headers
+                <pre id="req-headers"></pre>
+                Payload
+                <pre id="req-payload"></pre>
+              </div>
+            </div>
+            <div class="tab-pane" id="response">
+              <div id="res-errors" class="alert alert-error">
+                      ERROR<span id="res-errors-body"></span>
+                    </div>
+              <div id="res-success" style="display:none">
+                      Headers
+                <pre id="res-headers"></pre>
+                Body
+                <pre id="res-body"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>
+$(function(){
+  $('#test-report-tab a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+  });
+  $('#test-hook').click(function(e){
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    var url = this.form.url.value;
+    var token = this.form.token.value;
+    var ctype = this.form.ctype.value;
+    if(!/^https?:\/\/.+/.test(url)){
+      alert("invalid url");
+      return;
+    }
+    $("#test-modal-url").text(url)
+    $("#test-report-modal").modal('show')
+    $("#test-report").hide();
+    var targetUrl = '@testButtonUrl?url=' + encodeURIComponent(url) + '&ctype=' + ctype + '&token=';
+    if (token) {
+      targetUrl = targetUrl + encodeURIComponent(token);
+    }
+    $.ajax({
+      method:'POST',
+      url:targetUrl,
+      success: function(e){
+        //console.log(e);
+        $('#test-report-tab a:first').tab('show');
+        $("#test-report").show();
+        $("#req-success").toggle(e.request&&!e.request.error);
+        $("#req-errors").toggle(e.request&&!!e.request.error);
+        $("#req-errors-body").text(e.request.error);
+        function headers(h){
+          h = h["headers"];
+          return h ? $.map(h, function(h){
+            return $("<div>").append($('<b>').text(h[0] + ":"),$('<span>').text(" " + h[1]))
+          }):"";
+        }
+        $("#req-headers").html(headers(e.request));
+        $("#req-payload").text(e.request && e.request.payload ? JSON.stringify(JSON.parse(e.request.payload),undefined,4) : "");
+        $("#res-success").toggle(e.response && !e.response.error);
+        $("#res-errors").toggle(e.response && !!e.response.error);
+        $("#res-errors-body").text(e.response.error);
+        var success = !!(e.response && e.response.status && /^2\d\d$/.test(e.response.status.statusCode));
+        $("#res-status").text((e.response && e.response.status && e.response.status.statusCode) || "ERROR");
+        $("#res-status").toggleClass("badge-success", success).toggleClass("badge-important", !success);
+        $("#res-headers").html(headers(e.response));
+        $("#res-body").text(e.response && e.response.body ? e.response.body : "");
+      },
+      error:function (e) {
+        if(e) {
+          console.log(e.responseText, e);
+          alert("request error ( http status " + e.status + " error on gitbugket or browser to gitbucket. show details on your javascript console )");
+        }else{
+          alert("unknown javascript error (please report to gitbucket team)");
+        }
+        $("#test-report-modal").modal('hide')
+      }
+    });
+    return false;
+  });
+})
+</script>

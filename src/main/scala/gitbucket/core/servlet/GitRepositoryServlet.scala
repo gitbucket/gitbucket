@@ -1,6 +1,7 @@
 package gitbucket.core.servlet
 
 import java.io.File
+import java.util
 import java.util.Date
 
 import gitbucket.core.api
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
+import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.json4s.jackson.Serialization._
 
 
@@ -154,11 +156,21 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
         logger.debug("repository:" + owner + "/" + repository)
 
+        val settings = loadSystemSettings()
+        val baseUrl = settings.baseUrl(request)
+        val sshUrl  = settings.sshAddress.map { x => s"${x.genericUser}@${x.host}:${x.port}" }
+
         if(!repository.endsWith(".wiki")){
           defining(request) { implicit r =>
-            val hook = new CommitLogHook(owner, repository, pusher, baseUrl)
+            val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
             receivePack.setPreReceiveHook(hook)
             receivePack.setPostReceiveHook(hook)
+          }
+        }
+
+        if(repository.endsWith(".wiki")){
+          defining(request) { implicit r =>
+            receivePack.setPostReceiveHook(new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl))
           }
         }
       }
@@ -170,7 +182,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)/*(implicit session: Session)*/
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
   with WebHookPullRequestService with CommitsService {
@@ -185,9 +197,10 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           // call pre-commit hook
           PluginRegistry().getReceiveHooks
             .flatMap(_.preReceive(owner, repository, receivePack, command, pusher))
-            .headOption.foreach { error =>
-            command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
-          }
+            .headOption
+            .foreach { error =>
+              command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
+            }
         }
         using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
           existIds = JGitUtil.getAllCommitIds(git)
@@ -210,7 +223,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           val pushedIds = scala.collection.mutable.Set[String]()
           commands.asScala.foreach { command =>
             logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-            implicit val apiContext = api.JsonFormat.Context(baseUrl)
+            implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
             val refName = command.getRefName.split("/")
             val branchName = refName.drop(2).mkString("/")
             val commits = if (refName(1) == "tags") {
@@ -285,10 +298,24 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 
             // call web hook
             callWebHookOf(owner, repository, WebHook.Push) {
-              for (pusherAccount <- getAccountByUserName(pusher);
-                   ownerAccount <- getAccountByUserName(owner)) yield {
+              for {
+                pusherAccount <- getAccountByUserName(pusher)
+                ownerAccount  <- getAccountByUserName(owner)
+              } yield {
                 WebHookPushPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount,
                   newId = command.getNewId(), oldId = command.getOldId())
+              }
+            }
+            if (command.getType ==  ReceiveCommand.Type.CREATE) {
+              callWebHookOf(owner, repository, WebHook.Create) {
+                for {
+                  pusherAccount <- getAccountByUserName(pusher)
+                  ownerAccount  <- getAccountByUserName(owner)
+                } yield {
+                  val refType = if (refName(1) == "tags") "tag" else "branch"
+                  WebHookCreatePayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount,
+                    ref = branchName, refType = refType)
+                }
               }
             }
 
@@ -298,6 +325,66 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
         }
         // update repository last modified time.
         updateLastActivityDate(owner, repository)
+      } catch {
+        case ex: Exception => {
+          logger.error(ex.toString, ex)
+          throw ex
+        }
+      }
+    }
+  }
+
+}
+
+class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
+  extends PostReceiveHook with WebHookService with AccountService with RepositoryService {
+
+  private val logger = LoggerFactory.getLogger(classOf[WikiCommitHook])
+
+  override def onPostReceive(receivePack: ReceivePack, commands: util.Collection[ReceiveCommand]): Unit = {
+    Database() withTransaction { implicit session =>
+      try {
+        commands.asScala.headOption.foreach { command =>
+          implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
+          val refName = command.getRefName.split("/")
+          val commitIds = if (refName(1) == "tags") {
+            None
+          } else {
+            command.getType match {
+              case ReceiveCommand.Type.DELETE => None
+              case _ => Some((command.getOldId.getName, command.getNewId.name))
+            }
+          }
+
+          commitIds.map { case (oldCommitId, newCommitId) =>
+            val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+              JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
+                val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+                diffs.collect { case diff if diff.newPath.toLowerCase.endsWith(".md") =>
+                  val action = if(diff.changeType == ChangeType.ADD) "created" else "edited"
+                  val fileName = diff.newPath
+                  (action, fileName, commit.id)
+                }
+              }
+            }
+
+            val pages = commits
+              .groupBy { case (action, fileName, commitId) => fileName }
+              .map { case (fileName, commits) =>
+                (commits.head._1, fileName, commits.last._3)
+              }
+
+            callWebHookOf(owner, repository, WebHook.Gollum) {
+              for {
+                pusherAccount  <- getAccountByUserName(pusher)
+                repositoryUser <- getAccountByUserName(owner)
+                repositoryInfo <- getRepository(owner, repository)
+              } yield {
+                WebHookGollumPayload(pages.toSeq, repositoryInfo, repositoryUser, pusherAccount)
+              }
+            }
+          }
+        }
       } catch {
         case ex: Exception => {
           logger.error(ex.toString, ex)

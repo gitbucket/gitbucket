@@ -16,17 +16,26 @@
     if(branch == repository.repository.defaultBranch){
       s"${repository.owner}/${repository.name}"
     } else {
-      s"${repository.owner}/${repository.name} at ${helpers.encodeRefName(branch)}"
+      s"${repository.owner}/${repository.name} at ${branch}"
     }
   } else {
-    s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}"
+    s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
   @gitbucket.core.html.menu("files", repository, Some(branch), info, error){
-    <div class="head">
+    @if(pathList.isEmpty) {
+      @repository.repository.description.map { description =>
+        <p class="pc" style="margin-bottom: 10px;">
+          <span class="normal muted">@Html(helpers.decorateHtml(helpers.urlLink(description), repository))</span>
+        </p>
+      }
+    }
+    <div id="pull-request-area"></div>
+    <div class="head" style="height: 24px;">
       <div class="pull-right">
         <div class="btn-group">
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
-          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
+          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
         </div>
       </div>
       @if(pathList.isEmpty){
@@ -67,27 +76,24 @@
           </div>
         </div>
       }
-      @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
-        @repository.branchList.map { x =>
-          <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+      <div class="pull-left">
+        @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
+          @repository.branchList.map { x =>
+            <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+          }
         }
-      }
-      @if(pathList.isEmpty){
-        @*
-        @branchPullRequest.map{ case (pullRequest, issue) =>
-          <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
-        }.getOrElse {
-          <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success" @if(loginAccount.isEmpty){disabled}>New pull request</a>
+        @if(pathList.nonEmpty){
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+          @pathList.zipWithIndex.map { case (section, i) =>
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
+          }
         }
-        *@
-      } else {
-        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
-        @pathList.zipWithIndex.map { case (section, i) =>
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
-        }
-      }
+      </div>
       @if(hasWritePermission){
-        <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here"><i class="octicon octicon-plus"></i></a>
+        <div class="btn-group pull-left" style="margin-left: 4px;">
+          <a href="@helpers.url(repository)/new/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Create a new file"><i class="octicon octicon-plus"></i></a>
+          <a href="@helpers.url(repository)/upload/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Upload files"><i class="octicon octicon-cloud-upload"></i></a>
+        </div>
       }
     </div>
     <table class="table table-hover">
@@ -105,8 +111,8 @@
       <tr>
         <th colspan="4" class="latest-commit">
           <div>
-            <div class="pull-right align-right monospace" style="line-height: 18px;">
-              <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
+            <div class="pull-right align-right" style="line-height: 18px;">
+              <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> <span class="monospace">@latestCommit.id.substring(0, 10)</span></a>
             </div>
             <div class="author-info">
               <div class="author">
@@ -128,7 +134,7 @@
       @if(pathList.size > 0){
       <tr>
         <td width="16" class="file-icon"></td>
-        <td><a href="@helpers.url(repository)@if(pathList.size > 1){/tree/@helpers.encodeRefName(branch)/@pathList.init.mkString("/")}">..</a></td>
+        <td><a href="@helpers.url(repository)@if(pathList.size > 1){/tree/@helpers.encodeRefName(branch)/@helpers.encodeRefName(pathList.init.mkString("/"))}">..</a></td>
         <td></td>
         <td></td>
       </tr>
@@ -148,23 +154,37 @@
         </td>
         <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
           @if(file.isDirectory){
-            @if(file.linkUrl.isDefined){
-              <a href="@file.linkUrl">
-                <span class="simplified-path">@file.name.split("/").toList.init match {
-                  case Nil => {}
-                  case list => {@list.mkString("", "/", "/")}
-                }</span>@file.name.split("/").toList.last
-              </a>
-            } else {
-              <a href="@helpers.url(repository)/tree@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">
-                <span class="simplified-path">@file.name.split("/").toList.init match {
-                  case Nil => {}
-                  case list => {@list.mkString("", "/", "/")}
-                }</span>@file.name.split("/").toList.last
-              </a>
-            }
+            @{file.linkUrl match {
+              case Some(linkUrl) if linkUrl.startsWith("http://") || linkUrl.startsWith("https://") => {
+                <a href={linkUrl}>
+                  <span class="simplified-path">{file.name.split("/").toList.init match {
+                    case Nil  => ""
+                    case list => list.mkString("", "/", "/")
+                  }}</span>
+                  {file.name.split("/").toList.last}
+                </a>
+              }
+              case Some(_) => {
+                <span>
+                  <span class="simplified-path">{file.name.split("/").toList.init match {
+                    case Nil  => ""
+                    case list => list.mkString("", "/", "/")
+                  }}</span>
+                  {file.name.split("/").toList.last}
+                </span>
+              }
+              case None => {
+                <a href={helpers.url(repository) + "/tree" + helpers.encodeRefName((branch :: pathList).mkString("/", "/", "/") + file.name)}>
+                  <span class="simplified-path">{file.name.split("/").toList.init match {
+                    case Nil  => ""
+                    case list => list.mkString("", "/", "/")
+                  }}</span>
+                  {file.name.split("/").toList.last}
+                </a>
+              }
+            }}
           } else {
-            <a href="@helpers.url(repository)/blob@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">@file.name</a>
+            <a href="@helpers.url(repository)/blob@{helpers.encodeRefName((branch :: pathList).mkString("/", "/", "/") + file.name)}">@file.name</a>
           }
         </td>
         <td class="ellipsis-cell" style="width: 70%;">
@@ -178,26 +198,36 @@
     </table>
     @readme.map { case(filePath, content) =>
       <div id="readme" class="panel panel-default">
-        <div class="panel-heading strong">@filePath.reverse.head</div>
+        <div class="panel-heading strong">@filePath.last</div>
         <div class="panel-body markdown-body" style="padding-left: 20px; padding-right: 20px;">@helpers.renderMarkup(filePath, content, branch, repository, false, false, true)</div>
       </div>
     }
   }
 }
 <script>
-@repository.sshUrl.map { sshUrl =>
-  $('#repository-url-http').click(function(){
-    $('#repository-url-proto').text('HTTP');
-    $('#repository-url').val('@repository.httpUrl');
-    $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(repository.httpUrl)')
-    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
-  });
+$(function() {
+  @repository.sshUrl.map { sshUrl =>
+    $('#repository-url-http').click(function(){
+      $('#repository-url-proto').text('HTTP');
+      $('#repository-url').val('@repository.httpUrl');
+      $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(repository.httpUrl)')
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
 
-  $('#repository-url-ssh').click(function(){
-    $('#repository-url-proto').text('SSH');
-    $('#repository-url').val('@sshUrl');
-    $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(sshUrl)');
-    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
-  });
-}
+    $('#repository-url-ssh').click(function(){
+      $('#repository-url-proto').text('SSH');
+      $('#repository-url').val('@sshUrl');
+      $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(sshUrl)');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+  }
+
+  @if(pathList.isEmpty && hasWritePermission){
+    $.get('@{helpers.url(repository)}/pulls/proposals', function(res){
+      if(res) {
+        $('#pull-request-area').html(res);
+      }
+    });
+  }
+});
 </script>

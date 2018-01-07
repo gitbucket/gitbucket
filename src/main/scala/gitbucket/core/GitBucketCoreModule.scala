@@ -32,7 +32,24 @@ object GitBucketCoreModule extends Module("gitbucket-core",
   new Version("4.11.0",
     new LiquibaseMigration("update/gitbucket-core_4.11.xml")
   ),
-  new Version("4.12.0",
+  new Version("4.12.0"),
+  new Version("4.12.1"),
+  new Version("4.13.0"),
+  new Version("4.14.0",
+    new LiquibaseMigration("update/gitbucket-core_4.14.xml"),
+    new SqlMigration("update/gitbucket-core_4.14.sql")
+  ),
+  new Version("4.14.1"),
+  new Version("4.15.0"),
+  new Version("4.16.0"),
+  new Version("4.17.0"),
+  new Version("4.18.0"),
+  new Version("4.19.0"),
+  new Version("4.19.1"),
+  new Version("4.19.2"),
+  new Version("4.19.3"),
+  new Version("4.20.0"),
+  new Version("4.21.0",
     new LiquibaseMigration("update/gitbucket-core_4.12.xml")
   )
 )

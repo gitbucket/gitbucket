@@ -16,7 +16,8 @@
           <span id="error-password" class="error"></span>
           <input type="password" name="password" id="password" class="form-control" value="@password"/>
         </div>
-        <input type="submit" class="btn btn-success" value="Sign in"/>
+        <input type="hidden" name="hash"/>
+        <input type="submit" class="btn btn-success" value="Sign in" onClick="this.form.hash.value = window.location.hash;"/>
         @if(systemSettings.allowAccountRegistration){
           or <a href="@context.path/register">Create new account</a>
         }

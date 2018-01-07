@@ -7,9 +7,9 @@
   <td style="padding-top: 15px; padding-bottom: 15px;">
     <div class="milestone row" id="label-@label.labelId">
       <div class="col-md-8">
-        <div style="margin-top: 6px">
+        <div>
           <a href="@helpers.url(repository)/issues?labels=@helpers.urlEncode(label.labelName)" id="label-row-content-@label.labelId">
-            <span style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
+            <span style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; border-radius: 4px;">
               <i class="octicon octicon-tag" style="color: #@label.fontColor;"></i>
               @label.labelName
             </span>

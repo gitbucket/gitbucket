@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 
 trait Validations {
@@ -18,6 +18,19 @@ trait Validations {
         None
       }
   }
+
+  /**
+   * Constraint for the password.
+   */
+  def password: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      if(System.getProperty("gitbucket.validate.password") != "false" && !value.matches("[a-zA-Z0-9\\-_.]+")){
+        Some(s"${name} contains invalid character.")
+      } else {
+        None
+      }
+  }
+
 
   /**
    * Constraint for the repository identifier.

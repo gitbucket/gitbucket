@@ -6,7 +6,7 @@ Developer's Guide
  * [Authentication in Controller](authenticator.md)
  * [About Action in Issue Comment](comment_action.md)
  * [Activity Types](activity.md)
- * [Notification Email](notification.md)
  * [Automatic Schema Updating](auto_update.md)
  * [Release Operation](release.md)
  * [JRebel integration (optional)](jrebel.md)
+ * [Licenses](licenses.md)

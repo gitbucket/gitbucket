@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <createTable tableName="PRIORITY">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="PRIORITY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="PRIORITY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="DESCRIPTION" type="varchar(255)" nullable="true"/>
+    <column name="ORDERING" type="int" nullable="false"/>
+    <column name="IS_DEFAULT" type="boolean" nullable="false"/>
+    <column name="COLOR" type="char(6)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_PRIORITY_PK" tableName="PRIORITY" columnNames="USER_NAME, REPOSITORY_NAME, PRIORITY_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_PRIORITY_FK0" baseTableName="PRIORITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <addColumn tableName="ISSUE">
+    <column name="PRIORITY_ID" type="int" nullable="true" />
+  </addColumn>
+
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK3" baseTableName="ISSUE" baseColumnNames="PRIORITY_ID" referencedTableName="PRIORITY" referencedColumnNames="PRIORITY_ID"/>
+
+  <createTable tableName="ACCOUNT_WEB_HOOK">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="TOKEN" type="varchar(100)" nullable="true"/>
+    <column name="CTYPE" type="varchar(10)" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ACCOUNT_WEB_HOOK_PK" tableName="ACCOUNT_WEB_HOOK" columnNames="USER_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_WEB_HOOK_FK0" baseTableName="ACCOUNT_WEB_HOOK" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <createTable tableName="ACCOUNT_WEB_HOOK_EVENT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="EVENT" type="varchar(30)" nullable="false"/>
+  </createTable>
+</changeSet>

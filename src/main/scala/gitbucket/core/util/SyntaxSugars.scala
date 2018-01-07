@@ -53,4 +53,14 @@ object SyntaxSugars {
     def unapply[A, B](t: (A, B)): Option[(A, B)] = Some(t)
   }
 
+  /**
+   * Provides easier and explicit ways to access to a head value of `Map[String, Seq[String]]`.
+   * This is intended to use in implementations of scalatra-forms's `Constraint` or `ValueType`.
+   */
+  implicit class HeadValueAccessibleMap(map: Map[String, Seq[String]]){
+    def value(key: String): String = map(key).head
+    def optionValue(key: String): Option[String] = map.get(key).flatMap(_.headOption)
+    def values(key: String): Seq[String] = map.get(key).getOrElse(Seq.empty)
+  }
+
 }

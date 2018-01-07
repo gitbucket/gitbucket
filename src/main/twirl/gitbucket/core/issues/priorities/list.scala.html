@@ -1,0 +1,122 @@
+@(priorities: List[gitbucket.core.model.Priority],
+  counts: Map[String, Int],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Priorities - ${repository.owner}/${repository.name}"){
+  @gitbucket.core.html.menu("priorities", repository){
+    @if(hasWritePermission){
+      <div class="pull-right" style="margin-bottom: 10px;">
+        <a class="btn btn-success" href="javascript:void(0);" id="new-priority-button">New priority</a>
+      </div>
+    }
+    <table class="table table-bordered table-hover table-issues" id="new-priority-table" style="display: none;">
+      <tr><td></td></tr>
+    </table>
+    <table id="priorities-table" class="table table-bordered table-hover table-issues">
+      <thead>
+        <tr id="priority-row-header">
+          <th>@priorities.size priorities</th>
+        </tr>
+      </thead>
+      <tbody>
+        @priorities.map { priority =>
+          @gitbucket.core.issues.priorities.html.priority(priority, counts, repository, hasWritePermission)
+        }
+        <tr id="priority-no-priorities" @if(!priorities.isEmpty){ style="display:none" }>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No priorities to show.
+            @if(hasWritePermission){
+              Click on the "New priority" button above to create one.
+            }
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  }
+}
+<script>
+$(function(){
+  $('#new-priority-button').click(function(e){
+    if($('#edit-priority-area-new').length != 0){
+      $('div#edit-priority-area-new').remove();
+      $('#new-priority-table').hide();
+    } else {
+      $.get('@helpers.url(repository)/issues/priorities/new',
+        function(data){
+          $('#new-priority-table').show().find('tr td').append(data);
+        }
+      );
+    }
+  });
+  @if(hasWritePermission){
+    $('#priorities-table tbody').sortable({
+      axis: 'y',
+      cursor: 'move',
+      helper: function (e, ui) {
+        ui.children().each(function() {
+          $(this).width($(this).width());
+        });
+        return ui;
+      },
+      handle: '.priority-sort-handle',
+      update: function() {
+        var ids = [];
+        $('tr.priority-row').each(function(idx, elem) {
+          ids.push($(elem).attr('id').replace('priority-row-', ''));
+        });
+        $.post('@helpers.url(repository)/issues/priorities/reorder', {
+          'order' : ids.join(',')
+        }).fail(function(xhr, status, error){
+          alert('Unable to reorder priorities.');
+        });
+      }
+    });
+  }
+});
+
+function deletePriority(priorityId){
+  if(confirm('Once you delete this priority, there is no going back.\nAre you sure?')){
+    $.post('@helpers.url(repository)/issues/priorities/' + priorityId + '/delete', function(){
+      $('tr#priority-row-' + priorityId).remove();
+      if ($('tr.priority-row').size() == 0) {
+        $('#priority-no-priorities').show();
+      }
+      updatePriorityCount();
+    });
+  }
+}
+
+function editPriority(priorityId){
+  $.get('@helpers.url(repository)/issues/priorities/' + priorityId + '/edit',
+    function(data){
+      $('#priority-' + priorityId).hide().parent().append(data);
+    }
+  );
+}
+
+function updatePriorityCount() {
+  var $counter = $('#priority-row-header span');
+  $counter.text($counter.text().replace(/\d+/, $('tr.priority-row').size()));
+}
+
+function setDefaultPriority(priorityId){
+  var $a = $('a[data-id="' + priorityId + '"].priority-default');
+  var isDefault = $a.data('default');
+  $.post('@helpers.url(repository)/issues/priorities/default',
+    { priorityId: isDefault ? '' : priorityId },
+    function(){
+      $('.priority-default')
+        .removeClass('priority-default-selected')
+        .data('default', false)
+        .attr('title', 'Set as default');
+      if (!isDefault) {
+        $a
+          .addClass('priority-default-selected')
+          .data('default', true)
+          .attr('title', 'Unset as default');
+      }
+    }
+  );
+}
+</script>

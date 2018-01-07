@@ -1,13 +1,13 @@
-import java.security.MessageDigest;
+import java.security.MessageDigest
 import scala.annotation._
 import sbt._
-import sbt.Using._
+import io._
 
 object Checksums {
   private val bufferSize = 2048
 
   def generate(source:File, target:File, algorithm:String):Unit =
-      IO write (target, compute(source, algorithm))
+      sbt.IO write (target, compute(source, algorithm))
 
   def compute(file:File, algorithm:String):String =
       hex(raw(file, algorithm))

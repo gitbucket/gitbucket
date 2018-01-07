@@ -1,8 +1,8 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.Account
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{AccountService, RepositoryService, ReleaseService}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
@@ -26,7 +26,7 @@ class FileUploadController extends ScalatraServlet
   with AccountService
   with ReleaseService{
 
-  configureMultipartHandling(MultipartConfig(maxFileSize = Some(3 * 1024 * 1024)))
+  configureMultipartHandling(MultipartConfig(maxFileSize = Some(FileUtil.MaxFileSize)))
 
   post("/image"){
     execute({ (file, fileId) =>
@@ -35,12 +35,19 @@ class FileUploadController extends ScalatraServlet
     }, FileUtil.isImage)
   }
 
+  post("/tmp"){
+    execute({ (file, fileId) =>
+      FileUtils.writeByteArrayToFile(new java.io.File(getTemporaryDir(session.getId), fileId), file.get)
+      session += Keys.Session.Upload(fileId) -> file.name
+    }, _ => true)
+  }
+
   post("/file/:owner/:repository"){
     execute({ (file, fileId) =>
       FileUtils.writeByteArrayToFile(new java.io.File(
         getAttachedDir(params("owner"), params("repository")),
         fileId + "." + FileUtil.getExtension(file.getName)), file.get)
-    }, FileUtil.isUploadableType)
+    }, _ => true)
   }
 
   post("/wiki/:owner/:repository"){
@@ -72,12 +79,12 @@ class FileUploadController extends ScalatraServlet
               builder.finish()
 
               val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-                Constants.HEAD, loginAccount.userName, loginAccount.mailAddress, s"Uploaded ${fileName}")
+                Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, s"Uploaded ${fileName}")
 
               fileName
             }
           }
-        }, FileUtil.isUploadableType)
+        }, _ => true)
       }
     } getOrElse BadRequest()
   }
@@ -97,7 +104,7 @@ class FileUploadController extends ScalatraServlet
             fileId), file.get)
           fileName
         }
-      }, (_ => true))
+      }, _ => true)
     }.getOrElse(BadRequest())
   }
 
@@ -124,10 +131,11 @@ class FileUploadController extends ScalatraServlet
     }
   }
 
-  private def execute(f: (FileItem, String) => Unit, mimeTypeChcker: (String) => Boolean) = fileParams.get("file") match {
+  private def execute(f: (FileItem, String) => Unit , mimeTypeChcker: (String) => Boolean) = fileParams.get("file") match {
     case Some(file) if(mimeTypeChcker(file.name)) =>
       defining(FileUtil.generateFileId){ fileId =>
         f(file, fileId)
+        contentType = "text/plain"
         Ok(fileId)
       }
     case _ => BadRequest()

@@ -9,12 +9,11 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-import gitbucket.core.util.JGitUtil._
-import io.github.gitbucket.scalatra.forms._
 import org.json4s._
 import org.scalatra._
 import org.scalatra.i18n._
 import org.scalatra.json._
+import org.scalatra.forms._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
 
@@ -26,13 +25,16 @@ import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.apache.commons.io.IOUtils
+import org.slf4j.LoggerFactory
 
 /**
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
+  with ValidationSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
   with SystemSettingsService {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
 
@@ -41,25 +43,11 @@ abstract class ControllerBase extends ScalatraFilter
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
-    val httpRequest  = request.asInstanceOf[HttpServletRequest]
-    val httpResponse = response.asInstanceOf[HttpServletResponse]
-    val context      = request.getServletContext.getContextPath
-    val path         = httpRequest.getRequestURI.substring(context.length)
+    val httpRequest = request.asInstanceOf[HttpServletRequest]
+    val context     = request.getServletContext.getContextPath
+    val path        = httpRequest.getRequestURI.substring(context.length)
 
-    if(path.startsWith("/console/")){
-      val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-      val baseUrl = this.baseUrl(httpRequest)
-      if(account == null){
-        // Redirect to login form
-        httpResponse.sendRedirect(baseUrl + "/signin?redirect=" + StringUtil.urlEncode(path))
-      } else if(account.isAdmin){
-        // H2 Console (administrators only)
-        chain.doFilter(request, response)
-      } else {
-        // Redirect to dashboard
-        httpResponse.sendRedirect(baseUrl + "/")
-      }
-    } else if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
+    if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
       // Git repository
       chain.doFilter(request, response)
     } else {
@@ -147,16 +135,37 @@ abstract class ControllerBase extends ScalatraFilter
       }
     }
 
+  error{
+    case e => {
+      logger.error(s"Catch unhandled error in request: ${request}", e)
+      if(request.hasAttribute(Keys.Request.Ajax)){
+        org.scalatra.InternalServerError()
+      } else if(request.hasAttribute(Keys.Request.APIv3)){
+        contentType = formats("json")
+        org.scalatra.InternalServerError(ApiError("Internal Server Error"))
+      } else {
+        org.scalatra.InternalServerError(gitbucket.core.html.error("Internal Server Error", Some(e)))
+      }
+    }
+  }
+
+  override def url(path: String, params: Iterable[(String, Any)] = Iterable.empty,
+                   includeContextPath: Boolean = true, includeServletPath: Boolean = true,
+                   absolutize: Boolean = true, withSessionId: Boolean = true)
+                  (implicit request: HttpServletRequest, response: HttpServletResponse): String =
+    if (path.startsWith("http")) path
+    else baseUrl + super.url(path, params, false, false, false)
+
   /**
    * Extends scalatra-form's trim rule to eliminate CR and LF.
    */
   protected def trim2[T](valueType: SingleValueType[T]): SingleValueType[T] = new SingleValueType[T](){
     def convert(value: String, messages: Messages): T = valueType.convert(trim(value), messages)
 
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Seq[(String, String)] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
       valueType.validate(name, trim(value), params, messages)
 
-    private def trim(value: String): String = if(value == null) null else value.replaceAll("\r\n", "").trim
+    private def trim(value: String): String = if(value == null) null else value.replace("\r\n", "").trim
   }
 
   /**
@@ -291,13 +300,14 @@ trait AccountManagementControllerBase extends ControllerBase {
   }
 
   protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
       getAccountByMailAddress(value, true)
-        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
+        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName) }
         .map    { _ => "Mail address is already registered." }
+    }
   }
 
-  val allReservedNames = Set("git", "admin", "upload", "api")
+  val allReservedNames = Set("git", "admin", "upload", "api", "assets", "plugin-assets", "signin", "signout", "register", "activities.atom", "sidebar-collapse", "groups", "new")
   protected def reservedNames(): Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = if(allReservedNames.contains(value)){
       Some(s"${value} is reserved")

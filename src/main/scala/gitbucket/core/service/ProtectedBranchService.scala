@@ -1,11 +1,10 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{ProtectedBranch, ProtectedBranchContext, CommitState}
+import gitbucket.core.model.{Session => _, _}
 import gitbucket.core.plugin.ReceiveHook
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-
-import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
+import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
 
 trait ProtectedBranchService {
@@ -18,10 +17,11 @@ trait ProtectedBranchService {
       .filter(_._1.byPrimaryKey(owner, repository, branch))
       .list
       .groupBy(_._1)
+      .headOption
       .map { p => p._1 -> p._2.flatMap(_._2) }
       .map { case (t1, contexts) =>
         new ProtectedBranchInfo(t1.userName, t1.repositoryName, true, contexts, t1.statusCheckAdmin)
-      }.headOption
+      }
 
   def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit session: Session): ProtectedBranchInfo =
     getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(ProtectedBranchInfo.disabled(owner, repository))
@@ -45,12 +45,17 @@ trait ProtectedBranchService {
 
 object ProtectedBranchService {
 
-  class ProtectedBranchReceiveHook extends ReceiveHook with ProtectedBranchService {
+  class ProtectedBranchReceiveHook extends ReceiveHook with ProtectedBranchService with RepositoryService with AccountService {
     override def preReceive(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)
                            (implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if(branch != command.getRefName){
-        getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
+        val repositoryInfo = getRepository(owner, repository)
+        if(command.getType == ReceiveCommand.Type.DELETE && repositoryInfo.exists(_.repository.defaultBranch == branch)){
+          Some(s"refusing to delete the branch: ${command.getRefName}.")
+        } else {
+          getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
+        }
       } else {
         None
       }
@@ -73,10 +78,19 @@ object ProtectedBranchService {
      * Include administrators
      * Enforce required status checks for repository administrators.
      */
-    includeAdministrators: Boolean) extends AccountService with CommitStatusService {
+    includeAdministrators: Boolean) extends AccountService with RepositoryService with CommitStatusService {
 
     def isAdministrator(pusher: String)(implicit session: Session): Boolean =
-      pusher == owner || getGroupMembers(owner).exists(gm => gm.userName == pusher && gm.isManager)
+      pusher == owner || getGroupMembers(owner).exists(gm => gm.userName == pusher && gm.isManager) ||
+        getCollaborators(owner, repository).exists { case (collaborator, isGroup) =>
+          if(collaborator.role == Role.ADMIN.name){
+            if(isGroup){
+              getGroupMembers(collaborator.collaboratorName).exists(gm => gm.userName == pusher)
+            } else {
+              collaborator.collaboratorName == pusher
+            }
+          } else false
+        }
 
     /**
      * Can't be force pushed

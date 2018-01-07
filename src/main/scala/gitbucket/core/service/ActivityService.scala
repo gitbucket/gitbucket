@@ -132,7 +132,7 @@ trait ActivityService {
     Activities insert Activity(userName, repositoryName, activityUserName,
       "push",
       s"[user:${activityUserName}] pushed to [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
-      Some(commits.map { commit => commit.id + ":" + commit.shortMessage }.mkString("\n")),
+      Some(commits.take(5).map { commit => commit.id + ":" + commit.shortMessage }.mkString("\n")),
       currentDate)
 
   def recordCreateTagActivity(userName: String, repositoryName: String, activityUserName: String,

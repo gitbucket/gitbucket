@@ -6,7 +6,7 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SshAddress
-import gitbucket.core.util.{Directory}
+import gitbucket.core.util.Directory
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
 
@@ -22,7 +22,7 @@ object SshServer {
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator(sshAddress.genericUser))
-    server.setCommandFactory(new GitCommandFactory(baseUrl))
+    server.setCommandFactory(new GitCommandFactory(baseUrl, Some(s"${sshAddress.genericUser}@${sshAddress.host}:${sshAddress.port}")))
     server.setShellFactory(new NoShell(sshAddress))
   }
 

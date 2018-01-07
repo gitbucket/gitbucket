@@ -11,7 +11,9 @@
 $(function(){
   @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
-      var @provider.id = @Html(helpers.json(provider.values(repository)));
+      var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
+        Map("value" -> value, "label" -> label)
+      }));
       @Html(provider.additionalScript)
     }
   }
@@ -23,14 +25,14 @@ $(function(){
           match: /\B@{provider.prefix}([\-+\w]*)$/,
           search: function (term, callback) {
             callback($.map(@{provider.id}, function (proposal) {
-              return proposal.indexOf(term) === 0 ? proposal : null;
+              return proposal.value.indexOf(term) === 0 ? proposal : null;
             }));
           },
-          template: function (value) {
+          template: function (option) {
             return @{Html(provider.template)};
           },
-          replace: function (value) {
-            return '@{provider.prefix}' + value + '@{provider.suffix}';
+          replace: function (option) {
+            return '@{provider.prefix}' + @{Html(provider.replace)} + '@{provider.suffix}';
           },
           index: 1
         },
@@ -63,10 +65,8 @@ $(function(){
 }
 @dropzone(clickable: Boolean, textareaId: Option[String]) = {
   url: '@context.path/upload/file/@repository.owner/@repository.name',
-  maxFilesize: 10,
+  maxFilesize: @{FileUtil.MaxFileSize / 1024 / 1024},
   clickable: @clickable,
-  acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
-  dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
   previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
   success: function(file, id) {
     var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +

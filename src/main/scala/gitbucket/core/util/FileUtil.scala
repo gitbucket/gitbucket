@@ -28,8 +28,6 @@ object FileUtil {
 
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
 
-  def isUploadableType(name: String): Boolean = mimeTypeWhiteList contains getMimeType(name)
-
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
   def isText(content: Array[Byte]): Boolean = !content.contains(0)
@@ -53,24 +51,34 @@ object FileUtil {
     }
   }
 
-  val mimeTypeWhiteList: Array[String] = Array(
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "image/gif",
-      "image/jpeg",
-      "image/png",
-      "text/plain")
-
   def getLfsFilePath(owner: String, repository: String, oid: String): String =
     Directory.getLfsDir(owner, repository) + "/" + oid
 
   def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
 
+  /**
+   * Delete the given directory if it's empty.
+   * Do nothing if the given File is not a directory or not empty.
+   */
   def deleteDirectoryIfEmpty(dir: File): Unit = {
     if(dir.isDirectory() && dir.list().isEmpty) {
       FileUtils.deleteDirectory(dir)
     }
   }
+
+  /**
+   * Delete file or directory forcibly.
+   */
+  def deleteIfExists(file: java.io.File): java.io.File = {
+    if(file.exists){
+      FileUtils.forceDelete(file)
+    }
+    file
+  }
+
+  lazy val MaxFileSize = if (System.getProperty("gitbucket.maxFileSize") != null)
+    System.getProperty("gitbucket.maxFileSize").toLong
+  else
+    3 * 1024 * 1024
+
 }

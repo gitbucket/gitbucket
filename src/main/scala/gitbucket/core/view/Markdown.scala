@@ -38,7 +38,6 @@ object Markdown {
     val source = if(enableTaskList) escapeTaskList(markdown) else markdown
 
     val options = new Options()
-    options.setSanitize(true)
     options.setBreaks(enableLineBreaks)
 
     val renderer = new GitBucketMarkedRenderer(options, repository,

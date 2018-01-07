@@ -75,7 +75,7 @@ object JDBCUtil {
           var stringLiteral = false
 
           while({ length = in.read(bytes); length != -1 }){
-            for(i <- 0 to length - 1){
+            for(i <- 0 until length){
               val c = bytes(i)
               if(c == '\''){
                 stringLiteral = !stringLiteral
@@ -146,13 +146,11 @@ object JDBCUtil {
                 }
               }
 
-              val columnValues = values.map { value =>
-                value match {
-                  case x: String    => "'" + x.replace("'", "''") + "'"
-                  case x: Timestamp => "'" + dateFormat.format(x) + "'"
-                  case null         => "NULL"
-                  case x            => x
-                }
+              val columnValues = values.map { 
+                case x: String    => "'" + x.replace("'", "''") + "'"
+                case x: Timestamp => "'" + dateFormat.format(x) + "'"
+                case null         => "NULL"
+                case x            => x
               }
               sb.append(columnValues.mkString(", "))
               sb.append(");\n")

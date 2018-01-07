@@ -1,5 +1,6 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.util.DatabaseConfig
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -59,6 +60,44 @@
             <textarea name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
           </fieldset>
           <!--====================================================================-->
+          <!-- AdminLTE SkinName -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">
+            AdminLTE skin name
+          </label>
+          <div class="form-group">
+            <label class="control-label col-md-2" for="skinName">Skin name</label>
+            <div class="col-md-10">
+              <select id="skinName" name="skinName" class="form-control">
+                <optgroup label="Dark">
+                  @Seq(
+                  ("skin-black", "Black"),
+                  ("skin-blue", "Blue"),
+                  ("skin-green", "Green"),
+                  ("skin-purple", "Purple"),
+                  ("skin-red", "Red"),
+                  ("skin-yellow", "Yellow"),
+                  ).map{ skin =>
+                    <option value="@skin._1"@if(skin._1 == context.settings.skinName){ selected=""}>@skin._2</option>
+                  }
+                </optgroup>
+                <optgroup label="Light">
+                  @Seq(
+                  ("skin-black-light", "Light black"),
+                  ("skin-blue-light", "Light blue"),
+                  ("skin-green-light", "Light green"),
+                  ("skin-purple-light", "Light purple"),
+                  ("skin-red-light", "Light red"),
+                  ("skin-yellow-light", "Light yellow"),
+                  ).map{ skin =>
+                    <option value="@skin._1"@if(skin._1 == context.settings.skinName){ selected=""} >@skin._2</option>
+                  }
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <!--====================================================================-->
           <!-- Account registration -->
           <!--====================================================================-->
           <hr>
@@ -107,8 +146,8 @@
           <label><span class="strong">Limit of activity logs</span> (Unlimited if it is not specified or zero)</label>
           <fieldset>
             <div class="form-group">
-              <label class="control-label col-md-3" for="activityLogLimit">Limit</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="activityLogLimit">Limit</label>
+              <div class="col-md-10">
                 <input type="text" id="activityLogLimit" name="activityLogLimit" class="form-control input-mini" value="@context.settings.activityLogLimit"/>
                 <span id="error-activityLogLimit" class="error"></span>
               </div>
@@ -139,15 +178,15 @@
           </fieldset>
           <div class="ssh">
             <div class="form-group">
-              <label class="control-label col-md-3" for="sshHost">SSH host</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="sshHost">SSH host</label>
+              <div class="col-md-10">
                 <input type="text" id="sshHost" name="sshHost" class="form-control" value="@context.settings.sshHost"/>
                 <span id="error-sshHost" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="sshPort">SSH port</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="sshPort">SSH port</label>
+              <div class="col-md-10">
                 <input type="text" id="sshPort" name="sshPort" class="form-control" value="@context.settings.sshPort"/>
                 <span id="error-sshPort" class="error"></span>
               </div>
@@ -166,83 +205,83 @@
           </fieldset>
           <div class="ldap">
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapHost">LDAP host</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapHost">LDAP host</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapHost" name="ldap.host" class="form-control" value="@context.settings.ldap.map(_.host)"/>
                 <span id="error-ldap_host" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapPort">LDAP port</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapPort">LDAP port</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapPort" name="ldap.port" class="form-control input-mini" value="@context.settings.ldap.map(_.port)"/>
                 <span id="error-ldap_port" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapBindDN">Bind DN</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapBindDN">Bind DN</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapBindDN" name="ldap.bindDN" class="form-control" value="@context.settings.ldap.map(_.bindDN)"/>
                 <span id="error-ldap_bindDN" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapBindPassword">Bind password</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapBindPassword">Bind password</label>
+              <div class="col-md-10">
                 <input type="password" id="ldapBindPassword" name="ldap.bindPassword" class="form-control" value="@context.settings.ldap.map(_.bindPassword)"/>
                 <span id="error-ldap_bindPassword" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapBaseDN">Base DN</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapBaseDN">Base DN</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapBaseDN" name="ldap.baseDN" class="form-control" value="@context.settings.ldap.map(_.baseDN)"/>
                 <span id="error-ldap_baseDN" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapUserNameAttribute">User name attribute</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapUserNameAttribute">User name attribute</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" class="form-control" value="@context.settings.ldap.map(_.userNameAttribute)"/>
                 <span id="error-ldap_userNameAttribute" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapAdditionalFilterCondition">Additional filter condition</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapAdditionalFilterCondition">Additional filter condition</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapAdditionalFilterCondition" name="ldap.additionalFilterCondition" class="form-control" value="@context.settings.ldap.map(_.additionalFilterCondition)"/>
                 <span id="error-ldap_additionalFilterCondition" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapFullNameAttribute">Full name attribute</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapFullNameAttribute">Full name attribute</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapFullNameAttribute" name="ldap.fullNameAttribute" class="form-control" value="@context.settings.ldap.map(_.fullNameAttribute)"/>
                 <span id="error-ldap_fullNameAttribute" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapMailAttribute">Mail address attribute</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapMailAttribute">Mail address attribute</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapMailAttribute" name="ldap.mailAttribute" class="form-control" value="@context.settings.ldap.map(_.mailAttribute)"/>
                 <span id="error-ldap_mailAttribute" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3">Enable TLS</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2">Enable TLS</label>
+              <div class="col-md-10">
                 <input type="checkbox" name="ldap.tls"@if(context.settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3">Enable SSL</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2">Enable SSL</label>
+              <div class="col-md-10">
                 <input type="checkbox" name="ldap.ssl"@if(context.settings.ldap.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapBindDN">Keystore</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="ldapBindDN">Keystore</label>
+              <div class="col-md-10">
                 <input type="text" id="ldapKeystore" name="ldap.keystore" class="form-control" value="@context.settings.ldap.map(_.keystore)"/>
                 <span id="error-ldap_keystore" class="error"></span>
               </div>
@@ -273,52 +312,52 @@
           </fieldset>
           <div class="useSMTP">
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpHost">SMTP host</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="smtpHost">SMTP host</label>
+              <div class="col-md-10">
                 <input type="text" id="smtpHost" name="smtp.host" class="form-control" value="@context.settings.smtp.map(_.host)"/>
                 <span id="error-smtp_host" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpPort">SMTP port</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="smtpPort">SMTP port</label>
+              <div class="col-md-10">
                 <input type="text" id="smtpPort" name="smtp.port" class="form-control input-mini" value="@context.settings.smtp.map(_.port)"/>
                 <span id="error-smtp_port" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpUser">SMTP user</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="smtpUser">SMTP user</label>
+              <div class="col-md-10">
                 <input type="text" id="smtpUser" name="smtp.user" class="form-control" value="@context.settings.smtp.map(_.user)"/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpPassword">SMTP password</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="smtpPassword">SMTP password</label>
+              <div class="col-md-10">
                 <input type="password" id="smtpPassword" name="smtp.password" class="form-control" value="@context.settings.smtp.map(_.password)"/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpSsl">Enable SSL</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="smtpSsl">Enable SSL</label>
+              <div class="col-md-10">
                 <input type="checkbox" id="smtpSsl" name="smtp.ssl"@if(context.settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpStarttls">Enable STARTTLS</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="smtpStarttls">Enable STARTTLS</label>
+              <div class="col-md-10">
                 <input type="checkbox" id="smtpStarttls" name="smtp.starttls"@if(context.settings.smtp.flatMap(_.starttls).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="fromAddress">FROM address</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="fromAddress">FROM address</label>
+              <div class="col-md-10">
                 <input type="text" id="fromAddress" name="smtp.fromAddress" class="form-control" value="@context.settings.smtp.map(_.fromAddress)"/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="fromName">FROM name</label>
-              <div class="col-md-9">
+              <label class="control-label col-md-2" for="fromName">FROM name</label>
+              <div class="col-md-10">
                 <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@context.settings.smtp.map(_.fromName)"/>
               </div>
             </div>
@@ -328,17 +367,17 @@
               <input type="button" id="sendTestMail" value="Send"/>
             </div>
           </div>
+          @*
           <!--====================================================================-->
           <!-- GitLFS -->
           <!--====================================================================-->
-          @*
           <hr>
           <label class="strong">
             GitLFS <span class="muted normal">(Enter the LFS server url to enable GitLFS support)</span>
           </label>
           <div class="form-group">
-            <label class="control-label col-md-3" for="smtpHost">LFS server url</label>
-            <div class="col-md-9">
+            <label class="control-label col-md-2" for="smtpHost">LFS server url</label>
+            <div class="col-md-10">
               <input type="text" id="lfsServerUrl" name="lfs.serverUrl" class="form-control" value="@context.settings.lfs.serverUrl"/>
               <span id="error-lfs_serverUrl" class="error"></span>
             </div>
@@ -354,6 +393,14 @@
 }
 <script>
 $(function(){
+  $('#skinName').change(function(evt) {
+    var that = $(evt.target);
+    var themeCss = $('link[rel="stylesheet"][href*="skin-"]');
+    var oldVal = new RegExp('(skin-.*?).min.css').exec(themeCss.attr('href'))[1];
+    themeCss.attr('href', themeCss.attr('href').replace(oldVal, that.val()));
+    $(document.body).removeClass(oldVal).addClass(that.val());
+  });
+
   $('#sendTestMail').click(function(){
     var host        = $('#smtpHost'    ).val();
     var port        = $('#smtpPort'    ).val();

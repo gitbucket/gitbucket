@@ -1,0 +1,18 @@
+@(webHook: gitbucket.core.model.WebHook,
+  events: Set[gitbucket.core.model.WebHook.Event],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  create: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("hooks", repository){
+      @gitbucket.core.settings.html.edithookform(
+        webHook, events, create,
+        helpers.url(repository) + "/settings/hooks/new",
+        helpers.url(repository) + "/settings/hooks/edit",
+        helpers.url(repository) + "/settings/hooks/delete",
+        helpers.url(repository) + "/settings/hooks/test"
+      )
+    }
+  }
+}

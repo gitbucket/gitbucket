@@ -3,6 +3,8 @@
   issueLabels: List[gitbucket.core.model.Label],
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  priorities: List[gitbucket.core.model.Priority],
+  defaultPriority: Option[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
@@ -11,7 +13,7 @@
   <span class="muted small strong">Labels</span>
   @if(isManageable){
     <div class="pull-right">
-      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = "labels") {
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("labels", "Filter Labels")) {
         @labels.map { label =>
           <li>
             <a href="#" class="toggle-label" data-label-id="@label.labelId">
@@ -32,11 +34,45 @@
   @gitbucket.core.issues.html.labellist(issueLabels)
 </ul>
 <hr/>
+
+<div style="margin-bottom: 14px;">
+  <span class="muted small strong">Priority</span>
+  @if(isManageable){
+    <div class="pull-right">
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("priority", "Filter Priority")) {
+        <li><a href="javascript:void(0);" class="priority" data-id=""><i class="octicon octicon-x"></i> Clear priority</a></li>
+        @priorities.map { priority =>
+          <li>
+            <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
+              @gitbucket.core.helper.html.checkicon(issue.flatMap(_.priorityId).orElse(defaultPriority.map(_.priorityId)).map(id => id == priority.priorityId).getOrElse(false))
+              <span class="label" style="background-color: #@priority.color;">&nbsp;</span>
+              @priority.priorityName
+            </a>
+          </li>
+        }
+      }
+    </div>
+  }
+</div>
+<span id="label-priority">
+  @issue.flatMap(_.priorityId).orElse(defaultPriority.map(_.priorityId)).map { priorityId =>
+    @priorities.collect { case priority if(priority.priorityId == priorityId) =>
+      <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open"@if(!priority.description.isEmpty) { title="@priority.description.get" }>@priority.priorityName</a>
+    }
+  }.getOrElse {
+    <span class="muted small">No priority</span>
+  }
+</span>
+@if(issue.isEmpty){
+  <input type="hidden" name="priorityId" value="@defaultPriority.map(_.priorityId).map(_.toString).getOrElse("")"/>
+}
+<hr/>
+
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Milestone</span>
   @if(isManageable){
     <div class="pull-right">
-      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = "milestone") {
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("milestone", "Filter Milestone")) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
           <li>
@@ -88,7 +124,7 @@
   <span class="muted small strong">Assignee</span>
   @if(isManageable){
     <div class="pull-right">
-      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = "assignee") {
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("assignee", "Filter Assignee")) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>
@@ -112,6 +148,9 @@
   <input type="hidden" name="assignedUserName" value=""/>
 }
 @issue.map { issue =>
+  @gitbucket.core.plugin.PluginRegistry().getIssueSidebars.map { sidebarComponent =>
+    @sidebarComponent(issue, repository, context)
+  }
   <hr/>
   <div style="margin-bottom: 14px;">
     @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
@@ -145,6 +184,20 @@ $(function(){
       { milestoneId: milestoneId },
       function(data){
         displayMilestone(title, milestoneId, data);
+      }
+    );
+  });
+
+  $('a.priority').click(function(){
+    var priorityName = $(this).data('name');
+    var priorityId = $(this).data('id');
+    var description = $(this).attr('title');
+    var color = $(this).data('color');
+    var fontColor = $(this).data('font-color');
+    $.post('@helpers.url(repository)/issues/@issue.issueId/priority',
+      { priorityId: priorityId },
+      function(data){
+        displayPriority(priorityName, priorityId, description, color, fontColor);
       }
     );
   });
@@ -185,6 +238,16 @@ $(function(){
     $('input[name=milestoneId]').val(milestoneId);
   });
 
+  $('a.priority').click(function(){
+    var priorityName = $(this).data('name');
+    var priorityId = $(this).data('id');
+    var description = $(this).attr('title');
+    var color = $(this).data('color');
+    var fontColor = $(this).data('font-color');
+    displayPriority(priorityName, priorityId, description, color, fontColor);
+    $('input[name=priorityId]').val(priorityId);
+  });
+
   $('a.assign').click(function(){
     var $this = $(this);
     var userName = $this.data('name');
@@ -216,6 +279,23 @@ $(function(){
         $('#milestone-progress-area').html(progress);
       }
       $('a.milestone[data-id=' + milestoneId + '] i').addClass('octicon-check');
+    }
+  }
+
+  function displayPriority(priorityName, priorityId, description, color, fontColor){
+    $('a.priority i.octicon-check').removeClass('octicon-check');
+    if(priorityId == ''){
+      $('#label-priority').html($('<span class="muted small">').text('No priority'));
+    } else {
+      $('#label-priority').html($('<a class="issue-priority">').text(priorityName)
+        .attr('href', '@helpers.url(repository)/issues?priority=' + encodeURIComponent(priorityName) + '&state=open')
+        .attr('title', description)
+        .css({
+          "background-color": color,
+          "color": fontColor
+        }));
+
+      $('a.priority[data-id=' + priorityId + '] i').addClass('octicon-check');
     }
   }
 

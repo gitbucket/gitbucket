@@ -1,7 +1,10 @@
 package gitbucket.core.controller
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.util.Date
+
 import gitbucket.core.settings.html
-import gitbucket.core.model.WebHook
+import gitbucket.core.model.{RepositoryWebHook, WebHook}
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
@@ -9,7 +12,7 @@ import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
@@ -40,7 +43,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
 
   val optionsForm = mapping(
-    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), identifier, renameRepositoryName))),
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), repository, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
     "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
@@ -133,20 +136,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
         }
       }
-      // Move lfs directory
-      defining(getLfsDir(repository.owner, repository.name)){ dir =>
+      // Move files directory
+      defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
         if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Move release directory
-      defining(getReleaseFilesDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getReleaseFilesDir(repository.owner, form.repositoryName))
-      // Move attached directory
-      defining(getAttachedDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getAttachedDir(repository.owner, form.repositoryName))
+          FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
         }
       }
       // Delete parent directory
@@ -163,7 +156,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/branches")(ownerOnly { repository =>
     val protecteions = getProtectedBranchList(repository.owner, repository.name)
     html.branches(repository, protecteions, flash.get("info"))
-  });
+  })
 
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
@@ -188,7 +181,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
-      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).toSet
+      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name,
+        Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
       html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
@@ -225,8 +219,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = WebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
-    html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
+    val webhook = RepositoryWebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
+    html.edithook(webhook, Set(WebHook.Push), repository, true)
   })
 
   /**
@@ -264,7 +258,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val url = params("url")
       val token = Some(params("token"))
       val ctype = WebHookContentType.valueOf(params("ctype"))
-      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
+      val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
         val commits = if(JGitUtil.isEmpty(git)) List.empty else git.log
@@ -301,7 +295,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           "headers" -> _headers(req.getAllHeaders),
           "payload" -> json
         )).recover(toErrorMap), 20 seconds),
-        "responce" -> Await.result(resFuture.map(res => Map(
+        "response" -> Await.result(resFuture.map(res => Map(
           "status"  -> res.getStatusLine(),
           "body"    -> EntityUtils.toString(res.getEntity()),
           "headers" -> _headers(res.getAllHeaders())
@@ -315,7 +309,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
-      html.edithooks(webhook, events, repository, flash.get("info"), false)
+      html.edithook(webhook, events, repository, false)
     } getOrElse NotFound()
   })
 
@@ -356,24 +350,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
             FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
           }
         }
-        // Move lfs directory
-        defining(getLfsDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory()) {
-            FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
+        // Move files directory
+        defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
+          if(dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getRepositoryFilesDir(form.newOwner, repository.name))
           }
         }
-        // Move release directory
-        defining(getReleaseFilesDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getReleaseFilesDir(form.newOwner, repository.name))
-        // Move attached directory
-        defining(getAttachedDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getAttachedDir(form.newOwner, repository.name))
-          }
-        }
-        // Delere parent directory
-        FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
 
         // Call hooks
         PluginRegistry().getRepositoryHooks.foreach(_.transferred(repository.owner, form.newOwner, repository.name))
@@ -393,10 +375,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getReleaseFilesDir(repository.owner, repository.name))
-      val lfsDir = getLfsDir(repository.owner, repository.name)
-      FileUtils.deleteDirectory(lfsDir)
-      FileUtil.deleteDirectoryIfEmpty(lfsDir.getParentFile())
+      FileUtils.deleteDirectory(getRepositoryFilesDir(repository.owner, repository.name))
 
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.owner, repository.name))
@@ -411,7 +390,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        git.gc();
+        git.gc().call()
       }
     }
     flash += "info" -> "Garbage collection has been executed."
@@ -453,12 +432,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   }
 
   private def webhookEvents = new ValueType[Set[WebHook.Event]]{
-    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = {
+    def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
       WebHook.Event.values.flatMap { t =>
         params.get(name + "." + t.name).map(_ => t)
       }.toSet
     }
-    def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
+    def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
       Seq(name -> messages("error.required").format(name))
     } else {
       Nil
@@ -484,19 +463,22 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Duplicate check for the rename repository name.
    */
   private def renameRepositoryName: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
-      params.get("repository").filter(_ != value).flatMap { _ =>
-        params.get("owner").flatMap { userName =>
-          getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
-        }
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
+      for {
+        repoName <- params.optionValue("repository") if repoName != value
+        userName <- params.optionValue("owner")
+        _        <- getRepositoryNamesOfUser(userName).find(_ == value)
+      } yield {
+        "Repository already exists."
       }
+    }
   }
 
   /**
    *
    */
   private def featureOption: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
       if(Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
   }
 

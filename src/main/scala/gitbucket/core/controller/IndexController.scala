@@ -6,7 +6,7 @@ import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, UsersAuthenticator}
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.scalatra.Ok
 
 
@@ -19,11 +19,12 @@ trait IndexControllerBase extends ControllerBase {
   self: RepositoryService with ActivityService with AccountService with RepositorySearchService
     with UsersAuthenticator with ReferrerAuthenticator =>
 
-  case class SignInForm(userName: String, password: String)
+  case class SignInForm(userName: String, password: String, hash: Option[String])
 
   val signinForm = mapping(
     "userName" -> trim(label("Username", text(required))),
-    "password" -> trim(label("Password", text(required)))
+    "password" -> trim(label("Password", text(required))),
+    "hash" -> trim(optional(text()))
   )(SignInForm.apply)
 
 //  val searchForm = mapping(
@@ -54,7 +55,7 @@ trait IndexControllerBase extends ControllerBase {
 
   post("/signin", signinForm){ form =>
     authenticate(context.settings, form.userName, form.password) match {
-      case Some(account) => signin(account)
+      case Some(account) => signin(account, form.hash)
       case None          => {
         flash += "userName" -> form.userName
         flash += "password" -> form.password
@@ -74,7 +75,7 @@ trait IndexControllerBase extends ControllerBase {
     xml.feed(getRecentActivities())
   }
 
-  get("/sidebar-collapse"){
+  post("/sidebar-collapse"){
     if(params("collapse") == "true"){
       session.setAttribute("sidebar-collapse", "true")
     }  else {
@@ -86,7 +87,7 @@ trait IndexControllerBase extends ControllerBase {
   /**
    * Set account information into HttpSession and redirect.
    */
-  private def signin(account: Account) = {
+  private def signin(account: Account, hash: Option[String]) = {
     session.setAttribute(Keys.Session.LoginAccount, account)
     updateLastLoginDate(account.userName)
 
@@ -98,7 +99,7 @@ trait IndexControllerBase extends ControllerBase {
       if(redirectUrl.stripSuffix("/") == request.getContextPath){
         redirect("/")
       } else {
-        redirect(redirectUrl)
+        redirect(redirectUrl + hash.getOrElse(""))
       }
     }.getOrElse {
       redirect("/")
@@ -120,7 +121,12 @@ trait IndexControllerBase extends ControllerBase {
             case (true, false) => !t.isGroupAccount
             case (false, true) => t.isGroupAccount
             case (false, false) => false
-          }}.map { t => t.userName }
+          }}.map { t =>
+            Map(
+              "label" -> s"<b>@${t.userName}</b> ${t.fullName}",
+              "value" -> t.userName
+            )
+          }
       ))
     )
   })

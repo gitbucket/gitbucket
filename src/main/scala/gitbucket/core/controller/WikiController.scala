@@ -1,23 +1,26 @@
 package gitbucket.core.controller
 
+import gitbucket.core.model.WebHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.service.WebHookService.WebHookGollumPayload
 import gitbucket.core.wiki.html
-import gitbucket.core.service.{AccountService, ActivityService, RepositoryService, WikiService}
+import gitbucket.core.service._
 import gitbucket.core.util._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 
 class WikiController extends WikiControllerBase
-  with WikiService with RepositoryService with AccountService with ActivityService
+  with WikiService with RepositoryService with AccountService with ActivityService with WebHookService
   with ReadableUsersAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with ActivityService with ReadableUsersAuthenticator with ReferrerAuthenticator =>
+  self: WikiService with RepositoryService with AccountService with ActivityService with WebHookService
+    with ReadableUsersAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
 
@@ -73,7 +76,7 @@ trait WikiControllerBase extends ControllerBase {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true).filter(_.newPath == pageName + ".md"), repository,
+      html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, Some(from), to, true, false).filter(_.newPath == pageName + ".md"), repository,
         isEditable(repository), flash.get("info"))
     }
   })
@@ -82,7 +85,7 @@ trait WikiControllerBase extends ControllerBase {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+      html.compare(None, from, to, JGitUtil.getDiffs(git, Some(from), to, true, false), repository,
         isEditable(repository), flash.get("info"))
     }
   })
@@ -136,6 +139,11 @@ trait WikiControllerBase extends ControllerBase {
         ).map { commitId =>
           updateLastActivityDate(repository.owner, repository.name)
           recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+          callWebHookOf(repository.owner, repository.name, WebHook.Gollum){
+            getAccountByUserName(repository.owner).map { repositoryUser =>
+              WebHookGollumPayload("edited", form.pageName, commitId, repository, repositoryUser, loginAccount)
+            }
+          }
         }
         if(notReservedPageName(form.pageName)) {
           redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
@@ -155,11 +163,24 @@ trait WikiControllerBase extends ControllerBase {
   post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnly { (form, repository) =>
     if(isEditable(repository)){
       defining(context.loginAccount.get){ loginAccount =>
-        saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-          form.content, loginAccount, form.message.getOrElse(""), None)
-
-        updateLastActivityDate(repository.owner, repository.name)
-        recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+        saveWikiPage(
+          repository.owner,
+          repository.name,
+          form.currentPageName,
+          form.pageName,
+          form.content,
+          loginAccount,
+          form.message.getOrElse(""),
+          None
+        ).map { commitId =>
+          updateLastActivityDate(repository.owner, repository.name)
+          recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+          callWebHookOf(repository.owner, repository.name, WebHook.Gollum){
+            getAccountByUserName(repository.owner).map { repositoryUser =>
+              WebHookGollumPayload("created", form.pageName, commitId, repository, repositoryUser, loginAccount)
+            }
+          }
+        }
 
         if(notReservedPageName(form.pageName)) {
           redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
@@ -198,15 +219,18 @@ trait WikiControllerBase extends ControllerBase {
 
   get("/:owner/:repository/wiki/_blob/*")(referrersOnly { repository =>
     val path = multiParams("splat").head
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("master"))
 
-    getFileContent(repository.owner, repository.name, path).map { bytes =>
-      RawData(FileUtil.getContentType(path, bytes), bytes)
-    } getOrElse NotFound()
+      getPathObjectId(git, path, revCommit).map { objectId =>
+        responseRawFile(git, objectId, path, repository)
+      } getOrElse NotFound()
+    }
   })
 
   private def unique: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
-      getWikiPageList(params("owner"), params("repository")).find(_ == value).map(_ => "Page already exists.")
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
+      getWikiPageList(params.value("owner"), params.value("repository")).find(_ == value).map(_ => "Page already exists.")
   }
 
   private def pagename: Constraint = new Constraint(){
