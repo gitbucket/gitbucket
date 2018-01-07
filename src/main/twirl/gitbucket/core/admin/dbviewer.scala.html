@@ -24,6 +24,7 @@
         <div id="editor" style="width: 100%; height: 300px;"></div>
         <div class="block">
           <input type="button" value="Run query" id="run-query" class="btn btn-success">
+          <input type="button" value="Clear" id="clear-query" class="btn btn-default">
         </div>
         <div id="result"></div>
       </div>
@@ -48,12 +49,14 @@ $(function(){
     if(query != ''){
       query = query + '\n';
     }
-    console.log(e);
     editor.setValue(query + 'SELECT * FROM ' + $(e.target).text());
   });
 
+  $('#clear-query').click(function(){
+    editor.setValue('');
+  });
+
   $('#run-query').click(function(){
-    console.log(editor.getValue());
     $.post('@context.path/admin/dbviewer/_query', { query: editor.getValue() }, function(data){
       if(data.type == "query"){
         var table = $('<table class="table table-bordered table-hover table-scroll">');
