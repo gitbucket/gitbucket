@@ -3,12 +3,12 @@ package gitbucket.core.controller
 import java.io.File
 
 import gitbucket.core.service.{AccountService, ActivityService, ReleaseService, RepositoryService}
-import gitbucket.core.util.{FileUtil, Notifier, ReadableUsersAuthenticator, ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{FileUtil, ReadableUsersAuthenticator, ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.view.Markdown
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import gitbucket.core.releases.html
 import org.apache.commons.io.FileUtils
 
