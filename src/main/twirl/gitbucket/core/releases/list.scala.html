@@ -1,5 +1,5 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-tagReleaseMap: Map[String, gitbucket.core.model.Release],
+releases: List[gitbucket.core.model.Release],
 releaseAssetsMap: Map[gitbucket.core.model.Release, List[gitbucket.core.model.ReleaseAsset]],
 hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -7,14 +7,13 @@ hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context
 @gitbucket.core.html.menu("releases", repository){
 <table class="table table-bordered table-releases">
   <thead>
-  <tr><th>@tagReleaseMap.count(_ => true) releases</div></th></tr>
+  <tr><th>@releases.length releases</div></th></tr>
   </thead>
   <tbody>
-  @repository.tags.reverse.map{ tag =>
+  @releases.map{ release =>
   <tr>
     <td>
-      @tagReleaseMap.get(tag.name).map{release =>
-      <div class="col-md-1"><a href="@helpers.url(repository)/tree/@tag.name"><i class="octicon octicon-tag"></i>@tag.name</a></div>
+      <div class="col-md-1"><a href="@helpers.url(repository)/tree/helpers.encodeRefName(@release.tag)"><i class="octicon octicon-tag"></i>@release.tag</a></div>
       <div class="col-md-11" style="border-left: 1px solid #eee">
         <h3><a href="@helpers.url(repository)/releases/@release.releaseId">@release.name</a></h3>
         <div class="panel panel-default">
@@ -52,22 +51,10 @@ hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context
           </ul>
         </div>
       </div>
-      }.getOrElse{
-      <div class="col-md-1">
-        @gitbucket.core.helper.html.datetimeago(tag.time) <i class="octicon octicon-tag"></i>
-      </div>
-      <div class="col-md-11" style="border-left: 1px solid #eee">
-        <a href="@helpers.url(repository)/tree/@tag.name"><i class="octicon octicon-tag"></i>@tag.name</a>
-        @if(hasWritePermission){
-        <div class="show-title pull-right">
-          <a class="btn btn-success" href="@helpers.url(repository)/releases/@tag.name/create">Create release</a>
-        </div>
-        }
-      </div>
       }
     </td>
   </tr>
   }
   </tbody>
 </table>
-}}
+}

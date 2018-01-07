@@ -92,11 +92,6 @@ trait ReleaseService {
     else None
   }
 
-  def getReleaseTagMap(owner: String, repository: String)(implicit s: Session): Map[String, Release] = {
-    val releases = getReleases(owner, repository)
-    releases.map(rel => (rel.tag -> rel)).toMap
-  }
-
   def updateRelease(owner: String, repository: String, releaseId: Int, title: String, content: Option[String])(implicit s: Session): Int = {
     Releases
       .filter (_.byPrimaryKey(owner, repository, releaseId))

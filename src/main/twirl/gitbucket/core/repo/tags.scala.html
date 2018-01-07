@@ -1,4 +1,4 @@
-@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context, s: gitbucket.core.model.Profile.profile.blockingApi.Session)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("tags", repository){
@@ -6,9 +6,10 @@
       <thead>
         <tr>
           <th width="40%">Tag</th>
-          <th width="20%">Date</th>
-          <th width="20%">Commit</th>
-          <th width="20%">Download</th>
+          <th width="15%">Date</th>
+          <th width="15%">Commit</th>
+          <th width="15%">Download</th>
+          <th width="15%">Release</th>
         </tr>
       </thead>
       <tbody>
@@ -20,6 +21,19 @@
             <td>
                 <a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.zip">ZIP</a>
                 <a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.tar.gz">TAR.GZ</a>
+            </td>
+            <td>
+              @repository.getReleaseByTag(tag.name).map{ release =>
+              <a href="@helpers.url(repository)/releases/@release.releaseId">Release</a>
+              }.getOrElse{
+                @if(hasWritePermission){
+                <div class="show-title pull-right">
+                  <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.encodeRefName(tag.name)}/create">Create release</a>
+                </div>
+                }else{
+                <br />
+                }
+              }
             </td>
           </tr>
         }

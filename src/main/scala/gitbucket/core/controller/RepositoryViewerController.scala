@@ -627,8 +627,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays tags.
    */
-  get("/:owner/:repository/tags")(referrersOnly {
-    html.tags(_)
+  get("/:owner/:repository/tags")(referrersOnly { repository =>
+    html.tags(repository, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
 
   /**

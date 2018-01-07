@@ -542,6 +542,9 @@ object RepositoryService {
 
       (id, path.substring(id.length).stripPrefix("/"))
     }
+    def getReleaseByTag(tag: String)(implicit s: Session): Option[Release] = {
+      Releases filter (_.byTag(owner, name, tag)) firstOption
+    }
   }
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"
@@ -550,5 +553,4 @@ object RepositoryService {
       context.settings.sshAddress.map { x => s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git" }
     } else None
   def openRepoUrl(openUrl: String)(implicit context: Context): String = s"github-${context.platform}://openRepo/${openUrl}"
-
 }

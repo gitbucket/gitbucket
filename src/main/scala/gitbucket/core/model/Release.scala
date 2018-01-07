@@ -8,7 +8,8 @@ trait ReleaseComponent extends TemplateComponent {
 
   lazy val Releases = TableQuery[Releases]
 
-  class Releases(tag_ : Tag) extends Table[Release](tag_, "RELEASE") with ReleaseTemplate {
+  class Releases(tag_ : Tag) extends Table[Release](tag_, "RELEASE") with BasicTemplate {
+    val releaseId = column[Int]("RELEASE_ID", O AutoInc)
     val name = column[String]("NAME")
     val tag = column[String]("TAG")
     val author = column[String]("AUTHOR")
@@ -27,6 +28,12 @@ trait ReleaseComponent extends TemplateComponent {
 
     def byTag(userName: Rep[String], repositoryName: Rep[String], tag: Rep[String]) =
       byRepository(userName, repositoryName) && (this.tag === tag)
+
+    def byRelease(owner: String, repository: String, releaseId: Int) =
+      byRepository(owner, repository) && (this.releaseId === releaseId.bind)
+
+    def byRelease(userName: Rep[String], repositoryName: Rep[String], releaseId: Rep[Int]) =
+      byRepository(userName, repositoryName) && (this.releaseId === releaseId)
   }
 
 }

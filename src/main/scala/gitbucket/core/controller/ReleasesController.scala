@@ -53,7 +53,7 @@ trait ReleaseControllerBase extends ControllerBase {
   get("/:owner/:repository/releases")(referrersOnly {repository =>
     html.list(
       repository,
-      getReleaseTagMap(repository.owner, repository.name),
+      getReleases(repository.owner, repository.name),
       getReleaseAssetsMap(repository.owner, repository.name),
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
