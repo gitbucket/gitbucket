@@ -146,6 +146,7 @@ $(function(){
     return false;
   });
   $("#drop").dropzone({
+    maxFilesize: @{gitbucket.core.util.FileUtil.MaxFileSize / 1024 / 1024},
     url: '@context.path/upload/release/@repository.owner/@repository.name/@release.releaseId',
     previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
     success: function(file, id) {
