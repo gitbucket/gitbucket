@@ -1,0 +1,87 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  tag: String,
+  release: Option[(gitbucket.core.model.Release, Seq[gitbucket.core.model.ReleaseAsset])])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+
+@action = {
+  @release.map { case (release, _) =>
+    @helpers.url(repository)/releases/@release.releaseId/edit
+  }.getOrElse {
+    @helpers.url(repository)/releases/@helpers.encodeRefName(tag)/create
+  }
+}
+
+@gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("releases", repository){
+    <form action="@action.toString.trim" method="POST" validate="true" class="form-group">
+      <div class="row-fluid">
+        <div class="co`l-md-12">
+          @if(release.isEmpty){
+            <h3>New release for @tag</h3>
+          } else {
+            <h3>Update release for @tag</h3>
+          }
+          <span id="error-name" class="error"></span>
+          <input type="text" id="release-name" name="name" class="form-control" value="@release.map { case (release, _) => @release.name }.getOrElse(tag)" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
+          @gitbucket.core.helper.html.preview(
+            repository         = repository,
+            content            = release.flatMap { case (release, _) => release.content }.getOrElse(""),
+            enableWikiLink     = false,
+            enableRefsLink     = true,
+            enableLineBreaks   = true,
+            enableTaskList     = true,
+            hasWritePermission = true,
+            completionContext  = "releases",
+            style              = "height: 200px; max-height: 500px;",
+            elastic            = true,
+            placeholder        = "Describe this release"
+          )
+          <ul id="assets-list" class="collaborator">
+            @release.map { case (release, assets) =>
+              @assets.map { asset =>
+                <li>
+                  <a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag)/@asset.fileName"><i class="octicon octicon-file"></i>@asset.label</a>
+                  <a href="#" class="remove pull-right" style="padding-top: 0px;">(remove)</a>
+                  <input type="hidden" name="file:@asset.fileName" value="@asset.label"/>
+                </li>
+              }
+            }
+          </ul>
+          <div style="border: 1px dashed #ccc; color: gray; background-color: #eee; padding: 4px;">
+            <div id="drop" class="clickable">Attach release files by dragging &amp; dropping, or selecting them.</div>
+          </div>
+          <div class="align-right" style="margin-top: 12px;">
+            @if(release.isEmpty){
+              <input type="submit" class="btn btn-success" value="Submit new release"/>
+            } else {
+              <input type="submit" class="btn btn-success" value="Update release"/>
+            }
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+}
+<script>
+$(function(){
+  $(document).on('click', '.remove', function(){
+    $(this).parent().remove();
+  });
+
+  $("#drop").dropzone({
+    maxFilesize: @{gitbucket.core.util.FileUtil.MaxFileSize / 1024 / 1024},
+    url: '@context.path/upload/release/@repository.owner/@repository.name/@helpers.encodeRefName(tag)',
+    previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+    success: function(file, id) {
+      var attach =
+        '<li><a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag)/' + id + '">' +
+        '<i class="octicon octicon-file"></i>' + file.name + '</a>' +
+        '<a href="#" class="remove pull-right" style="padding-top: 0px;">(remove)</a>' +
+        '<input type="hidden" name="file:' + id + '" value="' + file.name + '"/>' + // TODO escape file.name
+        '</li>';
+      $('#assets-list').append(attach);
+      $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+    }
+  });
+});
+</script>

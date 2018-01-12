@@ -14,12 +14,10 @@ trait ReleaseComponent extends TemplateComponent {
     val tag = column[String]("TAG")
     val author = column[String]("AUTHOR")
     val content = column[Option[String]]("CONTENT")
-    val isDraft = column[Boolean]("IS_DRAFT")
-    val isPrerelease = column[Boolean]("IS_PRERELEASE")
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
 
-    def * = (userName, repositoryName, releaseId, name, tag, author, content, isDraft, isPrerelease, registeredDate, updatedDate) <> (Release.tupled, Release.unapply)
+    def * = (userName, repositoryName, releaseId, name, tag, author, content, registeredDate, updatedDate) <> (Release.tupled, Release.unapply)
 
     def byPrimaryKey(owner: String, repository: String, releaseId: Int) = byRelease(owner, repository, releaseId)
 
@@ -46,8 +44,6 @@ case class Release(
   tag: String,
   author: String,
   content: Option[String],
-  isDraft: Boolean,
-  isPrerelease: Boolean,
   registeredDate: java.util.Date,
   updatedDate: java.util.Date
 )

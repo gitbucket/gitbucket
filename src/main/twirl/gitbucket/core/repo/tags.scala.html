@@ -27,11 +27,11 @@
               <a href="@helpers.url(repository)/releases/@release.releaseId">Release</a>
               }.getOrElse{
                 @if(hasWritePermission){
-                <div class="show-title pull-right">
-                  <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.encodeRefName(tag.name)}/create">Create release</a>
-                </div>
-                }else{
-                <br />
+                  <div class="show-title pull-right">
+                    <a class="btn btn-success btn-min" href="@helpers.url(repository)/releases/@{helpers.encodeRefName(tag.name)}/create">Create release</a>
+                  </div>
+                } else {
+                  <br />
                 }
               }
             </td>

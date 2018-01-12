@@ -1,161 +1,65 @@
 @(release: gitbucket.core.model.Release,
-assets: List[gitbucket.core.model.ReleaseAsset],
-hasWritePermission: Boolean,
-repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  assets: Seq[gitbucket.core.model.ReleaseAsset],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${release.name} - Release ${release.releaseId} - ${repository.owner}/${repository.name}", Some(repository)){
-@gitbucket.core.html.menu("releases", repository){
-<div class="row">
-  <div class="col-md-1">
-    <div><a href="@helpers.url(repository)/tree/@release.tag"><i class="octicon octicon-tag"></i>@release.tag</a></div>
-  </div>
-  <div class="col-md-11" style="border-left: 1px solid #eee">
-    <div>
-      <div class="show-title pull-right">
-        @if(hasWritePermission){
-        <a class="btn btn-default" href="#" id="edit">Edit title</a>
-        <a class="btn btn-danger" href="#" id="delete-release">Delete</a>
-        }
-      </div>
-      <div class="edit-title pull-right" style="display: none;">
-        <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">Cancel</a>
-      </div>
-      <h1 class="body-title">
-        <span class="show-title">
-          <span id="show-title">@release.name</span>
-        </span>
-        <span class="edit-title" style="display: none;">
-          <span id="error-edit-title" class="error"></span>
-          <input type="text" class="form-control" style="width: 700px;" id="edit-title" value="@release.name"/>
-        </span>
-      </h1>
-    </div>
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="muted">
-         @helpers.avatar(release.author, 20)
-         @helpers.user(release.author, styleClass="username strong") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
-        </span>
-        <span class="pull-right">
-          @if(hasWritePermission){
-            <a href="#"><i class="octicon octicon-pencil" aria-label="Edit" id="edit-notes"></i></a>&nbsp;
+  @gitbucket.core.html.menu("releases", repository){
+    <div class="row">
+      <div class="col-md-2 text-right">
+        @defining(repository.tags.find(_.name == release.tag)){ tag =>
+          @tag.map { tag =>
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
+            <a href="@helpers.url(repository)/commit/@tag.id" class="monospace muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
+            <span class="muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
           }
-        </span>
-      </div>
-      <div class="panel-body markdown-body" id="release-note">
-        @helpers.markdown(
-        markdown = release.content getOrElse "No description provided.",
-        repository = repository,
-        enableWikiLink = false,
-        enableRefsLink = true,
-        enableLineBreaks = true,
-        enableTaskList = true,
-        hasWritePermission = hasWritePermission
-        )
-      </div>
-      <div class="panel-body">
-        <h2>Downloads</h2>
-        @if(hasWritePermission){
-        <div style="border: 3px dashed #ccc; background-color: #eee" >
-          <div id="drop" class="clickable">Attach release files by dragging &amp; dropping, or selecting them.</div>
-        </div>
         }
-        <ul style="list-style: none;" id="attachedFiles">
-          @assets.map{ asset =>
-          <li>
-            <i class="octicon octicon-file"></i>
-            <a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
-            <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
+      </div>
+      <div class="col-md-10" style="border-left: 1px solid #eee">
+        <div class="markdown-body">
+          <h3>
+            @release.name
             @if(hasWritePermission){
-            <a href="#" data-asset-file-name="@asset.fileName" class="label label-danger delete-asset">Delete</a>
+              <div class="pull-right">
+                <form method="POST" action="@helpers.url(repository)/releases/@release.releaseId/delete" id="delete-form">
+                  <a class="btn btn-default" href="@helpers.url(repository)/releases/@release.releaseId/edit" id="edit">Edit</a>
+                  <input type="submit" class="btn btn-danger" value="Delete">
+                </form>
+              </div>
             }
-          </li>
-          }
-        </ul>
-        <ul style="list-style: none;">
-          <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>ZIP</a></li>
-          <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>TAR.GZ</a></li>
-        </ul>
+          </h3>
+          <p class="muted">
+           @helpers.avatar(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
+          </p>
+          @helpers.markdown(
+            markdown           = release.content getOrElse "No description provided.",
+            repository         = repository,
+            enableWikiLink     = false,
+            enableRefsLink     = true,
+            enableLineBreaks   = true,
+            enableTaskList     = true,
+            hasWritePermission = hasWritePermission
+          )
+          <h4>Downloads</h4>
+          <ul style="list-style: none; padding-left: 8px;" id="attachedFiles">
+            @assets.map{ asset =>
+              <li>
+                <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
+                <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
+              </li>
+            }
+            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
+            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
+          </ul>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+  }
+}
 <script>
 $(function(){
-  $('.delete-asset').click(function(){
-    var name = $(this).data('asset-file-name');
-    var url = '@helpers.url(repository)/releases/@release.releaseId/assets/delete/' + name;
-    var li = $(this).closest('li');
-    $.post(url,
-    function(data){
-      li.remove();
-    });
-    return false;
-  });
-  $('#edit').click(function(){
-    $('.edit-title').show();
-    $('.show-title').hide();
-    return false;
-  });
-
-  $('#update').click(function(){
-    $(this).attr('disabled', 'disabled');
-    $.ajax({
-      url: '@helpers.url(repository)/releases/edit_title/@release.releaseId',
-      type: 'POST',
-      data: {
-        title   : $('#edit-title').val()
-      }
-    }).done(function(data){
-      $('#show-title').empty().text(data.title);
-      $('#cancel').click();
-      $(this).removeAttr('disabled');
-    }).fail(function(req){
-      $(this).removeAttr('disabled');
-      $('#error-edit-title').text($.parseJSON(req.responseText).title);
-    });
-    return false;
-  });
-
-  $('#cancel').click(function(){
-    $('.edit-title').hide();
-    $('.show-title').show();
-    return false;
-  });
-  $('#edit-notes').click(function(){
-    var id  = @release.releaseId;
-    var url = '@helpers.url(repository)/releases/_data/' + id;
-    var $content = $('#release-note');
-
-    $.get(url,
-    {
-      dataType : 'html'
-    },
-    function(data){
-      $content.empty().html(data);
-    });
-    return false;
-  });
-  $('#delete-release').click(function(){
-    if(confirm('Are you sure you want to delete this?')) {
-      $.post('@helpers.url(repository)/releases/delete/' + @release.releaseId,
-      function(data){
-        location.href = "@helpers.url(repository)/releases";
-      });
-    }
-    return false;
-  });
-  $("#drop").dropzone({
-    maxFilesize: @{gitbucket.core.util.FileUtil.MaxFileSize / 1024 / 1024},
-    url: '@context.path/upload/release/@repository.owner/@repository.name/@release.releaseId',
-    previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-    success: function(file, id) {
-      var attach = '<li><a href="@context.baseUrl/@repository.owner/@repository.name/_release/@release.releaseId/' + id + '">'
-       + '<i class="octicon octicon-file"></i>' + file.name + '</a></li>';
-      $('#attachedFiles').append(attach);
-    }
+  $('#delete-form').submit(function(){
+    return confirm('Are you sure you want to delete this release?');
   });
 });
 </script>
-}
-}

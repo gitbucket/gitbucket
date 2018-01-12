@@ -8,8 +8,6 @@
     <column name="TAG" type="varchar(100)" nullable="false"/>
     <column name="AUTHOR" type="varchar(100)" nullable="false"/>
     <column name="CONTENT" type="text" nullable="true"/>
-    <column name="IS_DRAFT" type="boolean" nullable="false"/>
-    <column name="IS_PRERELEASE" type="boolean" nullable="false"/>
     <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
     <column name="UPDATED_DATE" type="datetime" nullable="false"/>
   </createTable>

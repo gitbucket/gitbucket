@@ -2,7 +2,6 @@ package gitbucket.core.controller
 
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, RepositoryService, ReleaseService}
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
@@ -89,21 +88,16 @@ class FileUploadController extends ScalatraServlet
     } getOrElse BadRequest()
   }
 
-  post("/release/:owner/:repository/:id"){
-    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
+  post("/release/:owner/:repository/:tag"){
+    session.get(Keys.Session.LoginAccount).collect { case _: Account =>
       val owner = params("owner")
       val repository = params("repository")
-      val releaseId = params("id").toInt
-      val release = getRelease(owner, repository, releaseId)
+      val tag = params("tag")
       execute({ (file, fileId) =>
-        val fileName = file.getName
-        release.map { rel =>
-          createReleaseAsset(owner, repository, releaseId, fileId, fileName, file.size, loginAccount)
-          FileUtils.writeByteArrayToFile(new java.io.File(
-            getReleaseFilesDir(owner, repository) + s"/${releaseId}",
-            fileId), file.get)
-          fileName
-        }
+        FileUtils.writeByteArrayToFile(
+          new java.io.File(getReleaseFilesDir(owner, repository), tag + "/" + fileId),
+          file.get
+        )
       }, _ => true)
     }.getOrElse(BadRequest())
   }

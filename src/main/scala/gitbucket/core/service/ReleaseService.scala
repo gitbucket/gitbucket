@@ -3,42 +3,39 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Release, ReleaseAsset}
 import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.Implicits._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.dateColumnType
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 
 trait ReleaseService {
   self: AccountService with RepositoryService =>
 
   def createReleaseAsset(owner: String, repository: String, releaseId: Int, fileName: String, label: String, size: Long, loginAccount: Account)(implicit s: Session): Unit = {
     ReleaseAssets insert ReleaseAsset(
-      userName = owner,
+      userName       = owner,
       repositoryName = repository,
-      releaseId = releaseId,
-      fileName = fileName,
-      label = label,
-      size = size,
-      uploader = loginAccount.userName,
+      releaseId      = releaseId,
+      fileName       = fileName,
+      label          = label,
+      size           = size,
+      uploader       = loginAccount.userName,
       registeredDate = currentDate,
-      updatedDate = currentDate
+      updatedDate    = currentDate
     )
   }
 
-  def getReleaseAssets(owner: String, repository: String, releaseId: Int)(implicit s: Session): List[ReleaseAsset] = {
+  def getReleaseAssets(owner: String, repository: String, releaseId: Int)(implicit s: Session): Seq[ReleaseAsset] = {
     ReleaseAssets.filter(x => x.byRelease(owner, repository, releaseId)).list
   }
 
-  def getReleaseAssets(owner: String, repository: String, releaseId: String)(implicit s: Session): List[ReleaseAsset] = {
+  def getReleaseAssets(owner: String, repository: String, releaseId: String)(implicit s: Session): Seq[ReleaseAsset] = {
     if (isInteger(releaseId))
       getReleaseAssets(owner, repository, releaseId.toInt)
     else
-      List.empty
+      Seq.empty
   }
 
-  def getReleaseAssetsMap(owner: String, repository: String)(implicit s: Session): Map[Release, List[ReleaseAsset]] = {
+  def getReleaseAssetsMap(owner: String, repository: String)(implicit s: Session): Map[Release, Seq[ReleaseAsset]] = {
     val releases = getReleases(owner, repository)
     releases.map(rel => (rel -> getReleaseAssets(owner, repository, rel.releaseId))).toMap
   }
@@ -49,32 +46,26 @@ trait ReleaseService {
     else None
   }
 
-  def deleteReleaseAssets(owner: String, repository: String, releaseId: Int)(implicit s:Session): Unit = {
+  def deleteReleaseAssets(owner: String, repository: String, releaseId: Int)(implicit s: Session): Unit = {
     ReleaseAssets.filter(x => x.byRelease(owner, repository, releaseId)) delete
   }
 
-  def deleteReleaseAsset(owner: String, repository: String, releaseId: Int, fileId: String)(implicit s: Session): Unit = {
-    ReleaseAssets.filter(x => x.byPrimaryKey(owner, repository, releaseId, fileId)) delete
-  }
-
-  def createRelease(repository: RepositoryInfo, name: String, content:Option[String], tag: String,
-    isDraft: Boolean, isPrerelease: Boolean, loginAccount: Account)(implicit context: Context, s: Session): Release = {
+  def createRelease(owner: String, repository: String, name: String, content: Option[String], tag: String,
+                    loginAccount: Account)(implicit context: Context, s: Session): Release = {
     Releases insert Release(
-      userName = repository.owner,
-      repositoryName = repository.name,
-      name = name,
-      tag = tag,
-      author = loginAccount.userName,
-      content = content,
-      isDraft = isDraft,
-      isPrerelease = isPrerelease,
+      userName       = owner,
+      repositoryName = repository,
+      name           = name,
+      tag            = tag,
+      author         = loginAccount.userName,
+      content        = content,
       registeredDate = currentDate,
-      updatedDate = currentDate
+      updatedDate    = currentDate
     )
-    getReleaseByTag(repository.owner, repository.name, tag).get
+    getReleaseByTag(owner, repository, tag).get
   }
 
-  def getReleases(owner: String, repository: String)(implicit s: Session): List[Release] = {
+  def getReleases(owner: String, repository: String)(implicit s: Session): Seq[Release] = {
     Releases.filter(x => x.byRepository(owner, repository)).list
   }
 
