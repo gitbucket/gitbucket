@@ -351,12 +351,12 @@ function scrollIntoView(target){
   }
 }
 
-///**
-// * escape html
-// */
-//function escapeHtml(text){
-//  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;');
-//}
+/**
+* escape html
+*/
+function escapeHtml(text){
+ return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;');
+}
 
 /**
  * calculate string ranking for path.

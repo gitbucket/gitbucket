@@ -537,10 +537,6 @@ object RepositoryService {
 
       (id, path.substring(id.length).stripPrefix("/"))
     }
-
-//    def getReleaseByTag(tag: String)(implicit s: Session): Option[Release] = {
-//      Releases filter (_.byTag(owner, name, tag)) firstOption
-//    }
   }
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"

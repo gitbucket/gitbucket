@@ -75,9 +75,9 @@ $(function(){
     success: function(file, id) {
       var attach =
         '<li><a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag)/' + id + '">' +
-        '<i class="octicon octicon-file"></i>' + file.name + '</a>' +
+        '<i class="octicon octicon-file"></i>' + escapeHtml(file.name) + '</a>' +
         '<a href="#" class="remove pull-right" style="padding-top: 0px;">(remove)</a>' +
-        '<input type="hidden" name="file:' + id + '" value="' + file.name + '"/>' + // TODO escape file.name
+        '<input type="hidden" name="file:' + id + '" value="' + escapeHtml(file.name) + '"/>'
         '</li>';
       $('#assets-list').append(attach);
       $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
