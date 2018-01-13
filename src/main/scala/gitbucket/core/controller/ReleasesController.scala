@@ -67,10 +67,10 @@ trait ReleaseControllerBase extends ControllerBase {
       asset <- getReleaseAsset(repository.owner, repository.name, tag, fileId)
     } yield {
       response.setHeader("Content-Disposition", s"attachment; filename=${asset.label}")
-      Some(RawData(
+      RawData(
         FileUtil.getMimeType(asset.label),
         new File(getReleaseFilesDir(repository.owner, repository.name), tag + "/" + fileId)
-      ))
+      )
     }).getOrElse(NotFound())
   })
 
