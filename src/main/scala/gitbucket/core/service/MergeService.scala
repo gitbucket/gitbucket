@@ -4,7 +4,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.SyntaxSugars._
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
-import org.eclipse.jgit.api.{Git, MergeResult}
+import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
@@ -211,7 +211,7 @@ object MergeService{
     }
 
     // update branch from cache
-    def merge(message:String, committer:PersonIdent) = {
+    def merge(message: String, committer: PersonIdent) = {
       if(checkConflict().isDefined){
         throw new RuntimeException("This pull request can't merge automatically.")
       }
@@ -229,12 +229,13 @@ object MergeService{
         throw new RuntimeException("This pull request can't merge automatically.")
       }
 
-      def _cloneCommit(commit: RevCommit, parents: Array[ObjectId]): CommitBuilder = {
+      def _cloneCommit(commit: RevCommit, parentId: ObjectId, baseId: ObjectId): CommitBuilder = {
+        val merger = MergeStrategy.RECURSIVE.newMerger(repository, true)
+        merger.merge(commit.toObjectId, baseId)
+
         val newCommit = new CommitBuilder()
-        newCommit.setTreeId(commit.getTree.getId)
-        parents.foreach { parentId =>
-          newCommit.addParentId(parentId)
-        }
+        newCommit.setTreeId(merger.getResultTreeId)
+        newCommit.addParentId(parentId)
         newCommit.setAuthor(commit.getAuthorIdent)
         newCommit.setCommitter(committer)
         newCommit.setMessage(commit.getFullMessage)
@@ -246,7 +247,7 @@ object MergeService{
 
       using(repository.newObjectInserter){ inserter =>
         commits.foreach { commit =>
-          val nextCommit = _cloneCommit(commit, Array(previousId))
+          val nextCommit = _cloneCommit(commit, previousId, mergeBaseTipCommit.getId)
           previousId = inserter.insert(nextCommit)
         }
         inserter.flush()

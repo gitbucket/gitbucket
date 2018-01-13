@@ -13,14 +13,14 @@
       </div>
       <div style="padding-left: 10px; padding-right: 10px;">
         @account.description.map{ description =>
-          <p>@description</p>
+          <p style="color: #999">@description</p>
         }
         @if(account.url.isDefined){
           <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             <i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a>
           </p>
         }
-        <p>
+        <p style="color: #999">
           <i class="octicon octicon-clock"></i> Joined on @helpers.date(account.registeredDate)
         </p>
       </div>

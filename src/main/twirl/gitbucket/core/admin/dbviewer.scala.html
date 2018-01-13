@@ -24,6 +24,7 @@
         <div id="editor" style="width: 100%; height: 300px;"></div>
         <div class="block">
           <input type="button" value="Run query" id="run-query" class="btn btn-success">
+          <input type="button" value="Clear" id="clear-query" class="btn btn-default">
         </div>
         <div id="result"></div>
       </div>
@@ -40,50 +41,55 @@ $(function(){
   editor.setTheme("ace/theme/monokai");
   editor.getSession().setMode("ace/mode/sql");
 
-
   $('#table-tree').jstree();
 
   $('.table-link').click(function(e){
-    var query = editor.getValue();
-    if(query != ''){
-      query = query + '\n';
+    if(editor.getValue().trim() == ''){
+      editor.getSession().insert(editor.getCursorPosition(), 'SELECT * FROM ' + $(e.target).text());
+    } else {
+      editor.getSession().insert(editor.getCursorPosition(), $(e.target).text());
     }
-    console.log(e);
-    editor.setValue(query + 'SELECT * FROM ' + $(e.target).text());
+    editor.focus();
+  });
+
+  $('#clear-query').click(function(){
+    editor.setValue('');
   });
 
   $('#run-query').click(function(){
-    console.log(editor.getValue());
-    $.post('@context.path/admin/dbviewer/_query', { query: editor.getValue() }, function(data){
-      if(data.type == "query"){
-        var table = $('<table class="table table-bordered table-hover table-scroll">');
+    var selectedText = editor.getSession().doc.getTextRange(editor.selection.getRange()).trim();
 
-        var header = $('<tr>');
-        $.each(data.columns, function(i, column){
-          header.append($('<th>').text(column));
-        });
-        table.append($('<thead>').append(header));
+    $.post('@context.path/admin/dbviewer/_query', { query: selectedText == '' ? editor.getValue() : selectedText },
+      function(data){
+        if(data.type == "query"){
+          var table = $('<table class="table table-bordered table-hover table-scroll">');
 
-        var body = $('<tbody>');
-        $.each(data.rows, function(i, rs){
-          var row = $('<tr>');
+          var header = $('<tr>');
           $.each(data.columns, function(i, column){
-            row.append($('<td>').text(rs[column]));
+            header.append($('<th>').text(column));
           });
-          body.append(row);
-        });
+          table.append($('<thead>').append(header));
 
-        table.append(body);
-        $('#result').empty().append(table);
+          var body = $('<tbody>');
+          $.each(data.rows, function(i, rs){
+            var row = $('<tr>');
+            $.each(data.columns, function(i, column){
+              row.append($('<td>').text(rs[column]));
+            });
+            body.append(row);
+          });
 
-      } else if(data.type == "update"){
-        $('#result').empty().append($('<span>').text('Updated ' + data.rows + ' rows.'));
+          table.append(body);
+          $('#result').empty().append(table);
 
-      } else if(data.type == "error"){
-        $('#result').empty().append($('<span class="error">').text(data.message));
+        } else if(data.type == "update"){
+          $('#result').empty().append($('<span>').text('Updated ' + data.rows + ' rows.'));
+
+        } else if(data.type == "error"){
+          $('#result').empty().append($('<span class="error">').text(data.message));
+        }
       }
-    });
-
+    );
   });
 });
 </script>
