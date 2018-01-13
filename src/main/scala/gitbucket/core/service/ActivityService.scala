@@ -190,7 +190,7 @@ trait ActivityService {
       Some(message),
       currentDate)
 
-  def recordReleaseActivity(userName: String, repositoryName: String, activityUserName: String, releaseId: Int, name: String)(implicit s: Session): Unit =
+  def recordReleaseActivity(userName: String, repositoryName: String, activityUserName: String, name: String)(implicit s: Session): Unit =
     Activities insert Activity(userName, repositoryName, activityUserName,
       "release",
       s"[user:${activityUserName}] released ${name} at [repo:${userName}/${repositoryName}]",

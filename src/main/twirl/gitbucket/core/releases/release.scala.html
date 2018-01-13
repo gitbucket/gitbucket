@@ -3,7 +3,7 @@
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.html.main(s"${release.name} - Release ${release.releaseId} - ${repository.owner}/${repository.name}", Some(repository)){
+@gitbucket.core.html.main(s"Release ${release.name} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
     <div class="row">
       <div class="col-md-2 text-right">
@@ -21,8 +21,8 @@
             @release.name
             @if(hasWritePermission){
               <div class="pull-right">
-                <form method="POST" action="@helpers.url(repository)/releases/@release.releaseId/delete" id="delete-form">
-                  <a class="btn btn-default" href="@helpers.url(repository)/releases/@release.releaseId/edit" id="edit">Edit</a>
+                <form method="POST" action="@helpers.url(repository)/releases/@release.tag/delete" id="delete-form">
+                  <a class="btn btn-default" href="@helpers.url(repository)/releases/@release.tag/edit" id="edit">Edit</a>
                   <input type="submit" class="btn btn-danger" value="Delete">
                 </form>
               </div>
@@ -44,7 +44,7 @@
           <ul style="list-style: none; padding-left: 8px;" id="attachedFiles">
             @assets.map{ asset =>
               <li>
-                <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
+                <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName">@asset.label</a>
                 <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
               </li>
             }

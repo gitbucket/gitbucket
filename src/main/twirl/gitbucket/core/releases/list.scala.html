@@ -20,7 +20,7 @@
             <div class="col-md-10" style="border-left: 1px solid #eee">
               <div class="release-note markdown-body">
                 @release.map { case (release, assets) =>
-                  <h3><a href="@helpers.url(repository)/releases/@release.releaseId">@release.name</a></h3>
+                  <h3><a href="@helpers.url(repository)/releases/@release.tag">@release.name</a></h3>
                   <p class="muted">
                     @helpers.avatar(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
                   </p>
@@ -45,7 +45,7 @@
                   @release.map { case (release, assets) =>
                     @assets.map { asset =>
                       <li>
-                        <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
+                        <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName">@asset.label</a>
                         <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
                       </li>
                     }

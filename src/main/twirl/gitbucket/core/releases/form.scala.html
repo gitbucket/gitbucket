@@ -2,18 +2,9 @@
   tag: String,
   release: Option[(gitbucket.core.model.Release, Seq[gitbucket.core.model.ReleaseAsset])])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-
-@action = {
-  @release.map { case (release, _) =>
-    @helpers.url(repository)/releases/@release.releaseId/edit
-  }.getOrElse {
-    @helpers.url(repository)/releases/@helpers.encodeRefName(tag)/create
-  }
-}
-
 @gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
-    <form action="@action.toString.trim" method="POST" validate="true" class="form-group">
+    <form action="@helpers.url(repository)/releases/@helpers.encodeRefName(tag)/@if(release.isEmpty){create}else{edit}" method="POST" validate="true" class="form-group">
       <div class="row-fluid">
         <div class="co`l-md-12">
           @if(release.isEmpty){

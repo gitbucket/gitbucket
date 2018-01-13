@@ -51,24 +51,25 @@ trait ReleaseControllerBase extends ControllerBase {
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
 
-  get("/:owner/:repository/releases/:id")(referrersOnly {repository =>
-    val id = params("id")
-    getRelease(repository.owner, repository.name, id).map{ release =>
-      html.release(release, getReleaseAssets(repository.owner, repository.name, id), hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
+  get("/:owner/:repository/releases/:tag")(referrersOnly { repository =>
+    val tag = params("tag")
+    getRelease(repository.owner, repository.name, tag).map { release =>
+      html.release(release, getReleaseAssets(repository.owner, repository.name, tag), hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
     }.getOrElse(NotFound())
   })
 
-  get("/:owner/:repository/releases/:id/assets/:fileId")(referrersOnly {repository =>
-    val releaseId = params("id")
+  get("/:owner/:repository/releases/:tag/assets/:fileId")(referrersOnly {repository =>
+    val tag = params("tag")
     val fileId = params("fileId")
     (for {
-      release <- getRelease(repository.owner, repository.name, releaseId)
-      asset   <- getReleaseAsset(repository.owner, repository.name, releaseId, fileId)
+      _     <- repository.tags.find(_.name == tag)
+      _     <- getRelease(repository.owner, repository.name, tag)
+      asset <- getReleaseAsset(repository.owner, repository.name, tag, fileId)
     } yield {
       response.setHeader("Content-Disposition", s"attachment; filename=${asset.label}")
       Some(RawData(
         FileUtil.getMimeType(asset.label),
-        new File(getReleaseFilesDir(repository.owner, repository.name), release.tag + "/" + fileId)
+        new File(getReleaseFilesDir(repository.owner, repository.name), tag + "/" + fileId)
       ))
     }).getOrElse(NotFound())
   })
@@ -82,7 +83,7 @@ trait ReleaseControllerBase extends ControllerBase {
     val loginAccount = context.loginAccount.get
 
     // Insert into RELEASE
-    val release = createRelease(repository.owner, repository.name, form.name, form.content, tag, loginAccount)
+    createRelease(repository.owner, repository.name, form.name, form.content, tag, loginAccount)
 
     // Insert into RELEASE_ASSET
     request.getParameterNames.asScala.filter(_.startsWith("file:")).foreach { paramName =>
@@ -90,50 +91,51 @@ trait ReleaseControllerBase extends ControllerBase {
       val fileName = params(paramName)
       val size = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), tag + "/" + fileId).length
 
-      createReleaseAsset(repository.owner, repository.name, release.releaseId, fileId, fileName, size, loginAccount)
+      createReleaseAsset(repository.owner, repository.name, tag, fileId, fileName, size, loginAccount)
     }
 
-    recordReleaseActivity(repository.owner, repository.name, loginAccount.userName, release.releaseId, release.name)
+    recordReleaseActivity(repository.owner, repository.name, loginAccount.userName, form.name)
 
-    redirect(s"/${release.userName}/${release.repositoryName}/releases/${release.releaseId}")
+    redirect(s"/${repository.owner}/${repository.name}/releases/${tag}")
   })
 
-  get("/:owner/:repository/releases/:id/edit")(writableUsersOnly {repository =>
-    val releaseId = params("id").toInt
-    getRelease(repository.owner, repository.name, releaseId).map { release =>
-      html.form(repository, release.tag, Some(release, getReleaseAssets(repository.owner, repository.name, releaseId)))
+  get("/:owner/:repository/releases/:tag/edit")(writableUsersOnly {repository =>
+    val tag = params("tag")
+
+    getRelease(repository.owner, repository.name, tag).map { release =>
+      html.form(repository, release.tag, Some(release, getReleaseAssets(repository.owner, repository.name, tag)))
     }.getOrElse(NotFound())
   })
 
-  post("/:owner/:repository/releases/:id/edit", releaseForm)(writableUsersOnly { (form, repository) =>
-    val releaseId = params("id").toInt
+  post("/:owner/:repository/releases/:tag/edit", releaseForm)(writableUsersOnly { (form, repository) =>
+    val tag = params("tag")
     val loginAccount = context.loginAccount.get
 
-    getRelease(repository.owner, repository.name, releaseId).map { release =>
+    getRelease(repository.owner, repository.name, tag).map { release =>
       // Update RELEASE
-      updateRelease(repository.owner, repository.name, releaseId, form.name, form.content)
+      updateRelease(repository.owner, repository.name, tag, form.name, form.content)
 
       // Delete and Insert RELEASE_ASSET
-      deleteReleaseAssets(repository.owner, repository.name, releaseId)
+      deleteReleaseAssets(repository.owner, repository.name, tag)
 
       request.getParameterNames.asScala.filter(_.startsWith("file:")).foreach { paramName =>
         val Array(_, fileId) = paramName.split(":")
         val fileName = params(paramName)
         val size = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), release.tag + "/" + fileId).length
 
-        createReleaseAsset(repository.owner, repository.name, release.releaseId, fileId, fileName, size, loginAccount)
+        createReleaseAsset(repository.owner, repository.name, tag, fileId, fileName, size, loginAccount)
       }
 
-      redirect(s"/${release.userName}/${release.repositoryName}/releases/${release.releaseId}")
+      redirect(s"/${release.userName}/${release.repositoryName}/releases/${tag}")
     }.getOrElse(NotFound())
   })
 
-  post("/:owner/:repository/releases/:id/delete")(writableUsersOnly { repository =>
-    val releaseId = params("id")
-    getRelease(repository.owner, repository.name, releaseId).foreach { release =>
+  post("/:owner/:repository/releases/:tag/delete")(writableUsersOnly { repository =>
+    val tag = params("tag")
+    getRelease(repository.owner, repository.name, tag).foreach { release =>
       FileUtils.deleteDirectory(new File(getReleaseFilesDir(repository.owner, repository.name), release.tag))
     }
-    deleteRelease(repository.owner, repository.name, releaseId)
+    deleteRelease(repository.owner, repository.name, tag)
     redirect(s"/${repository.owner}/${repository.name}/releases")
   })
 
