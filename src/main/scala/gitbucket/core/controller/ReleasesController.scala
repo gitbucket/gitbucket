@@ -116,14 +116,23 @@ trait ReleaseControllerBase extends ControllerBase {
       updateRelease(repository.owner, repository.name, tag, form.name, form.content)
 
       // Delete and Insert RELEASE_ASSET
+      val assets = getReleaseAssets(repository.owner, repository.name, tag)
       deleteReleaseAssets(repository.owner, repository.name, tag)
 
-      request.getParameterNames.asScala.filter(_.startsWith("file:")).foreach { paramName =>
+      val fileIds = request.getParameterNames.asScala.filter(_.startsWith("file:")).map { paramName =>
         val Array(_, fileId) = paramName.split(":")
         val fileName = params(paramName)
         val size = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), release.tag + "/" + fileId).length
 
         createReleaseAsset(repository.owner, repository.name, tag, fileId, fileName, size, loginAccount)
+        fileId
+      }
+
+      assets.foreach { asset =>
+        if(!fileIds.contains(asset.fileName)){
+          val file = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), release.tag + "/" + asset.fileName)
+          FileUtils.forceDelete(file)
+        }
       }
 
       redirect(s"/${release.userName}/${release.repositoryName}/releases/${tag}")
