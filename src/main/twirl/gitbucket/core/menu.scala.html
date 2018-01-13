@@ -33,8 +33,8 @@
       @menuitem("", "files", "Files", "code")
       @if(repository.branchList.nonEmpty) {
         @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
-        @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
       }
+      @menuitem("/releases", "releases", "Releases", "tag", repository.tags.length)
       @if(repository.repository.options.issuesOption != "DISABLE") {
         @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
         @menuitem("/pulls", "pulls", "Pull requests", "git-pull-request", repository.pullCount)

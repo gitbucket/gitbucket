@@ -2,7 +2,7 @@
 import java.util.EnumSet
 import javax.servlet._
 
-import gitbucket.core.controller._
+import gitbucket.core.controller.{ReleaseController, _}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.servlet._
@@ -47,6 +47,7 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
     filter.mount(new MilestonesController, "/*")
     filter.mount(new IssuesController, "/*")
     filter.mount(new PullRequestsController, "/*")
+    filter.mount(new ReleaseController, "/*")
     filter.mount(new RepositorySettingsController, "/*")
 
     context.addFilter("compositeScalatraFilter", filter)

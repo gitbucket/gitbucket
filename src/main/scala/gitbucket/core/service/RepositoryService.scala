@@ -3,7 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role}
+import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role, Release}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
@@ -75,6 +75,8 @@ trait RepositoryService { self: AccountService =>
         val protectedBranches       = ProtectedBranches      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranchContexts = ProtectedBranchContexts.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val deployKeys              = DeployKeys             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val releases                = Releases               .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val releaseAssets           = ReleaseAssets          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
           (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
@@ -120,6 +122,8 @@ trait RepositoryService { self: AccountService =>
         ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         DeployKeys             .insertAll(deployKeys    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Releases               .insertAll(releases      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        ReleaseAssets          .insertAll(releaseAssets .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update source repository of pull requests
         PullRequests.filter { t =>
@@ -173,6 +177,8 @@ trait RepositoryService { self: AccountService =>
     RepositoryWebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     RepositoryWebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
     DeployKeys              .filter(_.byRepository(userName, repositoryName)).delete
+    ReleaseAssets .filter(_.byRepository(userName, repositoryName)).delete
+    Releases      .filter(_.byRepository(userName, repositoryName)).delete
     Repositories            .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
@@ -514,7 +520,7 @@ object RepositoryService {
       this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, repo.branchList, repo.tags, managers)
 
     /**
-     * Creates instance without issue count and pull request count.
+     * Creates instance without issue and  pull request count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
       this(repo.owner, repo.name, model, 0, 0, forkedCount, repo.branchList, repo.tags, managers)
@@ -531,6 +537,10 @@ object RepositoryService {
 
       (id, path.substring(id.length).stripPrefix("/"))
     }
+
+//    def getReleaseByTag(tag: String)(implicit s: Session): Option[Release] = {
+//      Releases filter (_.byTag(owner, name, tag)) firstOption
+//    }
   }
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"
@@ -539,5 +549,4 @@ object RepositoryService {
       context.settings.sshAddress.map { x => s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git" }
     } else None
   def openRepoUrl(openUrl: String)(implicit context: Context): String = s"github-${context.platform}://openRepo/${openUrl}"
-
 }

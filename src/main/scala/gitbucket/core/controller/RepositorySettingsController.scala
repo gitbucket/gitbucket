@@ -142,6 +142,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
         }
       }
+      // Delete parent directory
+      FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
+
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
     }

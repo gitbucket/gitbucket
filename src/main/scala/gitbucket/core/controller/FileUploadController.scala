@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.Account
-import gitbucket.core.service.{AccountService, RepositoryService}
+import gitbucket.core.service.{AccountService, RepositoryService, ReleaseService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
@@ -19,7 +19,11 @@ import org.apache.commons.io.{FileUtils, IOUtils}
  *
  * This servlet saves uploaded file.
  */
-class FileUploadController extends ScalatraServlet with FileUploadSupport with RepositoryService with AccountService {
+class FileUploadController extends ScalatraServlet
+  with FileUploadSupport
+  with RepositoryService
+  with AccountService
+  with ReleaseService{
 
   configureMultipartHandling(MultipartConfig(maxFileSize = Some(FileUtil.MaxFileSize)))
 
@@ -82,6 +86,20 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
         }, _ => true)
       }
     } getOrElse BadRequest()
+  }
+
+  post("/release/:owner/:repository/:tag"){
+    session.get(Keys.Session.LoginAccount).collect { case _: Account =>
+      val owner = params("owner")
+      val repository = params("repository")
+      val tag = params("tag")
+      execute({ (file, fileId) =>
+        FileUtils.writeByteArrayToFile(
+          new java.io.File(getReleaseFilesDir(owner, repository), tag + "/" + fileId),
+          file.get
+        )
+      }, _ => true)
+    }.getOrElse(BadRequest())
   }
 
   post("/import") {

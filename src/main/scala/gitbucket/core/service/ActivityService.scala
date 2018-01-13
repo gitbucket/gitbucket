@@ -190,6 +190,13 @@ trait ActivityService {
       Some(message),
       currentDate)
 
+  def recordReleaseActivity(userName: String, repositoryName: String, activityUserName: String, releaseId: Int, name: String)(implicit s: Session): Unit =
+    Activities insert Activity(userName, repositoryName, activityUserName,
+      "release",
+      s"[user:${activityUserName}] released ${name} at [repo:${userName}/${repositoryName}]",
+      None,
+      currentDate)
+
   private def cut(value: String, length: Int): String =
     if(value.length > length) value.substring(0, length) + "..." else value
 }

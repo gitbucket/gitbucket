@@ -55,6 +55,12 @@ object Directory {
     new File(getRepositoryFilesDir(owner, repository), "comments")
 
   /**
+    * Directory for released files
+    */
+  def getReleaseFilesDir(owner: String, repository: String): File =
+    new File(getRepositoryFilesDir(owner, repository), "releases")
+
+  /**
    * Directory for files which are attached to issue.
    */
   def getLfsDir(owner: String, repository: String): File =

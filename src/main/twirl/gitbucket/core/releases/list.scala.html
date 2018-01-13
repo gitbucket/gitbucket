@@ -1,0 +1,64 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  releases: Seq[(gitbucket.core.util.JGitUtil.TagInfo, Option[(gitbucket.core.model.Release, Seq[gitbucket.core.model.ReleaseAsset])])],
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Releases" + s" - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("releases", repository){
+    <table class="table table-bordered table-releases">
+      <thead>
+        <tr><th>@releases.length releases</th></tr>
+      </thead>
+      <tbody>
+      @releases.map { case (tag, release) =>
+        <tr>
+          <td>
+            <div class="col-md-2 text-right">
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
+              <a href="@helpers.url(repository)/commit/@tag.id" class="monospace muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
+              <span class="muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
+            </div>
+            <div class="col-md-10" style="border-left: 1px solid #eee">
+              <div class="release-note markdown-body">
+                @release.map { case (release, assets) =>
+                  <h3><a href="@helpers.url(repository)/releases/@release.releaseId">@release.name</a></h3>
+                  <p class="muted">
+                    @helpers.avatar(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
+                  </p>
+                  @helpers.markdown(
+                    markdown           = release.content getOrElse "No description provided.",
+                    repository         = repository,
+                    enableWikiLink     = false,
+                    enableRefsLink     = true,
+                    enableLineBreaks   = true,
+                    enableTaskList     = true,
+                    hasWritePermission = hasWritePermission
+                  )
+                }.getOrElse {
+                  @if(hasWritePermission){
+                    <div class="pull-right">
+                      <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.encodeRefName(tag.name)}/create" id="edit">Create release</a>
+                    </div>
+                  }
+                }
+                <h4>Downloads</h4>
+                <ul style="list-style: none; padding-left: 8px;">
+                  @release.map { case (release, assets) =>
+                    @assets.map { asset =>
+                      <li>
+                        <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
+                        <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
+                      </li>
+                    }
+                  }
+                  <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
+                  <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
+                </ul>
+              </div>
+            </div>
+          </td>
+        </tr>
+      }
+      </tbody>
+    </table>
+  }
+}

@@ -14,6 +14,7 @@
         case "reopen_issue"      => detailActivity(activity, "issue-reopened")
         case "open_pullreq"      => detailActivity(activity, "git-pull-request")
         case "merge_pullreq"     => detailActivity(activity, "git-merge")
+        case "release"           => detailActivity(activity, "package")
         case "create_repository" => simpleActivity(activity, "repo")
         case "create_branch"     => simpleActivity(activity, "git-branch")
         case "delete_branch"     => simpleActivity(activity, "circle-slash")
