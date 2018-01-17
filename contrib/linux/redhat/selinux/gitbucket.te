@@ -1,0 +1,21 @@
+module gitbucket 1.0;
+
+require {
+	type smtp_port_t;
+	type tomcat_t;
+	type tomcat_var_lib_t;
+	type unreserved_port_t;
+
+	class file { execute };
+	class tcp_socket { name_bind };
+	class tcp_socket { name_connect };
+}
+
+# allow tomcat to send emails
+allow tomcat_t smtp_port_t:tcp_socket { name_connect };
+
+# allow file executes, required during repo creation
+allow tomcat_t tomcat_var_lib_t:file { execute };
+
+# allow tomcat to serve repositories via SSH
+allow tomcat_t unreserved_port_t:tcp_socket { name_bind };
