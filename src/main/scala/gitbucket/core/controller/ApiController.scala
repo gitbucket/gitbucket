@@ -203,12 +203,10 @@ trait ApiControllerBase extends ControllerBase {
   /*
    * https://developer.github.com/v3/git/refs/#get-a-reference
    */
-  get("/api/v3/repos/:owner/:repo/git/*") (referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repo/git/refs/*") (referrersOnly { repository =>
     val revstr = multiParams("splat").head
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
-      //JsonFormat( (revstr, git.getRepository().resolve(revstr)) )
-      // getRef is deprecated by jgit-4.2. use exactRef() or findRef()
-      val sha = git.getRepository().exactRef(revstr).getObjectId().name()
+      val sha = git.getRepository().findRef(revstr).getObjectId().name()
       JsonFormat(ApiRef(revstr, ApiObject(sha)))
     }
   })
