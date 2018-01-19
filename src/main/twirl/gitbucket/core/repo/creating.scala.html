@@ -22,7 +22,6 @@
 
   function checkCreating() {
     $.get('@context.path/@owner/@repository/creating', function (data) {
-      console.log(data);
       if (data.creating == true) {
         setTimeout(checkCreating, 2000);
       } else {
@@ -31,9 +30,7 @@
           $('#error').show();
           $('#progress').hide();
         } else {
-          setTimeout(function(){
-            location.href = '@context.path/@owner/@repository';
-          }, 2000);
+          setTimeout(function(){ location.href = '@context.path/@owner/@repository'; });
         }
       }
     });

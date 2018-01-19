@@ -168,9 +168,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val owner = params("owner")
     val repository = params("repository")
     contentType = formats("json")
+    val creating = RepositoryCreationService.isCreating(owner, repository)
     Serialization.write(Map(
-      "creating" -> RepositoryCreationService.isCreating(owner, repository),
-      "error" -> RepositoryCreationService.getCreationError(owner, repository)
+      "creating" -> creating,
+      "error" -> (if(creating) None else RepositoryCreationService.getCreationError(owner, repository))
     ))
   }
 
