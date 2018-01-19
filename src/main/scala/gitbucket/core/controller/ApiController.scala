@@ -206,8 +206,21 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repo/git/refs/*") (referrersOnly { repository =>
     val revstr = multiParams("splat").head
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
-      val sha = git.getRepository().findRef(revstr).getObjectId().name()
-      JsonFormat(ApiRef(revstr, ApiObject(sha)))
+      val ref = git.getRepository().findRef(revstr)
+
+      if(ref != null){
+        val sha = ref.getObjectId().name()
+        JsonFormat(ApiRef(revstr, ApiObject(sha)))
+
+      } else {
+        val refs = git.getRepository().getAllRefs().asScala
+          .collect { case (str, ref) if str.startsWith("refs/" + revstr) => ref }
+
+        JsonFormat(refs.map { ref =>
+          val sha = ref.getObjectId().name()
+          ApiRef(revstr, ApiObject(sha))
+        })
+      }
     }
   })
 
