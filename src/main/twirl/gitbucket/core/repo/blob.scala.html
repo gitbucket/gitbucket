@@ -214,6 +214,9 @@ $(window).on('load', function(){
     });
     return false;
   };
+  $(document).on('expanded.pushMenu collapsed.pushMenu', function(e){
+    setTimeout(updateBlame, 300);
+  });
   updateBlame();
 });
 
