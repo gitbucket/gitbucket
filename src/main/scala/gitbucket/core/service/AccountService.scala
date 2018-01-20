@@ -96,12 +96,19 @@ trait AccountService {
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
     Accounts filter(t => (t.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
 
-  def getAllUsers(includeRemoved: Boolean = true)(implicit s: Session): List[Account] =
-    if(includeRemoved){
-      Accounts sortBy(_.userName) list
-    } else {
-      Accounts filter (_.removed === false.bind) sortBy(_.userName) list
-    }
+  def getAllUsers(includeRemoved: Boolean = true, includeGroups: Boolean = true)(implicit s: Session): List[Account] =
+  {
+    ((includeRemoved, includeGroups) match {
+      case (true, true) =>
+        Accounts
+      case (true, false) =>
+        Accounts filter (_.groupAccount === false.bind)
+      case (false, true) =>
+        Accounts filter (_.removed === false.bind)
+      case (false, false) =>
+        Accounts filter (t => t.removed === false.bind && t.groupAccount === false.bind)
+    }) sortBy(_.userName) list
+  }
 
   def isLastAdministrator(account: Account)(implicit s: Session): Boolean = {
     if(account.isAdmin){
