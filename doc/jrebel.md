@@ -28,17 +28,16 @@ You don't need to integrate with your IDE, since we're using sbt to do the servl
 Fortunately, the gitbucket project is already set up to use JRebel.
 You only need to tell jvm where to find the jrebel jar.
 
-To do so, edit your shell resource file (usually `~/.bash_profile` on Mac, and `~/.bashrc` on Linux), and add the following line:
+To do so, edit your shell resource file (usually `~/.bash_profile` on Mac, and `~/.bashrc` on Linux) and set the environment variable `JREBEL`.
+For example, if you unzipped your JRebel download in your home directory, you would use:
 
 ```bash
-export JREBEL=/path/to/jrebel/legacy/jrebel.jar
+export JREBEL=~/jrebel/legacy/jrebel.jar      # legacy agent
+export JREBEL=~/jrebel/lib/libjrebel64.dylib  # new agent
 ```
 
-For example, if you unzipped your JRebel download in your home directory, you whould use:
-
-```bash
-export JREBEL=~/jrebel/legacy/jrebel.jar
-```
+You can choose the legacy JRebel agent or the new one.
+See [the document](https://zeroturnaround.com/software/jrebel/jrebel7-agent-upgrade-cli/) for details.
 
 Now reload your shell:
 
