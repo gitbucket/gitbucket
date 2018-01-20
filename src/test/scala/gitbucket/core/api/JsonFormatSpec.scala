@@ -265,6 +265,7 @@ class JsonFormatSpec extends FunSuite {
 
   val apiPullRequest = ApiPullRequest(
     number        = 1347,
+    state         = "open",
     updated_at    = date1,
     created_at    = date1,
     head          = ApiPullRequest.Commit(
@@ -287,6 +288,7 @@ class JsonFormatSpec extends FunSuite {
 
   val apiPullRequestJson = s"""{
     "number": 1347,
+    "state" : "open",
     "updated_at": "2011-04-14T16:00:49Z",
     "created_at": "2011-04-14T16:00:49Z",
   //  "closed_at": "2011-04-14T16:00:49Z",

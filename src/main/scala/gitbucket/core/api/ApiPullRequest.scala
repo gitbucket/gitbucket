@@ -8,6 +8,7 @@ import java.util.Date
  */
 case class ApiPullRequest(
   number: Int,
+  state: String,
   updated_at: Date,
   created_at: Date,
   head: ApiPullRequest.Commit,
@@ -44,6 +45,7 @@ object ApiPullRequest{
   ): ApiPullRequest =
     ApiPullRequest(
       number     = issue.issueId,
+      state      = if (issue.closed) "closed" else "open",
       updated_at = issue.updatedDate,
       created_at = issue.registeredDate,
       head       = Commit(
