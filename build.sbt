@@ -96,7 +96,13 @@ assemblyMergeStrategy in assembly := {
 //jrebel.webLinks += (target in webappPrepare).value
 //jrebel.enabled := System.getenv().get("JREBEL") != null
 javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { path =>
- Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
+  if (path.endsWith(".jar")) {
+    // Legacy JRebel agent
+    Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
+  } else {
+    // New JRebel agent
+    Seq(s"-agentpath:${path}")
+  }
 }
 
 // Exclude a war file from published artifacts
