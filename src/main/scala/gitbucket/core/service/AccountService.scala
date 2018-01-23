@@ -98,16 +98,11 @@ trait AccountService {
 
   def getAllUsers(includeRemoved: Boolean = true, includeGroups: Boolean = true)(implicit s: Session): List[Account] =
   {
-    ((includeRemoved, includeGroups) match {
-      case (true, true) =>
-        Accounts
-      case (true, false) =>
-        Accounts filter (_.groupAccount === false.bind)
-      case (false, true) =>
-        Accounts filter (_.removed === false.bind)
-      case (false, false) =>
-        Accounts filter (t => t.removed === false.bind && t.groupAccount === false.bind)
-    }) sortBy(_.userName) list
+    Accounts filter { t =>
+      (1.bind === 1.bind) &&
+        (t.groupAccount === false.bind, !includeGroups) &&
+        (t.removed === false.bind, !includeRemoved)
+    } sortBy(_.userName) list
   }
 
   def isLastAdministrator(account: Account)(implicit s: Session): Boolean = {
