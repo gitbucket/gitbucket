@@ -121,9 +121,11 @@
     </div>
     <script>
       $(function(){
+        @*
         $('#search').submit(function(){
           return $.trim($(this).find('input[name=query]').val()) != '';
         });
+        *@
         @if(body.toString.contains("main-sidebar")){
           $(".sidebar-toggle").on('click', function(e){
             $.post('@context.path/sidebar-collapse', { collapse: !$('body').hasClass('sidebar-collapse') });
