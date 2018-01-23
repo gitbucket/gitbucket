@@ -1,4 +1,4 @@
-@(users: List[gitbucket.core.model.Account], members: Map[String, List[String]], includeRemoved: Boolean)(implicit context: gitbucket.core.controller.Context)
+@(users: List[gitbucket.core.model.Account], members: Map[String, List[String]], includeRemoved: Boolean, includeGroups: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Manage Users"){
   @gitbucket.core.admin.html.menu("users"){
@@ -9,6 +9,10 @@
     <label for="includeRemoved">
       <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
       Include removed users
+    </label>
+    <label for="includeGroups">
+      <input type="checkbox" id="includeGroups" name="includeGroups" @if(includeGroups){checked}/>
+      Include group accounts
     </label>
     <table class="table table-bordered table-hover">
       @users.map { account =>
@@ -63,8 +67,9 @@
 }
 <script>
 $(function(){
-  $('#includeRemoved').click(function(){
-    location.href = '@context.path/admin/users?includeRemoved=' + this.checked;
+  $('#includeRemoved,#includeGroups').click(function(){
+    location.href = '@context.path/admin/users?includeRemoved=' + $('#includeRemoved').prop('checked')
+      + '&includeGroups=' + $('#includeGroups').prop('checked');
   });
 });
 </script>
