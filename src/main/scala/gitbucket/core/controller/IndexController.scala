@@ -22,6 +22,7 @@ class IndexController extends IndexControllerBase
   with IssuesService
   with UsersAuthenticator
   with ReferrerAuthenticator
+  with AccountFederationService
   with OpenIDConnectService
 
 
@@ -50,6 +51,7 @@ trait IndexControllerBase extends ControllerBase {
 //
 //  case class SearchForm(query: String, owner: String, repository: String)
 
+  case class OidcContext(state: State, nonce: Nonce, redirectBackURI: String)
 
   get("/"){
     context.loginAccount.map { account =>
@@ -90,13 +92,11 @@ trait IndexControllerBase extends ControllerBase {
     context.settings.oidc.map { oidc =>
       val redirectURI = new URI(s"$baseUrl/signin/oidc")
       val authenticationRequest = createOIDCAuthenticationRequest(oidc.issuer, oidc.clientID, redirectURI)
-      session.setAttribute(Keys.Session.OidcState, authenticationRequest.getState)
-      session.setAttribute(Keys.Session.OidcNonce, authenticationRequest.getNonce)
-      session.setAttribute(Keys.Session.OidcRedirectBackURI,
-        flash.get(Keys.Flash.Redirect) match {
-          case Some(redirectBackURI: String) => redirectBackURI + params.getOrElse("hash", "")
-          case _ => "/"
-        })
+      val redirectBackURI = flash.get(Keys.Flash.Redirect) match {
+        case Some(redirectBackURI: String) => redirectBackURI + params.getOrElse("hash", "")
+        case _ => "/"
+      }
+      session.setAttribute(Keys.Session.OidcContext, OidcContext(authenticationRequest.getState, authenticationRequest.getNonce, redirectBackURI))
       redirect(authenticationRequest.toURI.toString)
     } getOrElse {
       NotFound()
@@ -109,10 +109,10 @@ trait IndexControllerBase extends ControllerBase {
   get("/signin/oidc") {
     context.settings.oidc.map { oidc =>
       val redirectURI = new URI(s"$baseUrl/signin/oidc")
-      Seq(Keys.Session.OidcState, Keys.Session.OidcNonce, Keys.Session.OidcRedirectBackURI).map(session.get(_)) match {
-        case Seq(Some(state: State), Some(nonce: Nonce), Some(redirectBackURI: String)) =>
-          authenticate(params, redirectURI, state, nonce, oidc) map { account =>
-            signin(account, redirectBackURI)
+      session.get(Keys.Session.OidcContext) match {
+        case Some(context: OidcContext) =>
+          authenticate(params, redirectURI, context.state, context.nonce, oidc) map { account =>
+            signin(account, context.redirectBackURI)
           } orElse {
             flash += "error" -> "Sorry, authentication failed. Please try again."
             session.invalidate()

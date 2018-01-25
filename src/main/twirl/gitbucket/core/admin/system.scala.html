@@ -1,5 +1,6 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.util.{DatabaseConfig, OpenIDConnectUtil}
+@import gitbucket.core.service.OpenIDConnectService
+@import gitbucket.core.util.DatabaseConfig
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -321,7 +322,7 @@
                   <option value="" @if(context.settings.oidc.flatMap(_.jwsAlgorithm) == None){selected}>
                     No signature
                   </option>
-                  @OpenIDConnectUtil.JWS_ALGORITHMS.map { case (family, algorithms) =>
+                  @OpenIDConnectService.JWS_ALGORITHMS.map { case (family, algorithms) =>
                     <optgroup label="@family">
                       @algorithms.map { algorithm =>
                         <option value="@algorithm.getName" @if(context.settings.oidc.flatMap(_.jwsAlgorithm) == Some(algorithm)){selected}>

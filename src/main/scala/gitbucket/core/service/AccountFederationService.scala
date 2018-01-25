@@ -6,7 +6,8 @@ import gitbucket.core.model.{Account, AccountFederation}
 import gitbucket.core.util.SyntaxSugars.~
 import org.slf4j.LoggerFactory
 
-trait AccountFederationService extends AccountService {
+trait AccountFederationService {
+  self: AccountService =>
 
   private val logger = LoggerFactory.getLogger(classOf[AccountFederationService])
 

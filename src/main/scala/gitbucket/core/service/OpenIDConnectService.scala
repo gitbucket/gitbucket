@@ -2,9 +2,10 @@ package gitbucket.core.service
 
 import java.net.URI
 
-import com.nimbusds.jose.JOSEException
+import com.nimbusds.jose.JWSAlgorithm.Family
 import com.nimbusds.jose.proc.BadJOSEException
 import com.nimbusds.jose.util.DefaultResourceRetriever
+import com.nimbusds.jose.{JOSEException, JWSAlgorithm}
 import com.nimbusds.oauth2.sdk._
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic
 import com.nimbusds.oauth2.sdk.id.{ClientID, Issuer, State}
@@ -16,12 +17,13 @@ import gitbucket.core.model.Account
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters.mapAsJavaMap
+import scala.collection.JavaConverters.{asScalaSet, mapAsJavaMap}
 
 /**
   * Service class for the OpenID Connect authentication.
   */
-trait OpenIDConnectService extends AccountFederationService {
+trait OpenIDConnectService {
+  self: AccountFederationService =>
 
   private val logger = LoggerFactory.getLogger(classOf[OpenIDConnectService])
 
@@ -174,4 +176,16 @@ trait OpenIDConnectService extends AccountFederationService {
         logger.info(s"OIDC token response does not have a valid ID token: ${response.toJSONObject}")
         None
     }
+}
+
+object OpenIDConnectService {
+  /**
+    * All signature algorithms.
+    */
+  val JWS_ALGORITHMS: Map[String, Set[JWSAlgorithm]] = Seq(
+    "HMAC" -> Family.HMAC_SHA,
+    "RSA" -> Family.RSA,
+    "ECDSA" -> Family.EC,
+    "EdDSA" -> Family.ED
+  ).toMap.map { case (name, family) => (name, asScalaSet(family).toSet) }
 }

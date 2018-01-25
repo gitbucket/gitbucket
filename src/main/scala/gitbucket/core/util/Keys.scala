@@ -28,17 +28,7 @@ object Keys {
     /**
       * Session key for the OpenID Connect authentication.
       */
-    val OidcState = "oidc/state"
-
-    /**
-      * Session key for the OpenID Connect authentication.
-      */
-    val OidcNonce = "oidc/nonce"
-
-    /**
-      * Session key for the redirect back to after SSO.
-      */
-    val OidcRedirectBackURI = "oidc/redirectBackURI"
+    val OidcContext = "oidcContext"
 
     /**
      * Generate session key for the issue search condition.
