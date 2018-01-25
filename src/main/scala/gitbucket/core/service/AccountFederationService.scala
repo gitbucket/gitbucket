@@ -49,7 +49,7 @@ trait AccountFederationService {
     * @param preferredUserName Username
     * @return Available username
     */
-  private def findAvailableUserName(preferredUserName: Option[String], mailAddress: String)(implicit s: Session): Option[String] = {
+  def findAvailableUserName(preferredUserName: Option[String], mailAddress: String)(implicit s: Session): Option[String] = {
     preferredUserName.flatMap(n => extractSafeStringForUserName(n)).orElse(extractSafeStringForUserName(mailAddress)) match {
       case Some(safeUserName) =>
         getAccountByUserName(safeUserName, includeRemoved = true) match {
@@ -73,3 +73,5 @@ trait AccountFederationService {
   def createAccountFederation(issuer: String, subject: String, userName: String)(implicit s: Session): Unit =
     AccountFederations insert AccountFederation(issuer, subject, userName)
 }
+
+object AccountFederationService extends AccountFederationService with AccountService
