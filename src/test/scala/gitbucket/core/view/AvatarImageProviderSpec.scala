@@ -2,17 +2,16 @@ package gitbucket.core.view
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
-import gitbucket.core.model.Account
-import gitbucket.core.service.{RequestCache, SystemSettingsService}
-import gitbucket.core.controller.Context
-import SystemSettingsService.SystemSettings
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 
-import play.twirl.api.Html
+import gitbucket.core.controller.Context
+import gitbucket.core.model.Account
+import gitbucket.core.service.RequestCache
+import gitbucket.core.service.SystemSettingsService.SystemSettings
+import org.mockito.Mockito._
 import org.scalatest.FunSpec
 import org.scalatest.mockito.MockitoSugar
-import org.mockito.Mockito._
+import play.twirl.api.Html
 
 
 class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
@@ -119,6 +118,8 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       smtp                     = None,
       ldapAuthentication       = false,
       ldap                     = None,
+      oidcAuthentication       = false,
+      oidc                     = None,
       skinName                 = "skin-blue"
     )
 

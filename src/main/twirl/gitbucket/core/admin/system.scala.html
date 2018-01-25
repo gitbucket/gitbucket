@@ -1,6 +1,6 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.service.OpenIDConnectService
 @import gitbucket.core.util.DatabaseConfig
-@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -287,6 +287,56 @@
               </div>
             </div>
           </div>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="oidcAuthentication" name="oidcAuthentication"@if(context.settings.oidc){ checked} />
+              OpenID Connect
+            </label>
+          </fieldset>
+          <div class="oidc">
+            <div class="form-group">
+              <label class="control-label col-md-2" for="oidcIssuer">Issuer</label>
+              <div class="col-md-10">
+                <input type="text" id="oidcIssuer" name="oidc.issuer" class="form-control" value="@context.settings.oidc.map(_.issuer.getValue)"/>
+                <span id="error-oidc_issuer" class="error"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="oidcClientID">Client ID</label>
+              <div class="col-md-10">
+                <input type="text" id="oidcClientID" name="oidc.clientID" class="form-control" value="@context.settings.oidc.map(_.clientID.getValue)"/>
+                <span id="error-oidc_clientID" class="error"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="oidcClientID">Client secret</label>
+              <div class="col-md-10">
+                <input type="password" id="oidcClientSecret" name="oidc.clientSecret" class="form-control" value="@context.settings.oidc.map(_.clientSecret.getValue)"/>
+                <span id="error-oidc_clientSecret" class="error"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="oidcJwsAlgorithm">Expected signature</label>
+              <div class="col-md-10">
+                <select id="oidcJwsAlgorithm" name="oidc.jwsAlgorithm" class="form-control">
+                  <option value="" @if(context.settings.oidc.flatMap(_.jwsAlgorithm) == None){selected}>
+                    No signature
+                  </option>
+                  @OpenIDConnectService.JWS_ALGORITHMS.map { case (family, algorithms) =>
+                    <optgroup label="@family">
+                      @algorithms.map { algorithm =>
+                        <option value="@algorithm.getName" @if(context.settings.oidc.flatMap(_.jwsAlgorithm) == Some(algorithm)){selected}>
+                          @algorithm.getName
+                        </option>
+                      }
+                    </optgroup>
+                  }
+                </select>
+                <span class="muted">Choose the expected signature algorithm of the token response. Most IdP provides RS256 or HS256.</span>
+                <span id="error-oidc_jwsAlgorithm" class="error"></span>
+              </div>
+            </div>
+          </div>
           <!--====================================================================-->
           <!-- Notification email -->
           <!--====================================================================-->
@@ -455,6 +505,10 @@ $(function(){
 
   $('#ldapAuthentication').change(function(){
     $('.ldap input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
+  $('#oidcAuthentication').change(function(){
+    $('.oidc input, .oidc select').prop('disabled', !$(this).prop('checked'));
   }).change();
 });
 </script>

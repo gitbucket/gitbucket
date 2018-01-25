@@ -26,6 +26,11 @@ object Keys {
     val DashboardPulls = "dashboard/pulls"
 
     /**
+      * Session key for the OpenID Connect authentication.
+      */
+    val OidcContext = "oidcContext"
+
+    /**
      * Generate session key for the issue search condition.
      */
     def Issues(owner: String, name: String) = s"${owner}/${name}/issues"
