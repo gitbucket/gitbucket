@@ -62,7 +62,8 @@ libraryDependencies ++= Seq(
   "org.mockito"                     %  "mockito-core"                 % "2.13.0"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "3.0.0"          % "test",
   "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "2.6"            % "test",
-  "net.i2p.crypto"                  % "eddsa"                         % "0.2.0"
+  "net.i2p.crypto"                  % "eddsa"                         % "0.2.0",
+  "is.tagomor.woothee"              % "woothee-java"                  % "1.7.0"
 )
 
 // Compiler settings
