@@ -1,6 +1,14 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.21.1 - 01 Jan 2018
+
+- Release page
+- OpenID Connect support
+- New database viewer
+- Submodule links to web page
+- Clarify close/reopen button
+
 ## 4.20.0 - 23 Dec 2017
 
 - Squash and rebase merge strategy for pull requests

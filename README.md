@@ -71,15 +71,12 @@ Support
 What's New in 4.20.x
 -------------
 
-### 4.20.0 - 23 Dec 2017
+### 4.21.1 - 01 Jan 2018
 
-- Squash and rebase merge strategy for pull requests
-- Quick pull request creation
-- Download patch from the diff view
-- Fork and create repository are proceeded asynchronously
-- Create new repository by copying existing git repository
-- Hide overflowed repository names in the sidebar
-- Support CreateEvent web hook
-- Display conflicting files if pull request can't be merged
+- Release page
+- OpenID Connect support
+- New database viewer
+- Submodule links to web page
+- Clarify close/reopen button
 
 See the [change log](CHANGELOG.md) for all of the updates.
