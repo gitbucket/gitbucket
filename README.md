@@ -68,11 +68,10 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.20.x
+What's New in 4.21.x
 -------------
 
-### 4.21.1 - 01 Jan 2018
-
+### 4.21.1 - 27 Jan 2018
 - Release page
 - OpenID Connect support
 - New database viewer
