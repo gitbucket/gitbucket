@@ -185,7 +185,8 @@ import scala.collection.JavaConverters._
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
-  with WebHookPullRequestService with CommitsService {
+    with LabelsService with PrioritiesService with MilestonesService
+    with WebHookPullRequestService with CommitsService {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil

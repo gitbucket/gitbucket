@@ -6,17 +6,22 @@ The details are saved at `ISSUE_COMMENT` table.
 To determine if it was any operation, you see the `ACTION` column.
 And in the case of some actions, `CONTENT` column value contains additional information.
 
-|ACTION         |CONTENT          |
-|---------------|-----------------|
-|comment        |comment          |
-|close_comment  |comment          |
-|reopen_comment |comment          |
-|close          |"Close"          |
-|reopen         |"Reopen"         |
-|commit         |comment commitId |
-|merge          |comment          |
-|delete_branch  |branchName       |
-|refer          |issueId:title    |
+|ACTION          |CONTENT               |
+|-------------------|------------------------|
+|comment         |comment               |
+|close_comment   |comment               |
+|reopen_comment  |comment               |
+|close           |"Close"               |
+|reopen          |"Reopen"              |
+|commit          |comment commitId      |
+|merge           |comment               |
+|delete_branch   |branchName            |
+|refer           |issueId:title         |
+|add_label       |labelName             |
+|delete_label    |labelName             |
+|change_priority |oldPriority:priority  |
+|change_milestone|oldMilestone:milestone|
+|assign          |oldAssigned:assigned  |
 
 ### comment
 
@@ -54,3 +59,23 @@ Therefore, this comment is not displayed, and not counted as a comment.
 
 This value is saved when other issue or issue comment contains reference to the issue like `#issueId`.
 At the same time, store id and title of the referrer issue as `id:title`.
+
+### add_label
+
+This value is saved when users have added the label.
+
+### delete_label
+
+This value is saved when users have deleted the label.
+
+### change_priority
+
+This value is saved when users have changed the priority.
+
+### change_milestone
+
+This value is saved when users have changed the milestone.
+
+### assign
+
+This value is saved when users have assign issue/PR to user or remove the assign.

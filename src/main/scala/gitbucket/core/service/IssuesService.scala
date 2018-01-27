@@ -4,6 +4,7 @@ import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.controller.Context
 import gitbucket.core.model.{Issue, PullRequest, IssueComment, IssueLabel, Label, Account, Repository, CommitState, Role}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
@@ -11,7 +12,7 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait IssuesService {
-  self: AccountService with RepositoryService =>
+  self: AccountService with RepositoryService with LabelsService with PrioritiesService with MilestonesService =>
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =
@@ -321,11 +322,35 @@ trait IssuesService {
     } get
   }
 
-  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int)(implicit s: Session): Int = {
+  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int, insertComment: Boolean = false)(implicit context: Context, s: Session): Int = {
+    if (insertComment) {
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "add_label",
+        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+        content = getLabel(owner, repository, labelId).map(_.labelName).getOrElse("Unknown label"),
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
     IssueLabels insert IssueLabel(owner, repository, issueId, labelId)
   }
 
-  def deleteIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int)(implicit s: Session): Int = {
+  def deleteIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int, insertComment: Boolean = false)(implicit context: Context, s: Session): Int = {
+    if (insertComment) {
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "delete_label",
+        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+        content = getLabel(owner, repository, labelId).map(_.labelName).getOrElse("Unknown label"),
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
     IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) delete
   }
 
@@ -350,15 +375,57 @@ trait IssuesService {
       .update(title, content, currentDate)
   }
 
-  def updateAssignedUserName(owner: String, repository: String, issueId: Int, assignedUserName: Option[String])(implicit s: Session): Int = {
+  def updateAssignedUserName(owner: String, repository: String, issueId: Int, assignedUserName: Option[String], insertComment: Boolean = false)(implicit context: Context, s: Session): Int = {
+    if (insertComment) {
+      val oldAssigned = getIssue(owner, repository, s"${issueId}").get.assignedUserName.getOrElse("Not assigned")
+      val assigned = assignedUserName.getOrElse("Not assigned")
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "assign",
+        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+        content = s"${oldAssigned}:${assigned}",
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
     Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.assignedUserName?, t.updatedDate)).update(assignedUserName, currentDate)
   }
 
-  def updateMilestoneId(owner: String, repository: String, issueId: Int, milestoneId: Option[Int])(implicit s: Session): Int = {
+  def updateMilestoneId(owner: String, repository: String, issueId: Int, milestoneId: Option[Int], insertComment: Boolean = false)(implicit context: Context, s: Session): Int = {
+    if (insertComment) {
+      val oldMilestoneName = getIssue(owner, repository, s"${issueId}").get.milestoneId.map(getMilestone(owner, repository, _).map(_.title).getOrElse("Unknown milestone")).getOrElse("No milestone")
+      val milestoneName = milestoneId.map(getMilestone(owner, repository, _).map(_.title).getOrElse("Unknown milestone")).getOrElse("No milestone")
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "change_milestone",
+        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+        content = s"${oldMilestoneName}:${milestoneName}",
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
     Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.milestoneId?, t.updatedDate)).update(milestoneId, currentDate)
   }
 
-  def updatePriorityId(owner: String, repository: String, issueId: Int, priorityId: Option[Int])(implicit s: Session): Int = {
+  def updatePriorityId(owner: String, repository: String, issueId: Int, priorityId: Option[Int], insertComment: Boolean = false)(implicit context: Context, s: Session): Int = {
+    if (insertComment) {
+      val oldPriorityName = getIssue(owner, repository, s"${issueId}").get.priorityId.map(getPriority(owner, repository, _).map(_.priorityName).getOrElse("Unknown priority")).getOrElse("No priority")
+      val priorityName = priorityId.map(getPriority(owner, repository, _).map(_.priorityName).getOrElse("Unknown priority")).getOrElse("No priority")
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "change_priority",
+        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+        content = s"${oldPriorityName}:${priorityName}",
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
     Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.priorityId?, t.updatedDate)).update(priorityId, currentDate)
   }
 
