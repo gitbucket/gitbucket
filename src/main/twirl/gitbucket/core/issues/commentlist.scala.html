@@ -35,8 +35,6 @@
 @comments.map {
   case comment: gitbucket.core.model.IssueComment => {
     @comment.action match {
-      case "close" => {
-      }
       case "commit" => {
         @defining({
           val (content, id) = " ([a-f0-9]{40})$".r.findFirstMatchIn(comment.content)
