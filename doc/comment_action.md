@@ -7,7 +7,7 @@ To determine if it was any operation, you see the `ACTION` column.
 And in the case of some actions, `CONTENT` column value contains additional information.
 
 |ACTION          |CONTENT               |
-|-------------------|------------------------|
+|----------------|----------------------|
 |comment         |comment               |
 |close_comment   |comment               |
 |reopen_comment  |comment               |
