@@ -326,7 +326,7 @@ trait IssuesControllerBase extends ControllerBase {
     params("value").toIntOpt.map{ labelId =>
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
-          registerIssueLabel(repository.owner, repository.name, issueId, labelId)
+          registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
         }
       }
     } getOrElse NotFound()
@@ -335,7 +335,7 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
     defining(assignedUserName("value")){ value =>
       executeBatch(repository) {
-        updateAssignedUserName(repository.owner, repository.name, _, value)
+        updateAssignedUserName(repository.owner, repository.name, _, value, true)
       }
     }
   })
@@ -343,7 +343,7 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/milestone")(writableUsersOnly { repository =>
     defining(milestoneId("value")){ value =>
       executeBatch(repository) {
-        updateMilestoneId(repository.owner, repository.name, _, value)
+        updateMilestoneId(repository.owner, repository.name, _, value, true)
       }
     }
   })
@@ -351,7 +351,7 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/priority")(writableUsersOnly { repository =>
     defining(priorityId("value")){ value =>
       executeBatch(repository) {
-        updatePriorityId(repository.owner, repository.name, _, value)
+        updatePriorityId(repository.owner, repository.name, _, value, true)
       }
     }
   })
