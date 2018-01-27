@@ -471,7 +471,14 @@ trait IssuesService {
 
   def getAssignableUserNames(owner: String, repository: String)(implicit s: Session): List[String] = {
     (getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)) :::
-      (if (getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).distinct.sorted
+      (getAccountByUserName(owner) match {
+        case Some(x) if x.isGroupAccount =>
+          getGroupMembers(owner).map(_.userName)
+        case Some(_) =>
+          List(owner)
+        case None =>
+          Nil
+      })).distinct.sorted
   }
 
 }
