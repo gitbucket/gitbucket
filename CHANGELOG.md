@@ -1,7 +1,10 @@
 # Changelog
 All changes to the project will be documented in this file.
 
-### 4.21.1 - 27 Jan 2018
+### 4.21.1 - 27 Jan 2019
+- Bugfix
+
+### 4.21.0 - 27 Jan 2018
 - Release page
 - OpenID Connect support
 - New database viewer
