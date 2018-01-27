@@ -5,6 +5,43 @@
   pullreq: Option[gitbucket.core.model.PullRequest] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.CommitComment
+@issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
+@showFormatedComment(comment: gitbucket.core.model.IssueComment)={
+<div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
+  <div class="panel-heading">
+    @helpers.avatar(comment.commentedUserName, 20)
+    @helpers.user(comment.commentedUserName, styleClass="username strong")
+    <span class="muted">
+                    @if(comment.action == "comment"){
+                      commented
+                    } else {
+                      referenced the @issueOrPullRequest()
+                    }
+                    <a href="#comment-@comment.commentId">
+                      @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+                    </a>
+                  </span>
+    @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
+    && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+    <span class="pull-right">
+                      <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
+                      <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+                    </span>
+    }
+  </div>
+  <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
+    @helpers.markdown(
+    markdown = comment.content,
+    repository = repository,
+    enableWikiLink = false,
+    enableRefsLink = true,
+    enableLineBreaks = true,
+    enableTaskList = true,
+    hasWritePermission = isManageable
+    )
+  </div>
+</div>
+}
 @if(issue.isDefined){
   <div class="panel panel-default issue-comment-box">
     <div class="panel-heading">
@@ -30,8 +67,6 @@
     </div>
   </div>
 }
-@issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
-
 @comments.map {
   case comment: gitbucket.core.model.IssueComment => {
     @comment.action match {
@@ -82,6 +117,7 @@
         </div>
       }
       case "merge" => {
+        @showFormatedComment(comment)
         <div class="discussion-item discussion-item-merge">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-git-merge"></i></span>
@@ -99,6 +135,9 @@
         </div>
       }
       case "close" | "close_comment" => {
+        @if(comment.action == "close_comment"){
+          @showFormatedComment(comment)
+        }
         <div class="discussion-item discussion-item-close">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-circle-slash"></i></span>
@@ -110,6 +149,9 @@
         </div>
       }
       case "reopen" | "reopen_comment" => {
+        @if(comment.action == "reopen_comment"){
+          @showFormatedComment(comment)
+        }
         <div class="discussion-item discussion-item-reopen">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-primitive-dot"></i></span>
@@ -187,40 +229,7 @@
         </div>
       }
       case _ => {
-        <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
-          <div class="panel-heading">
-            @helpers.avatar(comment.commentedUserName, 20)
-            @helpers.user(comment.commentedUserName, styleClass="username strong")
-            <span class="muted">
-                    @if(comment.action == "comment"){
-                      commented
-                    } else {
-                      referenced the @issueOrPullRequest()
-                    }
-                    <a href="#comment-@comment.commentId">
-                      @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-                    </a>
-                  </span>
-            @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
-            && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-            <span class="pull-right">
-                      <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
-                      <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
-                    </span>
-            }
-          </div>
-          <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
-            @helpers.markdown(
-            markdown = comment.content,
-            repository = repository,
-            enableWikiLink = false,
-            enableRefsLink = true,
-            enableLineBreaks = true,
-            enableTaskList = true,
-            hasWritePermission = isManageable
-            )
-          </div>
-        </div>
+        @showFormatedComment(comment)
       }
     }
   }
