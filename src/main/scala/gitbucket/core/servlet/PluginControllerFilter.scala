@@ -21,7 +21,8 @@ class PluginControllerFilter extends Filter {
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
-    val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
+    val contextPath = request.getServletContext.getContextPath
+    val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
 
     PluginRegistry().getControllers()
       .filter { case (_, path) =>
