@@ -145,12 +145,13 @@ trait ApiControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
     def getFileInfo(git: Git, revision: String, pathStr: String): Option[FileInfo] = {
-      val path = new java.io.File(pathStr)
-      val dirName = path.getParent match {
-        case null => "."
-        case s => s
+      val (dirName, fileName) = pathStr.lastIndexOf('/') match {
+        case -1 =>
+          (".", pathStr)
+        case n =>
+          (pathStr.take(n), pathStr.drop(n + 1))
       }
-      getFileList(git, revision, dirName).find(f => f.name.equals(path.getName))
+      getFileList(git, revision, dirName).find(f => f.name.equals(fileName))
     }
 
     val path = multiParams("splat").head match {
