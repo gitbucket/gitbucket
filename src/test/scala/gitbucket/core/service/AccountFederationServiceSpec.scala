@@ -9,7 +9,7 @@ class AccountFederationServiceSpec extends FunSpec with ServiceSpecBase {
       withTestDB { implicit session =>
         val actual = AccountFederationService.getOrCreateFederatedUser("someIssuer", "someSubject", "dummy@example.com", Some("foo"), Some("Foo"))
         assert(actual.get.userName == "foo")
-        assert(actual.get.password == "")
+        assert(actual.get.password == "[DUMMY]")
         assert(actual.get.fullName == "Foo")
         assert(actual.get.mailAddress == "dummy@example.com")
         assert(!actual.get.isAdmin)
