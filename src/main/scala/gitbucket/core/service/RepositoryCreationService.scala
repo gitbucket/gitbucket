@@ -89,23 +89,26 @@ trait RepositoryCreationService {
         val gitdir = getRepositoryDir(owner, name)
         JGitUtil.initRepository(gitdir)
 
-        if (initOption == "README") {
+        if (initOption == "README" || initOption == "EMPTY_COMMIT") {
           using(Git.open(gitdir)) { git =>
             val builder = DirCache.newInCore.builder()
             val inserter = git.getRepository.newObjectInserter()
             val headId = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-            val content = if (description.nonEmpty) {
-              name + "\n" +
-                "===============\n" +
-                "\n" +
-                description.get
-            } else {
-              name + "\n" +
-                "===============\n"
-            }
 
-            builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
-              inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
+            if (initOption == "README") {
+              val content = if (description.nonEmpty) {
+                name + "\n" +
+                  "===============\n" +
+                  "\n" +
+                  description.get
+              } else {
+                name + "\n" +
+                  "===============\n"
+              }
+
+              builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
+                inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
+            }
             builder.finish()
 
             JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),

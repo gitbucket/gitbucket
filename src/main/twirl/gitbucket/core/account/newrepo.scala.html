@@ -66,6 +66,13 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
           </div>
         </label>
         <label class="radio">
+          <input type="radio" name="initOption" value="EMPTY_COMMIT"/>
+          <span class="strong">Initialize this repository with an empty commit</span>
+          <div class="normal muted">
+            Create an empty repository with empty commit. You can clone the repository immediately.
+          </div>
+        </label>
+        <label class="radio">
           <input type="radio" name="initOption" value="README"/>
           <span class="strong">Initialize this repository with a README</span>
           <div class="normal muted">
