@@ -51,7 +51,7 @@
 $(function(){
   $('#upload-area').dropzone({
     url: '@context.path/upload/tmp',
-    maxFilesize: 10,
+    maxFilesize: @{FileUtil.MaxFileSize / 1024 / 1024},
     clickable: true,
     previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
     success: function(file, id) {
