@@ -60,24 +60,24 @@ $(function(){
       e.preventDefault();
       e.stopPropagation();
       changeCursor(cursor + 1);
-    }else if(e.keyCode == 38){ // UP
+    } else if(e.keyCode == 38){ // UP
       e.preventDefault();
       e.stopPropagation();
       changeCursor(cursor - 1);
-    }else if(e.keyCode == 13){ // ENTER
+    } else if(e.keyCode == 13){ // ENTER
       e.preventDefault();
       e.stopPropagation();
       target = $(".tree-browser-result.navigation-focus a");
       if(target[0]){
         target[0].click();
       }
-    }else if(e.keyCode == 27){ // ESC
+    } else if(e.keyCode == 27){ // ESC
       e.preventDefault();
       e.stopPropagation();
       history.back();
-    }else{
+    } else {
       clearTimeout(timer);
-      timer=setTimeout(filter,300);
+      timer = setTimeout(filter,300);
     }
   });
   function changeCursor(newPos){
@@ -101,13 +101,11 @@ $(function(){
     if(p.length == 0){
       $(".no-results").show();
       return;
-    }else{
+    } else {
       $(".no-results").hide();
       for(var i = 0; i < p.length; i++){
         var row = template.clone();
-//        console.log('Path base: ' + pathBase);
-//        console.log('Path rest ' + p[i].string);
-        row.find("a").attr("href", pathBase + "/" + encodeURIComponent(p[i].string).replace('%2F', '/')).html(string_score_highlight(p[i], '<b>'));
+        row.find("a").attr("href", pathBase + "/" + encodeURIComponent(p[i].string).replace(/%2F/g, '/')).html(string_score_highlight(p[i], '<b>'));
         if(cursor == i){
           row.addClass("navigation-focus");
         }
