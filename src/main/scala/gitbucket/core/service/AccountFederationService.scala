@@ -34,7 +34,7 @@ trait AccountFederationService {
         None
       case None =>
         findAvailableUserName(preferredUserName, mailAddress) flatMap { userName =>
-          createAccount(userName, "", fullName.getOrElse(userName), mailAddress, isAdmin = false, None, None)
+          createAccount(userName, "[DUMMY]", fullName.getOrElse(userName), mailAddress, isAdmin = false, None, None)
           createAccountFederation(issuer, subject, userName)
           getAccountByUserName(userName)
         }
