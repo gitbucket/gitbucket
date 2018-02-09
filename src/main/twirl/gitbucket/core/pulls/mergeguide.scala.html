@@ -143,34 +143,48 @@
         <span id="error-message" class="error"></span>
         <textarea name="message" style="height: 80px; margin-top: 8px; margin-bottom: 8px;" class="form-control">@issue.title</textarea>
         <div>
+        @defining(originRepository.repository.options.mergeOptions.split(",")){ mergeOptions =>
           <div class="btn-group">
             <button id="merge-strategy-btn" class="dropdown-toggle btn btn-default" data-toggle="dropdown">
-              <span class="strong">Merge commit</span>
+              <span class="strong">
+                @(if(mergeOptions.contains("merge-commit")) "Merge commit"
+                  else if(mergeOptions.contains("squash")) "Squash"
+                  else if(mergeOptions.contains("rebase")) "Rebase")
+              </span>
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-              <li>
-                <a href="javascript:void(0);" class="merge-strategy" data-value="merge-commit">
-                  <strong>Merge commit</strong><br>These commits will be added to the base branch via a merge commit.
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0);" class="merge-strategy" data-value="squash">
-                  <strong>Squash</strong><br>These commits will be combined into one commit in the base branch.
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0);" class="merge-strategy" data-value="rebase">
-                  <strong>Rebase</strong><br>These commits will be rebased and added to the base branch.
-                </a>
-              </li>
+              @if(mergeOptions.contains("merge-commit")){
+                <li>
+                  <a href="javascript:void(0);" class="merge-strategy" data-value="merge-commit">
+                    <strong>Merge commit</strong><br>These commits will be added to the base branch via a merge commit.
+                  </a>
+                </li>
+              }
+              @if(mergeOptions.contains("squash")){
+                <li>
+                  <a href="javascript:void(0);" class="merge-strategy" data-value="squash">
+                    <strong>Squash</strong><br>These commits will be combined into one commit in the base branch.
+                  </a>
+                </li>
+              }
+              @if(mergeOptions.contains("rebase")){
+                <li>
+                  <a href="javascript:void(0);" class="merge-strategy" data-value="rebase">
+                    <strong>Rebase</strong><br>These commits will be rebased and added to the base branch.
+                  </a>
+                </li>
+              }
             </ul>
           </div>
           <div class="pull-right">
             <input type="button" class="btn btn-default" value="Cancel" id="cancel-merge-pull-request"/>
             <input type="submit" class="btn btn-success" value="Confirm merge"/>
-            <input type="hidden" name="strategy" value="merge-commit"/>
+            <input type="hidden" name="strategy" value="@(if(mergeOptions.contains("merge-commit")) "merge-commit"
+                                                          else if(mergeOptions.contains("squash")) "squash"
+                                                          else if(mergeOptions.contains("rebase")) "rebase")"/>
           </div>
+        }
         </div>
       </form>
     </div>

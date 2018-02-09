@@ -53,5 +53,8 @@ object GitBucketCoreModule extends Module("gitbucket-core",
     new LiquibaseMigration("update/gitbucket-core_4.21.xml")
   ),
   new Version("4.21.1"),
-  new Version("4.21.2")
+  new Version("4.21.2"),
+  new Version("4.22.0",
+    new LiquibaseMigration("update/gitbucket-core_4.22.xml")
+  )
 )

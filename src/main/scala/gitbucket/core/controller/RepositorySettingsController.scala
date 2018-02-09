@@ -39,19 +39,28 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     externalIssuesUrl: Option[String],
     wikiOption: String,
     externalWikiUrl: Option[String],
-    allowFork: Boolean
+    allowFork: Boolean,
+    mergeOptions: Seq[String]
   )
 
   val optionsForm = mapping(
-    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), repository, renameRepositoryName))),
-    "description"       -> trim(label("Description"        , optional(text()))),
-    "isPrivate"         -> trim(label("Repository Type"    , boolean())),
-    "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
-    "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
-    "wikiOption"        -> trim(label("Wiki Option"        , text(required, featureOption))),
-    "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
-    "allowFork"         -> trim(label("Allow Forking"      , boolean()))
+    "repositoryName"     -> trim(label("Repository Name"    , text(required, maxlength(100), repository, renameRepositoryName))),
+    "description"        -> trim(label("Description"        , optional(text()))),
+    "isPrivate"          -> trim(label("Repository Type"    , boolean())),
+    "issuesOption"       -> trim(label("Issues Option"      , text(required, featureOption))),
+    "externalIssuesUrl"  -> trim(label("External Issues URL", optional(text(maxlength(200))))),
+    "wikiOption"         -> trim(label("Wiki Option"        , text(required, featureOption))),
+    "externalWikiUrl"    -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
+    "allowFork"          -> trim(label("Allow Forking"      , boolean())),
+    "mergeOptions"       -> new ValueType[Seq[String]]{
+      override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] =
+        params.get("mergeOptions").getOrElse(Nil)
+      override def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
+        if(params.get("mergeOptions").getOrElse(Nil).isEmpty) Seq("mergeOptions" -> "At least one option must be enabled.") else Nil
+    },
   )(OptionsForm.apply)
+
+
 
   // for default branch
   case class DefaultBranchForm(defaultBranch: String)
@@ -118,7 +127,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.externalIssuesUrl,
       form.wikiOption,
       form.externalWikiUrl,
-      form.allowFork
+      form.allowFork,
+      form.mergeOptions
     )
     // Change repository name
     if(repository.name != form.repositoryName){

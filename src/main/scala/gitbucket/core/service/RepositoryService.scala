@@ -46,7 +46,8 @@ trait RepositoryService { self: AccountService =>
           externalIssuesUrl    = None,
           wikiOption           = "PUBLIC", // TODO DISABLE for the forked repository?
           externalWikiUrl      = None,
-          allowFork            = true
+          allowFork            = true,
+          mergeOptions         = "merge-commit,squash,rebase"
         )
       )
 
@@ -362,14 +363,34 @@ trait RepositoryService { self: AccountService =>
   /**
    * Save repository options.
    */
-  def saveRepositoryOptions(userName: String, repositoryName: String,
-      description: Option[String], isPrivate: Boolean,
-      issuesOption: String, externalIssuesUrl: Option[String],
-      wikiOption: String, externalWikiUrl: Option[String],
-      allowFork: Boolean)(implicit s: Session): Unit =
+  def saveRepositoryOptions(userName: String, repositoryName: String, description: Option[String], isPrivate: Boolean,
+      issuesOption: String, externalIssuesUrl: Option[String], wikiOption: String, externalWikiUrl: Option[String],
+      allowFork: Boolean, mergeOptions: Seq[String])(implicit s: Session): Unit = {
+
     Repositories.filter(_.byRepository(userName, repositoryName))
-      .map { r => (r.description.?, r.isPrivate, r.issuesOption, r.externalIssuesUrl.?, r.wikiOption, r.externalWikiUrl.?, r.allowFork, r.updatedDate) }
-      .update (description, isPrivate, issuesOption, externalIssuesUrl, wikiOption, externalWikiUrl, allowFork, currentDate)
+      .map { r => (
+        r.description.?,
+        r.isPrivate,
+        r.issuesOption,
+        r.externalIssuesUrl.?,
+        r.wikiOption,
+        r.externalWikiUrl.?,
+        r.allowFork,
+        r.mergeOptions,
+        r.updatedDate
+      ) }
+      .update (
+        description,
+        isPrivate,
+        issuesOption,
+        externalIssuesUrl,
+        wikiOption,
+        externalWikiUrl,
+        allowFork,
+        mergeOptions.mkString(","),
+        currentDate
+      )
+  }
 
   def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
       defaultBranch: String)(implicit s: Session): Unit =
