@@ -231,7 +231,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/system")(adminOnly {
-    html.system(flash.get("info"))
+    html.settings(flash.get("info"))
   })
 
   post("/admin/system", form)(adminOnly { form =>
