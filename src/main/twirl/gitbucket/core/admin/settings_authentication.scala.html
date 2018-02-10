@@ -1,0 +1,160 @@
+@(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.service.OpenIDConnectService
+<!--====================================================================-->
+<!-- LDAP -->
+<!--====================================================================-->
+<fieldset>
+  <label class="checkbox">
+    <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(context.settings.ldap){ checked} />
+    LDAP
+  </label>
+</fieldset>
+<div class="ldap">
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapHost">LDAP host</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapHost" name="ldap.host" class="form-control" value="@context.settings.ldap.map(_.host)"/>
+      <span id="error-ldap_host" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapPort">LDAP port</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapPort" name="ldap.port" class="form-control input-mini" value="@context.settings.ldap.map(_.port)"/>
+      <span id="error-ldap_port" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapBindDN">Bind DN</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapBindDN" name="ldap.bindDN" class="form-control" value="@context.settings.ldap.map(_.bindDN)"/>
+      <span id="error-ldap_bindDN" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapBindPassword">Bind password</label>
+    <div class="col-md-10">
+      <input type="password" id="ldapBindPassword" name="ldap.bindPassword" class="form-control" value="@context.settings.ldap.map(_.bindPassword)"/>
+      <span id="error-ldap_bindPassword" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapBaseDN">Base DN</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapBaseDN" name="ldap.baseDN" class="form-control" value="@context.settings.ldap.map(_.baseDN)"/>
+      <span id="error-ldap_baseDN" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapUserNameAttribute">User name attribute</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" class="form-control" value="@context.settings.ldap.map(_.userNameAttribute)"/>
+      <span id="error-ldap_userNameAttribute" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapAdditionalFilterCondition">Additional filter condition</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapAdditionalFilterCondition" name="ldap.additionalFilterCondition" class="form-control" value="@context.settings.ldap.map(_.additionalFilterCondition)"/>
+      <span id="error-ldap_additionalFilterCondition" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapFullNameAttribute">Full name attribute</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapFullNameAttribute" name="ldap.fullNameAttribute" class="form-control" value="@context.settings.ldap.map(_.fullNameAttribute)"/>
+      <span id="error-ldap_fullNameAttribute" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapMailAttribute">Mail address attribute</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapMailAttribute" name="ldap.mailAttribute" class="form-control" value="@context.settings.ldap.map(_.mailAttribute)"/>
+      <span id="error-ldap_mailAttribute" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Enable TLS</label>
+    <div class="col-md-10">
+      <input type="checkbox" name="ldap.tls"@if(context.settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Enable SSL</label>
+    <div class="col-md-10">
+      <input type="checkbox" name="ldap.ssl"@if(context.settings.ldap.flatMap(_.ssl).getOrElse(false)){ checked}/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="ldapBindDN">Keystore</label>
+    <div class="col-md-10">
+      <input type="text" id="ldapKeystore" name="ldap.keystore" class="form-control" value="@context.settings.ldap.map(_.keystore)"/>
+      <span id="error-ldap_keystore" class="error"></span>
+    </div>
+  </div>
+</div>
+<!--====================================================================-->
+<!-- OpenID Connect -->
+<!--====================================================================-->
+<hr>
+<fieldset>
+  <label class="checkbox">
+    <input type="checkbox" id="oidcAuthentication" name="oidcAuthentication"@if(context.settings.oidc){ checked} />
+    OpenID Connect
+  </label>
+</fieldset>
+<div class="oidc">
+  <div class="form-group">
+    <label class="control-label col-md-2" for="oidcIssuer">Issuer</label>
+    <div class="col-md-10">
+      <input type="text" id="oidcIssuer" name="oidc.issuer" class="form-control" value="@context.settings.oidc.map(_.issuer.getValue)"/>
+      <span id="error-oidc_issuer" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="oidcClientID">Client ID</label>
+    <div class="col-md-10">
+      <input type="text" id="oidcClientID" name="oidc.clientID" class="form-control" value="@context.settings.oidc.map(_.clientID.getValue)"/>
+      <span id="error-oidc_clientID" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="oidcClientID">Client secret</label>
+    <div class="col-md-10">
+      <input type="password" id="oidcClientSecret" name="oidc.clientSecret" class="form-control" value="@context.settings.oidc.map(_.clientSecret.getValue)"/>
+      <span id="error-oidc_clientSecret" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="oidcJwsAlgorithm">Expected signature</label>
+    <div class="col-md-10">
+      <select id="oidcJwsAlgorithm" name="oidc.jwsAlgorithm" class="form-control">
+        <option value="" @if(context.settings.oidc.flatMap(_.jwsAlgorithm) == None){selected}>
+          No signature
+        </option>
+        @OpenIDConnectService.JWS_ALGORITHMS.map { case (family, algorithms) =>
+          <optgroup label="@family">
+            @algorithms.map { algorithm =>
+              <option value="@algorithm.getName" @if(context.settings.oidc.flatMap(_.jwsAlgorithm) == Some(algorithm)){selected}>
+                @algorithm.getName
+              </option>
+            }
+          </optgroup>
+        }
+      </select>
+      <span class="muted">Choose the expected signature algorithm of the token response. Most IdP provides RS256 or HS256.</span>
+      <span id="error-oidc_jwsAlgorithm" class="error"></span>
+    </div>
+  </div>
+</div>
+<script>
+$(function(){
+  $('#ldapAuthentication').change(function(){
+    $('.ldap input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
+  $('#oidcAuthentication').change(function(){
+    $('.oidc input, .oidc select').prop('disabled', !$(this).prop('checked'));
+  }).change();
+});
+</script>

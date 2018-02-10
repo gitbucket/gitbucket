@@ -1,0 +1,47 @@
+@(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.service.OpenIDConnectService
+@import gitbucket.core.util.DatabaseConfig
+@gitbucket.core.html.main("System settings"){
+  @gitbucket.core.admin.html.menu("system"){
+    @gitbucket.core.helper.html.information(info)
+    <form action="@context.path/admin/system" method="POST" validate="true" class="form-horizontal">
+      <ul class="nav nav-tabs fill-width" id="pullreq-tab">
+        <li><a href="#system">System settings</a></li>
+        <li><a href="#authentication">Authentication</a></li>
+      </ul>
+      <div class="tab-content fill-width" style="padding-top: 20px;">
+        <div class="tab-pane" id="system">
+          @settings_system(info)
+        </div>
+        <div class="tab-pane" id="authentication">
+          @settings_authentication(info)
+        </div>
+      </div>
+      <hr>
+      <div class="align-right" style="margin-top: 20px;">
+        <input type="submit" class="btn btn-success" value="Apply changes"/>
+      </div>
+    </form>
+  }
+}
+<script>
+$(function(){
+  // Determine active tab from hash
+  if(location.hash == '#authentication'){
+    $('li:has(a[href="#authentication"])').addClass('active');
+    $('div#authentication').addClass('active');
+  } else {
+    $('li:has(a[href="#system"])').addClass('active');
+    $('div#system').addClass('active');
+  }
+  // Set hash when tab is clicked
+  $('ul.nav-tabs li a').click(function(e){
+    location.href = $(e.delegateTarget).attr("href");
+  });
+
+  $('#pullreq-tab a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+  });
+});
+</script>
