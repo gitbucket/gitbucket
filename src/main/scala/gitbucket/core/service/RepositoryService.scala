@@ -47,7 +47,8 @@ trait RepositoryService { self: AccountService =>
           wikiOption           = "PUBLIC", // TODO DISABLE for the forked repository?
           externalWikiUrl      = None,
           allowFork            = true,
-          mergeOptions         = "merge-commit,squash,rebase"
+          mergeOptions         = "merge-commit,squash,rebase",
+          defaultMergeOption   = "merge-commit"
         )
       )
 
@@ -365,7 +366,7 @@ trait RepositoryService { self: AccountService =>
    */
   def saveRepositoryOptions(userName: String, repositoryName: String, description: Option[String], isPrivate: Boolean,
       issuesOption: String, externalIssuesUrl: Option[String], wikiOption: String, externalWikiUrl: Option[String],
-      allowFork: Boolean, mergeOptions: Seq[String])(implicit s: Session): Unit = {
+      allowFork: Boolean, mergeOptions: Seq[String], defaultMergeOption: String)(implicit s: Session): Unit = {
 
     Repositories.filter(_.byRepository(userName, repositoryName))
       .map { r => (
@@ -377,6 +378,7 @@ trait RepositoryService { self: AccountService =>
         r.externalWikiUrl.?,
         r.allowFork,
         r.mergeOptions,
+        r.defaultMergeOption,
         r.updatedDate
       ) }
       .update (
@@ -388,6 +390,7 @@ trait RepositoryService { self: AccountService =>
         externalWikiUrl,
         allowFork,
         mergeOptions.mkString(","),
+        defaultMergeOption,
         currentDate
       )
   }

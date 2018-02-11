@@ -40,7 +40,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     wikiOption: String,
     externalWikiUrl: Option[String],
     allowFork: Boolean,
-    mergeOptions: Seq[String]
+    mergeOptions: Seq[String],
+    defaultMergeOption: String
   )
 
   val optionsForm = mapping(
@@ -52,15 +53,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "wikiOption"         -> trim(label("Wiki Option"        , text(required, featureOption))),
     "externalWikiUrl"    -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
     "allowFork"          -> trim(label("Allow Forking"      , boolean())),
-    "mergeOptions"       -> new ValueType[Seq[String]]{
-      override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] =
-        params.get("mergeOptions").getOrElse(Nil)
-      override def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
-        if(params.get("mergeOptions").getOrElse(Nil).isEmpty) Seq("mergeOptions" -> "At least one option must be enabled.") else Nil
-    },
-  )(OptionsForm.apply)
-
-
+    "mergeOptions"       -> mergeOptions,
+    "defaultMergeOption" -> trim(label("Default merge strategy", text(required)))
+  )(OptionsForm.apply).verifying { form =>
+    if(!form.mergeOptions.contains(form.defaultMergeOption)){
+      Seq("defaultMergeOption" -> s"This merge strategy isn't enabled.")
+    } else Nil
+  }
 
   // for default branch
   case class DefaultBranchForm(defaultBranch: String)
@@ -128,7 +127,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.wikiOption,
       form.externalWikiUrl,
       form.allowFork,
-      form.mergeOptions
+      form.mergeOptions,
+      form.defaultMergeOption
     )
     // Change repository name
     if(repository.name != form.repositoryName){
@@ -509,4 +509,21 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         }
       }
   }
+
+  private def mergeOptions = new ValueType[Seq[String]]{
+    override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] = {
+      params.get("mergeOptions").getOrElse(Nil)
+    }
+    override def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = {
+      val mergeOptions = params.get("mergeOptions").getOrElse(Nil)
+      if(mergeOptions.isEmpty){
+        Seq("mergeOptions" -> "At least one option must be enabled.")
+      } else if(!mergeOptions.forall(x => Seq("merge-commit", "squash", "rebase").contains(x))){
+        Seq("mergeOptions" -> "mergeOptions are invalid.")
+      } else {
+        Nil
+      }
+    }
+  }
+
 }

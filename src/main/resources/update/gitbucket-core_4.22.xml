@@ -2,5 +2,6 @@
 <changeSet>
   <addColumn tableName="REPOSITORY">
     <column name="MERGE_OPTIONS" type="varchar(200)" nullable="false" defaultValue="merge-commit,squash,rebase"/>
+    <column name="DEFAULT_MERGE_OPTION" type="varchar(100)" nullable="false" defaultValue="merge-commit"/>
   </addColumn>
 </changeSet>
