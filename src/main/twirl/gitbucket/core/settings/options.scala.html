@@ -112,6 +112,38 @@
             </fieldset>
           </div>
         </div>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Merge strategy</div>
+          <div class="panel-body">
+            Select pull request merge strategies which are available in this repository. At least one option must be enabled.
+            <fieldset class="form-group">
+            @defining(repository.repository.options.mergeOptions.split(",")){ mergeOptions =>
+              <div class="checkbox">
+                <label for="mergeOptions_MergeCommit">
+                  <input type="checkbox" name="mergeOptions" id="mergeOptions_MergeCommit" value="merge-commit" @if(mergeOptions.contains("merge-commit")){checked}>
+                <span class="strong">Merge commit</span>
+                <div class="normal muted">Commits will be added to the base branch via a merge commit.</div>
+                </label>
+              </div>
+              <div class="checkbox">
+                <label for="mergeOptions_Squash">
+                  <input type="checkbox" name="mergeOptions" id="mergeOptions_Squash" value="squash" @if(mergeOptions.contains("squash")){checked}>
+                  <span class="strong">Squash</span>
+                  <div class="normal muted">Commits will be combined into one commit in the base branch.</div>
+                </label>
+              </div>
+              <div class="checkbox">
+                <label for="mergeOptions_Rebase">
+                  <input type="checkbox" name="mergeOptions" id="mergeOptions_Rebase" value="rebase" @if(mergeOptions.contains("rebase")){checked}>
+                  <span class="strong">Rebase</span>
+                  <div class="normal muted">Commits will be rebased and added to the base branch.</div>
+                </label>
+              </div>
+              <span id="error-mergeOptions" class="error"></span>
+            }
+            </fieldset>
+          </div>
+        </div>
         <div class="align-right" style="margin-top: 20px;">
           <input type="submit" class="btn btn-success" value="Apply changes"/>
         </div>

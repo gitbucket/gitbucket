@@ -22,11 +22,12 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val wikiOption           = column[String]("WIKI_OPTION")
     val externalWikiUrl      = column[String]("EXTERNAL_WIKI_URL")
     val allowFork            = column[Boolean]("ALLOW_FORK")
+    val mergeOptions         = column[String]("MERGE_OPTIONS")
 
     def * = (
       (userName, repositoryName, isPrivate, description.?, defaultBranch,
       registeredDate, updatedDate, lastActivityDate, originUserName.?, originRepositoryName.?, parentUserName.?, parentRepositoryName.?),
-      (issuesOption, externalIssuesUrl.?, wikiOption, externalWikiUrl.?, allowFork)
+      (issuesOption, externalIssuesUrl.?, wikiOption, externalWikiUrl.?, allowFork, mergeOptions)
     ).shaped <> (
       { case (repository, options) =>
         Repository(
@@ -88,5 +89,6 @@ case class RepositoryOptions(
   externalIssuesUrl: Option[String],
   wikiOption: String,
   externalWikiUrl: Option[String],
-  allowFork: Boolean
+  allowFork: Boolean,
+  mergeOptions: String
 )
