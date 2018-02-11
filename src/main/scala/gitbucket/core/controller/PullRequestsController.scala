@@ -372,16 +372,20 @@ trait PullRequestsControllerBase extends ControllerBase {
         Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
       ){ case (oldGit, newGit) =>
         val (oldId, newId) =
-          if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-            // Branch name
-            val rootId = JGitUtil.getForkedCommitId(oldGit, newGit,
-              originRepository.owner, originRepository.name, originId,
-              forkedRepository.owner, forkedRepository.name, forkedId)
+          if(originRepository.branchList.contains(originId)){
+            val forkedId2 = forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
 
-            (Option(oldGit.getRepository.resolve(rootId)),  Option(newGit.getRepository.resolve(forkedId)))
+            val originId2 = JGitUtil.getForkedCommitId(oldGit, newGit,
+              originRepository.owner, originRepository.name, originId,
+              forkedRepository.owner, forkedRepository.name, forkedId2)
+
+            (Option(oldGit.getRepository.resolve(originId2)),  Option(newGit.getRepository.resolve(forkedId2)))
+
           } else {
-            // Commit id
-            (Option(oldGit.getRepository.resolve(originId)), Option(newGit.getRepository.resolve(forkedId)))
+            val originId2 = originRepository.tags.collectFirst { case x if x.name == originId => x.id }.getOrElse(originId)
+            val forkedId2 = forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
+
+            (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
           }
 
         (oldId, newId) match {
