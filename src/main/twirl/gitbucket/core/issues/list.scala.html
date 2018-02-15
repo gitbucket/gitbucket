@@ -22,7 +22,7 @@
         <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
       </li>
     </ul>
-    <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right">
+    <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right" autocomplete="off">
       <div class="input-group">
         <input type="text" class="form-control" name="q" placeholder="Search..."/>
         <input type="hidden" name="type" value="issue"/>

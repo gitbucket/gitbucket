@@ -3,7 +3,7 @@
 @import gitbucket.core.view.helpers
 @defining(priority.map(_.priorityId).getOrElse("new")){ priorityId =>
 <div id="edit-priority-area-@priorityId">
-  <form class="form-inline">
+  <form class="form-inline" autocomplete="off">
     <input type="text" id="priorityName-@priorityId" style="width: 200px; float: left; margin-right: 4px;" class="form-control input-sm" value="@priority.map(_.priorityName)"@if(priorityId == "new"){ placeholder="New priority name"}/>
     <div id="priority-color-@priorityId" class="input-group color bscp" data-color="#@priority.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; float: left;">
       <input type="text" class="form-control input-sm" id="priorityColor-@priorityId" value="#@priority.map(_.color).getOrElse("888888")" style="width: 100px;">

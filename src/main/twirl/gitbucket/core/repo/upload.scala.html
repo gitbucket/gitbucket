@@ -9,7 +9,7 @@
     @if(protectedBranch){
       <div class="alert alert-danger">branch @branch is protected.</div>
     }
-    <form method="POST" action="@helpers.url(repository)/upload" id="upload-form">
+    <form method="POST" action="@helpers.url(repository)/upload" id="upload-form" autocomplete="off">
       <div class="head">
         <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>

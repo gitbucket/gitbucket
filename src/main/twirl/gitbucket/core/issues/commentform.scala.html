@@ -6,7 +6,7 @@
 @import gitbucket.core.view.helpers
 @if(isEditable){
   <hr/><br/>
-  <form method="POST" validate="true">
+  <form method="POST" validate="true" autocomplete="off">
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
         @gitbucket.core.helper.html.preview(

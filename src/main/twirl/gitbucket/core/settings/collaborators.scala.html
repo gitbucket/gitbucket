@@ -6,7 +6,7 @@
 @gitbucket.core.html.main("Settings", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("collaborators", repository){
-      <form id="form" method="post" action="@helpers.url(repository)/settings/collaborators">
+      <form id="form" method="post" action="@helpers.url(repository)/settings/collaborators" autocomplete="off">
         <div class="panel panel-default">
           <div class="panel-heading strong">Collaborators</div>
           <div class="panel-body">

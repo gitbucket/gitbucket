@@ -4,7 +4,7 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
-    <form action="@helpers.url(repository)/releases/@helpers.encodeRefName(tag)/@if(release.isEmpty){create}else{edit}" method="POST" validate="true" class="form-group">
+    <form method="POST" validate="true" class="form-group" autocomplete="off">
       <div class="row-fluid">
         <div class="co`l-md-12">
           @if(release.isEmpty){
@@ -43,9 +43,9 @@
           </div>
           <div class="align-right" style="margin-top: 12px;">
             @if(release.isEmpty){
-              <input type="submit" class="btn btn-success" value="Submit new release"/>
+              <input type="submit" class="btn btn-success" value="Submit new release" formaction="@helpers.url(repository)/releases/@helpers.encodeRefName(tag)/create"/>
             } else {
-              <input type="submit" class="btn btn-success" value="Update release"/>
+              <input type="submit" class="btn btn-success" value="Update release" formaction="@helpers.url(repository)/releases/@helpers.encodeRefName(tag)/edit"/>
             }
           </div>
         </div>

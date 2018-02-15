@@ -11,7 +11,7 @@
     @if(protectedBranch){
       <div class="alert alert-danger">branch @branch is protected.</div>
     }
-    <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
+    <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true" autocomplete="off">
       <span class="error" id="error-newFileName"></span>
       <span class="error" id="error-commit"></span>
       <div class="head">
@@ -58,7 +58,7 @@
           </div>
           <div style="text-align: right;">
             @if(fileName.isEmpty){
-              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-danger">Cancel</a>
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default">Cancel</a>
             } else {
               <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList ++ Seq(fileName.get)).mkString("/"))" class="btn btn-danger">Cancel</a>
             }

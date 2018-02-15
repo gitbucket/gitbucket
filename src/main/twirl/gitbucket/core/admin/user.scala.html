@@ -2,7 +2,7 @@
 @gitbucket.core.html.main(if(account.isEmpty) "New user" else "Update user"){
   @gitbucket.core.admin.html.menu("users"){
     @gitbucket.core.helper.html.error(error)
-    <form method="POST" action="@if(account.isEmpty){@context.path/admin/users/_newuser} else {@context.path/admin/users/@account.get.userName/_edituser}" validate="true">
+    <form method="POST" validate="true" autocomplete="off">
       <div class="row">
         <div class="col-md-6">
           <fieldset class="form-group">
@@ -82,7 +82,11 @@
         </div>
       </div>
       <fieldset class="border-top">
-        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create user} else {Update user}"/>
+        @if(account.isEmpty){
+          <input type="submit" class="btn btn-success" value="Create user" formaction="@context.path/admin/users/_newuser"/>
+        } else {
+          <input type="submit" class="btn btn-success" value="Update user" formaction="@context.path/admin/users/@account.get.userName/_edituser"/>
+        }
         <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
       </fieldset>
     </form>

@@ -6,7 +6,7 @@
   @gitbucket.core.account.html.menu("profile", account.userName, true){
     @gitbucket.core.helper.html.information(info)
     <h2>Edit group</h2>
-    <form id="form" method="post" action="@context.path/@account.userName/_editgroup" validate="true">
+    <form id="form" method="post" action="@context.path/@account.userName/_editgroup" validate="true" autocomplete="off">
       @gitbucket.core.account.html.groupform(Some(account), members, false)
       <fieldset class="border-top">
         <div class="pull-right">

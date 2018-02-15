@@ -3,7 +3,7 @@
 @import gitbucket.core.view.helpers
 @defining(label.map(_.labelId).getOrElse("new")){ labelId =>
 <div id="edit-label-area-@labelId">
-  <form class="form-inline">
+  <form class="form-inline" autocomplete="off">
     <input type="text" id="labelName-@labelId" style="width: 300px; float: left; margin-right: 4px;" class="form-control input-sm" value="@label.map(_.labelName)"@if(labelId == "new"){ placeholder="New label name"}/>
     <div id="label-color-@labelId" class="input-group color bscp" data-color="#@label.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; float: left;">
       <input type="text" class="form-control input-sm" id="labelColor-@labelId" value="#@label.map(_.color).getOrElse("888888")" style="width: 100px;">
