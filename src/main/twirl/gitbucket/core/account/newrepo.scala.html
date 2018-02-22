@@ -8,7 +8,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
     <p class="muted">
       A repository contains all the files for your project including the revision history.
     </p>
-    <form id="form" method="post" action="@context.path/new" validate="true">
+    <form id="form" method="post" action="@context.path/new" validate="true" autocomplete="off">
       <fieldset class="border-top form-group">
         <dl style="float: left;">
           <dt>Owner</dt>

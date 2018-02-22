@@ -6,7 +6,7 @@
     @gitbucket.core.helper.html.information(info)
     @gitbucket.core.helper.html.error(error)
     @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
-    <form action="@helpers.url(account.userName)/_edit" method="POST" validate="true">
+    <form action="@helpers.url(account.userName)/_edit" method="POST" validate="true" autocomplete="off">
       <div class="panel panel-default">
         <div class="panel-heading strong">Profile</div>
         <div class="panel-body">

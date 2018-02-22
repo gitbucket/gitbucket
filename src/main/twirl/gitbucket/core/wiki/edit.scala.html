@@ -12,7 +12,7 @@
       }
     </div>
     <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
-    <form action="@helpers.url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
+    <form action="@helpers.url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true" autocomplete="off">
       <span id="error-pageName" class="error"></span>
       <input type="text" name="pageName" value="@pageName" class="form-control" style="font-weight: bold; margin-bottom: 10px;" placeholder="Input a page name."/>
       <div class="muted attachable">
