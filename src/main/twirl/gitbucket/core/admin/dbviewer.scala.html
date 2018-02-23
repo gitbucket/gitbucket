@@ -7,11 +7,11 @@
         <div id="table-tree">
           <ul>
           @tables.map { table =>
-            <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}'><a href="javascript:void(0);" class="table-link">@table.name</a>
+            <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}' data-table="@table.name">@table.name
               <ul>
               @table.columns.map { column =>
-                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}' onclick="populateQuery('@table.name', '@column.name');">@column.name
-                  @if(column.primaryKey){ (PK) }
+                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}' data-table="@table.name" data-column="@column.name">
+                  @column.name @if(column.primaryKey){ (PK) }
                 </li>
               }
               </ul>
@@ -39,21 +39,6 @@
 <script src="@helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
 <link rel="stylesheet" href="@helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
 <script>
-	function populateQuery(parent, child) {
-		$('#editor').text($('#initial').val());
-		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/monokai");
-		editor.getSession().setMode("ace/mode/sql");
-
-		if($("#autorun").is(':checked')) {
-			editor.setValue('SELECT ' + child + ' FROM `' + parent + '`');
-			$('#run-query').click();
-		}
-		else {
-			editor.getSession().insert(editor.getCursorPosition(), child);
-		}
-		editor.focus();
-	}
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
@@ -62,16 +47,26 @@ $(function(){
 
   $('#table-tree').jstree();
 
-	$('.table-link').click(function(e){
-		if(editor.getValue().trim() == '' || $("#autorun").is(':checked')){
-			editor.setValue('SELECT * FROM `' + $(e.target).text()+ '`');
-			$('#run-query').click();
-		} else {
-			editor.getSession().insert(editor.getCursorPosition(), $(e.target).text());
-		}
-		editor.focus();
-	});
-
+	$('#table-tree').on('select_node.jstree', function(e, data){
+	  //var selectedNodes = $('#table-tree').jstree('get_selected', true);
+    if(editor.getValue().trim() == '' || $('#autorun').is(':checked')){
+      if(data.node.data['column']){
+        editor.setValue('SELECT `' + data.node.data['column'] + '` FROM `' + data.node.data['table'] + '`');
+      } else if(data.node.data['table']){
+        editor.setValue('SELECT * FROM `' + data.node.data['table']+ '`');
+      }
+      if($('#autorun').is(':checked')){
+        $('#run-query').click();
+      }
+    } else {
+      if(data.node.data['column']){
+        editor.getSession().insert(editor.getCursorPosition(), data.node.data['column']);
+      } else if(data.node.data['table']){
+        editor.getSession().insert(editor.getCursorPosition(), data.node.data['table']);
+      }
+    }
+    editor.focus();
+  });
 
   $('#clear-query').click(function(){
     editor.setValue('');
