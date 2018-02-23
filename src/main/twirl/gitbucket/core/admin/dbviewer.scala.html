@@ -10,7 +10,7 @@
             <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}'><a href="javascript:void(0);" class="table-link">@table.name</a>
               <ul>
               @table.columns.map { column =>
-                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}'>@column.name
+                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}' onclick="populateQuery('@table.name', '@column.name');">@column.name
                   @if(column.primaryKey){ (PK) }
                 </li>
               }
@@ -25,6 +25,10 @@
         <div class="block">
           <input type="button" value="Run query" id="run-query" class="btn btn-success">
           <input type="button" value="Clear" id="clear-query" class="btn btn-default">
+			<label for="autorun">
+				<input type="checkbox" id="autorun" name="autorun"/>
+				Auto Run Query
+			</label>
         </div>
         <div id="result"></div>
       </div>
@@ -35,6 +39,21 @@
 <script src="@helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
 <link rel="stylesheet" href="@helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
 <script>
+	function populateQuery(parent, child) {
+		$('#editor').text($('#initial').val());
+		var editor = ace.edit("editor");
+		editor.setTheme("ace/theme/monokai");
+		editor.getSession().setMode("ace/mode/sql");
+
+		if($("#autorun").is(':checked')) {
+			editor.setValue('SELECT ' + child + ' FROM `' + parent + '`');
+			$('#run-query').click();
+		}
+		else {
+			editor.getSession().insert(editor.getCursorPosition(), child);
+		}
+		editor.focus();
+	}
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
@@ -43,14 +62,16 @@ $(function(){
 
   $('#table-tree').jstree();
 
-  $('.table-link').click(function(e){
-    if(editor.getValue().trim() == ''){
-      editor.getSession().insert(editor.getCursorPosition(), 'SELECT * FROM ' + $(e.target).text());
-    } else {
-      editor.getSession().insert(editor.getCursorPosition(), $(e.target).text());
-    }
-    editor.focus();
-  });
+	$('.table-link').click(function(e){
+		if(editor.getValue().trim() == '' || $("#autorun").is(':checked')){
+			editor.setValue('SELECT * FROM `' + $(e.target).text()+ '`');
+			$('#run-query').click();
+		} else {
+			editor.getSession().insert(editor.getCursorPosition(), $(e.target).text());
+		}
+		editor.focus();
+	});
+
 
   $('#clear-query').click(function(){
     editor.setValue('');
