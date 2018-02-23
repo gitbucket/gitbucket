@@ -85,10 +85,21 @@
         @if(account.isEmpty){
           <input type="submit" class="btn btn-success" value="Create user" formaction="@context.path/admin/users/_newuser"/>
         } else {
-          <input type="submit" class="btn btn-success" value="Update user" formaction="@context.path/admin/users/@account.get.userName/_edituser"/>
+          <input type="submit" class="btn btn-success" value="Update user" formaction="@context.path/admin/users/@account.get.userName/_edituser" id="update"/>
         }
         <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
       </fieldset>
     </form>
   }
 }
+<script>
+$(function(){
+  $('#update').click(function(){
+    if($('#password').val() != ''){
+      return confirm('Are you sure you want to change password of this user?');
+    } else {
+      return true;
+    }
+  });
+});
+</script>

@@ -55,13 +55,21 @@
         <div class="pull-right">
           <a href="@context.path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
         </div>
-        <input type="submit" class="btn btn-success" value="Save"/>
+        <input type="submit" class="btn btn-success" value="Save" id="save"/>
       </div>
     </form>
   }
 }
 <script>
 $(function(){
+  $('#save').click(function(){
+    if($('#password').val() != ''){
+      return confirm('Are you sure you want to change password?');
+    } else {
+      return true;
+    }
+  });
+
   $('#delete').click(function(){
     return confirm('Once you delete your account, there is no going back.\nAre you sure?');
   });
