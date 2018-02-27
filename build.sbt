@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.10",
   "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
   "com.h2database"                  %  "h2"                           % "1.4.196",
-  "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.2.1",
+  "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.2.2",
   "org.postgresql"                  %  "postgresql"                   % "42.1.4",
   "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
   "com.zaxxer"                      %  "HikariCP"                     % "2.7.4",
