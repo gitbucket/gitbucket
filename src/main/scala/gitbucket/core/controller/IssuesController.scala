@@ -271,25 +271,25 @@ trait IssuesControllerBase extends ControllerBase {
 
   ajaxPost("/:owner/:repository/issues/:id/label/new")(writableUsersOnly { repository =>
     defining(params("id").toInt){ issueId =>
-      registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt)
+      registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
       html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
   ajaxPost("/:owner/:repository/issues/:id/label/delete")(writableUsersOnly { repository =>
     defining(params("id").toInt){ issueId =>
-      deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt)
+      deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
       html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
   ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>
-    updateAssignedUserName(repository.owner, repository.name, params("id").toInt, assignedUserName("assignedUserName"))
+    updateAssignedUserName(repository.owner, repository.name, params("id").toInt, assignedUserName("assignedUserName"), true)
     Ok("updated")
   })
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(writableUsersOnly { repository =>
-    updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"))
+    updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"), true)
     milestoneId("milestoneId").map { milestoneId =>
       getMilestonesWithIssueCount(repository.owner, repository.name)
           .find(_._1.milestoneId == milestoneId).map { case (_, openCount, closeCount) =>
@@ -299,7 +299,8 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/:id/priority")(writableUsersOnly { repository =>
-    updatePriorityId(repository.owner, repository.name, params("id").toInt, priorityId("priorityId"))
+    val priority = priorityId("priorityId")
+    updatePriorityId(repository.owner, repository.name, params("id").toInt, priority, true)
     Ok("updated")
   })
 
@@ -325,7 +326,7 @@ trait IssuesControllerBase extends ControllerBase {
     params("value").toIntOpt.map{ labelId =>
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
-          registerIssueLabel(repository.owner, repository.name, issueId, labelId)
+          registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
         }
       }
     } getOrElse NotFound()
@@ -334,7 +335,7 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
     defining(assignedUserName("value")){ value =>
       executeBatch(repository) {
-        updateAssignedUserName(repository.owner, repository.name, _, value)
+        updateAssignedUserName(repository.owner, repository.name, _, value, true)
       }
     }
   })
@@ -342,7 +343,7 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/milestone")(writableUsersOnly { repository =>
     defining(milestoneId("value")){ value =>
       executeBatch(repository) {
-        updateMilestoneId(repository.owner, repository.name, _, value)
+        updateMilestoneId(repository.owner, repository.name, _, value, true)
       }
     }
   })
@@ -350,7 +351,7 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/priority")(writableUsersOnly { repository =>
     defining(priorityId("value")){ value =>
       executeBatch(repository) {
-        updatePriorityId(repository.owner, repository.name, _, value)
+        updatePriorityId(repository.owner, repository.name, _, value, true)
       }
     }
   })

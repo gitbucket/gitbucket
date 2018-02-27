@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.issues.labels.html
-import gitbucket.core.service.{RepositoryService, AccountService, IssuesService, LabelsService}
+import gitbucket.core.service.{RepositoryService, AccountService, IssuesService, LabelsService, MilestonesService, PrioritiesService}
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
@@ -10,8 +10,9 @@ import org.scalatra.i18n.Messages
 import org.scalatra.Ok
 
 class LabelsController extends LabelsControllerBase
-  with LabelsService with IssuesService with RepositoryService with AccountService
-with ReferrerAuthenticator with WritableUsersAuthenticator
+  with IssuesService with RepositoryService with AccountService
+  with LabelsService with PrioritiesService with MilestonesService
+  with ReferrerAuthenticator with WritableUsersAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
   self: LabelsService with IssuesService with RepositoryService

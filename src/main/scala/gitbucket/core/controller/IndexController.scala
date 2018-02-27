@@ -20,6 +20,9 @@ class IndexController extends IndexControllerBase
   with AccountService
   with RepositorySearchService
   with IssuesService
+  with LabelsService
+  with MilestonesService
+  with PrioritiesService
   with UsersAuthenticator
   with ReferrerAuthenticator
   with AccountFederationService

@@ -6,7 +6,8 @@ import gitbucket.core.model.WebHookContentType
 
 
 class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
-  lazy val service = new WebHookPullRequestService with AccountService with RepositoryService with PullRequestService with IssuesService with CommitsService
+  lazy val service = new WebHookPullRequestService with AccountService with RepositoryService with PullRequestService
+    with IssuesService with CommitsService with LabelsService with MilestonesService with PrioritiesService
 
   test("WebHookPullRequestService.getPullRequestsByRequestForWebhook") { withTestDB { implicit session =>
     val user1 = generateNewUserWithDBRepository("user1","repo1")

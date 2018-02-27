@@ -32,6 +32,7 @@ import org.scalatra.i18n.Messages
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
+  with LabelsService with MilestonesService with PrioritiesService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with CommitStatusService
   with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService
 
