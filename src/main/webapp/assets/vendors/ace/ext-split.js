@@ -1,40 +1,5 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Distributed under the BSD license:
- *
- * Copyright (c) 2010, Ajax.org B.V.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Ajax.org B.V. nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ***** END LICENSE BLOCK ***** */
-
-ace.define('ace/ext/split', ['require', 'exports', 'module' , 'ace/split'], function(require, exports, module) {
-module.exports = require("../split");
-
-});
-
-ace.define('ace/split', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/lib/event_emitter', 'ace/editor', 'ace/virtual_renderer', 'ace/edit_session'], function(require, exports, module) {
-
+define("ace/split",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/lib/event_emitter","ace/editor","ace/virtual_renderer","ace/edit_session"], function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
 var lang = require("./lib/lang");
@@ -155,11 +120,7 @@ var Split = function(container, theme, splits) {
         var s = new EditSession(session.getDocument(), session.getMode());
 
         var undoManager = session.getUndoManager();
-        if (undoManager) {
-            var undoManagerProxy = new UndoManagerProxy(undoManager, s);
-            s.setUndoManager(undoManagerProxy);
-        }
-        s.$informUndoManager = lang.delayedCall(function() { s.$deltas = []; });
+        s.setUndoManager(undoManager);
         s.setTabSize(session.getTabSize());
         s.setUseSoftTabs(session.getUseSoftTabs());
         s.setOverwrite(session.getOverwrite());
@@ -229,43 +190,15 @@ var Split = function(container, theme, splits) {
 
 }).call(Split.prototype);
 
- 
-function UndoManagerProxy(undoManager, session) {
-    this.$u = undoManager;
-    this.$doc = session;
-}
-
-(function() {
-    this.execute = function(options) {
-        this.$u.execute(options);
-    };
-
-    this.undo = function() {
-        var selectionRange = this.$u.undo(true);
-        if (selectionRange) {
-            this.$doc.selection.setSelectionRange(selectionRange);
-        }
-    };
-
-    this.redo = function() {
-        var selectionRange = this.$u.redo(true);
-        if (selectionRange) {
-            this.$doc.selection.setSelectionRange(selectionRange);
-        }
-    };
-
-    this.reset = function() {
-        this.$u.reset();
-    };
-
-    this.hasUndo = function() {
-        return this.$u.hasUndo();
-    };
-
-    this.hasRedo = function() {
-        return this.$u.hasRedo();
-    };
-}).call(UndoManagerProxy.prototype);
-
 exports.Split = Split;
 });
+
+define("ace/ext/split",["require","exports","module","ace/split"], function(require, exports, module) {
+"use strict";
+module.exports = require("../split");
+
+});
+                (function() {
+                    window.require(["ace/ext/split"], function() {});
+                })();
+            

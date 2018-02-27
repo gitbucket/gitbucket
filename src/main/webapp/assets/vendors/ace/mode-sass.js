@@ -1,107 +1,5 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Distributed under the BSD license:
- *
- * Copyright (c) 2010, Ajax.org B.V.
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Ajax.org B.V. nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ***** END LICENSE BLOCK ***** */
-
-ace.define('ace/mode/sass', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/mode/sass_highlight_rules', 'ace/mode/folding/coffee'], function(require, exports, module) {
-
-
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var SassHighlightRules = require("./sass_highlight_rules").SassHighlightRules;
-var FoldMode = require("./folding/coffee").FoldMode;
-
-var Mode = function() {
-    this.HighlightRules = SassHighlightRules;
-    this.foldingRules = new FoldMode();
-};
-oop.inherits(Mode, TextMode);
-
-(function() {   
-    this.lineCommentStart = "//";
-    this.$id = "ace/mode/sass";
-}).call(Mode.prototype);
-
-exports.Mode = Mode;
-
-});
-
-ace.define('ace/mode/sass_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/scss_highlight_rules'], function(require, exports, module) {
-
-
-var oop = require("../lib/oop");
-var lang = require("../lib/lang");
-var ScssHighlightRules = require("./scss_highlight_rules").ScssHighlightRules;
-
-var SassHighlightRules = function() {
-    ScssHighlightRules.call(this);
-    var start = this.$rules.start;
-    if (start[1].token == "comment") {
-        start.splice(1, 1, {
-            onMatch: function(value, currentState, stack) {
-                stack.unshift(this.next, -1, value.length - 2, currentState);
-                return "comment";
-            },
-            regex: /^\s*\/\*/,
-            next: "comment"
-        }, {
-            token: "error.invalid",
-            regex: "/\\*|[{;}]"
-        }, {
-            token: "support.type",
-            regex: /^\s*:[\w\-]+\s/
-        });
-        
-        this.$rules.comment = [
-            {regex: /^\s*/, onMatch: function(value, currentState, stack) {
-                if (stack[1] === -1)
-                    stack[1] = Math.max(stack[2], value.length - 1);
-                if (value.length <= stack[1]) {stack.shift();stack.shift();stack.shift();
-                    this.next = stack.shift();
-                    return "text";
-                } else {
-                    this.next = "";
-                    return "comment";
-                }
-            }, next: "start"},
-            {defaultToken: "comment"}
-        ]
-    }
-};
-
-oop.inherits(SassHighlightRules, ScssHighlightRules);
-
-exports.SassHighlightRules = SassHighlightRules;
-
-});
-
-ace.define('ace/mode/scss_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
-
+define("ace/mode/scss_highlight_rules",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/mode/text_highlight_rules"], function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var lang = require("../lib/lang");
@@ -177,7 +75,7 @@ var ScssHighlightRules = function() {
          "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
          "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
          "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
-         "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
+         "scale_color|transparentize|type_of|unit|unitless|unquote").split("|")
     );
 
     var constants = lang.arrayToMap(
@@ -205,13 +103,35 @@ var ScssHighlightRules = function() {
     );
 
     var colors = lang.arrayToMap(
-        ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
-        "purple|red|silver|teal|white|yellow").split("|")
+        ("aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|" +
+        "blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|" +
+        "chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|" +
+        "darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|" +
+        "darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|" +
+        "darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|" +
+        "darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|" +
+        "dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|" +
+        "ghostwhite|gold|goldenrod|gray|green|greenyellow|grey|honeydew|" +
+        "hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|" +
+        "lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|" +
+        "lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|" +
+        "lightsalmon|lightseagreen|lightskyblue|lightslategray|" +
+        "lightslategrey|lightsteelblue|lightyellow|lime|limegreen|linen|" +
+        "magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|" +
+        "mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|" +
+        "mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|" +
+        "moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|" +
+        "orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|" +
+        "papayawhip|peachpuff|peru|pink|plum|powderblue|purple|rebeccapurple|" +
+        "red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|" +
+        "seashell|sienna|silver|skyblue|slateblue|slategray|slategrey|snow|" +
+        "springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|" +
+        "wheat|white|whitesmoke|yellow|yellowgreen").split("|")
     );
     
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
-    )
+    );
     
     var tags = lang.arrayToMap(
         ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
@@ -318,11 +238,10 @@ var ScssHighlightRules = function() {
         "comment" : [
             {
                 token : "comment", // closing comment
-                regex : ".*?\\*\\/",
+                regex : "\\*\\/",
                 next : "start"
             }, {
-                token : "comment", // comment spanning whole line
-                regex : ".+"
+                defaultToken : "comment"
             }
         ],
         "qqstring" : [
@@ -354,8 +273,57 @@ exports.ScssHighlightRules = ScssHighlightRules;
 
 });
 
-ace.define('ace/mode/folding/coffee', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/folding/fold_mode', 'ace/range'], function(require, exports, module) {
+define("ace/mode/sass_highlight_rules",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/mode/scss_highlight_rules"], function(require, exports, module) {
+"use strict";
 
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var ScssHighlightRules = require("./scss_highlight_rules").ScssHighlightRules;
+
+var SassHighlightRules = function() {
+    ScssHighlightRules.call(this);
+    var start = this.$rules.start;
+    if (start[1].token == "comment") {
+        start.splice(1, 1, {
+            onMatch: function(value, currentState, stack) {
+                stack.unshift(this.next, -1, value.length - 2, currentState);
+                return "comment";
+            },
+            regex: /^\s*\/\*/,
+            next: "comment"
+        }, {
+            token: "error.invalid",
+            regex: "/\\*|[{;}]"
+        }, {
+            token: "support.type",
+            regex: /^\s*:[\w\-]+\s/
+        });
+        
+        this.$rules.comment = [
+            {regex: /^\s*/, onMatch: function(value, currentState, stack) {
+                if (stack[1] === -1)
+                    stack[1] = Math.max(stack[2], value.length - 1);
+                if (value.length <= stack[1]) {stack.shift();stack.shift();stack.shift();
+                    this.next = stack.shift();
+                    return "text";
+                } else {
+                    this.next = "";
+                    return "comment";
+                }
+            }, next: "start"},
+            {defaultToken: "comment"}
+        ];
+    }
+};
+
+oop.inherits(SassHighlightRules, ScssHighlightRules);
+
+exports.SassHighlightRules = SassHighlightRules;
+
+});
+
+define("ace/mode/folding/coffee",["require","exports","module","ace/lib/oop","ace/mode/folding/fold_mode","ace/range"], function(require, exports, module) {
+"use strict";
 
 var oop = require("../../lib/oop");
 var BaseFoldMode = require("./fold_mode").FoldMode;
@@ -438,5 +406,29 @@ oop.inherits(FoldMode, BaseFoldMode);
     };
 
 }).call(FoldMode.prototype);
+
+});
+
+define("ace/mode/sass",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/sass_highlight_rules","ace/mode/folding/coffee"], function(require, exports, module) {
+"use strict";
+
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var SassHighlightRules = require("./sass_highlight_rules").SassHighlightRules;
+var FoldMode = require("./folding/coffee").FoldMode;
+
+var Mode = function() {
+    this.HighlightRules = SassHighlightRules;
+    this.foldingRules = new FoldMode();
+    this.$behaviour = this.$defaultBehaviour;
+};
+oop.inherits(Mode, TextMode);
+
+(function() {   
+    this.lineCommentStart = "//";
+    this.$id = "ace/mode/sass";
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
 
 });

@@ -1,541 +1,5 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Distributed under the BSD license:
- *
- * Copyright (c) 2013 Matthew Christopher Kastor-Inare III, Atropa Inc. Intl
- * All rights reserved.
- *
- * Contributed to Ajax.org under the BSD license.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Ajax.org B.V. nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ***** END LICENSE BLOCK ***** */
-
-ace.define('ace/ext/settings_menu', ['require', 'exports', 'module' , 'ace/ext/menu_tools/generate_settings_menu', 'ace/ext/menu_tools/overlay_page', 'ace/editor'], function(require, exports, module) {
-
-var generateSettingsMenu = require('./menu_tools/generate_settings_menu').generateSettingsMenu;
-var overlayPage = require('./menu_tools/overlay_page').overlayPage;
-function showSettingsMenu(editor) {
-    var sm = document.getElementById('ace_settingsmenu');
-    if (!sm)    
-        overlayPage(editor, generateSettingsMenu(editor), '0', '0', '0');
-}
-module.exports.init = function(editor) {
-    var Editor = require("ace/editor").Editor;
-    Editor.prototype.showSettingsMenu = function() {
-        showSettingsMenu(this);
-    };
-};
-});
-
-ace.define('ace/ext/menu_tools/generate_settings_menu', ['require', 'exports', 'module' , 'ace/ext/menu_tools/element_generator', 'ace/ext/menu_tools/add_editor_menu_options', 'ace/ext/menu_tools/get_set_functions'], function(require, exports, module) {
-
-var egen = require('./element_generator');
-var addEditorMenuOptions = require('./add_editor_menu_options').addEditorMenuOptions;
-var getSetFunctions = require('./get_set_functions').getSetFunctions;
-module.exports.generateSettingsMenu = function generateSettingsMenu (editor) {
-    var elements = [];
-    function cleanupElementsList() {
-        elements.sort(function(a, b) {
-            var x = a.getAttribute('contains');
-            var y = b.getAttribute('contains');
-            return x.localeCompare(y);
-        });
-    }
-    function wrapElements() {
-        var topmenu = document.createElement('div');
-        topmenu.setAttribute('id', 'ace_settingsmenu');
-        elements.forEach(function(element) {
-            topmenu.appendChild(element);
-        });
-        return topmenu;
-    }
-    function createNewEntry(obj, clss, item, val) {
-        var el;
-        var div = document.createElement('div');
-        div.setAttribute('contains', item);
-        div.setAttribute('class', 'ace_optionsMenuEntry');
-        div.setAttribute('style', 'clear: both;');
-
-        div.appendChild(egen.createLabel(
-            item.replace(/^set/, '').replace(/([A-Z])/g, ' $1').trim(),
-            item
-        ));
-
-        if (Array.isArray(val)) {
-            el = egen.createSelection(item, val, clss);
-            el.addEventListener('change', function(e) {
-                try{
-                    editor.menuOptions[e.target.id].forEach(function(x) {
-                        if(x.textContent !== e.target.textContent) {
-                            delete x.selected;
-                        }
-                    });
-                    obj[e.target.id](e.target.value);
-                } catch (err) {
-                    throw new Error(err);
-                }
-            });
-        } else if(typeof val === 'boolean') {
-            el = egen.createCheckbox(item, val, clss);
-            el.addEventListener('change', function(e) {
-                try{
-                    obj[e.target.id](!!e.target.checked);
-                } catch (err) {
-                    throw new Error(err);
-                }
-            });
-        } else {
-            el = egen.createInput(item, val, clss);
-            el.addEventListener('change', function(e) {
-                try{
-                    if(e.target.value === 'true') {
-                        obj[e.target.id](true);
-                    } else if(e.target.value === 'false') {
-                        obj[e.target.id](false);
-                    } else {
-                        obj[e.target.id](e.target.value);
-                    }
-                } catch (err) {
-                    throw new Error(err);
-                }
-            });
-        }
-        el.style.cssText = 'float:right;';
-        div.appendChild(el);
-        return div;
-    }
-    function makeDropdown(item, esr, clss, fn) {
-        var val = editor.menuOptions[item];
-        var currentVal = esr[fn]();
-        if (typeof currentVal == 'object')
-            currentVal = currentVal.$id;
-        val.forEach(function(valuex) {
-            if (valuex.value === currentVal)
-                valuex.selected = 'selected';
-        });
-        return createNewEntry(esr, clss, item, val);
-    }
-    function handleSet(setObj) {
-        var item = setObj.functionName;
-        var esr = setObj.parentObj;
-        var clss = setObj.parentName;
-        var val;
-        var fn = item.replace(/^set/, 'get');
-        if(editor.menuOptions[item] !== undefined) {
-            elements.push(makeDropdown(item, esr, clss, fn));
-        } else if(typeof esr[fn] === 'function') {
-            try {
-                val = esr[fn]();
-                if(typeof val === 'object') {
-                    val = val.$id;
-                }
-                elements.push(
-                    createNewEntry(esr, clss, item, val)
-                );
-            } catch (e) {
-            }
-        }
-    }
-    addEditorMenuOptions(editor);
-    getSetFunctions(editor).forEach(function(setObj) {
-        handleSet(setObj);
-    });
-    cleanupElementsList();
-    return wrapElements();
-};
-
-});
-
-ace.define('ace/ext/menu_tools/element_generator', ['require', 'exports', 'module' ], function(require, exports, module) {
-module.exports.createOption = function createOption (obj) {
-    var attribute;
-    var el = document.createElement('option');
-    for(attribute in obj) {
-        if(obj.hasOwnProperty(attribute)) {
-            if(attribute === 'selected') {
-                el.setAttribute(attribute, obj[attribute]);
-            } else {
-                el[attribute] = obj[attribute];
-            }
-        }
-    }
-    return el;
-};
-module.exports.createCheckbox = function createCheckbox (id, checked, clss) {
-    var el = document.createElement('input');
-    el.setAttribute('type', 'checkbox');
-    el.setAttribute('id', id);
-    el.setAttribute('name', id);
-    el.setAttribute('value', checked);
-    el.setAttribute('class', clss);
-    if(checked) {
-        el.setAttribute('checked', 'checked');
-    }
-    return el;
-};
-module.exports.createInput = function createInput (id, value, clss) {
-    var el = document.createElement('input');
-    el.setAttribute('type', 'text');
-    el.setAttribute('id', id);
-    el.setAttribute('name', id);
-    el.setAttribute('value', value);
-    el.setAttribute('class', clss);
-    return el;
-};
-module.exports.createLabel = function createLabel (text, labelFor) {
-    var el = document.createElement('label');
-    el.setAttribute('for', labelFor);
-    el.textContent = text;
-    return el;
-};
-module.exports.createSelection = function createSelection (id, values, clss) {
-    var el = document.createElement('select');
-    el.setAttribute('id', id);
-    el.setAttribute('name', id);
-    el.setAttribute('class', clss);
-    values.forEach(function(item) {
-        el.appendChild(module.exports.createOption(item));
-    });
-    return el;
-};
-
-});
-
-ace.define('ace/ext/menu_tools/add_editor_menu_options', ['require', 'exports', 'module' , 'ace/ext/modelist', 'ace/ext/themelist'], function(require, exports, module) {
-module.exports.addEditorMenuOptions = function addEditorMenuOptions (editor) {
-    var modelist = require('../modelist');
-    var themelist = require('../themelist');
-    editor.menuOptions = {
-        "setNewLineMode" : [{
-            "textContent" : "unix",
-            "value" : "unix"
-        }, {
-            "textContent" : "windows",
-            "value" : "windows"
-        }, {
-            "textContent" : "auto",
-            "value" : "auto"
-        }],
-        "setTheme" : [],
-        "setMode" : [],
-        "setKeyboardHandler": [{
-            "textContent" : "ace",
-            "value" : ""
-        }, {
-            "textContent" : "vim",
-            "value" : "ace/keyboard/vim"
-        }, {
-            "textContent" : "emacs",
-            "value" : "ace/keyboard/emacs"
-        }]
-    };
-
-    editor.menuOptions.setTheme = themelist.themes.map(function(theme) {
-        return {
-            'textContent' : theme.caption,
-            'value' : theme.theme
-        };
-    });
-
-    editor.menuOptions.setMode = modelist.modes.map(function(mode) {
-        return {
-            'textContent' : mode.name,
-            'value' : mode.mode
-        };
-    });
-};
-
-
-});
-ace.define('ace/ext/modelist', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-
-var modes = [];
-function getModeForPath(path) {
-    var mode = modesByName.text;
-    var fileName = path.split(/[\/\\]/).pop();
-    for (var i = 0; i < modes.length; i++) {
-        if (modes[i].supportsFile(fileName)) {
-            mode = modes[i];
-            break;
-        }
-    }
-    return mode;
-}
-
-var Mode = function(name, caption, extensions) {
-    this.name = name;
-    this.caption = caption;
-    this.mode = "ace/mode/" + name;
-    this.extensions = extensions;
-    if (/\^/.test(extensions)) {
-        var re = extensions.replace(/\|(\^)?/g, function(a, b){
-            return "$|" + (b ? "^" : "^.*\\.");
-        }) + "$";
-    } else {
-        var re = "^.*\\.(" + extensions + ")$";
-    }
-
-    this.extRe = new RegExp(re, "gi");
-};
-
-Mode.prototype.supportsFile = function(filename) {
-    return filename.match(this.extRe);
-};
-var supportedModes = {
-    ABAP:        ["abap"],
-    ActionScript:["as"],
-    ADA:         ["ada|adb"],
-    Apache_Conf: ["^htaccess|^htgroups|^htpasswd|^conf|htaccess|htgroups|htpasswd"],
-    AsciiDoc:    ["asciidoc"],
-    Assembly_x86:["asm"],
-    AutoHotKey:  ["ahk"],
-    BatchFile:   ["bat|cmd"],
-    C9Search:    ["c9search_results"],
-    C_Cpp:       ["cpp|c|cc|cxx|h|hh|hpp"],
-    Cirru:       ["cirru|cr"],
-    Clojure:     ["clj"],
-    Cobol:       ["CBL|COB"],
-    coffee:      ["coffee|cf|cson|^Cakefile"],
-    ColdFusion:  ["cfm"],
-    CSharp:      ["cs"],
-    CSS:         ["css"],
-    Curly:       ["curly"],
-    D:           ["d|di"],
-    Dart:        ["dart"],
-    Diff:        ["diff|patch"],
-    Dot:         ["dot"],
-    Erlang:      ["erl|hrl"],
-    EJS:         ["ejs"],
-    Forth:       ["frt|fs|ldr"],
-    FTL:         ["ftl"],
-    Gherkin:     ["feature"],
-    Glsl:        ["glsl|frag|vert"],
-    golang:      ["go"],
-    Groovy:      ["groovy"],
-    HAML:        ["haml"],
-    Handlebars:  ["hbs|handlebars|tpl|mustache"],
-    Haskell:     ["hs"],
-    haXe:        ["hx"],
-    HTML:        ["html|htm|xhtml"],
-    HTML_Ruby:   ["erb|rhtml|html.erb"],
-    INI:         ["ini|conf|cfg|prefs"],
-    Jack:        ["jack"],
-    Jade:        ["jade"],
-    Java:        ["java"],
-    JavaScript:  ["js|jsm"],
-    JSON:        ["json"],
-    JSONiq:      ["jq"],
-    JSP:         ["jsp"],
-    JSX:         ["jsx"],
-    Julia:       ["jl"],
-    LaTeX:       ["tex|latex|ltx|bib"],
-    LESS:        ["less"],
-    Liquid:      ["liquid"],
-    Lisp:        ["lisp"],
-    LiveScript:  ["ls"],
-    LogiQL:      ["logic|lql"],
-    LSL:         ["lsl"],
-    Lua:         ["lua"],
-    LuaPage:     ["lp"],
-    Lucene:      ["lucene"],
-    Makefile:    ["^Makefile|^GNUmakefile|^makefile|^OCamlMakefile|make"],
-    MATLAB:      ["matlab"],
-    Markdown:    ["md|markdown"],
-    MEL:         ["mel"],
-    MySQL:       ["mysql"],
-    MUSHCode:    ["mc|mush"],
-    Nix:         ["nix"],
-    ObjectiveC:  ["m|mm"],
-    OCaml:       ["ml|mli"],
-    Pascal:      ["pas|p"],
-    Perl:        ["pl|pm"],
-    pgSQL:       ["pgsql"],
-    PHP:         ["php|phtml"],
-    Powershell:  ["ps1"],
-    Prolog:      ["plg|prolog"],
-    Properties:  ["properties"],
-    Protobuf:    ["proto"],
-    Python:      ["py"],
-    R:           ["r"],
-    RDoc:        ["Rd"],
-    RHTML:       ["Rhtml"],
-    Ruby:        ["rb|ru|gemspec|rake|^Guardfile|^Rakefile|^Gemfile"],
-    Rust:        ["rs"],
-    SASS:        ["sass"],
-    SCAD:        ["scad"],
-    Scala:       ["scala"],
-    Smarty:      ["smarty|tpl"],
-    Scheme:      ["scm|rkt"],
-    SCSS:        ["scss"],
-    SH:          ["sh|bash|^.bashrc"],
-    SJS:         ["sjs"],
-    Space:       ["space"],
-    snippets:    ["snippets"],
-    Soy_Template:["soy"],
-    SQL:         ["sql"],
-    Stylus:      ["styl|stylus"],
-    SVG:         ["svg"],
-    Tcl:         ["tcl"],
-    Tex:         ["tex"],
-    Text:        ["txt"],
-    Textile:     ["textile"],
-    Toml:        ["toml"],
-    Twig:        ["twig"],
-    Typescript:  ["ts|typescript|str"],
-    VBScript:    ["vbs"],
-    Velocity:    ["vm"],
-    Verilog:     ["v|vh|sv|svh"],
-    XML:         ["xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"],
-    XQuery:      ["xq"],
-    YAML:        ["yaml|yml"]
-};
-
-var nameOverrides = {
-    ObjectiveC: "Objective-C",
-    CSharp: "C#",
-    golang: "Go",
-    C_Cpp: "C/C++",
-    coffee: "CoffeeScript",
-    HTML_Ruby: "HTML (Ruby)",
-    FTL: "FreeMarker"
-};
-var modesByName = {};
-for (var name in supportedModes) {
-    var data = supportedModes[name];
-    var displayName = (nameOverrides[name] || name).replace(/_/g, " ");
-    var filename = name.toLowerCase();
-    var mode = new Mode(filename, displayName, data[0]);
-    modesByName[filename] = mode;
-    modes.push(mode);
-}
-
-module.exports = {
-    getModeForPath: getModeForPath,
-    modes: modes,
-    modesByName: modesByName
-};
-
-});
-
-ace.define('ace/ext/themelist', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers'], function(require, exports, module) {
-
-require("ace/lib/fixoldbrowsers");
-
-var themeData = [
-    ["Chrome"         ],
-    ["Clouds"         ],
-    ["Crimson Editor" ],
-    ["Dawn"           ],
-    ["Dreamweaver"    ],
-    ["Eclipse"        ],
-    ["GitHub"         ],
-    ["Solarized Light"],
-    ["TextMate"       ],
-    ["Tomorrow"       ],
-    ["XCode"          ],
-    ["Kuroir"],
-    ["KatzenMilch"],
-    ["Ambiance"             ,"ambiance"                ,  "dark"],
-    ["Chaos"                ,"chaos"                   ,  "dark"],
-    ["Clouds Midnight"      ,"clouds_midnight"         ,  "dark"],
-    ["Cobalt"               ,"cobalt"                  ,  "dark"],
-    ["idle Fingers"         ,"idle_fingers"            ,  "dark"],
-    ["krTheme"              ,"kr_theme"                ,  "dark"],
-    ["Merbivore"            ,"merbivore"               ,  "dark"],
-    ["Merbivore Soft"       ,"merbivore_soft"          ,  "dark"],
-    ["Mono Industrial"      ,"mono_industrial"         ,  "dark"],
-    ["Monokai"              ,"monokai"                 ,  "dark"],
-    ["Pastel on dark"       ,"pastel_on_dark"          ,  "dark"],
-    ["Solarized Dark"       ,"solarized_dark"          ,  "dark"],
-    ["Terminal"             ,"terminal"                ,  "dark"],
-    ["Tomorrow Night"       ,"tomorrow_night"          ,  "dark"],
-    ["Tomorrow Night Blue"  ,"tomorrow_night_blue"     ,  "dark"],
-    ["Tomorrow Night Bright","tomorrow_night_bright"   ,  "dark"],
-    ["Tomorrow Night 80s"   ,"tomorrow_night_eighties" ,  "dark"],
-    ["Twilight"             ,"twilight"                ,  "dark"],
-    ["Vibrant Ink"          ,"vibrant_ink"             ,  "dark"]
-];
-
-
-exports.themesByName = {};
-exports.themes = themeData.map(function(data) {
-    var name = data[1] || data[0].replace(/ /g, "_").toLowerCase();
-    var theme = {
-        caption: data[0],
-        theme: "ace/theme/" + name,
-        isDark: data[2] == "dark",
-        name: name
-    };
-    exports.themesByName[name] = theme;
-    return theme;
-});
-
-});
-
-ace.define('ace/ext/menu_tools/get_set_functions', ['require', 'exports', 'module' ], function(require, exports, module) {
-module.exports.getSetFunctions = function getSetFunctions (editor) {
-    var out = [];
-    var my = {
-        'editor' : editor,
-        'session' : editor.session,
-        'renderer' : editor.renderer
-    };
-    var opts = [];
-    var skip = [
-        'setOption',
-        'setUndoManager',
-        'setDocument',
-        'setValue',
-        'setBreakpoints',
-        'setScrollTop',
-        'setScrollLeft',
-        'setSelectionStyle',
-        'setWrapLimitRange'
-    ];
-    ['renderer', 'session', 'editor'].forEach(function(esra) {
-        var esr = my[esra];
-        var clss = esra;
-        for(var fn in esr) {
-            if(skip.indexOf(fn) === -1) {
-                if(/^set/.test(fn) && opts.indexOf(fn) === -1) {
-                    opts.push(fn);
-                    out.push({
-                        'functionName' : fn,
-                        'parentObj' : esr,
-                        'parentName' : clss
-                    });
-                }
-            }
-        }
-    });
-    return out;
-};
-
-});
-
-ace.define('ace/ext/menu_tools/overlay_page', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
-
+define("ace/ext/menu_tools/overlay_page",["require","exports","module","ace/lib/dom"], function(require, exports, module) {
+'use strict';
 var dom = require("../../lib/dom");
 var cssText = "#ace_settingsmenu, #kbshortcutmenu {\
 background-color: #F7F7F7;\
@@ -558,7 +22,6 @@ color: black;\
 }\
 .ace_optionsMenuEntry:hover {\
 background-color: rgba(100, 100, 100, 0.1);\
--webkit-transition: all 0.5s;\
 transition: all 0.3s\
 }\
 .ace_closeButton {\
@@ -569,7 +32,7 @@ padding: 7px;\
 position: absolute;\
 right: -8px;\
 top: -8px;\
-z-index: 1000;\
+z-index: 100000;\
 }\
 .ace_closeButton{\
 background: rgba(245, 146, 146, 0.9);\
@@ -581,6 +44,22 @@ font-weight: bold;\
 .ace_optionsMenuCommand {\
 color: darkcyan;\
 font-weight: normal;\
+}\
+.ace_optionsMenuEntry input, .ace_optionsMenuEntry button {\
+vertical-align: middle;\
+}\
+.ace_optionsMenuEntry button[ace_selected_button=true] {\
+background: #e7e7e7;\
+box-shadow: 1px 0px 2px 0px #adadad inset;\
+border-color: #adadad;\
+}\
+.ace_optionsMenuEntry button {\
+background: white;\
+border: 1px solid lightgray;\
+margin: 0px;\
+}\
+.ace_optionsMenuEntry button:hover{\
+background: #f0f0f0;\
 }";
 dom.importCssString(cssText);
 module.exports.overlayPage = function overlayPage(editor, contentElement, top, right, bottom, left) {
@@ -634,3 +113,633 @@ module.exports.overlayPage = function overlayPage(editor, contentElement, top, r
 };
 
 });
+
+define("ace/ext/modelist",["require","exports","module"], function(require, exports, module) {
+"use strict";
+
+var modes = [];
+function getModeForPath(path) {
+    var mode = modesByName.text;
+    var fileName = path.split(/[\/\\]/).pop();
+    for (var i = 0; i < modes.length; i++) {
+        if (modes[i].supportsFile(fileName)) {
+            mode = modes[i];
+            break;
+        }
+    }
+    return mode;
+}
+
+var Mode = function(name, caption, extensions) {
+    this.name = name;
+    this.caption = caption;
+    this.mode = "ace/mode/" + name;
+    this.extensions = extensions;
+    var re;
+    if (/\^/.test(extensions)) {
+        re = extensions.replace(/\|(\^)?/g, function(a, b){
+            return "$|" + (b ? "^" : "^.*\\.");
+        }) + "$";
+    } else {
+        re = "^.*\\.(" + extensions + ")$";
+    }
+
+    this.extRe = new RegExp(re, "gi");
+};
+
+Mode.prototype.supportsFile = function(filename) {
+    return filename.match(this.extRe);
+};
+var supportedModes = {
+    ABAP:        ["abap"],
+    ABC:         ["abc"],
+    ActionScript:["as"],
+    ADA:         ["ada|adb"],
+    Apache_Conf: ["^htaccess|^htgroups|^htpasswd|^conf|htaccess|htgroups|htpasswd"],
+    AsciiDoc:    ["asciidoc|adoc"],
+    Assembly_x86:["asm|a"],
+    AutoHotKey:  ["ahk"],
+    BatchFile:   ["bat|cmd"],
+    Bro:         ["bro"],
+    C_Cpp:       ["cpp|c|cc|cxx|h|hh|hpp|ino"],
+    C9Search:    ["c9search_results"],
+    Cirru:       ["cirru|cr"],
+    Clojure:     ["clj|cljs"],
+    Cobol:       ["CBL|COB"],
+    coffee:      ["coffee|cf|cson|^Cakefile"],
+    ColdFusion:  ["cfm"],
+    CSharp:      ["cs"],
+    Csound_Document: ["csd"],
+    Csound_Orchestra: ["orc"],
+    Csound_Score: ["sco"],
+    CSS:         ["css"],
+    Curly:       ["curly"],
+    D:           ["d|di"],
+    Dart:        ["dart"],
+    Diff:        ["diff|patch"],
+    Dockerfile:  ["^Dockerfile"],
+    Dot:         ["dot"],
+    Drools:      ["drl"],
+    Edifact:     ["edi"],
+    Eiffel:      ["e|ge"],
+    EJS:         ["ejs"],
+    Elixir:      ["ex|exs"],
+    Elm:         ["elm"],
+    Erlang:      ["erl|hrl"],
+    Forth:       ["frt|fs|ldr|fth|4th"],
+    Fortran:     ["f|f90"],
+    FTL:         ["ftl"],
+    Gcode:       ["gcode"],
+    Gherkin:     ["feature"],
+    Gitignore:   ["^.gitignore"],
+    Glsl:        ["glsl|frag|vert"],
+    Gobstones:   ["gbs"],
+    golang:      ["go"],
+    GraphQLSchema: ["gql"],
+    Groovy:      ["groovy"],
+    HAML:        ["haml"],
+    Handlebars:  ["hbs|handlebars|tpl|mustache"],
+    Haskell:     ["hs"],
+    Haskell_Cabal:     ["cabal"],
+    haXe:        ["hx"],
+    Hjson:       ["hjson"],
+    HTML:        ["html|htm|xhtml|vue|we|wpy"],
+    HTML_Elixir: ["eex|html.eex"],
+    HTML_Ruby:   ["erb|rhtml|html.erb"],
+    INI:         ["ini|conf|cfg|prefs"],
+    Io:          ["io"],
+    Jack:        ["jack"],
+    Jade:        ["jade|pug"],
+    Java:        ["java"],
+    JavaScript:  ["js|jsm|jsx"],
+    JSON:        ["json"],
+    JSONiq:      ["jq"],
+    JSP:         ["jsp"],
+    JSSM:        ["jssm|jssm_state"],
+    JSX:         ["jsx"],
+    Julia:       ["jl"],
+    Kotlin:      ["kt|kts"],
+    LaTeX:       ["tex|latex|ltx|bib"],
+    LESS:        ["less"],
+    Liquid:      ["liquid"],
+    Lisp:        ["lisp"],
+    LiveScript:  ["ls"],
+    LogiQL:      ["logic|lql"],
+    LSL:         ["lsl"],
+    Lua:         ["lua"],
+    LuaPage:     ["lp"],
+    Lucene:      ["lucene"],
+    Makefile:    ["^Makefile|^GNUmakefile|^makefile|^OCamlMakefile|make"],
+    Markdown:    ["md|markdown"],
+    Mask:        ["mask"],
+    MATLAB:      ["matlab"],
+    Maze:        ["mz"],
+    MEL:         ["mel"],
+    MIXAL:       ["mixal"],
+    MUSHCode:    ["mc|mush"],
+    MySQL:       ["mysql"],
+    Nix:         ["nix"],
+    NSIS:        ["nsi|nsh"],
+    ObjectiveC:  ["m|mm"],
+    OCaml:       ["ml|mli"],
+    Pascal:      ["pas|p"],
+    Perl:        ["pl|pm"],
+    pgSQL:       ["pgsql"],
+    PHP:         ["php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module"],
+    Pig:         ["pig"],
+    Powershell:  ["ps1"],
+    Praat:       ["praat|praatscript|psc|proc"],
+    Prolog:      ["plg|prolog"],
+    Properties:  ["properties"],
+    Protobuf:    ["proto"],
+    Python:      ["py"],
+    R:           ["r"],
+    Razor:       ["cshtml|asp"],
+    RDoc:        ["Rd"],
+    Red:         ["red|reds"],
+    RHTML:       ["Rhtml"],
+    RST:         ["rst"],
+    Ruby:        ["rb|ru|gemspec|rake|^Guardfile|^Rakefile|^Gemfile"],
+    Rust:        ["rs"],
+    SASS:        ["sass"],
+    SCAD:        ["scad"],
+    Scala:       ["scala"],
+    Scheme:      ["scm|sm|rkt|oak|scheme"],
+    SCSS:        ["scss"],
+    SH:          ["sh|bash|^.bashrc"],
+    SJS:         ["sjs"],
+    Smarty:      ["smarty|tpl"],
+    snippets:    ["snippets"],
+    Soy_Template:["soy"],
+    Space:       ["space"],
+    SQL:         ["sql"],
+    SQLServer:   ["sqlserver"],
+    Stylus:      ["styl|stylus"],
+    SVG:         ["svg"],
+    Swift:       ["swift"],
+    Tcl:         ["tcl"],
+    Tex:         ["tex"],
+    Text:        ["txt"],
+    Textile:     ["textile"],
+    Toml:        ["toml"],
+    TSX:         ["tsx"],
+    Twig:        ["twig|swig"],
+    Typescript:  ["ts|typescript|str"],
+    Vala:        ["vala"],
+    VBScript:    ["vbs|vb"],
+    Velocity:    ["vm"],
+    Verilog:     ["v|vh|sv|svh"],
+    VHDL:        ["vhd|vhdl"],
+    Wollok:      ["wlk|wpgm|wtest"],
+    XML:         ["xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml"],
+    XQuery:      ["xq"],
+    YAML:        ["yaml|yml"],
+    Django:      ["html"]
+};
+
+var nameOverrides = {
+    ObjectiveC: "Objective-C",
+    CSharp: "C#",
+    golang: "Go",
+    C_Cpp: "C and C++",
+    Csound_Document: "Csound Document",
+    Csound_Orchestra: "Csound",
+    Csound_Score: "Csound Score",
+    coffee: "CoffeeScript",
+    HTML_Ruby: "HTML (Ruby)",
+    HTML_Elixir: "HTML (Elixir)",
+    FTL: "FreeMarker"
+};
+var modesByName = {};
+for (var name in supportedModes) {
+    var data = supportedModes[name];
+    var displayName = (nameOverrides[name] || name).replace(/_/g, " ");
+    var filename = name.toLowerCase();
+    var mode = new Mode(filename, displayName, data[0]);
+    modesByName[filename] = mode;
+    modes.push(mode);
+}
+
+module.exports = {
+    getModeForPath: getModeForPath,
+    modes: modes,
+    modesByName: modesByName
+};
+
+});
+
+define("ace/ext/themelist",["require","exports","module","ace/lib/fixoldbrowsers"], function(require, exports, module) {
+"use strict";
+require("ace/lib/fixoldbrowsers");
+
+var themeData = [
+    ["Chrome"         ],
+    ["Clouds"         ],
+    ["Crimson Editor" ],
+    ["Dawn"           ],
+    ["Dreamweaver"    ],
+    ["Eclipse"        ],
+    ["GitHub"         ],
+    ["IPlastic"       ],
+    ["Solarized Light"],
+    ["TextMate"       ],
+    ["Tomorrow"       ],
+    ["XCode"          ],
+    ["Kuroir"],
+    ["KatzenMilch"],
+    ["SQL Server"           ,"sqlserver"               , "light"],
+    ["Ambiance"             ,"ambiance"                ,  "dark"],
+    ["Chaos"                ,"chaos"                   ,  "dark"],
+    ["Clouds Midnight"      ,"clouds_midnight"         ,  "dark"],
+    ["Dracula"              ,""                        ,  "dark"],
+    ["Cobalt"               ,"cobalt"                  ,  "dark"],
+    ["Gruvbox"              ,"gruvbox"                 ,  "dark"],
+    ["Green on Black"       ,"gob"                     ,  "dark"],
+    ["idle Fingers"         ,"idle_fingers"            ,  "dark"],
+    ["krTheme"              ,"kr_theme"                ,  "dark"],
+    ["Merbivore"            ,"merbivore"               ,  "dark"],
+    ["Merbivore Soft"       ,"merbivore_soft"          ,  "dark"],
+    ["Mono Industrial"      ,"mono_industrial"         ,  "dark"],
+    ["Monokai"              ,"monokai"                 ,  "dark"],
+    ["Pastel on dark"       ,"pastel_on_dark"          ,  "dark"],
+    ["Solarized Dark"       ,"solarized_dark"          ,  "dark"],
+    ["Terminal"             ,"terminal"                ,  "dark"],
+    ["Tomorrow Night"       ,"tomorrow_night"          ,  "dark"],
+    ["Tomorrow Night Blue"  ,"tomorrow_night_blue"     ,  "dark"],
+    ["Tomorrow Night Bright","tomorrow_night_bright"   ,  "dark"],
+    ["Tomorrow Night 80s"   ,"tomorrow_night_eighties" ,  "dark"],
+    ["Twilight"             ,"twilight"                ,  "dark"],
+    ["Vibrant Ink"          ,"vibrant_ink"             ,  "dark"]
+];
+
+
+exports.themesByName = {};
+exports.themes = themeData.map(function(data) {
+    var name = data[1] || data[0].replace(/ /g, "_").toLowerCase();
+    var theme = {
+        caption: data[0],
+        theme: "ace/theme/" + name,
+        isDark: data[2] == "dark",
+        name: name
+    };
+    exports.themesByName[name] = theme;
+    return theme;
+});
+
+});
+
+define("ace/ext/options",["require","exports","module","ace/ext/menu_tools/overlay_page","ace/lib/dom","ace/lib/oop","ace/lib/event_emitter","ace/ext/modelist","ace/ext/themelist"], function(require, exports, module) {
+"use strict";
+var overlayPage = require('./menu_tools/overlay_page').overlayPage;
+
+ 
+var dom = require("../lib/dom");
+var oop = require("../lib/oop");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
+var buildDom = dom.buildDom;
+
+var modelist = require("./modelist");
+var themelist = require("./themelist");
+
+var themes = { Bright: [], Dark: [] };
+themelist.themes.forEach(function(x) {
+    themes[x.isDark ? "Dark" : "Bright"].push({ caption: x.caption, value: x.theme });
+});
+
+var modes = modelist.modes.map(function(x){ 
+    return { caption: x.caption, value: x.mode }; 
+});
+
+
+var optionGroups = {
+    Main: {
+        Mode: {
+            path: "mode",
+            type: "select",
+            items: modes
+        },
+        Theme: {
+            path: "theme",
+            type: "select",
+            items: themes
+        },
+        "Keybinding": {
+            type: "buttonBar",
+            path: "keyboardHandler",
+            items: [
+                { caption : "Ace", value : null },
+                { caption : "Vim", value : "ace/keyboard/vim" },
+                { caption : "Emacs", value : "ace/keyboard/emacs" }
+            ]
+        },
+        "Font Size": {
+            path: "fontSize",
+            type: "number",
+            defaultValue: 12,
+            defaults: [
+                {caption: "12px", value: 12},
+                {caption: "24px", value: 24}
+            ]
+        },
+        "Soft Wrap": {
+            type: "buttonBar",
+            path: "wrap",
+            items: [
+               { caption : "Off",  value : "off" },
+               { caption : "Free", value : "free" },
+               { caption : "80",   value : "80" },
+               { caption : "40",   value : "40" }
+            ]
+        },
+        "Cursor Style": {
+            path: "cursorStyle",
+            items: [
+               { caption : "Ace",    value : "ace" },
+               { caption : "Slim",   value : "slim" },
+               { caption : "Smooth", value : "smooth" },
+               { caption : "Smooth And Slim", value : "smooth slim" },
+               { caption : "Wide",   value : "wide" }
+            ]
+        },
+        "Folding": {
+            path: "foldStyle",
+            items: [
+                { caption : "Manual", value : "manual" },
+                { caption : "Mark begin", value : "markbegin" },
+                { caption : "Mark begin and end", value : "markbeginend" }
+            ]
+        },
+        "Soft Tabs": [{
+            path: "useSoftTabs"
+        }, {
+            path: "tabSize",
+            type: "number",
+            values: [2, 3, 4, 8, 16]
+        }],
+        "Overscroll": {
+            type: "buttonBar",
+            path: "scrollPastEnd",
+            items: [
+               { caption : "None",  value : 0 },
+               { caption : "Half",   value : 0.5 },
+               { caption : "Full",   value : 1 }
+            ]
+        }
+    },
+    More: {
+        "Atomic soft tabs": {
+            path: "navigateWithinSoftTabs"
+        },
+        "Enable Behaviours": {
+            path: "behavioursEnabled"
+        },
+        "Full Line Selection": {
+            type: "checkbox",
+            values: "text|line",
+            path: "selectionStyle"
+        },
+        "Highlight Active Line": {
+            path: "highlightActiveLine"
+        },
+        "Show Invisibles": {
+            path: "showInvisibles"
+        },
+        "Show Indent Guides": {
+            path: "displayIndentGuides"
+        },
+        "Persistent Scrollbar": [{
+            path: "hScrollBarAlwaysVisible"
+        }, {
+            path: "vScrollBarAlwaysVisible"
+        }],
+        "Animate scrolling": {
+            path: "animatedScroll"
+        },
+        "Show Gutter": {
+            path: "showGutter"
+        },
+        "Show Print Margin": [{
+            path: "showPrintMargin"
+        }, {
+            type: "number",
+            path: "printMarginColumn"
+        }],
+        "Highlight selected word": {
+            path: "highlightSelectedWord"
+        },
+        "Fade Fold Widgets": {
+            path: "fadeFoldWidgets"
+        },
+        "Merge Undo Deltas": {
+            path: "mergeUndoDeltas",
+            items: [
+               { caption : "Always",  value : "always" },
+               { caption : "Never",   value : "false" },
+               { caption : "Timed",   value : "true" }
+            ]
+        },
+        "Elastic Tabstops": {
+            path: "useElasticTabstops"
+        },
+        "Incremental Search": {
+            path: "useIncrementalSearch"
+        },
+        "Read-only": {
+            path: "readOnly"
+        },
+        "Copy without selection": {
+            path: "copyWithEmptySelection"
+        },
+        "Live Autocompletion": {
+            path: "enableLiveAutocompletion"
+        }
+    }
+};
+
+
+var OptionPanel = function(editor, element) {
+    this.editor = editor;
+    this.container = element || document.createElement("div");
+    this.groups = [];
+    this.options = {};
+};
+
+(function() {
+    
+    oop.implement(this, EventEmitter);
+    
+    this.add = function(config) {
+        if (config.Main)
+            oop.mixin(optionGroups.Main, config.Main);
+        if (config.More)
+            oop.mixin(optionGroups.More, config.More);
+    };
+    
+    this.render = function() {
+        this.container.innerHTML = "";
+        buildDom(["table", {id: "controls"}, 
+            this.renderOptionGroup(optionGroups.Main),
+            ["tr", null, ["td", {colspan: 2},
+                ["table", {id: "more-controls"}, 
+                    this.renderOptionGroup(optionGroups.More)
+                ]
+            ]]
+        ], this.container);
+    };
+    
+    this.renderOptionGroup = function(group) {
+        return Object.keys(group).map(function(key, i) {
+            var item = group[key];
+            if (!item.position)
+                item.position = i / 10000;
+            if (!item.label)
+                item.label = key;
+            return item;
+        }).sort(function(a, b) {
+            return a.position - b.position;
+        }).map(function(item) {
+            return this.renderOption(item.label, item);
+        }, this);
+    };
+    
+    this.renderOptionControl = function(key, option) {
+        var self = this;
+        if (Array.isArray(option)) {
+            return option.map(function(x) {
+                return self.renderOptionControl(key, x);
+            });
+        }
+        var control;
+        
+        var value = self.getOption(option);
+        
+        if (option.values && option.type != "checkbox") {
+            if (typeof option.values == "string")
+                option.values = option.values.split("|");
+            option.items = option.values.map(function(v) {
+                return { value: v, name: v };
+            });
+        }
+        
+        if (option.type == "buttonBar") {
+            control = ["div", option.items.map(function(item) {
+                return ["button", { 
+                    value: item.value, 
+                    ace_selected_button: value == item.value, 
+                    onclick: function() {
+                        self.setOption(option, item.value);
+                        var nodes = this.parentNode.querySelectorAll("[ace_selected_button]");
+                        for (var i = 0; i < nodes.length; i++) {
+                            nodes[i].removeAttribute("ace_selected_button");
+                        }
+                        this.setAttribute("ace_selected_button", true);
+                    } 
+                }, item.desc || item.caption || item.name];
+            })];
+        } else if (option.type == "number") {
+            control = ["input", {type: "number", value: value || option.defaultValue, style:"width:3em", oninput: function() {
+                self.setOption(option, parseInt(this.value));
+            }}];
+            if (option.defaults) {
+                control = [control, option.defaults.map(function(item) {
+                    return ["button", {onclick: function() {
+                        var input = this.parentNode.firstChild;
+                        input.value = item.value;
+                        input.oninput();
+                    }}, item.caption];
+                })];
+            }
+        } else if (option.items) {
+            var buildItems = function(items) {
+                return items.map(function(item) {
+                    return ["option", { value: item.value || item.name }, item.desc || item.caption || item.name];
+                });
+            };
+            
+            var items = Array.isArray(option.items) 
+                ? buildItems(option.items)
+                : Object.keys(option.items).map(function(key) {
+                    return ["optgroup", {"label": key}, buildItems(option.items[key])];
+                });
+            control = ["select", { id: key, value: value, onchange: function() {
+                self.setOption(option, this.value);
+            } }, items];
+        } else {
+            if (typeof option.values == "string")
+                option.values = option.values.split("|");
+            if (option.values) value = value == option.values[1];
+            control = ["input", { type: "checkbox", id: key, checked: value || null, onchange: function() {
+                var value = this.checked;
+                if (option.values) value = option.values[value ? 1 : 0];
+                self.setOption(option, value);
+            }}];
+            if (option.type == "checkedNumber") {
+                control = [control, []];
+            }
+        }
+        return control;
+    };
+    
+    this.renderOption = function(key, option) {
+        if (option.path && !option.onchange && !this.editor.$options[option.path])
+            return;
+        this.options[option.path] = option;
+        var safeKey = "-" + option.path;
+        var control = this.renderOptionControl(safeKey, option);
+        return ["tr", {class: "ace_optionsMenuEntry"}, ["td",
+            ["label", {for: safeKey}, key]
+        ], ["td", control]];
+    };
+    
+    this.setOption = function(option, value) {
+        if (typeof option == "string")
+            option = this.options[option];
+        if (value == "false") value = false;
+        if (value == "true") value = true;
+        if (value == "null") value = null;
+        if (value == "undefined") value = undefined;
+        if (typeof value == "string" && parseFloat(value).toString() == value)
+            value = parseFloat(value);
+        if (option.onchange)
+            option.onchange(value);
+        else
+            this.editor.setOption(option.path, value);
+        this._signal("setOption", {name: option.path, value: value});
+    };
+    
+    this.getOption = function(option) {
+        if (option.getValue)
+            return option.getValue();
+        return this.editor.getOption(option.path);
+    };
+    
+}).call(OptionPanel.prototype);
+
+exports.OptionPanel = OptionPanel;
+
+});
+
+define("ace/ext/settings_menu",["require","exports","module","ace/ext/options","ace/ext/menu_tools/overlay_page","ace/editor"], function(require, exports, module) {
+"use strict";
+var OptionPanel = require("ace/ext/options").OptionPanel;
+var overlayPage = require('./menu_tools/overlay_page').overlayPage;
+function showSettingsMenu(editor) {
+    if (!document.getElementById('ace_settingsmenu')) {
+        var options = new OptionPanel(editor);
+        options.render();
+        options.container.id = "ace_settingsmenu";
+        overlayPage(editor, options.container, '0', '0', '0');
+        options.container.querySelector("select,input,button,checkbox").focus();
+    }
+}
+module.exports.init = function(editor) {
+    var Editor = require("ace/editor").Editor;
+    Editor.prototype.showSettingsMenu = function() {
+        showSettingsMenu(this);
+    };
+};
+});
+                (function() {
+                    window.require(["ace/ext/settings_menu"], function() {});
+                })();
+            
