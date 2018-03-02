@@ -1,37 +1,9 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Distributed under the BSD license:
- * 
- * Copyright 2011 Irakli Gozalishvili. All rights reserved.
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- * ***** END LICENSE BLOCK ***** */
-
-ace.define('ace/theme/ambiance', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
+define("ace/theme/ambiance",["require","exports","module","ace/lib/dom"], function(require, exports, module) {
 
 exports.isDark = true;
 exports.cssClass = "ace-ambiance";
 exports.cssText = ".ace-ambiance .ace_gutter {\
 background-color: #3d3d3d;\
-background-image: -moz-linear-gradient(left, #3D3D3D, #333);\
-background-image: -ms-linear-gradient(left, #3D3D3D, #333);\
-background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#3D3D3D), to(#333));\
-background-image: -webkit-linear-gradient(left, #3D3D3D, #333);\
-background-image: -o-linear-gradient(left, #3D3D3D, #333);\
 background-image: linear-gradient(left, #3D3D3D, #333);\
 background-repeat: repeat-x;\
 border-right: 1px solid #4d4d4d;\
@@ -40,6 +12,9 @@ color: #222;\
 }\
 .ace-ambiance .ace_gutter-layer {\
 background: repeat left top;\
+}\
+.ace-ambiance .ace_gutter-active-line {\
+background-color: #3F3F3F;\
 }\
 .ace-ambiance .ace_fold-widget {\
 text-align: center;\
