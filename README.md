@@ -68,20 +68,12 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.21.x
+What's New in 4.22.x
 -------------
-
-### 4.21.2 - 27 Jan 2018
-- Bugfix
-
-### 4.21.1 - 27 Jan 2018
-- Bugfix
-
-### 4.21.0 - 27 Jan 2018
-- Release page
-- OpenID Connect support
-- New database viewer
-- Submodule links to web page
-- Clarify close/reopen button
+### 4.22.0 - 3 Mar 2018
+- Pull request merge strategy settings
+- Create repository with an empty commit
+- Improve database viewer
+- Update maven-repository-plugin
 
 See the [change log](CHANGELOG.md) for all of the updates.
