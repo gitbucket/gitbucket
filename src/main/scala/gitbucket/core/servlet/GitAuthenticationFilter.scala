@@ -2,13 +2,15 @@ package gitbucket.core.servlet
 
 import javax.servlet._
 import javax.servlet.http._
+
+import gitbucket.core.model.Account
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.{GitRepositoryFilter, GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
-import gitbucket.core.util.{Keys, Implicits, AuthUtil}
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.service.{AccessTokenService, AccountService, RepositoryService, SystemSettingsService}
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.{AuthUtil, Implicits, Keys}
 import org.slf4j.LoggerFactory
-import Implicits._
 
 /**
  * Provides BASIC Authentication for [[GitRepositoryServlet]].
@@ -53,9 +55,8 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
                                settings: SystemSettings, isUpdating: Boolean, filter: GitRepositoryFilter): Unit = {
     Database() withSession { implicit session =>
       val account = for {
-        auth <- Option(request.getHeader("Authorization"))
-        Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
-        account <- authenticate(settings, username, password)
+        authorizationHeader <- Option(request.getHeader("Authorization"))
+        account <- authenticateByHeader(authorizationHeader, settings)
       } yield {
         request.setAttribute(Keys.Request.UserName, account.userName)
         account
@@ -82,9 +83,8 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
               } else {
                 // Authentication is required
                 val passed = for {
-                  auth <- Option(request.getHeader("Authorization"))
-                  Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
-                  account <- authenticate(settings, username, password)
+                  authorizationHeader <- Option(request.getHeader("Authorization"))
+                  account <- authenticateByHeader(authorizationHeader, settings)
                 } yield if (isUpdating) {
                   if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
                     request.setAttribute(Keys.Request.UserName, account.userName)
@@ -118,5 +118,27 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
     }
 
     action()
+  }
+
+  /**
+    * Authenticate by an Authorization header.
+    * This accepts one of the following credentials:
+    * - username and password
+    * - username and personal access token
+    *
+    * @param authorizationHeader Authorization header
+    * @param settings system settings
+    * @param s database session
+    * @return an account or none
+    */
+  private def authenticateByHeader(authorizationHeader: String,
+                                   settings: SystemSettings)(implicit s: Session): Option[Account] = {
+    val Array(username, password) = AuthUtil.decodeAuthHeader(authorizationHeader).split(":", 2)
+    authenticate(settings, username, password).orElse {
+      AccessTokenService.getAccountByAccessToken(password) match {
+        case Some(account) if account.userName == username => Some(account)
+        case _ => None
+      }
+    }
   }
 }
