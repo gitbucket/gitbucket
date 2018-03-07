@@ -1,6 +1,7 @@
 @(activities: List[gitbucket.core.model.Activity],
   recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  showBannerToCreatePersonalAccessToken: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("GitBucket"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
@@ -8,6 +9,15 @@
       <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         @Html(information)
+      </div>
+    }
+    @if(showBannerToCreatePersonalAccessToken){
+      <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        You can
+        <a href="@context.path/@context.loginAccount.map(_.userName)/_application" style="color: inherit;">
+          <strong>create a personal access token</strong>
+        </a> and use it in place of a password on the <code>git</code> command line.
       </div>
     }
     @gitbucket.core.dashboard.html.tab()

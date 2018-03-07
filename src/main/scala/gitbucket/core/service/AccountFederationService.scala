@@ -70,6 +70,9 @@ trait AccountFederationService {
       .map { case _ ~ ac => ac }
       .firstOption
 
+  def hasAccountFederation(userName: String)(implicit s: Session): Boolean =
+    AccountFederations.filter(_.userName === userName.bind).exists.run
+
   def createAccountFederation(issuer: String, subject: String, userName: String)(implicit s: Session): Unit =
     AccountFederations insert AccountFederation(issuer, subject, userName)
 }
