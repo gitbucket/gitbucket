@@ -17,6 +17,8 @@ name := Name
 version := GitBucketVersion
 scalaVersion := "2.12.5"
 
+scalafmtOnCompile := true
+
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
@@ -25,6 +27,7 @@ resolvers ++= Seq(
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
+
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
   "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
