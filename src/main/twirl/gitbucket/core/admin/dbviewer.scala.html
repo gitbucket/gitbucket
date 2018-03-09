@@ -51,9 +51,9 @@ $(function(){
 	  //var selectedNodes = $('#table-tree').jstree('get_selected', true);
     if(editor.getValue().trim() == '' || $('#autorun').is(':checked')){
       if(data.node.data['column']){
-        editor.setValue('SELECT `' + data.node.data['column'] + '` FROM `' + data.node.data['table'] + '`');
+        editor.setValue('SELECT ' + data.node.data['column'] + ' FROM ' + data.node.data['table']);
       } else if(data.node.data['table']){
-        editor.setValue('SELECT * FROM `' + data.node.data['table']+ '`');
+        editor.setValue('SELECT * FROM ' + data.node.data['table']);
       }
       if($('#autorun').is(':checked')){
         $('#run-query').click();
