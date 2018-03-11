@@ -143,8 +143,9 @@ object JGitUtil {
    * @param name the tag name
    * @param time the tagged date
    * @param id the commit id
+   * @param message the message of the tagged commit
    */
-  case class TagInfo(name: String, time: Date, id: String)
+  case class TagInfo(name: String, time: Date, id: String, message: String)
 
   /**
    * The submodule data
@@ -233,7 +234,7 @@ object JGitUtil {
           git.tagList.call.asScala.flatMap { ref =>
             try {
               val revCommit = getRevCommitFromId(git, ref.getObjectId)
-              Some(TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName))
+              Some(TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName, revCommit.getShortMessage))
             } catch {
               case _: IncorrectObjectTypeException =>
                 None
