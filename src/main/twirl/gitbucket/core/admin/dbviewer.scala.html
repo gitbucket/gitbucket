@@ -25,10 +25,9 @@
         <div class="block">
           <input type="button" value="Run query" id="run-query" class="btn btn-success">
           <input type="button" value="Clear" id="clear-query" class="btn btn-default">
-			<label for="autorun">
-				<input type="checkbox" id="autorun" name="autorun"/>
-				Auto Run Query
-			</label>
+          <label for="autorun">
+            <input type="checkbox" id="autorun" name="autorun"/> Auto Run Query
+          </label>
         </div>
         <div id="result"></div>
       </div>
@@ -39,6 +38,15 @@
 <script src="@helpers.assets("/vendors/vakata-jstree-3.3.4/jstree.min.js")" type="text/javascript" charset="utf-8"></script>
 <link rel="stylesheet" href="@helpers.assets("/vendors/vakata-jstree-3.3.4/themes/default/style.min.css")" />
 <script>
+function getPosition(editor, position){
+  var session = editor.getSession();
+  var result = 0;
+  for(var i = 0; i < position.row; i++){
+    result = result + session.getLine(i).length + 1;
+  }
+  return result + position.column;
+}
+
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
@@ -47,8 +55,7 @@ $(function(){
 
   $('#table-tree').jstree();
 
-	$('#table-tree').on('select_node.jstree', function(e, data){
-	  //var selectedNodes = $('#table-tree').jstree('get_selected', true);
+  $('#table-tree').on('select_node.jstree', function(e, data){
     if(editor.getValue().trim() == '' || $('#autorun').is(':checked')){
       if(data.node.data['column']){
         editor.setValue('SELECT ' + data.node.data['column'] + ' FROM ' + data.node.data['table']);
@@ -59,10 +66,20 @@ $(function(){
         $('#run-query').click();
       }
     } else {
+      var position = editor.getCursorPosition();
+      var prefix = '';
+      // Check a previous character
+      if(position.column != 0){
+        var range = new ace.Range(position.row, position.column - 1, position.row, position.column);
+        var c = editor.getSession().getTextRange(range);
+        if(c != '' && c != ' ' && c != '.' && c != ',' && c != '\t' && c != '\r' && c != '\n'){
+          prefix = ', ';
+        }
+      }
       if(data.node.data['column']){
-        editor.getSession().insert(editor.getCursorPosition(), data.node.data['column']);
+        editor.getSession().insert(position, prefix + data.node.data['column']);
       } else if(data.node.data['table']){
-        editor.getSession().insert(editor.getCursorPosition(), data.node.data['table']);
+        editor.getSession().insert(position, prefix + data.node.data['table']);
       }
     }
     editor.focus();
