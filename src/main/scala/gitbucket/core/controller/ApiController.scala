@@ -352,7 +352,8 @@ trait ApiControllerBase extends ControllerBase {
       ApiIssue(
         issue          = issue,
         repositoryName = RepositoryName(repository),
-        user           = ApiUser(issueUser)
+        user           = ApiUser(issueUser),
+        labels         = getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))
       )
     })
   })
@@ -366,7 +367,8 @@ trait ApiControllerBase extends ControllerBase {
       issue <- getIssue(repository.owner, repository.name, issueId.toString)
       openedUser <- getAccountByUserName(issue.openedUserName)
     } yield {
-      JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(openedUser)))
+      JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(openedUser),
+        getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))))
     }) getOrElse NotFound()
   })
 
@@ -389,7 +391,8 @@ trait ApiControllerBase extends ControllerBase {
           None,
           data.labels,
           loginAccount)
-        JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))
+        JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount),
+          getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))))
       }) getOrElse NotFound()
     } else Unauthorized()
   })
@@ -532,6 +535,7 @@ trait ApiControllerBase extends ControllerBase {
         headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
         user          = ApiUser(issueUser),
+        labels        = getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository))),
         assignee      = assignee.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       )
@@ -558,6 +562,7 @@ trait ApiControllerBase extends ControllerBase {
         headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
         user          = ApiUser(issueUser),
+        labels        = getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository))),
         assignee      = assignee.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       ))

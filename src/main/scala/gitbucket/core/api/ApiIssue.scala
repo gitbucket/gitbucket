@@ -13,7 +13,7 @@ case class ApiIssue(
   number: Int,
   title: String,
   user: ApiUser,
-  // labels,
+  labels: List[ApiLabel],
   state: String,
   created_at: Date,
   updated_at: Date,
@@ -33,11 +33,12 @@ case class ApiIssue(
 }
 
 object ApiIssue{
-  def apply(issue: Issue, repositoryName: RepositoryName, user: ApiUser): ApiIssue =
+  def apply(issue: Issue, repositoryName: RepositoryName, user: ApiUser, labels: List[ApiLabel]): ApiIssue =
     ApiIssue(
       number = issue.issueId,
       title  = issue.title,
       user   = user,
+      labels = labels,
       state  = if(issue.closed){ "closed" }else{ "open" },
       body   = issue.content.getOrElse(""),
       created_at = issue.registeredDate,

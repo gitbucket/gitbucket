@@ -3,7 +3,7 @@ package gitbucket.core.service
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
-import gitbucket.core.model.{Account, CommitComment, Issue, IssueComment, PullRequest, WebHook, RepositoryWebHook, RepositoryWebHookEvent, AccountWebHook, AccountWebHookEvent}
+import gitbucket.core.model.{Account, CommitComment, Issue, IssueComment, Label, PullRequest, WebHook, RepositoryWebHook, RepositoryWebHookEvent, AccountWebHook, AccountWebHookEvent}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
@@ -216,7 +216,8 @@ trait WebHookPullRequestService extends WebHookService {
           action     = action,
           number     = issue.issueId,
           repository = ApiRepository(repository, ApiUser(repoOwner)),
-          issue      = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
+          issue      = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser),
+            getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))),
           sender     = ApiUser(sender))
       }
     }
@@ -234,6 +235,7 @@ trait WebHookPullRequestService extends WebHookService {
         issueUser <- users.get(issue.openedUserName)
         assignee  =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
         headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
+        labels    =  getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))
       } yield {
         WebHookPullRequestPayload(
           action         = action,
@@ -245,6 +247,7 @@ trait WebHookPullRequestService extends WebHookService {
           headOwner      = headOwner,
           baseRepository = repository,
           baseOwner      = baseOwner,
+          labels         = labels,
           sender         = sender,
           mergedComment  = getMergedComment(repository.owner, repository.name, issueId)
         )
@@ -277,6 +280,7 @@ trait WebHookPullRequestService extends WebHookService {
       ((issue, issueUser, pullRequest, baseOwner, headOwner), webHooks) <- getPullRequestsByRequestForWebhook(requestRepository.owner, requestRepository.name, requestBranch)
       assignee =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
       baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName)
+      labels = getIssueLabels(pullRequest.userName, pullRequest.repositoryName, issue.issueId).map(ApiLabel(_, RepositoryName(pullRequest.userName, pullRequest.repositoryName)))
     } yield {
       val payload = WebHookPullRequestPayload(
         action         = action,
@@ -288,6 +292,7 @@ trait WebHookPullRequestService extends WebHookService {
         headOwner      = headOwner,
         baseRepository = baseRepo,
         baseOwner      = baseOwner,
+        labels         = labels,
         sender         = sender,
         mergedComment  = getMergedComment(baseRepo.owner, baseRepo.name, issue.issueId)
       )
@@ -312,6 +317,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
         issueUser <- users.get(issue.openedUserName)
         assignee  =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
         headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
+        labels = getIssueLabels(pullRequest.userName, pullRequest.repositoryName, issue.issueId).map(ApiLabel(_, RepositoryName(pullRequest.userName, pullRequest.repositoryName)))
       } yield {
         WebHookPullRequestReviewCommentPayload(
           action         = action,
@@ -324,6 +330,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
           headOwner      = headOwner,
           baseRepository = repository,
           baseOwner      = baseOwner,
+          labels         = labels,
           sender         = sender,
           mergedComment  = getMergedComment(repository.owner, repository.name, issue.issueId)
         )
@@ -345,6 +352,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
         issueUser <- users.get(issue.openedUserName)
         repoOwner <- users.get(repository.owner)
         commenter <- users.get(issueComment.commentedUserName)
+        labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
       } yield {
         WebHookIssueCommentPayload(
           issue          = issue,
@@ -353,7 +361,8 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
           commentUser    = commenter,
           repository     = repository,
           repositoryUser = repoOwner,
-          sender         = sender)
+          sender         = sender,
+          labels         = labels)
       }
     }
   }
@@ -465,6 +474,7 @@ object WebHookService {
         headOwner: Account,
         baseRepository: RepositoryInfo,
         baseOwner: Account,
+        labels: List[ApiLabel],
         sender: Account,
         mergedComment: Option[(IssueComment, Account)]): WebHookPullRequestPayload = {
 
@@ -477,6 +487,7 @@ object WebHookService {
         headRepo      = headRepoPayload,
         baseRepo      = baseRepoPayload,
         user          = ApiUser(issueUser),
+        labels        = labels,
         assignee      = assignee.map(ApiUser.apply),
         mergedComment = mergedComment
       )
@@ -508,11 +519,12 @@ object WebHookService {
         commentUser: Account,
         repository: RepositoryInfo,
         repositoryUser: Account,
-        sender: Account): WebHookIssueCommentPayload =
+        sender: Account,
+      labels: List[Label]): WebHookIssueCommentPayload =
       WebHookIssueCommentPayload(
         action       = "created",
         repository   = ApiRepository(repository, repositoryUser),
-        issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
+        issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser), labels.map(ApiLabel(_, RepositoryName(repository)))),
         comment      = ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(commentUser), issue.isPullRequest),
         sender       = ApiUser(sender))
   }
@@ -538,6 +550,7 @@ object WebHookService {
       headOwner: Account,
       baseRepository: RepositoryInfo,
       baseOwner: Account,
+      labels: List[ApiLabel],
       sender: Account,
       mergedComment: Option[(IssueComment, Account)]
     ): WebHookPullRequestReviewCommentPayload = {
@@ -559,6 +572,7 @@ object WebHookService {
           headRepo      = headRepoPayload,
           baseRepo      = baseRepoPayload,
           user          = ApiUser(issueUser),
+          labels        = labels,
           assignee      = assignee.map(ApiUser.apply),
           mergedComment = mergedComment
         ),
