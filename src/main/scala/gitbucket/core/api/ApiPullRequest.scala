@@ -20,6 +20,7 @@ case class ApiPullRequest(
   title: String,
   body: String,
   user: ApiUser,
+  labels: List[ApiLabel],
   assignee: Option[ApiUser]){
   val html_url            = ApiPath(s"${base.repo.html_url.path}/pull/${number}")
   //val diff_url            = ApiPath(s"${base.repo.html_url.path}/pull/${number}.diff")
@@ -40,6 +41,7 @@ object ApiPullRequest{
     headRepo: ApiRepository,
     baseRepo: ApiRepository,
     user: ApiUser,
+    labels: List[ApiLabel],
     assignee: Option[ApiUser],
     mergedComment: Option[(IssueComment, Account)]
   ): ApiPullRequest =
@@ -63,6 +65,7 @@ object ApiPullRequest{
       title      = issue.title,
       body       = issue.content.getOrElse(""),
       user       = user,
+      labels     = labels,
       assignee   = assignee
     )
 

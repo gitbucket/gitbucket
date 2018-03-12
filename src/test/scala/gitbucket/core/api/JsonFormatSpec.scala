@@ -221,6 +221,7 @@ class JsonFormatSpec extends FunSuite {
       number = 1347,
       title  = "Found a bug",
       user   = apiUser,
+      labels = List(apiLabel),
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
@@ -231,6 +232,7 @@ class JsonFormatSpec extends FunSuite {
     "title": "Found a bug",
     "body": "I'm having a problem with this.",
     "user": $apiUserJson,
+    "labels": [$apiLabelJson],
     "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
     "html_url": "${context.baseUrl}/octocat/Hello-World/issues/1347",
     "created_at": "2011-04-14T16:00:49Z",
@@ -241,6 +243,7 @@ class JsonFormatSpec extends FunSuite {
       number = 1347,
       title  = "Found a bug",
       user   = apiUser,
+      labels = List(apiLabel),
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
@@ -251,6 +254,7 @@ class JsonFormatSpec extends FunSuite {
     "title": "Found a bug",
     "body": "I'm having a problem with this.",
     "user": $apiUserJson,
+    "labels": [$apiLabelJson],
     "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "pull_request": {
@@ -283,6 +287,7 @@ class JsonFormatSpec extends FunSuite {
     title         = "new-feature",
     body          = "Please pull these awesome changes",
     user          = apiUser,
+    labels        = List(apiLabel),
     assignee      = Some(apiUser)
   )
 
@@ -315,6 +320,7 @@ class JsonFormatSpec extends FunSuite {
     "body": "Please pull these awesome changes",
     "user": $apiUserJson,
     "assignee": $apiUserJson,
+    "labels": [$apiLabelJson],
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347",
     "commits_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347/commits",
