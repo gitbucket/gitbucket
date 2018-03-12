@@ -16,6 +16,11 @@ h1 {
   line-height: 32px;
 }
 
+h1.system-config-title {
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+
 h2 {
   font-size: 28px;
   line-height: 30px;
