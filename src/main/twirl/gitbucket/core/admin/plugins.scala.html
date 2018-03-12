@@ -5,7 +5,7 @@
     <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
       <input type="submit" value="Reload plugins" class="btn btn-default">
     </form>
-    <h1 class="system-config-title">Plugins</h1>
+    <h1 class="system-settings-title">Plugins</h1>
     @if(plugins.size > 0) {
       <ul>
       @plugins.map { case (plugin, enabled) =>
