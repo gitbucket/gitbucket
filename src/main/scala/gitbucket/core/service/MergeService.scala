@@ -298,7 +298,7 @@ object MergeService{
 
     s"Can't merge ${mergeTip.name} into ${mergeBaseTip.name}\n\n" +
       "Conflicting files:\n" +
-      mergeResults.asScala.map { case (key, _) => "- " + key + "\n" }.mkString
+      mergeResults.asScala.map { case (key, _) => "- `" + key + "`\n" }.mkString
   }
 
 }
