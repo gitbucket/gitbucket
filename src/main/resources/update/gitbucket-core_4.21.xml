@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
-  <createTable tableName="RELEASE_TAG">
+  <createTable tableName="RELEASE">
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="TAG" type="varchar(100)" nullable="false"/>
@@ -11,8 +11,8 @@
     <column name="UPDATED_DATE" type="datetime" nullable="false"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_RELEASE_TAG_PK" tableName="RELEASE_TAG" columnNames="USER_NAME, REPOSITORY_NAME, TAG"/>
-  <addForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK0" baseTableName="RELEASE_TAG" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addPrimaryKey constraintName="IDX_RELEASE_PK" tableName="RELEASE" columnNames="USER_NAME, REPOSITORY_NAME, TAG"/>
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_FK0" baseTableName="RELEASE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
 
   <createTable tableName="RELEASE_ASSET">
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
@@ -27,7 +27,7 @@
     <column name="UPDATED_DATE" type="datetime" nullable="false"/>
   </createTable>
   <addPrimaryKey constraintName="IDX_RELEASE_ASSET_PK" tableName="RELEASE_ASSET" columnNames="USER_NAME, REPOSITORY_NAME, TAG, FILE_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK1" baseTableName="RELEASE_ASSET" baseColumnNames="USER_NAME, REPOSITORY_NAME, TAG" referencedTableName="RELEASE_TAG" referencedColumnNames="USER_NAME, REPOSITORY_NAME, TAG"/>
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK1" baseTableName="RELEASE_ASSET" baseColumnNames="USER_NAME, REPOSITORY_NAME, TAG" referencedTableName="RELEASE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, TAG"/>
 
   <createTable tableName="ACCOUNT_FEDERATION">
     <column name="ISSUER" type="varchar(100)" nullable="false"/>
