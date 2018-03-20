@@ -284,6 +284,7 @@ object PluginRegistry {
             // Migration
             val solidbase = new Solidbase()
             solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
+            conn.commit()
 
             // Check database version
             val databaseVersion = manager.getCurrentVersion(plugin.pluginId)
