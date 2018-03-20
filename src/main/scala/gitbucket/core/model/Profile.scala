@@ -64,7 +64,7 @@ trait CoreProfile extends ProfileProvider with Profile
   with AccountFederationComponent
   with ProtectedBranchComponent
   with DeployKeyComponent
-  with ReleaseComponent
+  with ReleaseTagComponent
   with ReleaseAssetComponent
 
 object Profile extends CoreProfile

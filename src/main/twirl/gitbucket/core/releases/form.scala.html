@@ -1,6 +1,6 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   tag: gitbucket.core.util.JGitUtil.TagInfo,
-  release: Option[(gitbucket.core.model.Release, Seq[gitbucket.core.model.ReleaseAsset])])(implicit context: gitbucket.core.controller.Context)
+  release: Option[(gitbucket.core.model.ReleaseTag, Seq[gitbucket.core.model.ReleaseAsset])])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){

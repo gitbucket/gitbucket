@@ -3,7 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role, Release}
+import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role, ReleaseTag}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
@@ -77,7 +77,7 @@ trait RepositoryService { self: AccountService =>
         val protectedBranches       = ProtectedBranches      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranchContexts = ProtectedBranchContexts.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val deployKeys              = DeployKeys             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val releases                = Releases               .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val releases                = ReleaseTags            .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val releaseAssets           = ReleaseAssets          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
@@ -124,7 +124,7 @@ trait RepositoryService { self: AccountService =>
         ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         DeployKeys             .insertAll(deployKeys    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Releases               .insertAll(releases      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        ReleaseTags            .insertAll(releases      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ReleaseAssets          .insertAll(releaseAssets .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update source repository of pull requests
@@ -179,8 +179,8 @@ trait RepositoryService { self: AccountService =>
     RepositoryWebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     RepositoryWebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
     DeployKeys              .filter(_.byRepository(userName, repositoryName)).delete
-    ReleaseAssets .filter(_.byRepository(userName, repositoryName)).delete
-    Releases      .filter(_.byRepository(userName, repositoryName)).delete
+    ReleaseAssets           .filter(_.byRepository(userName, repositoryName)).delete
+    ReleaseTags             .filter(_.byRepository(userName, repositoryName)).delete
     Repositories            .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
