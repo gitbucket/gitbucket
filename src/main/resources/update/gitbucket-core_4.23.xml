@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <dropForeignKeyConstraint baseTableName="RELEASE_ASSET" constraintName="IDX_RELEASE_ASSET_FK1"/>
+
+  <dropForeignKeyConstraint baseTableName="RELEASE" constraintName="IDX_RELEASE_FK0"/>
+  <dropPrimaryKey tableName="RELEASE" constraintName="IDX_RELEASE_PK"/>
+
+  <renameTable newTableName="RELEASE_TAG" oldTableName="RELEASE" />
+
+  <addPrimaryKey constraintName="IDX_RELEASE_TAG_PK" tableName="RELEASE_TAG" columnNames="USER_NAME, REPOSITORY_NAME, TAG"/>
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK0" baseTableName="RELEASE_TAG" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK0" baseTableName="RELEASE_ASSET" baseColumnNames="USER_NAME, REPOSITORY_NAME, TAG" referencedTableName="RELEASE_TAG" referencedColumnNames="USER_NAME, REPOSITORY_NAME, TAG"/>
+</changeSet>

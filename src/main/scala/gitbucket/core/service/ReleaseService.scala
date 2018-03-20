@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{Account, Release, ReleaseAsset}
+import gitbucket.core.model.{Account, ReleaseTag, ReleaseAsset}
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.dateColumnType
@@ -27,7 +27,7 @@ trait ReleaseService {
     ReleaseAssets.filter(x => x.byTag(owner, repository, tag)).list
   }
 
-  def getReleaseAssetsMap(owner: String, repository: String)(implicit s: Session): Map[Release, Seq[ReleaseAsset]] = {
+  def getReleaseAssetsMap(owner: String, repository: String)(implicit s: Session): Map[ReleaseTag, Seq[ReleaseAsset]] = {
     val releases = getReleases(owner, repository)
     releases.map(rel => (rel -> getReleaseAssets(owner, repository, rel.tag))).toMap
   }
@@ -42,7 +42,7 @@ trait ReleaseService {
 
   def createRelease(owner: String, repository: String, name: String, content: Option[String], tag: String,
                     loginAccount: Account)(implicit context: Context, s: Session): Int = {
-    Releases insert Release(
+    ReleaseTags insert ReleaseTag(
       userName       = owner,
       repositoryName = repository,
       name           = name,
@@ -54,13 +54,13 @@ trait ReleaseService {
     )
   }
 
-  def getReleases(owner: String, repository: String)(implicit s: Session): Seq[Release] = {
-    Releases.filter(x => x.byRepository(owner, repository)).list
+  def getReleases(owner: String, repository: String)(implicit s: Session): Seq[ReleaseTag] = {
+    ReleaseTags.filter(x => x.byRepository(owner, repository)).list
   }
 
-  def getRelease(owner: String, repository: String, tag: String)(implicit s: Session): Option[Release] = {
+  def getRelease(owner: String, repository: String, tag: String)(implicit s: Session): Option[ReleaseTag] = {
     //Releases filter (_.byPrimaryKey(owner, repository, releaseId)) firstOption
-    Releases filter (_.byTag(owner, repository, tag)) firstOption
+    ReleaseTags filter (_.byTag(owner, repository, tag)) firstOption
   }
 
 //  def getReleaseByTag(owner: String, repository: String, tag: String)(implicit s: Session): Option[Release] = {
@@ -74,7 +74,7 @@ trait ReleaseService {
 //  }
 
   def updateRelease(owner: String, repository: String, tag: String, title: String, content: Option[String])(implicit s: Session): Int = {
-    Releases
+    ReleaseTags
       .filter (_.byPrimaryKey(owner, repository, tag))
       .map { t => (t.name, t.content, t.updatedDate) }
       .update (title, content, currentDate)
@@ -82,6 +82,6 @@ trait ReleaseService {
 
   def deleteRelease(owner: String, repository: String, tag: String)(implicit s: Session): Unit = {
     deleteReleaseAssets(owner, repository, tag)
-    Releases filter (_.byPrimaryKey(owner, repository, tag)) delete
+    ReleaseTags filter (_.byPrimaryKey(owner, repository, tag)) delete
   }
 }
