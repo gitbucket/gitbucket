@@ -10,6 +10,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
@@ -717,5 +718,11 @@ trait ApiControllerBase extends ControllerBase {
     }
   })
 
+  /**
+    * non-GitHub compatible API for listing plugins
+    */
+  get("/api/v3/gitbucket/plugins"){
+    PluginRegistry().getPlugins().map{ApiPlugin(_)}
+  }
 }
 
