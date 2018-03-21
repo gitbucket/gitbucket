@@ -25,6 +25,7 @@ class IndexController extends IndexControllerBase
   with PrioritiesService
   with UsersAuthenticator
   with ReferrerAuthenticator
+  with AccessTokenService
   with AccountFederationService
   with OpenIDConnectService
 
@@ -36,6 +37,8 @@ trait IndexControllerBase extends ControllerBase {
     with RepositorySearchService
     with UsersAuthenticator
     with ReferrerAuthenticator
+    with AccessTokenService
+    with AccountFederationService
     with OpenIDConnectService =>
 
   case class SignInForm(userName: String, password: String, hash: Option[String])
@@ -59,9 +62,17 @@ trait IndexControllerBase extends ControllerBase {
   get("/"){
     context.loginAccount.map { account =>
       val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
-      gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet), Nil, getUserRepositories(account.userName, withoutPhysicalInfo = true))
+      gitbucket.core.html.index(
+        getRecentActivitiesByOwners(visibleOwnerSet),
+        Nil,
+        getUserRepositories(account.userName, withoutPhysicalInfo = true),
+        showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(account.userName))
     }.getOrElse {
-      gitbucket.core.html.index(getRecentActivities(), getVisibleRepositories(None, withoutPhysicalInfo = true), Nil)
+      gitbucket.core.html.index(
+        getRecentActivities(),
+        getVisibleRepositories(None, withoutPhysicalInfo = true),
+        Nil,
+        showBannerToCreatePersonalAccessToken = false)
     }
   }
 

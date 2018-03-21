@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.model.{Account, AccessToken}
+import gitbucket.core.model.{AccessToken, Account}
 import gitbucket.core.util.StringUtil
 
 import scala.util.Random
@@ -47,6 +47,9 @@ trait AccessTokenService {
 
   def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] =
     AccessTokens.filter(_.userName === userName.bind).sortBy(_.accessTokenId.desc).list
+
+  def hasAccessToken(userName: String)(implicit s: Session): Boolean =
+    AccessTokens.filter(_.userName === userName.bind).exists.run
 
   def deleteAccessToken(userName: String, accessTokenId: Int)(implicit s: Session): Unit =
     AccessTokens filter (t => t.userName === userName.bind && t.accessTokenId === accessTokenId) delete
