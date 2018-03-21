@@ -721,7 +721,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
     * non-GitHub compatible API for listing plugins
     */
-  get("/api/v3/plugins"){
+  get("/api/v3/gitbucket/plugins"){
     PluginRegistry().getPlugins().map{ApiPlugin(_)}
   }
 }
