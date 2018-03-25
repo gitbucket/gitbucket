@@ -77,7 +77,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
     * https://developer.github.com/v3/#root-endpoint
     */
-  get("/api/v3/") {
+  get("/api/v3") {
     JsonFormat(ApiEndPoint())
   }
 
