@@ -43,6 +43,15 @@ abstract class ControllerBase extends ScalatraFilter
     contentType = formats("json")
   }
 
+  override def requestPath(uri: String, idx: Int): String = {
+    val path = super.requestPath(uri, idx)
+    if(path != "/" && path.endsWith("/")){
+      path.substring(0, path.length - 1)
+    } else {
+      path
+    }
+  }
+
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
     val httpRequest = request.asInstanceOf[HttpServletRequest]
     val context     = request.getServletContext.getContextPath
