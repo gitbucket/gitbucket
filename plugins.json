@@ -44,9 +44,9 @@
     "description": "Project pages for gitbucket",
     "versions": [
       {
-        "version": "1.6.0",
-        "range": ">=4.19.0",
-        "url": "https://github.com/gitbucket/gitbucket-pages-plugin/releases/download/v1.6.0/gitbucket-pages-plugin_2.12-1.6.0.jar"
+        "version": "1.7.0",
+        "range": ">=4.23.0",
+        "url": "https://github.com/gitbucket/gitbucket-pages-plugin/releases/download/v1.7.0/gitbucket-pages-plugin_2.12-1.7.0.jar"
       }
     ],
     "default": false
