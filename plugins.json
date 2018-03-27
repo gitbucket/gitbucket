@@ -5,9 +5,9 @@
     "description": "Provides notifications feature on GitBucket.",
     "versions": [
       {
-        "version": "1.4.0",
-        "range": ">=4.19.0",
-        "url": "https://github.com/gitbucket/gitbucket-notifications-plugin/releases/download/1.4.0/gitbucket-notifications-plugin_2.12-1.4.0.jar"
+        "version": "1.5.0",
+        "range": ">=4.23.0",
+        "url": "https://github.com/gitbucket/gitbucket-notifications-plugin/releases/download/1.5.0/gitbucket-notifications-plugin-assembly-1.5.0.jar"
       }
     ],
     "default": true
@@ -31,9 +31,9 @@
     "description": "Provides Gist feature on GitBucket.",
     "versions": [
       {
-        "version": "4.12.0",
-        "range": ">=4.21.0",
-        "url": "https://github.com/gitbucket/gitbucket-gist-plugin/releases/download/4.12.0/gitbucket-gist-plugin-assembly-4.12.0.jar"
+        "version": "4.13.0",
+        "range": ">=4.23.0",
+        "url": "https://github.com/gitbucket/gitbucket-gist-plugin/releases/download/4.13.0/gitbucket-gist-plugin-assembly-4.13.0.jar"
       }
     ],
     "default": false
