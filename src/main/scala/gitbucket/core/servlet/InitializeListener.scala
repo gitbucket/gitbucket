@@ -37,6 +37,8 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
   private val system = ActorSystem("job", ConfigFactory.parseString(
     """
       |akka {
+      |  daemonic = on
+      |  coordinated-shutdown.run-by-jvm-shutdown-hook = off
       |  quartz {
       |    schedules {
       |      Daily {
