@@ -70,31 +70,31 @@
         }
       </div>
     </div>
-      @if(content.viewType == "text"){
-        @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
-          @if(!isBlame && isRenderable) {
-            <div class="box-content-bottom markdown-body" style="padding-left: 20px; padding-right: 20px;">
-              @helpers.renderMarkup(pathList, content.content.get, branch, repository, false, false, true)
-            </div>
-          } else {
-            <div class="box-content-bottom">
-              <pre class="prettyprint linenums blob @if(!isRenderable){ no-renderable } ">@content.content.map(_.replaceAll("^(\r?\n)", "$1$1"))</pre>
-            </div>
-          }
+    @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
+      @if(!isBlame && isRenderable) {
+        <div class="box-content-bottom @if(content.viewType == "text"){ markdown-body } " style="padding-left: 20px; padding-right: 20px;">
+          @helpers.renderMarkup(pathList, content.content.getOrElse(""), branch, repository, false, false, true)
+        </div>
+      }else{
+        @if(content.viewType == "text"){
+          <div class="box-content-bottom">
+            <pre class="prettyprint linenums blob @if(!isRenderable){ no-renderable } ">@content.content.map(_.replaceAll("^(\r?\n)", "$1$1"))</pre>
+          </div>
+        }
+        @if(content.viewType == "image"){
+          <div class="box-content-bottom">
+            <img src="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))"/>
+          </div>
+        }
+        @if(content.viewType == "large" || content.viewType == "binary"){
+          <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+            <a href="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))">View Raw</a><br>
+            <br>
+            (Sorry about that, but we can't show files that are this big right now)
+          </div>
         }
       }
-      @if(content.viewType == "image"){
-        <div class="box-content-bottom">
-          <img src="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))"/>
-        </div>
-      }
-      @if(content.viewType == "large" || content.viewType == "binary"){
-        <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-          <a href="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))">View Raw</a><br>
-          <br>
-          (Sorry about that, but we can't show files that are this big right now)
-        </div>
-      }
+    }
   }
 }
 <script>
