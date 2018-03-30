@@ -1,6 +1,20 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.23.0 - 31 Mar 2018
+- Allow tail slash in URL
+- Display commit message of tags at the releases page
+- Add labels property to issues and pull requests API response
+- Plugins list API
+- Git authentication with personal access token
+- Max parallel builds and max stored history in CI plugin became configurable
+
+### 4.22.0 - 3 Mar 2018
+- Pull request merge strategy settings
+- Create repository with an empty commit
+- Improve database viewer
+- Update maven-repository-plugin
+
 ### 4.21.2 - 27 Jan 2018
 - Bugfix
 
