@@ -5,7 +5,7 @@ import gitbucket.core.plugin.{PluginRegistry, PluginInfo}
 case class ApiPlugin(
   id: String,
   name: String,
-  version: String,
+  versino: String,
   description: String,
   jarFileName: String
 )
