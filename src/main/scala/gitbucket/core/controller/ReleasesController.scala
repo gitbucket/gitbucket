@@ -90,11 +90,12 @@ trait ReleaseControllerBase extends ControllerBase {
     createRelease(repository.owner, repository.name, form.name, form.content, tagName, loginAccount)
 
     // Insert into RELEASE_ASSET
-    request.getParameterNames.asScala.filter(_.startsWith("file:")).foreach { paramName =>
-      val Array(_, fileId) = paramName.split(":")
-      val fileName = params(paramName)
+    val files = params.collect { case (name, value) if name.startsWith("file:") =>
+      val Array(_, fileId) = name.split(":")
+      (fileId, value)
+    }
+    files.foreach { case (fileId, fileName) =>
       val size = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), tagName + "/" + fileId).length
-
       createReleaseAsset(repository.owner, repository.name, tagName, fileId, fileName, size, loginAccount)
     }
 
@@ -126,17 +127,17 @@ trait ReleaseControllerBase extends ControllerBase {
       val assets = getReleaseAssets(repository.owner, repository.name, tagName)
       deleteReleaseAssets(repository.owner, repository.name, tagName)
 
-      val fileIds = request.getParameterNames.asScala.filter(_.startsWith("file:")).map { paramName =>
-        val Array(_, fileId) = paramName.split(":")
-        val fileName = params(paramName)
-        val size = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), release.tag + "/" + fileId).length
-
+      val files = params.collect { case (name, value) if name.startsWith("file:") =>
+        val Array(_, fileId) = name.split(":")
+        (fileId, value)
+      }
+      files.foreach { case (fileId, fileName) =>
+        val size = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), tagName + "/" + fileId).length
         createReleaseAsset(repository.owner, repository.name, tagName, fileId, fileName, size, loginAccount)
-        fileId
       }
 
       assets.foreach { asset =>
-        if(!fileIds.contains(asset.fileName)){
+        if(!files.exists { case (fileId, _) => fileId == asset.fileName }){
           val file = new java.io.File(getReleaseFilesDir(repository.owner, repository.name), release.tag + "/" + asset.fileName)
           FileUtils.forceDelete(file)
         }
