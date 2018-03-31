@@ -2,12 +2,9 @@ language: scala
 sudo: true
 jdk: 
   - oraclejdk8
-script:
-  - sbt test
-before_script:
-  - sudo /etc/init.d/mysql stop
-  - sudo /etc/init.d/postgresql stop
-  - sudo chmod +x /usr/local/bin/sbt
+services:
+  - mysql
+  - postgresql
 cache:
   directories:
     - $HOME/.ivy2/cache
