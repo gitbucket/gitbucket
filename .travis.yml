@@ -1,10 +1,6 @@
 language: scala
-sudo: true
 jdk: 
   - oraclejdk8
-services:
-  - mysql
-  - postgresql
 cache:
   directories:
     - $HOME/.ivy2/cache
