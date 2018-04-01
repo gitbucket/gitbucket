@@ -79,7 +79,7 @@ abstract class GitCommand extends Command with SessionAware {
     this.in = in
   }
 
-  override def setSession(serverSession: ServerSession) {
+  override def setSession(serverSession: ServerSession): Unit = {
     this.authType = PublicKeyAuthenticator.getAuthType(serverSession)
   }
 

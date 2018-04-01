@@ -71,7 +71,7 @@ trait MergeService {
     requestRepositoryName: String,
     requestBranch: String,
     issueId: Int
-  ) {
+  ): Unit = {
     using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
       git.fetch
         .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
@@ -246,7 +246,7 @@ object MergeService {
       val mergeTipCommit = using(new RevWalk(repository))(_.parseCommit(mergeTip))
       val committer = mergeTipCommit.getCommitterIdent
 
-      def _updateBranch(treeId: ObjectId, message: String, branchName: String) {
+      def _updateBranch(treeId: ObjectId, message: String, branchName: String): Unit = {
         // creates merge commit
         val mergeCommitId = createMergeCommit(treeId, committer, message)
         Util.updateRefs(repository, branchName, mergeCommitId, true, committer)
