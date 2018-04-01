@@ -16,15 +16,15 @@ trait Profile {
   )
 
   /**
-    * WebHookBase.Event Column Types
-    */
+   * WebHookBase.Event Column Types
+   */
   implicit val eventColumnType = MappedColumnType.base[WebHook.Event, String](_.name, WebHook.Event.valueOf(_))
 
   /**
    * Extends Column to add conditional condition
    */
-  implicit class RichColumn(c1: Rep[Boolean]){
-    def &&(c2: => Rep[Boolean], guard: => Boolean): Rep[Boolean] = if(guard) c1 && c2 else c1
+  implicit class RichColumn(c1: Rep[Boolean]) {
+    def &&(c2: => Rep[Boolean], guard: => Boolean): Rep[Boolean] = if (guard) c1 && c2 else c1
   }
 
   /**
@@ -40,31 +40,33 @@ trait ProfileProvider { self: Profile =>
 
 }
 
-trait CoreProfile extends ProfileProvider with Profile
-  with AccessTokenComponent
-  with AccountComponent
-  with ActivityComponent
-  with CollaboratorComponent
-  with CommitCommentComponent
-  with CommitStatusComponent
-  with GroupMemberComponent
-  with IssueComponent
-  with IssueCommentComponent
-  with IssueLabelComponent
-  with LabelComponent
-  with PriorityComponent
-  with MilestoneComponent
-  with PullRequestComponent
-  with RepositoryComponent
-  with SshKeyComponent
-  with RepositoryWebHookComponent
-  with RepositoryWebHookEventComponent
-  with AccountWebHookComponent
-  with AccountWebHookEventComponent
-  with AccountFederationComponent
-  with ProtectedBranchComponent
-  with DeployKeyComponent
-  with ReleaseTagComponent
-  with ReleaseAssetComponent
+trait CoreProfile
+    extends ProfileProvider
+    with Profile
+    with AccessTokenComponent
+    with AccountComponent
+    with ActivityComponent
+    with CollaboratorComponent
+    with CommitCommentComponent
+    with CommitStatusComponent
+    with GroupMemberComponent
+    with IssueComponent
+    with IssueCommentComponent
+    with IssueLabelComponent
+    with LabelComponent
+    with PriorityComponent
+    with MilestoneComponent
+    with PullRequestComponent
+    with RepositoryComponent
+    with SshKeyComponent
+    with RepositoryWebHookComponent
+    with RepositoryWebHookEventComponent
+    with AccountWebHookComponent
+    with AccountWebHookEventComponent
+    with AccountFederationComponent
+    with ProtectedBranchComponent
+    with DeployKeyComponent
+    with ReleaseTagComponent
+    with ReleaseAssetComponent
 
 object Profile extends CoreProfile

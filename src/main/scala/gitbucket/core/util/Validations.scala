@@ -8,11 +8,11 @@ trait Validations {
   /**
    * Constraint for the identifier such as user name or page name.
    */
-  def identifier: Constraint = new Constraint(){
+  def identifier: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if(!value.matches("[a-zA-Z0-9\\-_.]+")){
+      if (!value.matches("[a-zA-Z0-9\\-_.]+")) {
         Some(s"${name} contains invalid character.")
-      } else if(value.startsWith("_") || value.startsWith("-")){
+      } else if (value.startsWith("_") || value.startsWith("-")) {
         Some(s"${name} starts with invalid character.")
       } else {
         None
@@ -22,24 +22,23 @@ trait Validations {
   /**
    * Constraint for the password.
    */
-  def password: Constraint = new Constraint(){
+  def password: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if(System.getProperty("gitbucket.validate.password") != "false" && !value.matches("[a-zA-Z0-9\\-_.]+")){
+      if (System.getProperty("gitbucket.validate.password") != "false" && !value.matches("[a-zA-Z0-9\\-_.]+")) {
         Some(s"${name} contains invalid character.")
       } else {
         None
       }
   }
 
-
   /**
    * Constraint for the repository identifier.
    */
-  def repository: Constraint = new Constraint(){
+  def repository: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if(!value.matches("[a-zA-Z0-9\\-\\+_.]+")){
+      if (!value.matches("[a-zA-Z0-9\\-\\+_.]+")) {
         Some(s"${name} contains invalid character.")
-      } else if(value.startsWith("_") || value.startsWith("-")){
+      } else if (value.startsWith("_") || value.startsWith("-")) {
         Some(s"${name} starts with invalid character.")
       } else {
         None
@@ -55,8 +54,9 @@ trait Validations {
    * ValueType for the java.util.Date property.
    */
   def date(constraints: Constraint*): SingleValueType[java.util.Date] =
-    new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*){
-      def convert(value: String, messages: Messages): java.util.Date = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(value)
+    new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*) {
+      def convert(value: String, messages: Messages): java.util.Date =
+        new java.text.SimpleDateFormat("yyyy-MM-dd").parse(value)
     }
 
 }

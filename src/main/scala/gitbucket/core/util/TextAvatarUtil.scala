@@ -7,7 +7,6 @@ import java.awt.{Color, Font, Graphics2D, RenderingHints}
 import java.awt.font.{FontRenderContext, TextLayout}
 import java.awt.geom.AffineTransform
 
-
 object TextAvatarUtil {
   private val iconSize = 200
   private val fontSize = 180
@@ -21,7 +20,9 @@ object TextAvatarUtil {
 
   // https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
   private def relativeLuminance(c: Color): Double = {
-    val rgb = Seq(c.getRed, c.getGreen, c.getBlue).map{_/255.0}.map{x => if (x <= 0.03928) x / 12.92 else math.pow((x + 0.055) / 1.055, 2.4)}
+    val rgb = Seq(c.getRed, c.getGreen, c.getBlue).map { _ / 255.0 }.map { x =>
+      if (x <= 0.03928) x / 12.92 else math.pow((x + 0.055) / 1.055, 2.4)
+    }
     0.2126 * rgb(0) + 0.7152 * rgb(1) + 0.0722 * rgb(2)
   }
 

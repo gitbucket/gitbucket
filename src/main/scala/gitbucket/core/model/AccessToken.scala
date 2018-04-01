@@ -1,6 +1,5 @@
 package gitbucket.core.model
 
-
 trait AccessTokenComponent { self: Profile =>
   import profile.api._
 

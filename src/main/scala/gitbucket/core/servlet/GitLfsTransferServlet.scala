@@ -25,17 +25,16 @@ class GitLfsTransferServlet extends HttpServlet {
       (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, oid)
     } yield {
       val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
-      if(file.exists()){
+      if (file.exists()) {
         res.setStatus(HttpStatus.SC_OK)
         res.setContentType("application/octet-stream")
         res.setContentLength(file.length.toInt)
-        using(new FileInputStream(file), res.getOutputStream){ (in, out) =>
+        using(new FileInputStream(file), res.getOutputStream) { (in, out) =>
           IOUtils.copy(in, out)
           out.flush()
         }
       } else {
-        sendError(res, HttpStatus.SC_NOT_FOUND,
-          MessageFormat.format("Object ''{0}'' not found", oid))
+        sendError(res, HttpStatus.SC_NOT_FOUND, MessageFormat.format("Object ''{0}'' not found", oid))
       }
     }
   }
@@ -46,7 +45,7 @@ class GitLfsTransferServlet extends HttpServlet {
     } yield {
       val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
       FileUtils.forceMkdir(file.getParentFile)
-      using(req.getInputStream, new FileOutputStream(file)){ (in, out) =>
+      using(req.getInputStream, new FileOutputStream(file)) { (in, out) =>
         IOUtils.copy(in, out)
       }
       res.setStatus(HttpStatus.SC_OK)
@@ -55,7 +54,7 @@ class GitLfsTransferServlet extends HttpServlet {
 
   private def checkToken(req: HttpServletRequest, oid: String): Boolean = {
     val token = req.getHeader("Authorization")
-    if(token != null){
+    if (token != null) {
       val Array(expireAt, targetOid) = StringUtil.decodeBlowfish(token).split(" ")
       oid == targetOid && expireAt.toLong > System.currentTimeMillis
     } else {
@@ -66,18 +65,16 @@ class GitLfsTransferServlet extends HttpServlet {
   private def getPathInfo(req: HttpServletRequest, res: HttpServletResponse): Option[(String, String, String)] = {
     req.getRequestURI.substring(1).split("/").reverse match {
       case Array(oid, repository, owner, _*) => Some((owner, repository, oid))
-      case _ => None
+      case _                                 => None
     }
   }
 
   private def sendError(res: HttpServletResponse, status: Int, message: String): Unit = {
     res.setStatus(status)
-    using(res.getWriter()){ out =>
+    using(res.getWriter()) { out =>
       out.write(write(GitLfs.Error(message)))
       out.flush()
     }
   }
 
 }
-
-

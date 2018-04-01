@@ -15,8 +15,9 @@ class PluginControllerFilter extends Filter {
   }
 
   override def destroy(): Unit = {
-    PluginRegistry().getControllers().foreach { case (controller, _) =>
-      controller.destroy()
+    PluginRegistry().getControllers().foreach {
+      case (controller, _) =>
+        controller.destroy()
     }
   }
 
@@ -24,22 +25,25 @@ class PluginControllerFilter extends Filter {
     val contextPath = request.getServletContext.getContextPath
     val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
 
-    PluginRegistry().getControllers()
-      .filter { case (_, path) =>
-        val start = path.replaceFirst("/\\*$", "/")
-        (requestUri + "/").startsWith(start)
+    PluginRegistry()
+      .getControllers()
+      .filter {
+        case (_, path) =>
+          val start = path.replaceFirst("/\\*$", "/")
+          (requestUri + "/").startsWith(start)
       }
-      .foreach { case (controller, _) =>
-        controller match {
-          case x: ControllerBase if(x.config == null) => x.init(filterConfig)
-          case _ => ()
-        }
-        val mockChain = new MockFilterChain()
-        controller.doFilter(request, response, mockChain)
+      .foreach {
+        case (controller, _) =>
+          controller match {
+            case x: ControllerBase if (x.config == null) => x.init(filterConfig)
+            case _                                       => ()
+          }
+          val mockChain = new MockFilterChain()
+          controller.doFilter(request, response, mockChain)
 
-        if(mockChain.continue == false){
-          return ()
-        }
+          if (mockChain.continue == false) {
+            return ()
+          }
       }
 
     chain.doFilter(request, response)

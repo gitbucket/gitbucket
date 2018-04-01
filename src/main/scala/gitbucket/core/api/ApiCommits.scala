@@ -51,20 +51,25 @@ object ApiCommits {
     patch: String
   )
 
-
-  def apply(repositoryName: RepositoryName, commitInfo: CommitInfo, diffs: Seq[DiffInfo], author: Account, committer: Account,
-            commentCount: Int): ApiCommits = {
+  def apply(
+    repositoryName: RepositoryName,
+    commitInfo: CommitInfo,
+    diffs: Seq[DiffInfo],
+    author: Account,
+    committer: Account,
+    commentCount: Int
+  ): ApiCommits = {
     val files = diffs.map { diff =>
       var additions = 0
       var deletions = 0
 
       diff.patch.getOrElse("").split("\n").foreach { line =>
-        if(line.startsWith("+")) additions = additions + 1
-        if(line.startsWith("-")) deletions = deletions + 1
+        if (line.startsWith("+")) additions = additions + 1
+        if (line.startsWith("-")) deletions = deletions + 1
       }
 
       File(
-        filename = if(diff.changeType == ChangeType.DELETE){ diff.oldPath } else { diff.newPath },
+        filename = if (diff.changeType == ChangeType.DELETE) { diff.oldPath } else { diff.newPath },
         additions = additions,
         deletions = deletions,
         changes = additions + deletions,
@@ -75,12 +80,12 @@ object ApiCommits {
           case ChangeType.RENAME => "renamed"
           case ChangeType.COPY   => "copied"
         },
-        raw_url = if(diff.changeType == ChangeType.DELETE){
+        raw_url = if (diff.changeType == ChangeType.DELETE) {
           ApiPath(s"/${repositoryName.fullName}/raw/${commitInfo.parents.head}/${diff.oldPath}")
         } else {
           ApiPath(s"/${repositoryName.fullName}/raw/${commitInfo.id}/${diff.newPath}")
         },
-        blob_url = if(diff.changeType == ChangeType.DELETE){
+        blob_url = if (diff.changeType == ChangeType.DELETE) {
           ApiPath(s"/${repositoryName.fullName}/blob/${commitInfo.parents.head}/${diff.oldPath}")
         } else {
           ApiPath(s"/${repositoryName.fullName}/blob/${commitInfo.id}/${diff.newPath}")

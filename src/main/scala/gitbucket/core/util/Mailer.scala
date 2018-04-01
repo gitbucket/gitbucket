@@ -6,15 +6,27 @@ import gitbucket.core.service.SystemSettingsService
 import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import SystemSettingsService.SystemSettings
 
-class Mailer(settings: SystemSettings){
+class Mailer(settings: SystemSettings) {
 
-  def send(to: String, subject: String, textMsg: String, htmlMsg: Option[String] = None, loginAccount: Option[Account] = None): Unit = {
+  def send(
+    to: String,
+    subject: String,
+    textMsg: String,
+    htmlMsg: Option[String] = None,
+    loginAccount: Option[Account] = None
+  ): Unit = {
     createMail(subject, textMsg, htmlMsg, loginAccount).foreach { email =>
       email.addTo(to).send
     }
   }
 
-  def sendBcc(bcc: Seq[String], subject: String, textMsg: String, htmlMsg: Option[String] = None, loginAccount: Option[Account] = None): Unit = {
+  def sendBcc(
+    bcc: Seq[String],
+    subject: String,
+    textMsg: String,
+    htmlMsg: Option[String] = None,
+    loginAccount: Option[Account] = None
+  ): Unit = {
     createMail(subject, textMsg, htmlMsg, loginAccount).foreach { email =>
       bcc.foreach { address =>
         email.addBcc(address)
@@ -23,8 +35,13 @@ class Mailer(settings: SystemSettings){
     }
   }
 
-  def createMail(subject: String, textMsg: String, htmlMsg: Option[String] = None, loginAccount: Option[Account] = None): Option[HtmlEmail] = {
-    if(settings.notification == true){
+  def createMail(
+    subject: String,
+    textMsg: String,
+    htmlMsg: Option[String] = None,
+    loginAccount: Option[Account] = None
+  ): Option[HtmlEmail] = {
+    if (settings.notification == true) {
       settings.smtp.map { smtp =>
         val email = new HtmlEmail
         email.setHostName(smtp.host)
@@ -34,7 +51,7 @@ class Mailer(settings: SystemSettings){
         }
         smtp.ssl.foreach { ssl =>
           email.setSSLOnConnect(ssl)
-          if(ssl == true) {
+          if (ssl == true) {
             email.setSslSmtpPort(smtp.port.get.toString)
           }
         }
@@ -43,10 +60,11 @@ class Mailer(settings: SystemSettings){
           email.setStartTLSRequired(starttls)
         }
         smtp.fromAddress
-          .map (_ -> smtp.fromName.getOrElse(loginAccount.map(_.userName).getOrElse("GitBucket")))
-          .orElse (Some("notifications@gitbucket.com" -> loginAccount.map(_.userName).getOrElse("GitBucket")))
-          .foreach { case (address, name) =>
-            email.setFrom(address, name)
+          .map(_ -> smtp.fromName.getOrElse(loginAccount.map(_.userName).getOrElse("GitBucket")))
+          .orElse(Some("notifications@gitbucket.com" -> loginAccount.map(_.userName).getOrElse("GitBucket")))
+          .foreach {
+            case (address, name) =>
+              email.setFrom(address, name)
           }
         email.setCharset("UTF-8")
         email.setSubject(subject)

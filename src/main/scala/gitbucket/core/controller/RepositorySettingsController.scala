@@ -21,14 +21,26 @@ import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.WebHookContentType
 import gitbucket.core.plugin.PluginRegistry
 
-
-class RepositorySettingsController extends RepositorySettingsControllerBase
-  with RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService with DeployKeyService
-  with OwnerAuthenticator with UsersAuthenticator
+class RepositorySettingsController
+    extends RepositorySettingsControllerBase
+    with RepositoryService
+    with AccountService
+    with WebHookService
+    with ProtectedBranchService
+    with CommitStatusService
+    with DeployKeyService
+    with OwnerAuthenticator
+    with UsersAuthenticator
 
 trait RepositorySettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService with DeployKeyService
-    with OwnerAuthenticator with UsersAuthenticator =>
+  self: RepositoryService
+    with AccountService
+    with WebHookService
+    with ProtectedBranchService
+    with CommitStatusService
+    with DeployKeyService
+    with OwnerAuthenticator
+    with UsersAuthenticator =>
 
   // for repository options
   case class OptionsForm(
@@ -45,18 +57,20 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
 
   val optionsForm = mapping(
-    "repositoryName"     -> trim(label("Repository Name"    , text(required, maxlength(100), repository, renameRepositoryName))),
-    "description"        -> trim(label("Description"        , optional(text()))),
-    "isPrivate"          -> trim(label("Repository Type"    , boolean())),
-    "issuesOption"       -> trim(label("Issues Option"      , text(required, featureOption))),
-    "externalIssuesUrl"  -> trim(label("External Issues URL", optional(text(maxlength(200))))),
-    "wikiOption"         -> trim(label("Wiki Option"        , text(required, featureOption))),
-    "externalWikiUrl"    -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
-    "allowFork"          -> trim(label("Allow Forking"      , boolean())),
-    "mergeOptions"       -> mergeOptions,
+    "repositoryName" -> trim(
+      label("Repository Name", text(required, maxlength(100), repository, renameRepositoryName))
+    ),
+    "description" -> trim(label("Description", optional(text()))),
+    "isPrivate" -> trim(label("Repository Type", boolean())),
+    "issuesOption" -> trim(label("Issues Option", text(required, featureOption))),
+    "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
+    "wikiOption" -> trim(label("Wiki Option", text(required, featureOption))),
+    "externalWikiUrl" -> trim(label("External Wiki URL", optional(text(maxlength(200))))),
+    "allowFork" -> trim(label("Allow Forking", boolean())),
+    "mergeOptions" -> mergeOptions,
     "defaultMergeOption" -> trim(label("Default merge strategy", text(required)))
   )(OptionsForm.apply).verifying { form =>
-    if(!form.mergeOptions.contains(form.defaultMergeOption)){
+    if (!form.mergeOptions.contains(form.defaultMergeOption)) {
       Seq("defaultMergeOption" -> s"This merge strategy isn't enabled.")
     } else Nil
   }
@@ -65,30 +79,30 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   case class DefaultBranchForm(defaultBranch: String)
 
   val defaultBranchForm = mapping(
-    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100))))
+    "defaultBranch" -> trim(label("Default Branch", text(required, maxlength(100))))
   )(DefaultBranchForm.apply)
-
 
   // for deploy key
   case class DeployKeyForm(title: String, publicKey: String, allowWrite: Boolean)
 
   val deployKeyForm = mapping(
-    "title"      -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey"  -> trim2(label("Key" , text(required))), // TODO duplication check in the repository?
-    "allowWrite" -> trim(label("Key"  , boolean()))
+    "title" -> trim(label("Title", text(required, maxlength(100)))),
+    "publicKey" -> trim2(label("Key", text(required))), // TODO duplication check in the repository?
+    "allowWrite" -> trim(label("Key", boolean()))
   )(DeployKeyForm.apply)
 
   // for web hook url addition
   case class WebHookForm(url: String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])
 
-  def webHookForm(update:Boolean) = mapping(
-    "url"    -> trim(label("url", text(required, webHook(update)))),
-    "events" -> webhookEvents,
-    "ctype" -> label("ctype", text()),
-    "token" -> optional(trim(label("token", text(maxlength(100)))))
-  )(
-    (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
-  )
+  def webHookForm(update: Boolean) =
+    mapping(
+      "url" -> trim(label("url", text(required, webHook(update)))),
+      "events" -> webhookEvents,
+      "ctype" -> label("ctype", text()),
+      "token" -> optional(trim(label("token", text(maxlength(100)))))
+    )(
+      (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
+    )
 
   // for transfer ownership
   case class TransferOwnerShipForm(newOwner: String)
@@ -131,24 +145,24 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.defaultMergeOption
     )
     // Change repository name
-    if(repository.name != form.repositoryName){
+    if (repository.name != form.repositoryName) {
       // Update database
       renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
       // Move git repository
-      defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory){
+      defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
+        if (dir.isDirectory) {
           FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
         }
       }
       // Move wiki repository
-      defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory) {
+      defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
+        if (dir.isDirectory) {
           FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
         }
       }
       // Move files directory
-      defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory) {
+      defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
+        if (dir.isDirectory) {
           FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
         }
       }
@@ -170,7 +184,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
-    if(!repository.branchList.contains(form.defaultBranch)){
+    if (!repository.branchList.contains(form.defaultBranch)) {
       redirect(s"/${repository.owner}/${repository.name}/settings/options")
     } else {
       saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
@@ -187,12 +201,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
     val branch = params("branch")
-    if(!repository.branchList.contains(branch)){
+    if (!repository.branchList.contains(branch)) {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
-      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name,
-        Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))).toSet
+      val lastWeeks = getRecentStatuesContexts(
+        repository.owner,
+        repository.name,
+        Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))
+      ).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
       html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
@@ -205,7 +222,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     html.collaborators(
       getCollaborators(repository.owner, repository.name),
       getAccountByUserName(repository.owner).get.isGroupAccount,
-      repository)
+      repository
+    )
   })
 
   post("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
@@ -255,62 +273,90 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Send the test request to registered web hook URLs.
    */
   ajaxPost("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
-    def _headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map { h => Array(h.getName, h.getValue) }
+    def _headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map { h =>
+      Array(h.getName, h.getValue)
+    }
 
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      import scala.collection.JavaConverters._
-      import scala.concurrent.duration._
-      import scala.concurrent._
-      import scala.util.control.NonFatal
-      import org.apache.http.util.EntityUtils
-      import scala.concurrent.ExecutionContext.Implicits.global
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+      git =>
+        import scala.collection.JavaConverters._
+        import scala.concurrent.duration._
+        import scala.concurrent._
+        import scala.util.control.NonFatal
+        import org.apache.http.util.EntityUtils
+        import scala.concurrent.ExecutionContext.Implicits.global
 
-      val url = params("url")
-      val token = Some(params("token"))
-      val ctype = WebHookContentType.valueOf(params("ctype"))
-      val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
-      val dummyPayload = {
-        val ownerAccount = getAccountByUserName(repository.owner).get
-        val commits = if(JGitUtil.isEmpty(git)) List.empty else git.log
-          .add(git.getRepository.resolve(repository.repository.defaultBranch))
-          .setMaxCount(4)
-          .call.iterator.asScala.map(new CommitInfo(_)).toList
-        val pushedCommit = commits.drop(1)
+        val url = params("url")
+        val token = Some(params("token"))
+        val ctype = WebHookContentType.valueOf(params("ctype"))
+        val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
+        val dummyPayload = {
+          val ownerAccount = getAccountByUserName(repository.owner).get
+          val commits =
+            if (JGitUtil.isEmpty(git)) List.empty
+            else
+              git.log
+                .add(git.getRepository.resolve(repository.repository.defaultBranch))
+                .setMaxCount(4)
+                .call
+                .iterator
+                .asScala
+                .map(new CommitInfo(_))
+                .toList
+          val pushedCommit = commits.drop(1)
 
-        WebHookPushPayload(
-          git = git,
-          sender = ownerAccount,
-          refName = "refs/heads/" + repository.repository.defaultBranch,
-          repositoryInfo = repository,
-          commits = pushedCommit,
-          repositoryOwner = ownerAccount,
-          oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
-          newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId())
+          WebHookPushPayload(
+            git = git,
+            sender = ownerAccount,
+            refName = "refs/heads/" + repository.repository.defaultBranch,
+            repositoryInfo = repository,
+            commits = pushedCommit,
+            repositoryOwner = ownerAccount,
+            oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
+            newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId())
+          )
+        }
+
+        val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload).head
+
+        val toErrorMap: PartialFunction[Throwable, Map[String, String]] = {
+          case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))
+          case e: java.lang.IllegalArgumentException             => Map("error" -> ("invalid url"))
+          case e: org.apache.http.client.ClientProtocolException => Map("error" -> ("invalid url"))
+          case NonFatal(e)                                       => Map("error" -> (e.getClass + " " + e.getMessage))
+        }
+
+        contentType = formats("json")
+        org.json4s.jackson.Serialization.write(
+          Map(
+            "url" -> url,
+            "request" -> Await.result(
+              reqFuture
+                .map(
+                  req =>
+                    Map(
+                      "headers" -> _headers(req.getAllHeaders),
+                      "payload" -> json
+                  )
+                )
+                .recover(toErrorMap),
+              20 seconds
+            ),
+            "response" -> Await.result(
+              resFuture
+                .map(
+                  res =>
+                    Map(
+                      "status" -> res.getStatusLine(),
+                      "body" -> EntityUtils.toString(res.getEntity()),
+                      "headers" -> _headers(res.getAllHeaders())
+                  )
+                )
+                .recover(toErrorMap),
+              20 seconds
+            )
+          )
         )
-      }
-
-      val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload).head
-
-      val toErrorMap: PartialFunction[Throwable, Map[String,String]] = {
-        case e: java.net.UnknownHostException => Map("error"-> ("Unknown host " + e.getMessage))
-        case e: java.lang.IllegalArgumentException => Map("error"-> ("invalid url"))
-        case e: org.apache.http.client.ClientProtocolException => Map("error"-> ("invalid url"))
-        case NonFatal(e) => Map("error"-> (e.getClass + " "+ e.getMessage))
-      }
-
-      contentType = formats("json")
-      org.json4s.jackson.Serialization.write(Map(
-        "url" -> url,
-        "request" -> Await.result(reqFuture.map(req => Map(
-          "headers" -> _headers(req.getAllHeaders),
-          "payload" -> json
-        )).recover(toErrorMap), 20 seconds),
-        "response" -> Await.result(resFuture.map(res => Map(
-          "status"  -> res.getStatusLine(),
-          "body"    -> EntityUtils.toString(res.getEntity()),
-          "headers" -> _headers(res.getAllHeaders())
-        )).recover(toErrorMap), 20 seconds)
-      ))
     }
   })
 
@@ -318,8 +364,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
-    getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
-      html.edithook(webhook, events, repository, false)
+    getWebHook(repository.owner, repository.name, params("url")).map {
+      case (webhook, events) =>
+        html.edithook(webhook, events, repository, false)
     } getOrElse NotFound()
   })
 
@@ -344,25 +391,25 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
     // Change repository owner
-    if(repository.owner != form.newOwner){
-      LockUtil.lock(s"${repository.owner}/${repository.name}"){
+    if (repository.owner != form.newOwner) {
+      LockUtil.lock(s"${repository.owner}/${repository.name}") {
         // Update database
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
         // Move git repository
-        defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory){
+        defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
+          if (dir.isDirectory) {
             FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
           }
         }
         // Move wiki repository
-        defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory) {
+        defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
+          if (dir.isDirectory) {
             FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
           }
         }
         // Move files directory
-        defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory) {
+        defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
+          if (dir.isDirectory) {
             FileUtils.moveDirectory(dir, getRepositoryFilesDir(form.newOwner, repository.name))
           }
         }
@@ -378,7 +425,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    LockUtil.lock(s"${repository.owner}/${repository.name}"){
+    LockUtil.lock(s"${repository.owner}/${repository.name}") {
       // Delete the repository and related files
       deleteRepository(repository.owner, repository.name)
 
@@ -428,10 +475,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Provides duplication check for web hook url.
    */
-  private def webHook(needExists: Boolean): Constraint = new Constraint(){
+  private def webHook(needExists: Boolean): Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if(getWebHook(params("owner"), params("repository"), value).isDefined != needExists){
-        Some(if(needExists){
+      if (getWebHook(params("owner"), params("repository"), value).isDefined != needExists) {
+        Some(if (needExists) {
           "URL had not been registered yet."
         } else {
           "URL had been registered already."
@@ -441,17 +488,18 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       }
   }
 
-  private def webhookEvents = new ValueType[Set[WebHook.Event]]{
+  private def webhookEvents = new ValueType[Set[WebHook.Event]] {
     def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
       WebHook.Event.values.flatMap { t =>
         params.get(name + "." + t.name).map(_ => t)
       }.toSet
     }
-    def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
-      Seq(name -> messages("error.required").format(name))
-    } else {
-      Nil
-    }
+    def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
+      if (convert(name, params, messages).isEmpty) {
+        Seq(name -> messages("error.required").format(name))
+      } else {
+        Nil
+      }
   }
 
 //  /**
@@ -472,12 +520,17 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Duplicate check for the rename repository name.
    */
-  private def renameRepositoryName: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
+  private def renameRepositoryName: Constraint = new Constraint() {
+    override def validate(
+      name: String,
+      value: String,
+      params: Map[String, Seq[String]],
+      messages: Messages
+    ): Option[String] = {
       for {
         repoName <- params.optionValue("repository") if repoName != value
         userName <- params.optionValue("owner")
-        _        <- getRepositoryNamesOfUser(userName).find(_ == value)
+        _ <- getRepositoryNamesOfUser(userName).find(_ == value)
       } yield {
         "Repository already exists."
       }
@@ -487,38 +540,45 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    *
    */
-  private def featureOption: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
-      if(Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
+  private def featureOption: Constraint = new Constraint() {
+    override def validate(
+      name: String,
+      value: String,
+      params: Map[String, Seq[String]],
+      messages: Messages
+    ): Option[String] =
+      if (Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
   }
-
 
   /**
    * Provides Constraint to validate the repository transfer user.
    */
-  private def transferUser: Constraint = new Constraint(){
+  private def transferUser: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       getAccountByUserName(value) match {
-        case None    => Some("User does not exist.")
-        case Some(x) => if(x.userName == params("owner")){
-          Some("This is current repository owner.")
-        } else {
-          params.get("repository").flatMap { repositoryName =>
-            getRepositoryNamesOfUser(x.userName).find(_ == repositoryName).map{ _ => "User already has same repository." }
+        case None => Some("User does not exist.")
+        case Some(x) =>
+          if (x.userName == params("owner")) {
+            Some("This is current repository owner.")
+          } else {
+            params.get("repository").flatMap { repositoryName =>
+              getRepositoryNamesOfUser(x.userName).find(_ == repositoryName).map { _ =>
+                "User already has same repository."
+              }
+            }
           }
-        }
       }
   }
 
-  private def mergeOptions = new ValueType[Seq[String]]{
+  private def mergeOptions = new ValueType[Seq[String]] {
     override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] = {
       params.get("mergeOptions").getOrElse(Nil)
     }
     override def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = {
       val mergeOptions = params.get("mergeOptions").getOrElse(Nil)
-      if(mergeOptions.isEmpty){
+      if (mergeOptions.isEmpty) {
         Seq("mergeOptions" -> "At least one option must be enabled.")
-      } else if(!mergeOptions.forall(x => Seq("merge-commit", "squash", "rebase").contains(x))){
+      } else if (!mergeOptions.forall(x => Seq("merge-commit", "squash", "rebase").contains(x))) {
         Seq("mergeOptions" -> "mergeOptions are invalid.")
       } else {
         Nil

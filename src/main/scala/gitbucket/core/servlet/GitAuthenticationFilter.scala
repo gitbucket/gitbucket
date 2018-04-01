@@ -24,25 +24,31 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
   def destroy(): Unit = {}
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    val request  = req.asInstanceOf[HttpServletRequest]
+    val request = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
 
-    val wrappedResponse = new HttpServletResponseWrapper(response){
+    val wrappedResponse = new HttpServletResponseWrapper(response) {
       override def setCharacterEncoding(encoding: String) = {}
     }
 
-    val isUpdating = request.getRequestURI.endsWith("/git-receive-pack") || "service=git-receive-pack".equals(request.getQueryString)
+    val isUpdating = request.getRequestURI.endsWith("/git-receive-pack") || "service=git-receive-pack".equals(
+      request.getQueryString
+    )
     val settings = loadSystemSettings()
 
     try {
-      PluginRegistry().getRepositoryRouting(request.gitRepositoryPath).map { case GitRepositoryRouting(_, _, filter) =>
-        // served by plug-ins
-        pluginRepository(request, wrappedResponse, chain, settings, isUpdating, filter)
+      PluginRegistry()
+        .getRepositoryRouting(request.gitRepositoryPath)
+        .map {
+          case GitRepositoryRouting(_, _, filter) =>
+            // served by plug-ins
+            pluginRepository(request, wrappedResponse, chain, settings, isUpdating, filter)
 
-      }.getOrElse {
-        // default repositories
-        defaultRepository(request, wrappedResponse, chain, settings, isUpdating)
-      }
+        }
+        .getOrElse {
+          // default repositories
+          defaultRepository(request, wrappedResponse, chain, settings, isUpdating)
+        }
     } catch {
       case ex: Exception => {
         logger.error("error", ex)
@@ -51,8 +57,14 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
     }
   }
 
-  private def pluginRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
-                               settings: SystemSettings, isUpdating: Boolean, filter: GitRepositoryFilter): Unit = {
+  private def pluginRepository(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    chain: FilterChain,
+    settings: SystemSettings,
+    isUpdating: Boolean,
+    filter: GitRepositoryFilter
+  ): Unit = {
     Database() withSession { implicit session =>
       val account = for {
         authorizationHeader <- Option(request.getHeader("Authorization"))
@@ -70,8 +82,13 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
     }
   }
 
-  private def defaultRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
-                                settings: SystemSettings, isUpdating: Boolean): Unit = {
+  private def defaultRepository(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    chain: FilterChain,
+    settings: SystemSettings,
+    isUpdating: Boolean
+  ): Unit = {
     val action = request.paths match {
       case Array(_, repositoryOwner, repositoryName, _*) =>
         Database() withSession { implicit session =>
@@ -85,59 +102,65 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
                 val passed = for {
                   authorizationHeader <- Option(request.getHeader("Authorization"))
                   account <- authenticateByHeader(authorizationHeader, settings)
-                } yield if (isUpdating) {
-                  if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
-                    request.setAttribute(Keys.Request.UserName, account.userName)
-                    true
-                  } else false
-                } else if(repository.repository.isPrivate){
-                  if (hasGuestRole(repository.owner, repository.name, Some(account))) {
-                    request.setAttribute(Keys.Request.UserName, account.userName)
-                    true
-                  } else false
-                } else true
+                } yield
+                  if (isUpdating) {
+                    if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
+                      request.setAttribute(Keys.Request.UserName, account.userName)
+                      true
+                    } else false
+                  } else if (repository.repository.isPrivate) {
+                    if (hasGuestRole(repository.owner, repository.name, Some(account))) {
+                      request.setAttribute(Keys.Request.UserName, account.userName)
+                      true
+                    } else false
+                  } else true
                 passed.getOrElse(false)
               }
 
-              if (execute) {
-                () => chain.doFilter(request, response)
-              } else {
-                () => AuthUtil.requireAuth(response)
+              if (execute) { () =>
+                chain.doFilter(request, response)
+              } else { () =>
+                AuthUtil.requireAuth(response)
               }
             }
-            case None => () => {
-              logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
-              response.sendError(HttpServletResponse.SC_NOT_FOUND)
-            }
+            case None =>
+              () =>
+                {
+                  logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+                  response.sendError(HttpServletResponse.SC_NOT_FOUND)
+                }
           }
         }
-      case _ => () => {
-        logger.debug(s"Not enough path arguments: ${request.paths}")
-        response.sendError(HttpServletResponse.SC_NOT_FOUND)
-      }
+      case _ =>
+        () =>
+          {
+            logger.debug(s"Not enough path arguments: ${request.paths}")
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+          }
     }
 
     action()
   }
 
   /**
-    * Authenticate by an Authorization header.
-    * This accepts one of the following credentials:
-    * - username and password
-    * - username and personal access token
-    *
-    * @param authorizationHeader Authorization header
-    * @param settings system settings
-    * @param s database session
-    * @return an account or none
-    */
-  private def authenticateByHeader(authorizationHeader: String,
-                                   settings: SystemSettings)(implicit s: Session): Option[Account] = {
+   * Authenticate by an Authorization header.
+   * This accepts one of the following credentials:
+   * - username and password
+   * - username and personal access token
+   *
+   * @param authorizationHeader Authorization header
+   * @param settings system settings
+   * @param s database session
+   * @return an account or none
+   */
+  private def authenticateByHeader(authorizationHeader: String, settings: SystemSettings)(
+    implicit s: Session
+  ): Option[Account] = {
     val Array(username, password) = AuthUtil.decodeAuthHeader(authorizationHeader).split(":", 2)
     authenticate(settings, username, password).orElse {
       AccessTokenService.getAccountByAccessToken(password) match {
         case Some(account) if account.userName == username => Some(account)
-        case _ => None
+        case _                                             => None
       }
     }
   }

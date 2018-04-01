@@ -16,42 +16,45 @@ class CompositeScalatraFilter extends Filter {
   }
 
   override def init(filterConfig: FilterConfig): Unit = {
-    filters.foreach { case (filter, _) =>
-      filter.init(filterConfig)
+    filters.foreach {
+      case (filter, _) =>
+        filter.init(filterConfig)
     }
   }
 
   override def destroy(): Unit = {
-    filters.foreach { case (filter, _) =>
-      filter.destroy()
+    filters.foreach {
+      case (filter, _) =>
+        filter.destroy()
     }
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
     val contextPath = request.getServletContext.getContextPath
     val requestPath = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
-    val checkPath = if(requestPath.endsWith("/")){
+    val checkPath = if (requestPath.endsWith("/")) {
       requestPath
     } else {
       requestPath + "/"
     }
 
-    if(!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
-       !checkPath.startsWith("/plugin-assets/")){
+    if (!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
+        !checkPath.startsWith("/plugin-assets/")) {
       filters
-        .filter { case (_, path) =>
-          val start = path.replaceFirst("/\\*$", "/")
-          checkPath.startsWith(start)
+        .filter {
+          case (_, path) =>
+            val start = path.replaceFirst("/\\*$", "/")
+            checkPath.startsWith(start)
         }
-        .foreach { case (filter, _) =>
-          val mockChain = new MockFilterChain()
-          filter.doFilter(request, response, mockChain)
-          if(mockChain.continue == false){
-            return ()
-          }
+        .foreach {
+          case (filter, _) =>
+            val mockChain = new MockFilterChain()
+            filter.doFilter(request, response, mockChain)
+            if (mockChain.continue == false) {
+              return ()
+            }
         }
     }
-
 
     chain.doFilter(request, response)
   }

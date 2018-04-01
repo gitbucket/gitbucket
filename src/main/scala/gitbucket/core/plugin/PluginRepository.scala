@@ -15,7 +15,7 @@ object PluginRepository {
   lazy val LocalRepositoryIndexFile = new java.io.File(LocalRepositoryDir, "plugins.json")
 
   def getPlugins(): Seq[PluginMetadata] = {
-    if(LocalRepositoryIndexFile.exists){
+    if (LocalRepositoryIndexFile.exists) {
       parsePluginJson(FileUtils.readFileToString(LocalRepositoryIndexFile, "UTF-8"))
     } else Nil
   }
@@ -29,7 +29,7 @@ case class PluginMetadata(
   description: String,
   versions: Seq[VersionDef],
   default: Boolean = false
-){
+) {
   lazy val latestVersion: VersionDef = versions.last
 }
 
@@ -37,7 +37,6 @@ case class VersionDef(
   version: String,
   url: String,
   range: String
-){
+) {
   lazy val file = url.substring(url.lastIndexOf("/") + 1)
 }
-

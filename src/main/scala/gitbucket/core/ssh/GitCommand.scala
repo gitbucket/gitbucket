@@ -20,7 +20,7 @@ import org.eclipse.jgit.errors.RepositoryNotFoundException
 
 object GitCommand {
   val DefaultCommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-\+_.]+).git'\Z""".r
-  val SimpleCommandRegex  = """\Agit-(upload|receive)-pack '/(.+\.git)'\Z""".r
+  val SimpleCommandRegex = """\Agit-(upload|receive)-pack '/(.+\.git)'\Z""".r
 }
 
 abstract class GitCommand extends Command with SessionAware {
@@ -80,7 +80,7 @@ abstract class GitCommand extends Command with SessionAware {
   }
 
   override def setSession(serverSession: ServerSession) {
-  	this.authType = PublicKeyAuthenticator.getAuthType(serverSession)
+    this.authType = PublicKeyAuthenticator.getAuthType(serverSession)
   }
 
 }
@@ -91,41 +91,43 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
   protected def userName(authType: AuthType): String = {
     authType match {
       case AuthType.UserAuthType(userName) => userName
-      case AuthType.DeployKeyType(_) => owner
+      case AuthType.DeployKeyType(_)       => owner
     }
   }
 
-  protected def isReadableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)
-                              (implicit session: Session): Boolean = {
+  protected def isReadableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)(
+    implicit session: Session
+  ): Boolean = {
     authType match {
       case AuthType.UserAuthType(username) => {
         getAccountByUserName(username) match {
           case Some(account) => hasGuestRole(owner, repoName, Some(account))
-          case None => false
+          case None          => false
         }
       }
       case AuthType.DeployKeyType(key) => {
         getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).contains(key)) match {
           case List(_) => true
-          case _ => false
+          case _       => false
         }
       }
     }
   }
 
-  protected def isWritableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)
-                              (implicit session: Session): Boolean = {
+  protected def isWritableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)(
+    implicit session: Session
+  ): Boolean = {
     authType match {
       case AuthType.UserAuthType(username) => {
         getAccountByUserName(username) match {
           case Some(account) => hasDeveloperRole(owner, repoName, Some(account))
-          case None => false
+          case None          => false
         }
       }
       case AuthType.DeployKeyType(key) => {
         getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).contains(key)) match {
           case List(x) if x.allowWrite => true
-          case _ => false
+          case _                       => false
         }
       }
     }
@@ -133,18 +135,22 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
 
 }
 
-
-class DefaultGitUploadPack(owner: String, repoName: String) extends DefaultGitCommand(owner, repoName)
-    with RepositoryService with AccountService with DeployKeyService {
+class DefaultGitUploadPack(owner: String, repoName: String)
+    extends DefaultGitCommand(owner, repoName)
+    with RepositoryService
+    with AccountService
+    with DeployKeyService {
 
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
-      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).map { repositoryInfo =>
-        !repositoryInfo.repository.isPrivate || isReadableUser(authType, repositoryInfo)
-      }.getOrElse(false)
+      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""))
+        .map { repositoryInfo =>
+          !repositoryInfo.repository.isPrivate || isReadableUser(authType, repositoryInfo)
+        }
+        .getOrElse(false)
     }
 
-    if(execute){
+    if (execute) {
       using(Git.open(getRepositoryDir(owner, repoName))) { git =>
         val repository = git.getRepository
         val upload = new UploadPack(repository)
@@ -154,17 +160,22 @@ class DefaultGitUploadPack(owner: String, repoName: String) extends DefaultGitCo
   }
 }
 
-class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, sshUrl: Option[String]) extends DefaultGitCommand(owner, repoName)
-    with RepositoryService with AccountService with DeployKeyService {
+class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, sshUrl: Option[String])
+    extends DefaultGitCommand(owner, repoName)
+    with RepositoryService
+    with AccountService
+    with DeployKeyService {
 
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
-      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).map { repositoryInfo =>
-        isWritableUser(authType, repositoryInfo)
-      }.getOrElse(false)
+      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""))
+        .map { repositoryInfo =>
+          isWritableUser(authType, repositoryInfo)
+        }
+        .getOrElse(false)
     }
 
-    if(execute) {
+    if (execute) {
       using(Git.open(getRepositoryDir(owner, repoName))) { git =>
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
@@ -179,16 +190,18 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, ss
   }
 }
 
-class PluginGitUploadPack(repoName: String, routing: GitRepositoryRouting) extends GitCommand with SystemSettingsService {
+class PluginGitUploadPack(repoName: String, routing: GitRepositoryRouting)
+    extends GitCommand
+    with SystemSettingsService {
 
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
       routing.filter.filter("/" + repoName, AuthType.userName(authType), loadSystemSettings(), false)
     }
 
-    if(execute){
+    if (execute) {
       val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
-      using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
+      using(Git.open(new File(Directory.GitBucketHome, path))) { git =>
         val repository = git.getRepository
         val upload = new UploadPack(repository)
         upload.upload(in, out, err)
@@ -197,16 +210,18 @@ class PluginGitUploadPack(repoName: String, routing: GitRepositoryRouting) exten
   }
 }
 
-class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting) extends GitCommand with SystemSettingsService {
+class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting)
+    extends GitCommand
+    with SystemSettingsService {
 
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
       routing.filter.filter("/" + repoName, AuthType.userName(authType), loadSystemSettings(), true)
     }
 
-    if(execute){
+    if (execute) {
       val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
-      using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
+      using(Git.open(new File(Directory.GitBucketHome, path))) { git =>
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
         receive.receive(in, out, err)
@@ -214,7 +229,6 @@ class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting) exte
     }
   }
 }
-
 
 class GitCommandFactory(baseUrl: String, sshUrl: Option[String]) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
@@ -229,17 +243,23 @@ class GitCommandFactory(baseUrl: String, sshUrl: Option[String]) extends Command
 
     pluginCommand match {
       case Some(x) => x
-      case None => command match {
-        case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, routing(repoName))
-        case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, routing(repoName))
-        case DefaultCommandRegex("upload" , owner, repoName) => new DefaultGitUploadPack (owner, repoName)
-        case DefaultCommandRegex("receive", owner, repoName) => new DefaultGitReceivePack(owner, repoName, baseUrl, sshUrl)
-        case _ => new UnknownCommand(command)
-      }
+      case None =>
+        command match {
+          case SimpleCommandRegex("upload", repoName) if (pluginRepository(repoName)) =>
+            new PluginGitUploadPack(repoName, routing(repoName))
+          case SimpleCommandRegex("receive", repoName) if (pluginRepository(repoName)) =>
+            new PluginGitReceivePack(repoName, routing(repoName))
+          case DefaultCommandRegex("upload", owner, repoName) => new DefaultGitUploadPack(owner, repoName)
+          case DefaultCommandRegex("receive", owner, repoName) =>
+            new DefaultGitReceivePack(owner, repoName, baseUrl, sshUrl)
+          case _ => new UnknownCommand(command)
+        }
     }
   }
 
-  private def pluginRepository(repoName: String): Boolean = PluginRegistry().getRepositoryRouting("/" + repoName).isDefined
-  private def routing(repoName: String): GitRepositoryRouting = PluginRegistry().getRepositoryRouting("/" + repoName).get
+  private def pluginRepository(repoName: String): Boolean =
+    PluginRegistry().getRepositoryRouting("/" + repoName).isDefined
+  private def routing(repoName: String): GitRepositoryRouting =
+    PluginRegistry().getRepositoryRouting("/" + repoName).get
 
 }

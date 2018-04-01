@@ -7,9 +7,11 @@ import gitbucket.core.model.Profile.dateColumnType
 
 trait CommitsService {
 
-  def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(implicit s: Session) =
-    CommitComments filter {
-      t => t.byCommit(owner, repository, commitId) && (t.issueId.isEmpty || includePullRequest)
+  def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(
+    implicit s: Session
+  ) =
+    CommitComments filter { t =>
+      t.byCommit(owner, repository, commitId) && (t.issueId.isEmpty || includePullRequest)
     } list
 
   def getCommitComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
@@ -20,33 +22,48 @@ trait CommitsService {
     else
       None
 
-  def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
-                          content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
-                          issueId: Option[Int])(implicit s: Session): Int =
+  def createCommitComment(
+    owner: String,
+    repository: String,
+    commitId: String,
+    loginUser: String,
+    content: String,
+    fileName: Option[String],
+    oldLine: Option[Int],
+    newLine: Option[Int],
+    issueId: Option[Int]
+  )(implicit s: Session): Int =
     CommitComments returning CommitComments.map(_.commentId) insert CommitComment(
-      userName          = owner,
-      repositoryName    = repository,
-      commitId          = commitId,
+      userName = owner,
+      repositoryName = repository,
+      commitId = commitId,
       commentedUserName = loginUser,
-      content           = content,
-      fileName          = fileName,
-      oldLine           = oldLine,
-      newLine           = newLine,
-      registeredDate    = currentDate,
-      updatedDate       = currentDate,
-      issueId           = issueId)
+      content = content,
+      fileName = fileName,
+      oldLine = oldLine,
+      newLine = newLine,
+      registeredDate = currentDate,
+      updatedDate = currentDate,
+      issueId = issueId
+    )
 
-  def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(implicit s: Session): Unit =
-    CommitComments.filter(_.byPrimaryKey(commentId))
+  def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(
+    implicit s: Session
+  ): Unit =
+    CommitComments
+      .filter(_.byPrimaryKey(commentId))
       .map { t =>
         (t.commitId, t.oldLine, t.newLine)
-      }.update(commitId, oldLine, newLine)
+      }
+      .update(commitId, oldLine, newLine)
 
   def updateCommitComment(commentId: Int, content: String)(implicit s: Session) = {
     CommitComments
-      .filter (_.byPrimaryKey(commentId))
-      .map { t => (t.content, t.updatedDate) }
-      .update (content, currentDate)
+      .filter(_.byPrimaryKey(commentId))
+      .map { t =>
+        (t.content, t.updatedDate)
+      }
+      .update(content, currentDate)
   }
 
   def deleteCommitComment(commentId: Int)(implicit s: Session) =

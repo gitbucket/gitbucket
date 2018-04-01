@@ -9,17 +9,25 @@ import gitbucket.core.model.Profile.dateColumnType
 trait ReleaseService {
   self: AccountService with RepositoryService =>
 
-  def createReleaseAsset(owner: String, repository: String, tag: String, fileName: String, label: String, size: Long, loginAccount: Account)(implicit s: Session): Unit = {
+  def createReleaseAsset(
+    owner: String,
+    repository: String,
+    tag: String,
+    fileName: String,
+    label: String,
+    size: Long,
+    loginAccount: Account
+  )(implicit s: Session): Unit = {
     ReleaseAssets insert ReleaseAsset(
-      userName       = owner,
+      userName = owner,
       repositoryName = repository,
-      tag            = tag,
-      fileName       = fileName,
-      label          = label,
-      size           = size,
-      uploader       = loginAccount.userName,
+      tag = tag,
+      fileName = fileName,
+      label = label,
+      size = size,
+      uploader = loginAccount.userName,
       registeredDate = currentDate,
-      updatedDate    = currentDate
+      updatedDate = currentDate
     )
   }
 
@@ -27,12 +35,16 @@ trait ReleaseService {
     ReleaseAssets.filter(x => x.byTag(owner, repository, tag)).list
   }
 
-  def getReleaseAssetsMap(owner: String, repository: String)(implicit s: Session): Map[ReleaseTag, Seq[ReleaseAsset]] = {
+  def getReleaseAssetsMap(owner: String, repository: String)(
+    implicit s: Session
+  ): Map[ReleaseTag, Seq[ReleaseAsset]] = {
     val releases = getReleases(owner, repository)
     releases.map(rel => (rel -> getReleaseAssets(owner, repository, rel.tag))).toMap
   }
 
-  def getReleaseAsset(owner: String, repository: String, tag: String, fileId: String)(implicit s: Session): Option[ReleaseAsset] = {
+  def getReleaseAsset(owner: String, repository: String, tag: String, fileId: String)(
+    implicit s: Session
+  ): Option[ReleaseAsset] = {
     ReleaseAssets.filter(x => x.byPrimaryKey(owner, repository, tag, fileId)) firstOption
   }
 
@@ -40,17 +52,23 @@ trait ReleaseService {
     ReleaseAssets.filter(x => x.byTag(owner, repository, tag)) delete
   }
 
-  def createRelease(owner: String, repository: String, name: String, content: Option[String], tag: String,
-                    loginAccount: Account)(implicit context: Context, s: Session): Int = {
+  def createRelease(
+    owner: String,
+    repository: String,
+    name: String,
+    content: Option[String],
+    tag: String,
+    loginAccount: Account
+  )(implicit context: Context, s: Session): Int = {
     ReleaseTags insert ReleaseTag(
-      userName       = owner,
+      userName = owner,
       repositoryName = repository,
-      name           = name,
-      tag            = tag,
-      author         = loginAccount.userName,
-      content        = content,
+      name = name,
+      tag = tag,
+      author = loginAccount.userName,
+      content = content,
       registeredDate = currentDate,
-      updatedDate    = currentDate
+      updatedDate = currentDate
     )
   }
 
@@ -73,11 +91,15 @@ trait ReleaseService {
 //    else None
 //  }
 
-  def updateRelease(owner: String, repository: String, tag: String, title: String, content: Option[String])(implicit s: Session): Int = {
+  def updateRelease(owner: String, repository: String, tag: String, title: String, content: Option[String])(
+    implicit s: Session
+  ): Int = {
     ReleaseTags
-      .filter (_.byPrimaryKey(owner, repository, tag))
-      .map { t => (t.name, t.content, t.updatedDate) }
-      .update (title, content, currentDate)
+      .filter(_.byPrimaryKey(owner, repository, tag))
+      .map { t =>
+        (t.name, t.content, t.updatedDate)
+      }
+      .update(title, content, currentDate)
   }
 
   def deleteRelease(owner: String, repository: String, tag: String)(implicit s: Session): Unit = {

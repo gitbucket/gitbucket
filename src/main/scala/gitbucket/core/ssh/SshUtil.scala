@@ -8,7 +8,6 @@ import org.apache.sshd.common.util.buffer.ByteArrayBuffer
 import org.eclipse.jgit.lib.Constants
 import org.slf4j.LoggerFactory
 
-
 object SshUtil {
 
   private val logger = LoggerFactory.getLogger(SshUtil.getClass)

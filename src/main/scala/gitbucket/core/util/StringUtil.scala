@@ -19,7 +19,7 @@ object StringUtil {
   }
 
   def sha1(value: String): String =
-    defining(java.security.MessageDigest.getInstance("SHA-1")){ md =>
+    defining(java.security.MessageDigest.getInstance("SHA-1")) { md =>
       md.update(value.getBytes)
       md.digest.map(b => "%02x".format(b)).mkString
     }
@@ -50,7 +50,7 @@ object StringUtil {
 
   def splitWords(value: String): Array[String] = value.split("[ \\t　]+")
 
-  def isInteger(value: String): Boolean = allCatch opt { value.toInt } map(_ => true) getOrElse(false)
+  def isInteger(value: String): Boolean = allCatch opt { value.toInt } map (_ => true) getOrElse (false)
 
   def escapeHtml(value: String): String =
     value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
@@ -63,7 +63,7 @@ object StringUtil {
     IOUtils.toString(new BOMInputStream(new java.io.ByteArrayInputStream(content)), detectEncoding(content))
 
   def detectEncoding(content: Array[Byte]): String =
-    defining(new UniversalDetector(null)){ detector =>
+    defining(new UniversalDetector(null)) { detector =>
       detector.handleData(content, 0, content.length)
       detector.dataEnd()
       detector.getDetectedCharset match {
@@ -81,7 +81,7 @@ object StringUtil {
    */
   def convertLineSeparator(content: String, lineSeparator: String): String = {
     val lf = content.replace("\r\n", "\n").replace("\r", "\n")
-    if(lineSeparator == "CRLF"){
+    if (lineSeparator == "CRLF") {
       lf.replace("\n", "\r\n")
     } else {
       lf
@@ -96,7 +96,7 @@ object StringUtil {
    * @return the converted content
    */
   def appendNewLine(content: String, lineSeparator: String): String = {
-    if(lineSeparator == "CRLF") {
+    if (lineSeparator == "CRLF") {
       if (content.endsWith("\r\n")) content else content + "\r\n"
     } else {
       if (content.endsWith("\n")) content else content + "\n"
@@ -111,7 +111,11 @@ object StringUtil {
    */
   def extractIssueId(message: String): Seq[String] =
     "(^|\\W)#(\\d+)(\\W|$)".r
-      .findAllIn(message).matchData.map(_.group(2)).toSeq.distinct
+      .findAllIn(message)
+      .matchData
+      .map(_.group(2))
+      .toSeq
+      .distinct
 
   /**
    * Extract close issue id like ```close #issueId ``` from the given message.
@@ -121,23 +125,28 @@ object StringUtil {
    */
   def extractCloseId(message: String): Seq[String] =
     "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r
-      .findAllIn(message).matchData.map(_.group(1)).toSeq.distinct
+      .findAllIn(message)
+      .matchData
+      .map(_.group(1))
+      .toSeq
+      .distinct
 
   private val GitBucketUrlPattern = "^(https?://.+)/git/(.+?)/(.+?)\\.git$".r
-  private val GitHubUrlPattern    = "^https://(.+@)?github\\.com/(.+?)/(.+?)\\.git$".r
+  private val GitHubUrlPattern = "^https://(.+@)?github\\.com/(.+?)/(.+?)\\.git$".r
   private val BitBucketUrlPattern = "^https?://(.+@)?bitbucket\\.org/(.+?)/(.+?)\\.git$".r
-  private val GitLabUrlPattern    = "^https?://(.+@)?gitlab\\.com/(.+?)/(.+?)\\.git$".r
+  private val GitLabUrlPattern = "^https?://(.+@)?gitlab\\.com/(.+?)/(.+?)\\.git$".r
 
   def getRepositoryViewerUrl(gitRepositoryUrl: String, baseUrl: Option[String]): String = {
     def removeUserName(baseUrl: String): String = baseUrl.replaceFirst("(https?://).+@", "$1")
 
     gitRepositoryUrl match {
-      case GitBucketUrlPattern(base, user, repository) if baseUrl.map(removeUserName(base).startsWith).getOrElse(false)
-                                                    => s"${removeUserName(base)}/$user/$repository"
-      case GitHubUrlPattern   (_, user, repository) => s"https://github.com/$user/$repository"
+      case GitBucketUrlPattern(base, user, repository)
+          if baseUrl.map(removeUserName(base).startsWith).getOrElse(false) =>
+        s"${removeUserName(base)}/$user/$repository"
+      case GitHubUrlPattern(_, user, repository)    => s"https://github.com/$user/$repository"
       case BitBucketUrlPattern(_, user, repository) => s"https://bitbucket.org/$user/$repository"
-      case GitLabUrlPattern   (_, user, repository) => s"https://gitlab.com/$user/$repository"
-      case _ => gitRepositoryUrl
+      case GitLabUrlPattern(_, user, repository)    => s"https://gitlab.com/$user/$repository"
+      case _                                        => gitRepositoryUrl
     }
   }
 

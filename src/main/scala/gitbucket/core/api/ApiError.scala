@@ -1,5 +1,3 @@
 package gitbucket.core.api
 
-case class ApiError(
-  message: String,
-  documentation_url: Option[String] = None)
+case class ApiError(message: String, documentation_url: Option[String] = None)

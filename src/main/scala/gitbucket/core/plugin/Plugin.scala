@@ -30,7 +30,8 @@ abstract class Plugin {
   /**
    * Override to declare this plug-in provides images.
    */
-  def images(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, Array[Byte])] = Nil
+  def images(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, Array[Byte])] =
+    Nil
 
   /**
    * Override to declare this plug-in provides controllers.
@@ -40,7 +41,11 @@ abstract class Plugin {
   /**
    * Override to declare this plug-in provides controllers.
    */
-  def controllers(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, ControllerBase)] = Nil
+  def controllers(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(String, ControllerBase)] = Nil
 
   /**
    * Override to declare this plug-in provides JavaScript.
@@ -50,7 +55,8 @@ abstract class Plugin {
   /**
    * Override to declare this plug-in provides JavaScript.
    */
-  def javaScripts(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, String)] = Nil
+  def javaScripts(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, String)] =
+    Nil
 
   /**
    * Override to declare this plug-in provides renderers.
@@ -60,7 +66,8 @@ abstract class Plugin {
   /**
    * Override to declare this plug-in provides renderers.
    */
-  def renderers(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, Renderer)] = Nil
+  def renderers(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, Renderer)] =
+    Nil
 
   /**
    * Override to add git repository routings.
@@ -70,7 +77,11 @@ abstract class Plugin {
   /**
    * Override to add git repository routings.
    */
-  def repositoryRoutings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GitRepositoryRouting] = Nil
+  def repositoryRoutings(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[GitRepositoryRouting] = Nil
 
   /**
    * Override to add account hooks.
@@ -100,7 +111,11 @@ abstract class Plugin {
   /**
    * Override to add repository hooks.
    */
-  def repositoryHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[RepositoryHook] = Nil
+  def repositoryHooks(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[RepositoryHook] = Nil
 
   /**
    * Override to add issue hooks.
@@ -120,7 +135,11 @@ abstract class Plugin {
   /**
    * Override to add pull request hooks.
    */
-  def pullRequestHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[PullRequestHook] = Nil
+  def pullRequestHooks(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[PullRequestHook] = Nil
 
   /**
    * Override to add repository headers.
@@ -130,7 +149,11 @@ abstract class Plugin {
   /**
    * Override to add repository headers.
    */
-  def repositoryHeaders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Html]] = Nil
+  def repositoryHeaders(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(RepositoryInfo, Context) => Option[Html]] = Nil
 
   /**
    * Override to add global menus.
@@ -140,7 +163,11 @@ abstract class Plugin {
   /**
    * Override to add global menus.
    */
-  def globalMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+  def globalMenus(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(Context) => Option[Link]] = Nil
 
   /**
    * Override to add repository menus.
@@ -150,7 +177,11 @@ abstract class Plugin {
   /**
    * Override to add repository menus.
    */
-  def repositoryMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+  def repositoryMenus(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
 
   /**
    * Override to add repository setting tabs.
@@ -160,7 +191,11 @@ abstract class Plugin {
   /**
    * Override to add repository setting tabs.
    */
-  def repositorySettingTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+  def repositorySettingTabs(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
 
   /**
    * Override to add profile tabs.
@@ -170,7 +205,11 @@ abstract class Plugin {
   /**
    * Override to add profile tabs.
    */
-  def profileTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Account, Context) => Option[Link]] = Nil
+  def profileTabs(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(Account, Context) => Option[Link]] = Nil
 
   /**
    * Override to add system setting menus.
@@ -180,7 +219,11 @@ abstract class Plugin {
   /**
    * Override to add system setting menus.
    */
-  def systemSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+  def systemSettingMenus(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(Context) => Option[Link]] = Nil
 
   /**
    * Override to add account setting menus.
@@ -190,7 +233,11 @@ abstract class Plugin {
   /**
    * Override to add account setting menus.
    */
-  def accountSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+  def accountSettingMenus(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(Context) => Option[Link]] = Nil
 
   /**
    * Override to add dashboard tabs.
@@ -200,7 +247,11 @@ abstract class Plugin {
   /**
    * Override to add dashboard tabs.
    */
-  def dashboardTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+  def dashboardTabs(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(Context) => Option[Link]] = Nil
 
   /**
    * Override to add issue sidebars.
@@ -210,7 +261,11 @@ abstract class Plugin {
   /**
    * Override to add issue sidebars.
    */
-  def issueSidebars(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = Nil
+  def issueSidebars(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = Nil
 
   /**
    * Override to add assets mappings.
@@ -220,7 +275,11 @@ abstract class Plugin {
   /**
    * Override to add assets mappings.
    */
-  def assetsMappings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, String)] = Nil
+  def assetsMappings(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[(String, String)] = Nil
 
   /**
    * Override to add text decorators.
@@ -230,7 +289,8 @@ abstract class Plugin {
   /**
    * Override to add text decorators.
    */
-  def textDecorators(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[TextDecorator] = Nil
+  def textDecorators(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[TextDecorator] =
+    Nil
 
   /**
    * Override to add suggestion provider.
@@ -240,7 +300,11 @@ abstract class Plugin {
   /**
    * Override to add suggestion provider.
    */
-  def suggestionProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[SuggestionProvider] = Nil
+  def suggestionProviders(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[SuggestionProvider] = Nil
 
   /**
    * Override to add ssh command providers.
@@ -250,25 +314,32 @@ abstract class Plugin {
   /**
    * Override to add ssh command providers.
    */
-  def sshCommandProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[PartialFunction[String, Command]] = Nil
-
+  def sshCommandProviders(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[PartialFunction[String, Command]] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
   def initialize(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Unit = {
-    (images ++ images(registry, context, settings)).foreach { case (id, in) =>
-      registry.addImage(id, in)
+    (images ++ images(registry, context, settings)).foreach {
+      case (id, in) =>
+        registry.addImage(id, in)
     }
-    (controllers ++ controllers(registry, context, settings)).foreach { case (path, controller) =>
-      registry.addController(path, controller)
+    (controllers ++ controllers(registry, context, settings)).foreach {
+      case (path, controller) =>
+        registry.addController(path, controller)
     }
-    (javaScripts ++ javaScripts(registry, context, settings)).foreach { case (path, script) =>
-      registry.addJavaScript(path, script)
+    (javaScripts ++ javaScripts(registry, context, settings)).foreach {
+      case (path, script) =>
+        registry.addJavaScript(path, script)
     }
-    (renderers ++ renderers(registry, context, settings)).foreach { case (extension, renderer) =>
-      registry.addRenderer(extension, renderer)
+    (renderers ++ renderers(registry, context, settings)).foreach {
+      case (extension, renderer) =>
+        registry.addRenderer(extension, renderer)
     }
     (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
       registry.addRepositoryRouting(routing)
@@ -345,7 +416,7 @@ abstract class Plugin {
    * Helper method to get a resource from classpath.
    */
   protected def fromClassPath(path: String): Array[Byte] =
-    using(getClass.getClassLoader.getResourceAsStream(path)){ in =>
+    using(getClass.getClassLoader.getResourceAsStream(path)) { in =>
       val bytes = new Array[Byte](in.available)
       in.read(bytes)
       bytes
