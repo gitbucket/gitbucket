@@ -3,7 +3,6 @@ package gitbucket.core.model
 import gitbucket.core.model.CommitState._
 import org.scalatest.FunSpec
 
-
 class CommitStateSpec extends FunSpec {
   describe("CommitState") {
     it("should combine empty must eq PENDING") {

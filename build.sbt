@@ -7,9 +7,10 @@ val GitBucketVersion = "4.23.0"
 val ScalatraVersion = "2.6.1"
 val JettyVersion = "9.4.7.v20170914"
 
-lazy val root = (project in file(".")).enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin).settings(
-
-)
+lazy val root = (project in file("."))
+  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
+  .settings(
+    )
 
 sourcesInBase := false
 organization := Organization
@@ -29,45 +30,45 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
-  "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-forms"               % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"               % "3.5.3",
-  "commons-io"                      %  "commons-io"                   % "2.6",
-  "io.github.gitbucket"             %  "solidbase"                    % "1.0.2",
-  "io.github.gitbucket"             %  "markedj"                      % "1.0.15",
-  "org.apache.commons"              %  "commons-compress"             % "1.15",
-  "org.apache.commons"              %  "commons-email"                % "1.5",
-  "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.4",
-  "org.apache.sshd"                 %  "apache-sshd"                  % "1.6.0" exclude("org.slf4j","slf4j-jdk14"),
-  "org.apache.tika"                 %  "tika-core"                    % "1.17",
-  "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.10",
-  "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
-  "com.h2database"                  %  "h2"                           % "1.4.196",
-  "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.2.3",
-  "org.postgresql"                  %  "postgresql"                   % "42.1.4",
-  "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
-  "com.zaxxer"                      %  "HikariCP"                     % "2.7.4",
-  "com.typesafe"                    %  "config"                       % "1.3.2",
-  "com.typesafe.akka"               %% "akka-actor"                   % "2.5.8",
-  "fr.brouillard.oss.security.xhub" %  "xhub4j-core"                  % "1.0.0",
-  "com.github.bkromhout"            %  "java-diff-utils"              % "2.1.1",
-  "org.cache2k"                     %  "cache2k-all"                  % "1.0.1.Final",
-  "com.enragedginger"               %% "akka-quartz-scheduler"        % "1.6.1-akka-2.5.x" exclude("c3p0","c3p0"),
-  "net.coobird"                     %  "thumbnailator"                % "0.4.8",
-  "com.github.zafarkhaja"           %  "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    %  "oauth2-oidc-sdk"              % "5.45",
-  "org.eclipse.jetty"               %  "jetty-webapp"                 % JettyVersion     % "provided",
-  "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
-  "junit"                           %  "junit"                        % "4.12"           % "test",
-  "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "org.mockito"                     %  "mockito-core"                 % "2.13.0"         % "test",
-  "com.wix"                         %  "wix-embedded-mysql"           % "3.0.0"          % "test",
-  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "2.6"            % "test",
-  "net.i2p.crypto"                  % "eddsa"                         % "0.2.0",
-  "is.tagomor.woothee"              % "woothee-java"                  % "1.7.0"
+  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
+  "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
+  "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
+  "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
+  "org.json4s"                      %% "json4s-jackson"              % "3.5.3",
+  "commons-io"                      % "commons-io"                   % "2.6",
+  "io.github.gitbucket"             % "solidbase"                    % "1.0.2",
+  "io.github.gitbucket"             % "markedj"                      % "1.0.15",
+  "org.apache.commons"              % "commons-compress"             % "1.15",
+  "org.apache.commons"              % "commons-email"                % "1.5",
+  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.4",
+  "org.apache.sshd"                 % "apache-sshd"                  % "1.6.0" exclude ("org.slf4j", "slf4j-jdk14"),
+  "org.apache.tika"                 % "tika-core"                    % "1.17",
+  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
+  "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
+  "com.h2database"                  % "h2"                           % "1.4.196",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.3",
+  "org.postgresql"                  % "postgresql"                   % "42.1.4",
+  "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
+  "com.zaxxer"                      % "HikariCP"                     % "2.7.4",
+  "com.typesafe"                    % "config"                       % "1.3.2",
+  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.8",
+  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.0.0",
+  "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
+  "org.cache2k"                     % "cache2k-all"                  % "1.0.1.Final",
+  "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.6.1-akka-2.5.x" exclude ("c3p0", "c3p0"),
+  "net.coobird"                     % "thumbnailator"                % "0.4.8",
+  "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.45",
+  "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
+  "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
+  "junit"                           % "junit"                        % "4.12" % "test",
+  "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
+  "org.mockito"                     % "mockito-core"                 % "2.13.0" % "test",
+  "com.wix"                         % "wix-embedded-mysql"           % "3.0.0" % "test",
+  "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.6" % "test",
+  "net.i2p.crypto"                  % "eddsa"                        % "0.2.0",
+  "is.tagomor.woothee"              % "woothee-java"                 % "1.7.0"
 )
 
 // Compiler settings
@@ -78,7 +79,7 @@ javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 // Test settings
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
 javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test"
-testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() )
+testOptions in Test += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
 fork in Test := true
 
 // Packaging options
@@ -88,9 +89,9 @@ packageOptions += Package.MainClass("JettyLauncher")
 test in assembly := {}
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) =>
-    (xs map {_.toLowerCase}) match {
+    (xs map { _.toLowerCase }) match {
       case ("manifest.mf" :: Nil) => MergeStrategy.discard
-      case _ => MergeStrategy.discard
+      case _                      => MergeStrategy.discard
     }
   case x => MergeStrategy.first
 }
@@ -112,7 +113,9 @@ javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { p
 
 // Exclude a war file from published artifacts
 signedArtifacts := {
-  signedArtifacts.value.filterNot { case (_, file) => file.getName.endsWith(".war") || file.getName.endsWith(".war.asc") }
+  signedArtifacts.value.filterNot {
+    case (_, file) => file.getName.endsWith(".war") || file.getName.endsWith(".war.asc")
+  }
 }
 
 // Create executable war file
@@ -135,32 +138,31 @@ executableKey := {
   import java.util.jar.Attributes.{Name => AttrName}
   import java.util.jar.{Manifest => JarManifest}
 
-  val workDir   = Keys.target.value / "executable"
-  val warName   = Keys.name.value + ".war"
+  val workDir = Keys.target.value / "executable"
+  val warName = Keys.name.value + ".war"
 
-  val log       = streams.value.log
+  val log = streams.value.log
   log info s"building executable webapp in ${workDir}"
 
   // initialize temp directory
-  val temp  = workDir / "webapp"
+  val temp = workDir / "webapp"
   IO delete temp
 
   // include jetty classes
   val jettyJars = Keys.update.value select configurationFilter(name = ExecutableConfig.name)
   jettyJars foreach { jar =>
-    IO unzip (jar, temp, (name:String) =>
+    IO unzip (jar, temp, (name: String) =>
       (name startsWith "javax/") ||
-      (name startsWith "org/")
-    )
+        (name startsWith "org/"))
   }
 
   // include original war file
-  val warFile   = (Keys.`package`).value
+  val warFile = (Keys.`package`).value
   IO unzip (warFile, temp)
 
   // include launcher classes
-  val classDir      = (Keys.classDirectory in Compile).value
-  val launchClasses = Seq("JettyLauncher.class" /*, "HttpsSupportConnector.class" */)
+  val classDir = (Keys.classDirectory in Compile).value
+  val launchClasses = Seq("JettyLauncher.class" /*, "HttpsSupportConnector.class" */ )
   launchClasses foreach { name =>
     IO copyFile (classDir / name, temp / name)
   }
@@ -168,32 +170,34 @@ executableKey := {
   // include plugins
   val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
   IO createDirectory (pluginsDir)
-  IO copyFile(Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
+  IO copyFile (Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
 
-  val json = IO read(Keys.baseDirectory.value / "plugins.json")
+  val json = IO read (Keys.baseDirectory.value / "plugins.json")
   PluginsJson.getUrls(json).foreach { url =>
     log info s"Download: ${url}"
-    IO transfer(new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+    IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
   }
 
   // zip it up
   IO delete (temp / "META-INF" / "MANIFEST.MF")
-  val contentMappings   = (temp.allPaths --- PathFinder(temp)).get pair { file => IO.relativizeFile(temp, file) }
-  val manifest          = new JarManifest
+  val contentMappings = (temp.allPaths --- PathFinder(temp)).get pair { file =>
+    IO.relativizeFile(temp, file)
+  }
+  val manifest = new JarManifest
   manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
-  manifest.getMainAttributes put (AttrName.MAIN_CLASS,       "JettyLauncher")
-  val outputFile    = workDir / warName
-  IO jar (contentMappings.map { case (file, path) => (file, path.toString) } , outputFile, manifest)
+  manifest.getMainAttributes put (AttrName.MAIN_CLASS, "JettyLauncher")
+  val outputFile = workDir / warName
+  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest)
 
   // generate checksums
   Seq(
-    "md5"    -> "MD5",
-    "sha1"   -> "SHA-1",
+    "md5" -> "MD5",
+    "sha1" -> "SHA-1",
     "sha256" -> "SHA-256"
-  )
-  .foreach { case (extension, algorithm) =>
-    val checksumFile = workDir / (warName + "." + extension)
-    Checksums generate (outputFile, checksumFile, algorithm)
+  ).foreach {
+    case (extension, algorithm) =>
+      val checksumFile = workDir / (warName + "." + extension)
+      Checksums generate (outputFile, checksumFile, algorithm)
   }
 
   // done
@@ -203,10 +207,12 @@ executableKey := {
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (version.value.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else                                         Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 publishMavenStyle := true
-pomIncludeRepository := { _ => false }
+pomIncludeRepository := { _ =>
+  false
+}
 pomExtra := (
   <url>https://github.com/gitbucket/gitbucket</url>
   <licenses>

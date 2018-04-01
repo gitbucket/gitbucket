@@ -30,7 +30,9 @@ class StringUtilSpec extends FunSpec {
 
   describe("escapeHtml") {
     it("should escape &, <, > and \"") {
-      assert(StringUtil.escapeHtml("<a href=\"/test\">a & b</a>") == "&lt;a href=&quot;/test&quot;&gt;a &amp; b&lt;/a&gt;")
+      assert(
+        StringUtil.escapeHtml("<a href=\"/test\">a & b</a>") == "&lt;a href=&quot;/test&quot;&gt;a &amp; b&lt;/a&gt;"
+      )
     }
   }
 
@@ -66,21 +68,45 @@ class StringUtilSpec extends FunSpec {
 
   describe("getRepositoryViewerUrl") {
     val baseUrl = Some("http://localhost:8080")
-    it("should convert GitBucket repository url"){
-      assert(StringUtil.getRepositoryViewerUrl("http://localhost:8080/git/root/gitbucket.git", baseUrl) == "http://localhost:8080/root/gitbucket")
-      assert(StringUtil.getRepositoryViewerUrl("http://root@localhost:8080/git/root/gitbucket.git", baseUrl) == "http://localhost:8080/root/gitbucket")
+    it("should convert GitBucket repository url") {
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("http://localhost:8080/git/root/gitbucket.git", baseUrl) == "http://localhost:8080/root/gitbucket"
+      )
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("http://root@localhost:8080/git/root/gitbucket.git", baseUrl) == "http://localhost:8080/root/gitbucket"
+      )
     }
-    it("should convert GitHub repository url"){
-      assert(StringUtil.getRepositoryViewerUrl("https://github.com/root/gitbucket.git", baseUrl) == "https://github.com/root/gitbucket")
-      assert(StringUtil.getRepositoryViewerUrl("https://root@github.com/root/gitbucket.git", baseUrl) == "https://github.com/root/gitbucket")
+    it("should convert GitHub repository url") {
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("https://github.com/root/gitbucket.git", baseUrl) == "https://github.com/root/gitbucket"
+      )
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("https://root@github.com/root/gitbucket.git", baseUrl) == "https://github.com/root/gitbucket"
+      )
     }
-    it("should convert BitBucket repository url"){
-      assert(StringUtil.getRepositoryViewerUrl("https://bitbucket.org/root/gitbucket.git", baseUrl) == "https://bitbucket.org/root/gitbucket")
-      assert(StringUtil.getRepositoryViewerUrl("https://root@bitbucket.org/root/gitbucket.git", baseUrl) == "https://bitbucket.org/root/gitbucket")
+    it("should convert BitBucket repository url") {
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("https://bitbucket.org/root/gitbucket.git", baseUrl) == "https://bitbucket.org/root/gitbucket"
+      )
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("https://root@bitbucket.org/root/gitbucket.git", baseUrl) == "https://bitbucket.org/root/gitbucket"
+      )
     }
-    it("should convert GitLab repository url"){
-      assert(StringUtil.getRepositoryViewerUrl("https://gitlab.com/root/gitbucket.git", baseUrl) == "https://gitlab.com/root/gitbucket")
-      assert(StringUtil.getRepositoryViewerUrl("https://root@gitlab.com/root/gitbucket.git", baseUrl) == "https://gitlab.com/root/gitbucket")
+    it("should convert GitLab repository url") {
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("https://gitlab.com/root/gitbucket.git", baseUrl) == "https://gitlab.com/root/gitbucket"
+      )
+      assert(
+        StringUtil
+          .getRepositoryViewerUrl("https://root@gitlab.com/root/gitbucket.git", baseUrl) == "https://gitlab.com/root/gitbucket"
+      )
     }
   }
 }

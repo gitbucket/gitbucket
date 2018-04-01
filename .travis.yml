@@ -3,7 +3,7 @@ sudo: true
 jdk: 
   - oraclejdk8
 script:
-  - sbt test
+  - sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
 before_script:
   - sudo /etc/init.d/mysql stop
   - sudo /etc/init.d/postgresql stop
