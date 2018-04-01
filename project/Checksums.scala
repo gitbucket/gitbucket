@@ -18,7 +18,7 @@ object Checksums {
       val buf = new Array[Byte](bufferSize)
       md.reset()
       @tailrec
-      def loop() {
+      def loop(): Unit = {
         val len = is read buf
         if (len != -1) {
           md update (buf, 0, len)

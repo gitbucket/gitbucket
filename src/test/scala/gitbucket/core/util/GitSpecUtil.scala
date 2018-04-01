@@ -42,7 +42,7 @@ object GitSpecUtil {
     autorName: String = "dummy",
     autorEmail: String = "dummy@example.com",
     message: String = "test commit"
-  ) {
+  ): Unit = {
     val builder = DirCache.newInCore.builder()
     val inserter = git.getRepository.newObjectInserter()
     val headId = git.getRepository.resolve(branch + "^{commit}")

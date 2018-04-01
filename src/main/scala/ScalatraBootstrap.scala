@@ -9,7 +9,7 @@ import gitbucket.core.util.Directory
 import org.scalatra._
 
 class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
-  override def init(context: ServletContext) {
+  override def init(context: ServletContext): Unit = {
 
     val settings = loadSystemSettings()
     if (settings.baseUrl.exists(_.startsWith("https://"))) {
