@@ -13,7 +13,6 @@ import scala.util.control.Exception._
 
 import slick.jdbc.JdbcBackend
 
-
 /**
  * Provides some usable implicit conversions.
  */
@@ -23,7 +22,9 @@ object Implicits {
   implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session = Database.getSession(request)
 
   implicit def context2ApiJsonFormatContext(implicit context: Context): JsonFormat.Context =
-    JsonFormat.Context(context.baseUrl, context.settings.sshAddress.map { x => s"${x.genericUser}@${x.host}:${x.port}" })
+    JsonFormat.Context(context.baseUrl, context.settings.sshAddress.map { x =>
+      s"${x.genericUser}@${x.host}:${x.port}"
+    })
 
   implicit class RichSeq[A](private val seq: Seq[A]) extends AnyVal {
 
@@ -53,7 +54,7 @@ object Implicits {
           case None    => sb.append(m.matched)
         }
       }
-      if(i < value.length){
+      if (i < value.length) {
         sb.append(value.substring(i))
       }
       sb.toString
@@ -66,24 +67,26 @@ object Implicits {
 
   implicit class RichRequest(private val request: HttpServletRequest) extends AnyVal {
 
-    def paths: Array[String] = (request.getRequestURI.substring(request.getContextPath.length + 1) match{
-      case path if path.startsWith("api/v3/repos/") => path.substring(13/* "/api/v3/repos".length */)
-      case path if path.startsWith("api/v3/orgs/") => path.substring(12/* "/api/v3/orgs".length */)
-      case path => path
-    }).split("/")
+    def paths: Array[String] =
+      (request.getRequestURI.substring(request.getContextPath.length + 1) match {
+        case path if path.startsWith("api/v3/repos/") => path.substring(13 /* "/api/v3/repos".length */ )
+        case path if path.startsWith("api/v3/orgs/")  => path.substring(12 /* "/api/v3/orgs".length */ )
+        case path                                     => path
+      }).split("/")
 
     def hasQueryString: Boolean = request.getQueryString != null
 
     def hasAttribute(name: String): Boolean = request.getAttribute(name) != null
 
-    def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^" + quote(request.getContextPath) + "/git/", "/")
+    def gitRepositoryPath: String =
+      request.getRequestURI.replaceFirst("^" + quote(request.getContextPath) + "/git/", "/")
 
   }
 
   implicit class RichSession(private val session: HttpSession) extends AnyVal {
     def getAndRemove[T](key: String): Option[T] = {
       val value = session.getAttribute(key).asInstanceOf[T]
-      if(value == null){
+      if (value == null) {
         session.removeAttribute(key)
       }
       Option(value)

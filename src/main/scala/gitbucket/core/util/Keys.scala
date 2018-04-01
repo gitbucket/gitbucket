@@ -26,8 +26,8 @@ object Keys {
     val DashboardPulls = "dashboard/pulls"
 
     /**
-      * Session key for the OpenID Connect authentication.
-      */
+     * Session key for the OpenID Connect authentication.
+     */
     val OidcContext = "oidcContext"
 
     /**

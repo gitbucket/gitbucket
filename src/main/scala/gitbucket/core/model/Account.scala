@@ -20,7 +20,22 @@ trait AccountComponent { self: Profile =>
     val groupAccount = column[Boolean]("GROUP_ACCOUNT")
     val removed = column[Boolean]("REMOVED")
     val description = column[String]("DESCRIPTION")
-    def * = (userName, fullName, mailAddress, password, isAdmin, url.?, registeredDate, updatedDate, lastLoginDate.?, image.?, groupAccount, removed, description.?) <> (Account.tupled, Account.unapply)
+    def * =
+      (
+        userName,
+        fullName,
+        mailAddress,
+        password,
+        isAdmin,
+        url.?,
+        registeredDate,
+        updatedDate,
+        lastLoginDate.?,
+        image.?,
+        groupAccount,
+        removed,
+        description.?
+      ) <> (Account.tupled, Account.unapply)
   }
 }
 

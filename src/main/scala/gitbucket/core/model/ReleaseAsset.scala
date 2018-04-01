@@ -20,9 +20,12 @@ trait ReleaseAssetComponent extends TemplateComponent {
     val registeredDate = column[Date]("REGISTERED_DATE")
     val updatedDate = column[Date]("UPDATED_DATE")
 
-    def * = (userName, repositoryName, tag, releaseAssetId, fileName, label, size, uploader, registeredDate, updatedDate) <> (ReleaseAsset.tupled, ReleaseAsset.unapply)
-    def byPrimaryKey(owner: String, repository: String, tag: String, fileName: String) = byTag(owner, repository, tag) && (this.fileName === fileName.bind)
-    def byTag(owner: String, repository: String, tag: String) = byRepository(owner, repository) && (this.tag === tag.bind)
+    def * =
+      (userName, repositoryName, tag, releaseAssetId, fileName, label, size, uploader, registeredDate, updatedDate) <> (ReleaseAsset.tupled, ReleaseAsset.unapply)
+    def byPrimaryKey(owner: String, repository: String, tag: String, fileName: String) =
+      byTag(owner, repository, tag) && (this.fileName === fileName.bind)
+    def byTag(owner: String, repository: String, tag: String) =
+      byRepository(owner, repository) && (this.tag === tag.bind)
   }
 }
 

@@ -18,9 +18,10 @@ case class ApiPullRequestReviewComment(
   // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
   user: ApiUser,
   body: String, // "Maybe you should use more emojji on this line.",
-  created_at: Date,  // "2015-05-05T23:40:27Z",
+  created_at: Date, // "2015-05-05T23:40:27Z",
   updated_at: Date // "2015-05-05T23:40:27Z",
-)(repositoryName:RepositoryName, issueId: Int) extends FieldSerializable {
+)(repositoryName: RepositoryName, issueId: Int)
+    extends FieldSerializable {
   // "url": "https://api.github.com/repos/baxterthehacker/public-repo/pulls/comments/29724692",
   val url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/pulls/comments/${id}")
   // "html_url": "https://github.com/baxterthehacker/public-repo/pull/1#discussion_r29724692",
@@ -40,22 +41,28 @@ case class ApiPullRequestReviewComment(
         "href": "https://api.github.com/repos/baxterthehacker/public-repo/pulls/1"
       }
     }
-  */
+   */
   val _links = Map(
     "self" -> Map("href" -> url),
     "html" -> Map("href" -> html_url),
-    "pull_request" -> Map("href" -> pull_request_url))
+    "pull_request" -> Map("href" -> pull_request_url)
+  )
 }
 
-object ApiPullRequestReviewComment{
-  def apply(comment: CommitComment, commentedUser: ApiUser, repositoryName: RepositoryName, issueId: Int): ApiPullRequestReviewComment =
+object ApiPullRequestReviewComment {
+  def apply(
+    comment: CommitComment,
+    commentedUser: ApiUser,
+    repositoryName: RepositoryName,
+    issueId: Int
+  ): ApiPullRequestReviewComment =
     new ApiPullRequestReviewComment(
-     id = comment.commentId,
-     path = comment.fileName.getOrElse(""),
-     commit_id = comment.commitId,
-     user = commentedUser,
-     body = comment.content,
-     created_at = comment.registeredDate,
-     updated_at = comment.updatedDate
-  )(repositoryName, issueId)
+      id = comment.commentId,
+      path = comment.fileName.getOrElse(""),
+      commit_id = comment.commitId,
+      user = commentedUser,
+      body = comment.content,
+      created_at = comment.registeredDate,
+      updated_at = comment.updatedDate
+    )(repositoryName, issueId)
 }

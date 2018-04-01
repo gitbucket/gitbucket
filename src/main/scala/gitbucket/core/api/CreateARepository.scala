@@ -5,15 +5,15 @@ package gitbucket.core.api
  * api form
  */
 case class CreateARepository(
-    name: String,
-    description: Option[String],
-    `private`: Boolean = false,
-    auto_init: Boolean = false
+  name: String,
+  description: Option[String],
+  `private`: Boolean = false,
+  auto_init: Boolean = false
 ) {
   def isValid: Boolean = {
     name.length <= 100 &&
-        name.matches("[a-zA-Z0-9\\-\\+_.]+") &&
-        !name.startsWith("_") &&
-        !name.startsWith("-")
+    name.matches("[a-zA-Z0-9\\-\\+_.]+") &&
+    !name.startsWith("_") &&
+    !name.startsWith("-")
   }
 }

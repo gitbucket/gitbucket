@@ -76,9 +76,11 @@ protected[model] trait TemplateComponent { self: Profile =>
       byRepository(userName, repositoryName) && (this.commitId === commitId)
   }
 
-  trait BranchTemplate extends BasicTemplate{ self: Table[_] =>
+  trait BranchTemplate extends BasicTemplate { self: Table[_] =>
     val branch = column[String]("BRANCH")
-    def byBranch(owner: String, repository: String, branchName: String) = byRepository(owner, repository) && (branch === branchName.bind)
-    def byBranch(owner: Rep[String], repository: Rep[String], branchName: Rep[String]) = byRepository(owner, repository) && (this.branch === branchName)
+    def byBranch(owner: String, repository: String, branchName: String) =
+      byRepository(owner, repository) && (branch === branchName.bind)
+    def byBranch(owner: Rep[String], repository: Rep[String], branchName: Rep[String]) =
+      byRepository(owner, repository) && (this.branch === branchName)
   }
 }

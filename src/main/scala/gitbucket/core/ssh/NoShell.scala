@@ -6,7 +6,7 @@ import org.apache.sshd.server.{Environment, ExitCallback, Command}
 import java.io.{OutputStream, InputStream}
 import org.eclipse.jgit.lib.Constants
 
-class NoShell(sshAddress:SshAddress) extends Factory[Command] {
+class NoShell(sshAddress: SshAddress) extends Factory[Command] {
   override def create(): Command = new Command() {
     private var in: InputStream = null
     private var out: OutputStream = null

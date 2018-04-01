@@ -8,11 +8,13 @@ trait AccountWebHookEventComponent extends TemplateComponent {
 
   lazy val AccountWebHookEvents = TableQuery[AccountWebHookEvents]
 
-  class AccountWebHookEvents(tag: Tag) extends Table[AccountWebHookEvent](tag, "ACCOUNT_WEB_HOOK_EVENT") with BasicTemplate {
+  class AccountWebHookEvents(tag: Tag)
+      extends Table[AccountWebHookEvent](tag, "ACCOUNT_WEB_HOOK_EVENT")
+      with BasicTemplate {
     val url = column[String]("URL")
     val event = column[WebHook.Event]("EVENT")
 
-    def * = (userName, url, event)  <> ((AccountWebHookEvent.apply _).tupled, AccountWebHookEvent.unapply)
+    def * = (userName, url, event) <> ((AccountWebHookEvent.apply _).tupled, AccountWebHookEvent.unapply)
 
     def byAccountWebHook(userName: String, url: String) = (this.userName === userName.bind) && (this.url === url.bind)
 
@@ -28,7 +30,7 @@ trait AccountWebHookEventComponent extends TemplateComponent {
 }
 
 case class AccountWebHookEvent(
-                         userName: String,
-                         url: String,
-                         event: WebHook.Event
-                       )
+  userName: String,
+  url: String,
+  event: WebHook.Event
+)

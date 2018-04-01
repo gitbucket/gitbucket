@@ -16,10 +16,11 @@ class PluginAssetsServlet extends HttpServlet {
     val path = req.getRequestURI.substring(req.getContextPath.length)
 
     assetsMappings
-      .find    { case (prefix, _, _) => path.startsWith("/plugin-assets" + prefix) }
-      .flatMap { case (prefix, resourcePath, classLoader) =>
-        val resourceName = path.substring(("/plugin-assets" + prefix).length)
-        Option(classLoader.getResourceAsStream(resourcePath.stripPrefix("/") + resourceName))
+      .find { case (prefix, _, _) => path.startsWith("/plugin-assets" + prefix) }
+      .flatMap {
+        case (prefix, resourcePath, classLoader) =>
+          val resourceName = path.substring(("/plugin-assets" + prefix).length)
+          Option(classLoader.getResourceAsStream(resourcePath.stripPrefix("/") + resourceName))
       }
       .map { in =>
         try {

@@ -16,11 +16,11 @@ trait OneselfAuthenticator { self: ControllerBase =>
 
   private def authenticate(action: => Any) = {
     {
-      defining(request.paths){ paths =>
+      defining(request.paths) { paths =>
         context.loginAccount match {
-          case Some(x) if(x.isAdmin) => action
-          case Some(x) if(paths(0) == x.userName) => action
-          case _ => Unauthorized()
+          case Some(x) if (x.isAdmin)              => action
+          case Some(x) if (paths(0) == x.userName) => action
+          case _                                   => Unauthorized()
         }
       }
     }
@@ -36,14 +36,18 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      defining(request.paths){ paths =>
+      defining(request.paths) { paths =>
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
-            case Some(x) if(repository.owner == x.userName) => action(repository)
+            case Some(x) if (x.isAdmin)                      => action(repository)
+            case Some(x) if (repository.owner == x.userName) => action(repository)
             // TODO Repository management is allowed for only group managers?
-            case Some(x) if(getGroupMembers(repository.owner).exists { m => m.userName == x.userName && m.isManager == true }) => action(repository)
-            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Role.ADMIN)).contains(x.userName)) => action(repository)
+            case Some(x) if (getGroupMembers(repository.owner).exists { m =>
+                  m.userName == x.userName && m.isManager == true
+                }) =>
+              action(repository)
+            case Some(x) if (getCollaboratorUserNames(paths(0), paths(1), Seq(Role.ADMIN)).contains(x.userName)) =>
+              action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -63,7 +67,7 @@ trait UsersAuthenticator { self: ControllerBase =>
     {
       context.loginAccount match {
         case Some(x) => action
-        case None => Unauthorized()
+        case None    => Unauthorized()
       }
     }
   }
@@ -79,8 +83,8 @@ trait AdminAuthenticator { self: ControllerBase =>
   private def authenticate(action: => Any) = {
     {
       context.loginAccount match {
-        case Some(x) if(x.isAdmin) => action
-        case _ => Unauthorized()
+        case Some(x) if (x.isAdmin) => action
+        case _                      => Unauthorized()
       }
     }
   }
@@ -95,9 +99,9 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with A
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      defining(request.paths){ paths =>
+      defining(request.paths) { paths =>
         getRepository(paths(0), paths(1)).map { repository =>
-          if(isReadable(repository.repository, context.loginAccount)){
+          if (isReadable(repository.repository, context.loginAccount)) {
             action(repository)
           } else {
             Unauthorized()
@@ -113,19 +117,21 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with A
  */
 trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def readableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
-  protected def readableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+  protected def readableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
+    authenticate(action(form, _))
+  }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      defining(request.paths){ paths =>
+      defining(request.paths) { paths =>
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
-            case Some(x) if(!repository.repository.isPrivate) => action(repository)
-            case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1)).contains(x.userName)) => action(repository)
-            case _ => Unauthorized()
+            case Some(x) if (x.isAdmin)                                                          => action(repository)
+            case Some(x) if (!repository.repository.isPrivate)                                   => action(repository)
+            case Some(x) if (paths(0) == x.userName)                                             => action(repository)
+            case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+            case Some(x) if (getCollaboratorUserNames(paths(0), paths(1)).contains(x.userName))  => action(repository)
+            case _                                                                               => Unauthorized()
           }
         } getOrElse NotFound()
       }
@@ -138,17 +144,22 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService w
  */
 trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def writableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
-  protected def writableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+  protected def writableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
+    authenticate(action(form, _))
+  }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      defining(request.paths){ paths =>
+      defining(request.paths) { paths =>
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
-            case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Role.ADMIN, Role.DEVELOPER)).contains(x.userName)) => action(repository)
+            case Some(x) if (x.isAdmin)                                                          => action(repository)
+            case Some(x) if (paths(0) == x.userName)                                             => action(repository)
+            case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+            case Some(x)
+                if (getCollaboratorUserNames(paths(0), paths(1), Seq(Role.ADMIN, Role.DEVELOPER))
+                  .contains(x.userName)) =>
+              action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -166,11 +177,12 @@ trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
 
   private def authenticate(action: => Any) = {
     {
-      defining(request.paths){ paths =>
+      defining(request.paths) { paths =>
         context.loginAccount match {
-          case Some(x) if(getGroupMembers(paths(0)).exists { member =>
-            member.userName == x.userName && member.isManager
-          }) => action
+          case Some(x) if (getGroupMembers(paths(0)).exists { member =>
+                member.userName == x.userName && member.isManager
+              }) =>
+            action
           case _ => Unauthorized()
         }
       }

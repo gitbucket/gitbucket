@@ -20,38 +20,41 @@ case class ApiCommit(
   removed: List[String],
   modified: List[String],
   author: ApiPersonIdent,
-  committer: ApiPersonIdent)(repositoryName:RepositoryName, urlIsHtmlUrl: Boolean) extends FieldSerializable{
-  val url = if(urlIsHtmlUrl){
+  committer: ApiPersonIdent
+)(repositoryName: RepositoryName, urlIsHtmlUrl: Boolean)
+    extends FieldSerializable {
+  val url = if (urlIsHtmlUrl) {
     ApiPath(s"/${repositoryName.fullName}/commit/${id}")
-  }else{
+  } else {
     ApiPath(s"/api/v3/${repositoryName.fullName}/commits/${id}")
   }
-  val html_url = if(urlIsHtmlUrl){
+  val html_url = if (urlIsHtmlUrl) {
     None
-  }else{
+  } else {
     Some(ApiPath(s"/${repositoryName.fullName}/commit/${id}"))
   }
 }
 
-object ApiCommit{
+object ApiCommit {
   def apply(git: Git, repositoryName: RepositoryName, commit: CommitInfo, urlIsHtmlUrl: Boolean = false): ApiCommit = {
     val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
     ApiCommit(
-      id        = commit.id,
-      message   = commit.fullMessage,
+      id = commit.id,
+      message = commit.fullMessage,
       timestamp = commit.commitTime,
-      added     = diffs.collect {
-        case x if x.changeType == DiffEntry.ChangeType.ADD    => x.newPath
+      added = diffs.collect {
+        case x if x.changeType == DiffEntry.ChangeType.ADD => x.newPath
       },
-      removed   = diffs.collect {
+      removed = diffs.collect {
         case x if x.changeType == DiffEntry.ChangeType.DELETE => x.oldPath
       },
-      modified  = diffs.collect {
+      modified = diffs.collect {
         case x if x.changeType != DiffEntry.ChangeType.ADD && x.changeType != DiffEntry.ChangeType.DELETE => x.newPath
       },
-      author    = ApiPersonIdent.author(commit),
+      author = ApiPersonIdent.author(commit),
       committer = ApiPersonIdent.committer(commit)
     )(repositoryName, urlIsHtmlUrl)
   }
-  def forWebhookPayload(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit = apply(git, repositoryName, commit, true)
+  def forWebhookPayload(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit =
+    apply(git, repositoryName, commit, true)
 }

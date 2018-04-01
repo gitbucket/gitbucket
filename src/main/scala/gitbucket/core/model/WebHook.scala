@@ -16,7 +16,7 @@ object WebHookContentType {
   def valueOpt(code: String): Option[WebHookContentType] = map.get(code)
 }
 
-trait WebHook{
+trait WebHook {
   val url: String
   val ctype: WebHookContentType
   val token: Option[String]
@@ -45,7 +45,7 @@ object WebHook {
   case object TeamAdd extends Event("team_add")
   case object Watch extends Event("watch")
 
-  object Event{
+  object Event {
     val values = List(
       CommitComment,
       Create,
@@ -68,7 +68,7 @@ object WebHook {
       Watch
     )
 
-    private val map: Map[String,Event] = values.map(e => e.name -> e).toMap
+    private val map: Map[String, Event] = values.map(e => e.name -> e).toMap
     def valueOf(name: String): Event = map(name)
     def valueOpt(name: String): Option[Event] = map.get(name)
   }

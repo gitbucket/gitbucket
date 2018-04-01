@@ -17,18 +17,20 @@ trait LabelsService {
 
   def createLabel(owner: String, repository: String, labelName: String, color: String)(implicit s: Session): Int = {
     Labels returning Labels.map(_.labelId) insert Label(
-      userName       = owner,
+      userName = owner,
       repositoryName = repository,
-      labelName      = labelName,
-      color          = color
+      labelName = labelName,
+      color = color
     )
   }
 
-  def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String)
-                 (implicit s: Session): Unit =
-    Labels.filter(_.byPrimaryKey(owner, repository, labelId))
-          .map(t => t.labelName -> t.color)
-          .update(labelName, color)
+  def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String)(
+    implicit s: Session
+  ): Unit =
+    Labels
+      .filter(_.byPrimaryKey(owner, repository, labelId))
+      .map(t => t.labelName -> t.color)
+      .update(labelName, color)
 
   def deleteLabel(owner: String, repository: String, labelId: Int)(implicit s: Session): Unit = {
     IssueLabels.filter(_.byLabel(owner, repository, labelId)).delete

@@ -73,7 +73,9 @@ trait SuggestionProvider {
    *
    * Each element can be accessed as `option` in `template()` or `replace()` method.
    */
-  def options(repository: RepositoryInfo): Seq[(String, String)] = values(repository).map { value => (value, value) }
+  def options(repository: RepositoryInfo): Seq[(String, String)] = values(repository).map { value =>
+    (value, value)
+  }
 
   /**
    * JavaScript fragment to generate a label of completion proposal. The default is: `option.label`.

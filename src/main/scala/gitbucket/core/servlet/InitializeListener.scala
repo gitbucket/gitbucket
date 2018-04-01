@@ -24,7 +24,6 @@ import com.github.zafarkhaja.semver.{Version => Semver}
 
 import scala.collection.JavaConverters._
 
-
 /**
  * Initialize GitBucket system.
  * Update database schema and load plug-ins automatically in the context initializing.
@@ -34,8 +33,9 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
 
   // ActorSystem for Quartz scheduler
-  private val system = ActorSystem("job", ConfigFactory.parseString(
-    """
+  private val system = ActorSystem(
+    "job",
+    ConfigFactory.parseString("""
       |akka {
       |  daemonic = on
       |  coordinated-shutdown.run-by-jvm-shutdown-hook = off
@@ -47,11 +47,12 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       |    }
       |  }
       |}
-    """.stripMargin))
+    """.stripMargin)
+  )
 
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
-    if(dataDir != null){
+    if (dataDir != null) {
       System.setProperty("gitbucket.home", dataDir)
     }
     org.h2.Driver.load()
@@ -65,19 +66,22 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
       // Run normal migration
       logger.info("Start schema update")
-      new Solidbase().migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
+      new Solidbase()
+        .migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
 
       // Rescue code for users who updated from 3.14 to 4.0.0
       // https://github.com/gitbucket/gitbucket/issues/1227
       val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
-      val databaseVersion = if(currentVersion == "4.0"){
+      val databaseVersion = if (currentVersion == "4.0") {
         manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
         "4.0.0"
       } else currentVersion
 
       val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
-      if(databaseVersion != gitbucketVersion){
-        throw new IllegalStateException(s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}.")
+      if (databaseVersion != gitbucketVersion) {
+        throw new IllegalStateException(
+          s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}."
+        )
       }
 
       // Install bundled plugins
@@ -98,26 +102,26 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     logger.info("Check version")
     val versionFile = new File(GitBucketHome, "version")
 
-    if(versionFile.exists()){
+    if (versionFile.exists()) {
       val version = FileUtils.readFileToString(versionFile, "UTF-8")
-      if(version == "3.14"){
+      if (version == "3.14") {
         // Initialization for GitBucket 3.14
         logger.info("Migration to GitBucket 4.x start")
 
         // Backup current data
         val dataMvFile = new File(GitBucketHome, "data.mv.db")
-        if(dataMvFile.exists) {
+        if (dataMvFile.exists) {
           FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.14"))
         }
         val dataTraceFile = new File(GitBucketHome, "data.trace.db")
-        if(dataTraceFile.exists) {
+        if (dataTraceFile.exists) {
           FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.14"))
         }
 
         // Change form
         manager.initialize()
         manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
-        conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN"){ rs =>
+        conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN") { rs =>
           manager.updateVersion(rs.getString("PLUGIN_ID"), rs.getString("VERSION"))
         }
         conn.update("DROP TABLE PLUGIN")
@@ -135,8 +139,8 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     logger.info("Extract bundled plugins")
     val cl = Thread.currentThread.getContextClassLoader
     try {
-      using(cl.getResourceAsStream("plugins/plugins.json")){ pluginsFile =>
-        if(pluginsFile != null){
+      using(cl.getResourceAsStream("plugins/plugins.json")) { pluginsFile =>
+        if (pluginsFile != null) {
           val pluginsJson = IOUtils.toString(pluginsFile, "UTF-8")
 
           FileUtils.forceMkdir(PluginRepository.LocalRepositoryDir)
@@ -144,19 +148,28 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
           val plugins = PluginRepository.parsePluginJson(pluginsJson)
           plugins.foreach { plugin =>
-            plugin.versions.sortBy { x => Semver.valueOf(x.version) }.reverse.zipWithIndex.foreach { case (version, i) =>
-              val file = new File(PluginRepository.LocalRepositoryDir, version.file)
-              if(!file.exists) {
-                logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
-                FileUtils.forceMkdirParent(file)
-                using(cl.getResourceAsStream("plugins/" + version.file), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
-
-                if(plugin.default && i == 0){
-                  logger.info(s"Enable ${file.getName} in default")
-                  FileUtils.copyFile(file, new File(PluginHome, version.file))
-                }
+            plugin.versions
+              .sortBy { x =>
+                Semver.valueOf(x.version)
               }
-            }
+              .reverse
+              .zipWithIndex
+              .foreach {
+                case (version, i) =>
+                  val file = new File(PluginRepository.LocalRepositoryDir, version.file)
+                  if (!file.exists) {
+                    logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
+                    FileUtils.forceMkdirParent(file)
+                    using(cl.getResourceAsStream("plugins/" + version.file), new FileOutputStream(file)) {
+                      case (in, out) => IOUtils.copy(in, out)
+                    }
+
+                    if (plugin.default && i == 0) {
+                      logger.info(s"Enable ${file.getName} in default")
+                      FileUtils.copyFile(file, new File(PluginHome, version.file))
+                    }
+                  }
+              }
           }
         }
       }
@@ -183,7 +196,7 @@ class DeleteOldActivityActor extends Actor with SystemSettingsService with Activ
   def receive = {
     case s: String => {
       loadSystemSettings().activityLogLimit.foreach { limit =>
-        if(limit > 0){
+        if (limit > 0) {
           Database() withTransaction { implicit session =>
             val rows = deleteOldActivities(limit)
             logger.info(s"Deleted ${rows} activity logs")

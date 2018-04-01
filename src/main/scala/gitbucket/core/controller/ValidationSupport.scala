@@ -14,58 +14,58 @@ trait ValidationSupport extends FormSupport { self: ServletBase with JacksonJson
 
   def get[T](path: String, form: ValueType[T])(action: T => Any): Route = {
     registerValidate(path, form)
-    get(path){
+    get(path) {
       validate(form)(errors => BadRequest(), form => action(form))
     }
   }
 
   def post[T](path: String, form: ValueType[T])(action: T => Any): Route = {
     registerValidate(path, form)
-    post(path){
+    post(path) {
       validate(form)(errors => BadRequest(), form => action(form))
     }
   }
 
   def put[T](path: String, form: ValueType[T])(action: T => Any): Route = {
     registerValidate(path, form)
-    put(path){
+    put(path) {
       validate(form)(errors => BadRequest(), form => action(form))
     }
   }
 
   def delete[T](path: String, form: ValueType[T])(action: T => Any): Route = {
     registerValidate(path, form)
-    delete(path){
+    delete(path) {
       validate(form)(errors => BadRequest(), form => action(form))
     }
   }
 
   def ajaxGet[T](path: String, form: ValueType[T])(action: T => Any): Route = {
-    get(path){
+    get(path) {
       validate(form)(errors => ajaxError(errors), form => action(form))
     }
   }
 
   def ajaxPost[T](path: String, form: ValueType[T])(action: T => Any): Route = {
-    post(path){
+    post(path) {
       validate(form)(errors => ajaxError(errors), form => action(form))
     }
   }
 
   def ajaxDelete[T](path: String, form: ValueType[T])(action: T => Any): Route = {
-    delete(path){
+    delete(path) {
       validate(form)(errors => ajaxError(errors), form => action(form))
     }
   }
 
   def ajaxPut[T](path: String, form: ValueType[T])(action: T => Any): Route = {
-    put(path){
+    put(path) {
       validate(form)(errors => ajaxError(errors), form => action(form))
     }
   }
 
   private def registerValidate[T](path: String, form: ValueType[T]) = {
-    post(path.replaceFirst("/$", "") + "/validate"){
+    post(path.replaceFirst("/$", "") + "/validate") {
       contentType = "application/json"
       toJson(form.validate("", multiParams, messages))
     }
@@ -84,8 +84,9 @@ trait ValidationSupport extends FormSupport { self: ServletBase with JacksonJson
    * Converts errors to JSON.
    */
   private def toJson(errors: Seq[(String, String)]): JObject =
-    JObject(errors.map { case (key, value) =>
-      JField(key, JString(value))
+    JObject(errors.map {
+      case (key, value) =>
+        JField(key, JString(value))
     }.toList)
 
 }

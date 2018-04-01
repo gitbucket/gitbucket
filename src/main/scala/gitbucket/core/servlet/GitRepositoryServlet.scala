@@ -26,7 +26,6 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.json4s.jackson.Serialization._
 
-
 /**
  * Provides Git repository via HTTP.
  *
@@ -50,12 +49,12 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   override def service(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     val agent = req.getHeader("USER-AGENT")
     val index = req.getRequestURI.indexOf(".git")
-    if(index >= 0 && (agent == null || agent.toLowerCase.indexOf("git") < 0)){
+    if (index >= 0 && (agent == null || agent.toLowerCase.indexOf("git") < 0)) {
       // redirect for browsers
       val paths = req.getRequestURI.substring(0, index).split("/")
       res.sendRedirect(baseUrl(req) + "/" + paths.dropRight(1).last + "/" + paths.last)
 
-    } else if(req.getMethod.toUpperCase == "POST" && req.getRequestURI.endsWith("/info/lfs/objects/batch")){
+    } else if (req.getMethod.toUpperCase == "POST" && req.getRequestURI.endsWith("/info/lfs/objects/batch")) {
       serviceGitLfsBatchAPI(req, res)
 
     } else {
@@ -78,39 +77,57 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
       }
       case Some(baseUrl) => {
         val index = req.getRequestURI.indexOf(".git")
-        if(index >= 0){
+        if (index >= 0) {
           req.getRequestURI.substring(0, index).split("/").reverse match {
             case Array(repository, owner, _*) =>
               val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
               val batchResponse = batchRequest.operation match {
                 case "upload" =>
-                  GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
-                    GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
-                      GitLfs.Actions(
-                        upload = Some(GitLfs.Action(
-                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
-                          header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
-                          expires_at = new Date(timeout)
-                        ))
+                  GitLfs.BatchUploadResponse(
+                    "basic",
+                    batchRequest.objects.map { requestObject =>
+                      GitLfs.BatchResponseObject(
+                        requestObject.oid,
+                        requestObject.size,
+                        true,
+                        GitLfs.Actions(
+                          upload = Some(
+                            GitLfs.Action(
+                              href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
+                              header =
+                                Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                              expires_at = new Date(timeout)
+                            )
+                          )
+                        )
                       )
-                    )
-                  })
+                    }
+                  )
                 case "download" =>
-                  GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
-                    GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
-                      GitLfs.Actions(
-                        download = Some(GitLfs.Action(
-                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
-                          header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
-                          expires_at = new Date(timeout)
-                        ))
+                  GitLfs.BatchUploadResponse(
+                    "basic",
+                    batchRequest.objects.map { requestObject =>
+                      GitLfs.BatchResponseObject(
+                        requestObject.oid,
+                        requestObject.size,
+                        true,
+                        GitLfs.Actions(
+                          download = Some(
+                            GitLfs.Action(
+                              href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
+                              header =
+                                Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                              expires_at = new Date(timeout)
+                            )
+                          )
+                        )
                       )
-                    )
-                  })
+                    }
+                  )
               }
 
               res.setContentType("application/vnd.git-lfs+json")
-              using(res.getWriter){ out =>
+              using(res.getWriter) { out =>
                 out.print(write(batchResponse))
                 out.flush()
               }
@@ -121,18 +138,23 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   }
 }
 
-class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest]) extends RepositoryResolver[HttpServletRequest] {
+class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest])
+    extends RepositoryResolver[HttpServletRequest] {
 
   private val resolver = new FileResolver[HttpServletRequest](new File(Directory.GitBucketHome), true)
 
   override def open(req: HttpServletRequest, name: String): Repository = {
     // Rewrite repository path if routing is marched
-    PluginRegistry().getRepositoryRouting("/" + name).map { case GitRepositoryRouting(urlPattern, localPath, _) =>
-      val path = urlPattern.r.replaceFirstIn(name, localPath)
-      resolver.open(req, path)
-    }.getOrElse {
-      parent.open(req, name)
-    }
+    PluginRegistry()
+      .getRepositoryRouting("/" + name)
+      .map {
+        case GitRepositoryRouting(urlPattern, localPath, _) =>
+          val path = urlPattern.r.replaceFirstIn(name, localPath)
+          resolver.open(req, path)
+      }
+      .getOrElse {
+        parent.open(req, name)
+      }
   }
 
 }
@@ -144,23 +166,25 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
 
-    if(PluginRegistry().getRepositoryRouting(request.gitRepositoryPath).isEmpty){
+    if (PluginRegistry().getRepositoryRouting(request.gitRepositoryPath).isEmpty) {
       val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
       logger.debug("requestURI: " + request.getRequestURI)
       logger.debug("pusher:" + pusher)
 
-      defining(request.paths){ paths =>
-        val owner      = paths(1)
+      defining(request.paths) { paths =>
+        val owner = paths(1)
         val repository = paths(2).stripSuffix(".git")
 
         logger.debug("repository:" + owner + "/" + repository)
 
         val settings = loadSystemSettings()
         val baseUrl = settings.baseUrl(request)
-        val sshUrl  = settings.sshAddress.map { x => s"${x.genericUser}@${x.host}:${x.port}" }
+        val sshUrl = settings.sshAddress.map { x =>
+          s"${x.genericUser}@${x.host}:${x.port}"
+        }
 
-        if(!repository.endsWith(".wiki")){
+        if (!repository.endsWith(".wiki")) {
           defining(request) { implicit r =>
             val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
             receivePack.setPreReceiveHook(hook)
@@ -168,9 +192,11 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
           }
         }
 
-        if(repository.endsWith(".wiki")){
+        if (repository.endsWith(".wiki")) {
           defining(request) { implicit r =>
-            receivePack.setPostReceiveHook(new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl))
+            receivePack.setPostReceiveHook(
+              new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl)
+            )
           }
         }
       }
@@ -183,10 +209,19 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 import scala.collection.JavaConverters._
 
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
-  extends PostReceiveHook with PreReceiveHook
-  with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
-    with LabelsService with PrioritiesService with MilestonesService
-    with WebHookPullRequestService with CommitsService {
+    extends PostReceiveHook
+    with PreReceiveHook
+    with RepositoryService
+    with AccountService
+    with IssuesService
+    with ActivityService
+    with PullRequestService
+    with WebHookService
+    with LabelsService
+    with PrioritiesService
+    with MilestonesService
+    with WebHookPullRequestService
+    with CommitsService {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil
@@ -232,14 +267,14 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             } else {
               command.getType match {
                 case ReceiveCommand.Type.DELETE => Nil
-                case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+                case _                          => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
               }
             }
 
             val repositoryInfo = getRepository(owner, repository).get
 
             // Update default branch if repository is empty and pushed branch is not current default branch
-            if(JGitUtil.isEmpty(git) && commits.nonEmpty && branchName != repositoryInfo.repository.defaultBranch){
+            if (JGitUtil.isEmpty(git) && commits.nonEmpty && branchName != repositoryInfo.repository.defaultBranch) {
               saveRepositoryDefaultBranch(owner, repository, branchName)
               // Change repository HEAD
               using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
@@ -274,24 +309,31 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                 case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
                 case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
                 case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
-                case _ =>
+                case _                          =>
               }
             } else if (refName(1) == "tags") {
               command.getType match {
-                case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
-                case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
+                case ReceiveCommand.Type.CREATE =>
+                  recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
+                case ReceiveCommand.Type.DELETE =>
+                  recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
                 case _ =>
               }
             }
 
             if (refName(1) == "heads") {
               command.getType match {
-                case ReceiveCommand.Type.CREATE |
-                     ReceiveCommand.Type.UPDATE |
-                     ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
+                case ReceiveCommand.Type.CREATE | ReceiveCommand.Type.UPDATE |
+                    ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
                   updatePullRequests(owner, repository, branchName)
                   getAccountByUserName(pusher).map { pusherAccount =>
-                    callPullRequestWebHookByRequestBranch("synchronize", repositoryInfo, branchName, baseUrl, pusherAccount)
+                    callPullRequestWebHookByRequestBranch(
+                      "synchronize",
+                      repositoryInfo,
+                      branchName,
+                      baseUrl,
+                      pusherAccount
+                    )
                   }
                 case _ =>
               }
@@ -301,21 +343,37 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             callWebHookOf(owner, repository, WebHook.Push) {
               for {
                 pusherAccount <- getAccountByUserName(pusher)
-                ownerAccount  <- getAccountByUserName(owner)
+                ownerAccount <- getAccountByUserName(owner)
               } yield {
-                WebHookPushPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount,
-                  newId = command.getNewId(), oldId = command.getOldId())
+                WebHookPushPayload(
+                  git,
+                  pusherAccount,
+                  command.getRefName,
+                  repositoryInfo,
+                  newCommits,
+                  ownerAccount,
+                  newId = command.getNewId(),
+                  oldId = command.getOldId()
+                )
               }
             }
-            if (command.getType ==  ReceiveCommand.Type.CREATE) {
+            if (command.getType == ReceiveCommand.Type.CREATE) {
               callWebHookOf(owner, repository, WebHook.Create) {
                 for {
                   pusherAccount <- getAccountByUserName(pusher)
-                  ownerAccount  <- getAccountByUserName(owner)
+                  ownerAccount <- getAccountByUserName(owner)
                 } yield {
                   val refType = if (refName(1) == "tags") "tag" else "branch"
-                  WebHookCreatePayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount,
-                    ref = branchName, refType = refType)
+                  WebHookCreatePayload(
+                    git,
+                    pusherAccount,
+                    command.getRefName,
+                    repositoryInfo,
+                    newCommits,
+                    ownerAccount,
+                    ref = branchName,
+                    refType = refType
+                  )
                 }
               }
             }
@@ -338,7 +396,10 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 }
 
 class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
-  extends PostReceiveHook with WebHookService with AccountService with RepositoryService {
+    extends PostReceiveHook
+    with WebHookService
+    with AccountService
+    with RepositoryService {
 
   private val logger = LoggerFactory.getLogger(classOf[WikiCommitHook])
 
@@ -353,37 +414,40 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
           } else {
             command.getType match {
               case ReceiveCommand.Type.DELETE => None
-              case _ => Some((command.getOldId.getName, command.getNewId.name))
+              case _                          => Some((command.getOldId.getName, command.getNewId.name))
             }
           }
 
-          commitIds.map { case (oldCommitId, newCommitId) =>
-            val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
-              JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
-                val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
-                diffs.collect { case diff if diff.newPath.toLowerCase.endsWith(".md") =>
-                  val action = if(diff.changeType == ChangeType.ADD) "created" else "edited"
-                  val fileName = diff.newPath
-                  (action, fileName, commit.id)
+          commitIds.map {
+            case (oldCommitId, newCommitId) =>
+              val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+                JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
+                  val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+                  diffs.collect {
+                    case diff if diff.newPath.toLowerCase.endsWith(".md") =>
+                      val action = if (diff.changeType == ChangeType.ADD) "created" else "edited"
+                      val fileName = diff.newPath
+                      (action, fileName, commit.id)
+                  }
                 }
               }
-            }
 
-            val pages = commits
-              .groupBy { case (action, fileName, commitId) => fileName }
-              .map { case (fileName, commits) =>
-                (commits.head._1, fileName, commits.last._3)
-              }
+              val pages = commits
+                .groupBy { case (action, fileName, commitId) => fileName }
+                .map {
+                  case (fileName, commits) =>
+                    (commits.head._1, fileName, commits.last._3)
+                }
 
-            callWebHookOf(owner, repository, WebHook.Gollum) {
-              for {
-                pusherAccount  <- getAccountByUserName(pusher)
-                repositoryUser <- getAccountByUserName(owner)
-                repositoryInfo <- getRepository(owner, repository)
-              } yield {
-                WebHookGollumPayload(pages.toSeq, repositoryInfo, repositoryUser, pusherAccount)
+              callWebHookOf(owner, repository, WebHook.Gollum) {
+                for {
+                  pusherAccount <- getAccountByUserName(pusher)
+                  repositoryUser <- getAccountByUserName(owner)
+                  repositoryInfo <- getRepository(owner, repository)
+                } yield {
+                  WebHookGollumPayload(pages.toSeq, repositoryInfo, repositoryUser, pusherAccount)
+                }
               }
-            }
           }
         }
       } catch {

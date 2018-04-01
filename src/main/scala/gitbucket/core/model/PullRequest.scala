@@ -12,10 +12,23 @@ trait PullRequestComponent extends TemplateComponent { self: Profile =>
     val requestBranch = column[String]("REQUEST_BRANCH")
     val commitIdFrom = column[String]("COMMIT_ID_FROM")
     val commitIdTo = column[String]("COMMIT_ID_TO")
-    def * = (userName, repositoryName, issueId, branch, requestUserName, requestRepositoryName, requestBranch, commitIdFrom, commitIdTo) <> (PullRequest.tupled, PullRequest.unapply)
+    def * =
+      (
+        userName,
+        repositoryName,
+        issueId,
+        branch,
+        requestUserName,
+        requestRepositoryName,
+        requestBranch,
+        commitIdFrom,
+        commitIdTo
+      ) <> (PullRequest.tupled, PullRequest.unapply)
 
-    def byPrimaryKey(userName: String, repositoryName: String, issueId: Int) = byIssue(userName, repositoryName, issueId)
-    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], issueId: Rep[Int]) = byIssue(userName, repositoryName, issueId)
+    def byPrimaryKey(userName: String, repositoryName: String, issueId: Int) =
+      byIssue(userName, repositoryName, issueId)
+    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], issueId: Rep[Int]) =
+      byIssue(userName, repositoryName, issueId)
   }
 }
 

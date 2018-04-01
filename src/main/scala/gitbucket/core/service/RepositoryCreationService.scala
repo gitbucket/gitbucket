@@ -33,7 +33,7 @@ object RepositoryCreationService {
 
   def endCreation(owner: String, repository: String, error: Option[String]): Unit = {
     error match {
-      case None => Creating.remove(s"${owner}/${repository}")
+      case None        => Creating.remove(s"${owner}/${repository}")
       case Some(error) => Creating.put(s"${owner}/${repository}", Some(error))
     }
   }
@@ -45,15 +45,33 @@ object RepositoryCreationService {
 }
 
 trait RepositoryCreationService {
-  self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService with PrioritiesService =>
+  self: AccountService
+    with RepositoryService
+    with LabelsService
+    with WikiService
+    with ActivityService
+    with PrioritiesService =>
 
-  def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String],
-    isPrivate: Boolean, createReadme: Boolean): Future[Unit] = {
+  def createRepository(
+    loginAccount: Account,
+    owner: String,
+    name: String,
+    description: Option[String],
+    isPrivate: Boolean,
+    createReadme: Boolean
+  ): Future[Unit] = {
     createRepository(loginAccount, owner, name, description, isPrivate, if (createReadme) "README" else "EMPTY", None)
   }
 
-  def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String],
-    isPrivate: Boolean, initOption: String, sourceUrl: Option[String]): Future[Unit] = Future {
+  def createRepository(
+    loginAccount: Account,
+    owner: String,
+    name: String,
+    description: Option[String],
+    isPrivate: Boolean,
+    initOption: String,
+    sourceUrl: Option[String]
+  ): Future[Unit] = Future {
     RepositoryCreationService.startCreation(owner, name)
     try {
       Database() withTransaction { implicit session =>
@@ -67,7 +85,6 @@ trait RepositoryCreationService {
             Some(dir)
           }
         } else None
-
 
         // Insert to the database at first
         insertRepository(name, owner, description, isPrivate)
@@ -106,13 +123,26 @@ trait RepositoryCreationService {
                   "===============\n"
               }
 
-              builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
-                inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
+              builder.add(
+                JGitUtil.createDirCacheEntry(
+                  "README.md",
+                  FileMode.REGULAR_FILE,
+                  inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))
+                )
+              )
             }
             builder.finish()
 
-            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-              Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
+            JGitUtil.createNewCommit(
+              git,
+              inserter,
+              headId,
+              builder.getDirCache.writeTree(inserter),
+              Constants.HEAD,
+              loginAccount.fullName,
+              loginAccount.mailAddress,
+              "Initial commit"
+            )
           }
         }
 
@@ -165,8 +195,9 @@ trait RepositoryCreationService {
           // Set default collaborators for the private fork
           if (repository.repository.isPrivate) {
             // Copy collaborators from the source repository
-            getCollaborators(repository.owner, repository.name).foreach { case (collaborator, _) =>
-              addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
+            getCollaborators(repository.owner, repository.name).foreach {
+              case (collaborator, _) =>
+                addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
             }
             // Register an owner of the source repository as a collaborator
             addCollaborator(accountName, repository.name, repository.owner, Role.ADMIN.name)
@@ -180,11 +211,14 @@ trait RepositoryCreationService {
           // clone repository actually
           JGitUtil.cloneRepository(
             getRepositoryDir(repository.owner, repository.name),
-            FileUtil.deleteIfExists(getRepositoryDir(accountName, repository.name)))
+            FileUtil.deleteIfExists(getRepositoryDir(accountName, repository.name))
+          )
 
           // Create Wiki repository
-          JGitUtil.cloneRepository(getWikiRepositoryDir(repository.owner, repository.name),
-            FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name)))
+          JGitUtil.cloneRepository(
+            getWikiRepositoryDir(repository.owner, repository.name),
+            FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name))
+          )
 
           // Copy LFS files
           val lfsDir = getLfsDir(repository.owner, repository.name)
@@ -216,10 +250,36 @@ trait RepositoryCreationService {
   }
 
   def insertDefaultPriorities(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    createPriority(userName, repositoryName, "highest", Some("All defects at this priority must be fixed before any public product is delivered."), "fc2929")
-    createPriority(userName, repositoryName, "very high", Some("Issues must be addressed before a final product is delivered."), "fc5629")
-    createPriority(userName, repositoryName, "high", Some("Issues should be addressed before a final product is delivered. If the issue cannot be resolved before delivery, it should be prioritized for the next release."), "fc9629")
-    createPriority(userName, repositoryName, "important", Some("Issues can be shipped with a final product, but should be reviewed before the next release."), "fccd29")
+    createPriority(
+      userName,
+      repositoryName,
+      "highest",
+      Some("All defects at this priority must be fixed before any public product is delivered."),
+      "fc2929"
+    )
+    createPriority(
+      userName,
+      repositoryName,
+      "very high",
+      Some("Issues must be addressed before a final product is delivered."),
+      "fc5629"
+    )
+    createPriority(
+      userName,
+      repositoryName,
+      "high",
+      Some(
+        "Issues should be addressed before a final product is delivered. If the issue cannot be resolved before delivery, it should be prioritized for the next release."
+      ),
+      "fc9629"
+    )
+    createPriority(
+      userName,
+      repositoryName,
+      "important",
+      Some("Issues can be shipped with a final product, but should be reviewed before the next release."),
+      "fccd29"
+    )
     createPriority(userName, repositoryName, "default", Some("Default."), "acacac")
 
     setDefaultPriority(userName, repositoryName, getPriority(userName, repositoryName, "default").map(_.priorityId))

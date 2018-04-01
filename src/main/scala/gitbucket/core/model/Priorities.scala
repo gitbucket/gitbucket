@@ -12,14 +12,16 @@ trait PriorityComponent extends TemplateComponent { self: Profile =>
     val ordering = column[Int]("ORDERING")
     val isDefault = column[Boolean]("IS_DEFAULT")
     val color = column[String]("COLOR")
-    def * = (userName, repositoryName, priorityId, priorityName, description.?, isDefault, ordering, color) <> (Priority.tupled, Priority.unapply)
+    def * =
+      (userName, repositoryName, priorityId, priorityName, description.?, isDefault, ordering, color) <> (Priority.tupled, Priority.unapply)
 
     def byPrimaryKey(owner: String, repository: String, priorityId: Int) = byPriority(owner, repository, priorityId)
-    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], priorityId: Rep[Int]) = byPriority(userName, repositoryName, priorityId)
+    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], priorityId: Rep[Int]) =
+      byPriority(userName, repositoryName, priorityId)
   }
 }
 
-case class Priority (
+case class Priority(
   userName: String,
   repositoryName: String,
   priorityId: Int = 0,
@@ -27,14 +29,15 @@ case class Priority (
   description: Option[String],
   isDefault: Boolean,
   ordering: Int = 0,
-  color: String){
+  color: String
+) {
 
   val fontColor = {
     val r = color.substring(0, 2)
     val g = color.substring(2, 4)
     val b = color.substring(4, 6)
 
-    if(Integer.parseInt(r, 16) + Integer.parseInt(g, 16) + Integer.parseInt(b, 16) > 408){
+    if (Integer.parseInt(r, 16) + Integer.parseInt(g, 16) + Integer.parseInt(b, 16) > 408) {
       "000000"
     } else {
       "ffffff"

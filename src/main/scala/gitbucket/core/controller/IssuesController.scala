@@ -11,23 +11,23 @@ import gitbucket.core.view.Markdown
 import org.scalatra.forms._
 import org.scalatra.{BadRequest, Ok}
 
-
-class IssuesController extends IssuesControllerBase
-  with IssuesService
-  with RepositoryService
-  with AccountService
-  with LabelsService
-  with MilestonesService
-  with ActivityService
-  with HandleCommentService
-  with IssueCreationService
-  with ReadableUsersAuthenticator
-  with ReferrerAuthenticator
-  with WritableUsersAuthenticator
-  with PullRequestService
-  with WebHookIssueCommentService
-  with CommitsService
-  with PrioritiesService
+class IssuesController
+    extends IssuesControllerBase
+    with IssuesService
+    with RepositoryService
+    with AccountService
+    with LabelsService
+    with MilestonesService
+    with ActivityService
+    with HandleCommentService
+    with IssueCreationService
+    with ReadableUsersAuthenticator
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with PullRequestService
+    with WebHookIssueCommentService
+    with CommitsService
+    with PrioritiesService
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService
@@ -45,40 +45,46 @@ trait IssuesControllerBase extends ControllerBase {
     with WebHookIssueCommentService
     with PrioritiesService =>
 
-  case class IssueCreateForm(title: String, content: Option[String],
-    assignedUserName: Option[String], milestoneId: Option[Int], priorityId: Option[Int], labelNames: Option[String])
+  case class IssueCreateForm(
+    title: String,
+    content: Option[String],
+    assignedUserName: Option[String],
+    milestoneId: Option[Int],
+    priorityId: Option[Int],
+    labelNames: Option[String]
+  )
   case class CommentForm(issueId: Int, content: String)
   case class IssueStateForm(issueId: Int, content: Option[String])
 
   val issueCreateForm = mapping(
-      "title"            -> trim(label("Title", text(required))),
-      "content"          -> trim(optional(text())),
-      "assignedUserName" -> trim(optional(text())),
-      "milestoneId"      -> trim(optional(number())),
-      "priorityId"       -> trim(optional(number())),
-      "labelNames"       -> trim(optional(text()))
-    )(IssueCreateForm.apply)
+    "title" -> trim(label("Title", text(required))),
+    "content" -> trim(optional(text())),
+    "assignedUserName" -> trim(optional(text())),
+    "milestoneId" -> trim(optional(number())),
+    "priorityId" -> trim(optional(number())),
+    "labelNames" -> trim(optional(text()))
+  )(IssueCreateForm.apply)
 
   val issueTitleEditForm = mapping(
     "title" -> trim(label("Title", text(required)))
-    )(x => x)
+  )(x => x)
   val issueEditForm = mapping(
     "content" -> trim(optional(text()))
-    )(x => x)
+  )(x => x)
 
   val commentForm = mapping(
-      "issueId" -> label("Issue Id", number()),
-      "content" -> trim(label("Comment", text(required)))
-    )(CommentForm.apply)
+    "issueId" -> label("Issue Id", number()),
+    "content" -> trim(label("Comment", text(required)))
+  )(CommentForm.apply)
 
   val issueStateForm = mapping(
-      "issueId" -> label("Issue Id", number()),
-      "content" -> trim(optional(text()))
-    )(IssueStateForm.apply)
+    "issueId" -> label("Issue Id", number()),
+    "content" -> trim(optional(text()))
+  )(IssueStateForm.apply)
 
   get("/:owner/:repository/issues")(referrersOnly { repository =>
     val q = request.getParameter("q")
-    if(Option(q).exists(_.contains("is:pr"))){
+    if (Option(q).exists(_.contains("is:pr"))) {
       redirect(s"/${repository.owner}/${repository.name}/pulls?q=${StringUtil.urlEncode(q)}")
     } else {
       searchIssues(repository)
@@ -86,45 +92,50 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
-    defining(repository.owner, repository.name, params("id")){ case (owner, name, issueId) =>
-      getIssue(owner, name, issueId) map { issue =>
-        if(issue.isPullRequest){
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          html.issue(
-            issue,
-            getComments(owner, name, issueId.toInt),
-            getIssueLabels(owner, name, issueId.toInt),
-            getAssignableUserNames(owner, name),
-            getMilestonesWithIssueCount(owner, name),
-            getPriorities(owner, name),
-            getLabels(owner, name),
-            isIssueEditable(repository),
-            isIssueManageable(repository),
-            repository)
-        }
-      } getOrElse NotFound()
+    defining(repository.owner, repository.name, params("id")) {
+      case (owner, name, issueId) =>
+        getIssue(owner, name, issueId) map {
+          issue =>
+            if (issue.isPullRequest) {
+              redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            } else {
+              html.issue(
+                issue,
+                getComments(owner, name, issueId.toInt),
+                getIssueLabels(owner, name, issueId.toInt),
+                getAssignableUserNames(owner, name),
+                getMilestonesWithIssueCount(owner, name),
+                getPriorities(owner, name),
+                getLabels(owner, name),
+                isIssueEditable(repository),
+                isIssueManageable(repository),
+                repository
+              )
+            }
+        } getOrElse NotFound()
     }
   })
 
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
-    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
-      defining(repository.owner, repository.name){ case (owner, name) =>
-        html.create(
-          getAssignableUserNames(owner, name),
-          getMilestones(owner, name),
-          getPriorities(owner, name),
-          getDefaultPriority(owner, name),
-          getLabels(owner, name),
-          isIssueManageable(repository),
-          getContentTemplate(repository, "ISSUE_TEMPLATE"),
-          repository)
+    if (isIssueEditable(repository)) { // TODO Should this check is provided by authenticator?
+      defining(repository.owner, repository.name) {
+        case (owner, name) =>
+          html.create(
+            getAssignableUserNames(owner, name),
+            getMilestones(owner, name),
+            getPriorities(owner, name),
+            getDefaultPriority(owner, name),
+            getLabels(owner, name),
+            isIssueManageable(repository),
+            getContentTemplate(repository, "ISSUE_TEMPLATE"),
+            repository
+          )
       }
     } else Unauthorized()
   })
 
   post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { (form, repository) =>
-    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
+    if (isIssueEditable(repository)) { // TODO Should this check is provided by authenticator?
       val issue = createIssue(
         repository,
         form.title,
@@ -133,133 +144,146 @@ trait IssuesControllerBase extends ControllerBase {
         form.milestoneId,
         form.priorityId,
         form.labelNames.toArray.flatMap(_.split(",")),
-        context.loginAccount.get)
+        context.loginAccount.get
+      )
 
       redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
     } else Unauthorized()
   })
 
   ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnly { (title, repository) =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      getIssue(owner, name, params("id")).map { issue =>
-        if(isEditableContent(owner, name, issue.openedUserName)){
-          // update issue
-          updateIssue(owner, name, issue.issueId, title, issue.content)
-          // extract references and create refer comment
-          createReferComment(owner, name, issue.copy(title = title), title, context.loginAccount.get)
+    defining(repository.owner, repository.name) {
+      case (owner, name) =>
+        getIssue(owner, name, params("id")).map { issue =>
+          if (isEditableContent(owner, name, issue.openedUserName)) {
+            // update issue
+            updateIssue(owner, name, issue.issueId, title, issue.content)
+            // extract references and create refer comment
+            createReferComment(owner, name, issue.copy(title = title), title, context.loginAccount.get)
 
-          redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
-        } else Unauthorized()
-      } getOrElse NotFound()
+            redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
+          } else Unauthorized()
+        } getOrElse NotFound()
     }
   })
 
   ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (content, repository) =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      getIssue(owner, name, params("id")).map { issue =>
-        if(isEditableContent(owner, name, issue.openedUserName)){
-          // update issue
-          updateIssue(owner, name, issue.issueId, issue.title, content)
-          // extract references and create refer comment
-          createReferComment(owner, name, issue, content.getOrElse(""), context.loginAccount.get)
+    defining(repository.owner, repository.name) {
+      case (owner, name) =>
+        getIssue(owner, name, params("id")).map { issue =>
+          if (isEditableContent(owner, name, issue.openedUserName)) {
+            // update issue
+            updateIssue(owner, name, issue.issueId, issue.title, content)
+            // extract references and create refer comment
+            createReferComment(owner, name, issue, content.getOrElse(""), context.loginAccount.get)
 
-          redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
-        } else Unauthorized()
-      } getOrElse NotFound()
+            redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
+          } else Unauthorized()
+        } getOrElse NotFound()
     }
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
     getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
-      val actionOpt = params.get("action").filter(_ => isEditableContent(issue.userName, issue.repositoryName, issue.openedUserName))
-      handleComment(issue, Some(form.content), repository, actionOpt) map { case (issue, id) =>
-        redirect(s"/${repository.owner}/${repository.name}/${
-          if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+      val actionOpt =
+        params.get("action").filter(_ => isEditableContent(issue.userName, issue.repositoryName, issue.openedUserName))
+      handleComment(issue, Some(form.content), repository, actionOpt) map {
+        case (issue, id) =>
+          redirect(
+            s"/${repository.owner}/${repository.name}/${if (issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}"
+          )
       }
     } getOrElse NotFound()
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
     getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
-      val actionOpt = params.get("action").filter(_ => isEditableContent(issue.userName, issue.repositoryName, issue.openedUserName))
-      handleComment(issue, form.content, repository, actionOpt) map { case (issue, id) =>
-        redirect(s"/${repository.owner}/${repository.name}/${
-          if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+      val actionOpt =
+        params.get("action").filter(_ => isEditableContent(issue.userName, issue.repositoryName, issue.openedUserName))
+      handleComment(issue, form.content, repository, actionOpt) map {
+        case (issue, id) =>
+          redirect(
+            s"/${repository.owner}/${repository.name}/${if (issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}"
+          )
       }
     } getOrElse NotFound()
   })
 
   ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      getComment(owner, name, params("id")).map { comment =>
-        if(isEditableContent(owner, name, comment.commentedUserName)){
-          updateComment(comment.issueId, comment.commentId, form.content)
-          redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
-        } else Unauthorized()
-      } getOrElse NotFound()
+    defining(repository.owner, repository.name) {
+      case (owner, name) =>
+        getComment(owner, name, params("id")).map { comment =>
+          if (isEditableContent(owner, name, comment.commentedUserName)) {
+            updateComment(comment.issueId, comment.commentId, form.content)
+            redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
+          } else Unauthorized()
+        } getOrElse NotFound()
     }
   })
 
   ajaxPost("/:owner/:repository/issue_comments/delete/:id")(readableUsersOnly { repository =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      getComment(owner, name, params("id")).map { comment =>
-        if(isEditableContent(owner, name, comment.commentedUserName)){
-          Ok(deleteComment(comment.issueId, comment.commentId))
-        } else Unauthorized()
-      } getOrElse NotFound()
+    defining(repository.owner, repository.name) {
+      case (owner, name) =>
+        getComment(owner, name, params("id")).map { comment =>
+          if (isEditableContent(owner, name, comment.commentedUserName)) {
+            Ok(deleteComment(comment.issueId, comment.commentId))
+          } else Unauthorized()
+        } getOrElse NotFound()
     }
   })
 
   ajaxGet("/:owner/:repository/issues/_data/:id")(readableUsersOnly { repository =>
-    getIssue(repository.owner, repository.name, params("id")) map { x =>
-      if(isEditableContent(x.userName, x.repositoryName, x.openedUserName)){
-        params.get("dataType") collect {
-          case t if t == "html" => html.editissue(x.content, x.issueId, repository)
-        } getOrElse {
-          contentType = formats("json")
-          org.json4s.jackson.Serialization.write(
-            Map(
-              "title"   -> x.title,
-              "content" -> Markdown.toHtml(
-                markdown = x.content getOrElse "No description given.",
-                repository = repository,
-                enableWikiLink = false,
-                enableRefsLink = true,
-                enableAnchor = true,
-                enableLineBreaks = true,
-                enableTaskList = true,
-                hasWritePermission = true
+    getIssue(repository.owner, repository.name, params("id")) map {
+      x =>
+        if (isEditableContent(x.userName, x.repositoryName, x.openedUserName)) {
+          params.get("dataType") collect {
+            case t if t == "html" => html.editissue(x.content, x.issueId, repository)
+          } getOrElse {
+            contentType = formats("json")
+            org.json4s.jackson.Serialization.write(
+              Map(
+                "title" -> x.title,
+                "content" -> Markdown.toHtml(
+                  markdown = x.content getOrElse "No description given.",
+                  repository = repository,
+                  enableWikiLink = false,
+                  enableRefsLink = true,
+                  enableAnchor = true,
+                  enableLineBreaks = true,
+                  enableTaskList = true,
+                  hasWritePermission = true
+                )
               )
             )
-          )
-        }
-      } else Unauthorized()
+          }
+        } else Unauthorized()
     } getOrElse NotFound()
   })
 
   ajaxGet("/:owner/:repository/issue_comments/_data/:id")(readableUsersOnly { repository =>
-    getComment(repository.owner, repository.name, params("id")) map { x =>
-      if(isEditableContent(x.userName, x.repositoryName, x.commentedUserName)){
-        params.get("dataType") collect {
-          case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
-        } getOrElse {
-          contentType = formats("json")
-          org.json4s.jackson.Serialization.write(
-            Map(
-              "content" -> view.Markdown.toHtml(
-                markdown = x.content,
-                repository = repository,
-                enableWikiLink = false,
-                enableRefsLink = true,
-                enableAnchor = true,
-                enableLineBreaks = true,
-                enableTaskList = true,
-                hasWritePermission = true
+    getComment(repository.owner, repository.name, params("id")) map {
+      x =>
+        if (isEditableContent(x.userName, x.repositoryName, x.commentedUserName)) {
+          params.get("dataType") collect {
+            case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
+          } getOrElse {
+            contentType = formats("json")
+            org.json4s.jackson.Serialization.write(
+              Map(
+                "content" -> view.Markdown.toHtml(
+                  markdown = x.content,
+                  repository = repository,
+                  enableWikiLink = false,
+                  enableRefsLink = true,
+                  enableAnchor = true,
+                  enableLineBreaks = true,
+                  enableTaskList = true,
+                  hasWritePermission = true
+                )
               )
             )
-          )
-        }
-      } else Unauthorized()
+          }
+        } else Unauthorized()
     } getOrElse NotFound()
   })
 
@@ -270,21 +294,27 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/:id/label/new")(writableUsersOnly { repository =>
-    defining(params("id").toInt){ issueId =>
+    defining(params("id").toInt) { issueId =>
       registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
       html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
   ajaxPost("/:owner/:repository/issues/:id/label/delete")(writableUsersOnly { repository =>
-    defining(params("id").toInt){ issueId =>
+    defining(params("id").toInt) { issueId =>
       deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
       html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
   ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>
-    updateAssignedUserName(repository.owner, repository.name, params("id").toInt, assignedUserName("assignedUserName"), true)
+    updateAssignedUserName(
+      repository.owner,
+      repository.name,
+      params("id").toInt,
+      assignedUserName("assignedUserName"),
+      true
+    )
     Ok("updated")
   })
 
@@ -292,9 +322,11 @@ trait IssuesControllerBase extends ControllerBase {
     updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"), true)
     milestoneId("milestoneId").map { milestoneId =>
       getMilestonesWithIssueCount(repository.owner, repository.name)
-          .find(_._1.milestoneId == milestoneId).map { case (_, openCount, closeCount) =>
-        gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
-      } getOrElse NotFound()
+        .find(_._1.milestoneId == milestoneId)
+        .map {
+          case (_, openCount, closeCount) =>
+            gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
+        } getOrElse NotFound()
     } getOrElse Ok()
   })
 
@@ -305,25 +337,28 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>
-    defining(params.get("value")){ action =>
-      action match {
-        case Some("open")  => executeBatch(repository) { issueId =>
-          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-            handleComment(issue, None, repository, Some("reopen"))
-          }
+    defining(params.get("value")) {
+      action =>
+        action match {
+          case Some("open") =>
+            executeBatch(repository) { issueId =>
+              getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+                handleComment(issue, None, repository, Some("reopen"))
+              }
+            }
+          case Some("close") =>
+            executeBatch(repository) { issueId =>
+              getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+                handleComment(issue, None, repository, Some("close"))
+              }
+            }
+          case _ => BadRequest()
         }
-        case Some("close") => executeBatch(repository) { issueId =>
-          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-            handleComment(issue, None, repository, Some("close"))
-          }
-        }
-        case _ => BadRequest()
-      }
     }
   })
 
   post("/:owner/:repository/issues/batchedit/label")(writableUsersOnly { repository =>
-    params("value").toIntOpt.map{ labelId =>
+    params("value").toIntOpt.map { labelId =>
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
           registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
@@ -333,7 +368,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
-    defining(assignedUserName("value")){ value =>
+    defining(assignedUserName("value")) { value =>
       executeBatch(repository) {
         updateAssignedUserName(repository.owner, repository.name, _, value, true)
       }
@@ -341,7 +376,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issues/batchedit/milestone")(writableUsersOnly { repository =>
-    defining(milestoneId("value")){ value =>
+    defining(milestoneId("value")) { value =>
       executeBatch(repository) {
         updateMilestoneId(repository.owner, repository.name, _, value, true)
       }
@@ -349,7 +384,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issues/batchedit/priority")(writableUsersOnly { repository =>
-    defining(priorityId("value")){ value =>
+    defining(priorityId("value")) { value =>
       executeBatch(repository) {
         updatePriorityId(repository.owner, repository.name, _, value, true)
       }
@@ -358,7 +393,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   get("/:owner/:repository/_attached/:file")(referrersOnly { repository =>
     (Directory.getAttachedDir(repository.owner, repository.name) match {
-      case dir if(dir.exists && dir.isDirectory) =>
+      case dir if (dir.exists && dir.isDirectory) =>
         dir.listFiles.find(_.getName.startsWith(params("file") + ".")).map { file =>
           response.setHeader("Content-Disposition", f"""inline; filename=${file.getName}""")
           RawData(FileUtil.getMimeType(file.getName), file)
@@ -372,7 +407,7 @@ trait IssuesControllerBase extends ControllerBase {
   val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
 
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
-    params("checked").split(',') map(_.toInt) foreach execute
+    params("checked").split(',') map (_.toInt) foreach execute
     params("from") match {
       case "issues" => redirect(s"/${repository.owner}/${repository.name}/issues")
       case "pulls"  => redirect(s"/${repository.owner}/${repository.name}/pulls")
@@ -380,13 +415,14 @@ trait IssuesControllerBase extends ControllerBase {
   }
 
   private def searchIssues(repository: RepositoryService.RepositoryInfo) = {
-    defining(repository.owner, repository.name){ case (owner, repoName) =>
-      val page = IssueSearchCondition.page(request)
+    defining(repository.owner, repository.name) {
+      case (owner, repoName) =>
+        val page = IssueSearchCondition.page(request)
 
-      // retrieve search condition
-      val condition = IssueSearchCondition(request)
+        // retrieve search condition
+        val condition = IssueSearchCondition(request)
 
-      html.list(
+        html.list(
           "issues",
           searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
@@ -394,19 +430,22 @@ trait IssuesControllerBase extends ControllerBase {
           getMilestones(owner, repoName),
           getPriorities(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
+          countIssue(condition.copy(state = "open"), false, owner -> repoName),
           countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
           repository,
           isIssueEditable(repository),
-          isIssueManageable(repository))
+          isIssueManageable(repository)
+        )
     }
   }
 
   /**
    * Tests whether an issue or a comment is editable by a logged-in user.
    */
-  private def isEditableContent(owner: String, repository: String, author: String)(implicit context: Context): Boolean = {
+  private def isEditableContent(owner: String, repository: String, author: String)(
+    implicit context: Context
+  ): Boolean = {
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
   }
 }

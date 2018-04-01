@@ -9,21 +9,22 @@ object Directory {
 
   val GitBucketHome = (System.getProperty("gitbucket.home") match {
     // -Dgitbucket.home=<path>
-    case path if(path != null) => new File(path)
-    case _ => scala.util.Properties.envOrNone("GITBUCKET_HOME") match {
-      // environment variable GITBUCKET_HOME
-      case Some(env) => new File(env)
-      // default is HOME/.gitbucket
-      case None => {
-        val oldHome = new File(System.getProperty("user.home"), "gitbucket")
-        if(oldHome.exists && oldHome.isDirectory && new File(oldHome, "version").exists){
-          //FileUtils.moveDirectory(oldHome, newHome)
-          oldHome
-        } else {
-          new File(System.getProperty("user.home"), ".gitbucket")
+    case path if (path != null) => new File(path)
+    case _ =>
+      scala.util.Properties.envOrNone("GITBUCKET_HOME") match {
+        // environment variable GITBUCKET_HOME
+        case Some(env) => new File(env)
+        // default is HOME/.gitbucket
+        case None => {
+          val oldHome = new File(System.getProperty("user.home"), "gitbucket")
+          if (oldHome.exists && oldHome.isDirectory && new File(oldHome, "version").exists) {
+            //FileUtils.moveDirectory(oldHome, newHome)
+            oldHome
+          } else {
+            new File(System.getProperty("user.home"), ".gitbucket")
+          }
         }
       }
-    }
   }).getAbsolutePath
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
@@ -55,8 +56,8 @@ object Directory {
     new File(getRepositoryFilesDir(owner, repository), "comments")
 
   /**
-    * Directory for released files
-    */
+   * Directory for released files
+   */
   def getReleaseFilesDir(owner: String, repository: String): File =
     new File(getRepositoryFilesDir(owner, repository), "releases")
 

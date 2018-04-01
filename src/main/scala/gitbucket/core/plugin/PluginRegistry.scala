@@ -70,7 +70,7 @@ class PluginRegistry {
 
   @deprecated("Use addImage(id: String, bytes: Array[Byte]) instead", "3.4.0")
   def addImage(id: String, in: InputStream): Unit = {
-    val bytes = using(in){ in =>
+    val bytes = using(in) { in =>
       val bytes = new Array[Byte](in.available)
       in.read(bytes)
       bytes
@@ -87,9 +87,11 @@ class PluginRegistry {
 
   def getControllers(): Seq[(ControllerBase, String)] = controllers.asScala.toSeq
 
-  def addJavaScript(path: String, script: String): Unit = javaScripts.add((path, script)) //javaScripts += ((path, script))
+  def addJavaScript(path: String, script: String): Unit =
+    javaScripts.add((path, script)) //javaScripts += ((path, script))
 
-  def getJavaScript(currentPath: String): List[String] = javaScripts.asScala.filter(x => currentPath.matches(x._1)).toList.map(_._2)
+  def getJavaScript(currentPath: String): List[String] =
+    javaScripts.asScala.filter(x => currentPath.matches(x._1)).toList.map(_._2)
 
   def addRenderer(extension: String, renderer: Renderer): Unit = renderers.put(extension, renderer)
 
@@ -129,7 +131,8 @@ class PluginRegistry {
 
   def getPullRequestHooks: Seq[PullRequestHook] = pullRequestHooks.asScala.toSeq
 
-  def addRepositoryHeader(repositoryHeader: (RepositoryInfo, Context) => Option[Html]): Unit = repositoryHeaders.add(repositoryHeader)
+  def addRepositoryHeader(repositoryHeader: (RepositoryInfo, Context) => Option[Html]): Unit =
+    repositoryHeaders.add(repositoryHeader)
 
   def getRepositoryHeaders: Seq[(RepositoryInfo, Context) => Option[Html]] = repositoryHeaders.asScala.toSeq
 
@@ -137,11 +140,13 @@ class PluginRegistry {
 
   def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.asScala.toSeq
 
-  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = repositoryMenus.add(repositoryMenu)
+  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit =
+    repositoryMenus.add(repositoryMenu)
 
   def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.asScala.toSeq
 
-  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = repositorySettingTabs.add(repositorySettingTab)
+  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit =
+    repositorySettingTabs.add(repositorySettingTab)
 
   def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.asScala.toSeq
 
@@ -149,11 +154,13 @@ class PluginRegistry {
 
   def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.asScala.toSeq
 
-  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = systemSettingMenus.add(systemSettingMenu)
+  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit =
+    systemSettingMenus.add(systemSettingMenu)
 
   def getSystemSettingMenus: Seq[(Context) => Option[Link]] = systemSettingMenus.asScala.toSeq
 
-  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = accountSettingMenus.add(accountSettingMenu)
+  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit =
+    accountSettingMenus.add(accountSettingMenu)
 
   def getAccountSettingMenus: Seq[(Context) => Option[Link]] = accountSettingMenus.asScala.toSeq
 
@@ -161,7 +168,8 @@ class PluginRegistry {
 
   def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.asScala.toSeq
 
-  def addIssueSidebar(issueSidebar: (Issue, RepositoryInfo, Context) => Option[Html]): Unit = issueSidebars.add(issueSidebar)
+  def addIssueSidebar(issueSidebar: (Issue, RepositoryInfo, Context) => Option[Html]): Unit =
+    issueSidebars.add(issueSidebar)
 
   def getIssueSidebars: Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = issueSidebars.asScala.toSeq
 
@@ -177,7 +185,8 @@ class PluginRegistry {
 
   def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.asScala.toSeq
 
-  def addSshCommandProvider(sshCommandProvider: PartialFunction[String, Command]): Unit = sshCommandProviders.add(sshCommandProvider)
+  def addSshCommandProvider(sshCommandProvider: PartialFunction[String, Command]): Unit =
+    sshCommandProviders.add(sshCommandProvider)
 
   def getSshCommandProviders: Seq[PartialFunction[String, Command]] = sshCommandProviders.asScala.toSeq
 }
@@ -212,37 +221,44 @@ object PluginRegistry {
   /**
    * Uninstall a specified plugin.
    */
-  def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
-    instance.getPlugins()
-      .collect { case plugin if plugin.pluginId == pluginId => plugin }
-      .foreach { plugin =>
+  def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit =
+    synchronized {
+      instance
+        .getPlugins()
+        .collect { case plugin if plugin.pluginId == pluginId => plugin }
+        .foreach { plugin =>
 //      try {
 //        plugin.pluginClass.uninstall(instance, context, settings)
 //      } catch {
 //        case e: Exception =>
 //          logger.error(s"Error during uninstalling plugin: ${plugin.pluginJar.getName}", e)
 //      }
-        shutdown(context, settings)
-        plugin.pluginJar.delete()
-        instance = new PluginRegistry()
-        initialize(context, settings, conn)
-      }
-  }
+          shutdown(context, settings)
+          plugin.pluginJar.delete()
+          instance = new PluginRegistry()
+          initialize(context, settings, conn)
+        }
+    }
 
   /**
    * Install a plugin from a specified jar file.
    */
-  def install(file: File, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
-    shutdown(context, settings)
-    FileUtils.copyFile(file, new File(PluginHome, file.getName))
-    instance = new PluginRegistry()
-    initialize(context, settings, conn)
-  }
+  def install(file: File, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit =
+    synchronized {
+      shutdown(context, settings)
+      FileUtils.copyFile(file, new File(PluginHome, file.getName))
+      instance = new PluginRegistry()
+      initialize(context, settings, conn)
+    }
 
   private def listPluginJars(dir: File): Seq[File] = {
-    dir.listFiles(new FilenameFilter {
-      override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-    }).toSeq.sortBy(_.getName).reverse
+    dir
+      .listFiles(new FilenameFilter {
+        override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
+      })
+      .toSeq
+      .sortBy(_.getName)
+      .reverse
   }
 
   lazy val extraPluginDir: Option[String] = Option(System.getProperty("gitbucket.pluginDir"))
@@ -256,13 +272,17 @@ object PluginRegistry {
 
     // Clean installed directory
     val installedDir = new File(PluginHome, ".installed")
-    if(installedDir.exists){
+    if (installedDir.exists) {
       FileUtils.deleteDirectory(installedDir)
     }
     installedDir.mkdirs()
 
     val pluginJars = listPluginJars(pluginDir)
-    val extraJars = extraPluginDir.map { extraDir => listPluginJars(new File(extraDir)) }.getOrElse(Nil)
+    val extraJars = extraPluginDir
+      .map { extraDir =>
+        listPluginJars(new File(extraDir))
+      }
+      .getOrElse(Nil)
 
     (extraJars ++ pluginJars).foreach { pluginJar =>
       val installedJar = new File(installedDir, pluginJar.getName)
@@ -283,27 +303,32 @@ object PluginRegistry {
           case None => {
             // Migration
             val solidbase = new Solidbase()
-            solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
+            solidbase
+              .migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
             conn.commit()
 
             // Check database version
             val databaseVersion = manager.getCurrentVersion(plugin.pluginId)
             val pluginVersion = plugin.versions.last.getVersion
             if (databaseVersion != pluginVersion) {
-              throw new IllegalStateException(s"Plugin version is ${pluginVersion}, but database version is ${databaseVersion}")
+              throw new IllegalStateException(
+                s"Plugin version is ${pluginVersion}, but database version is ${databaseVersion}"
+              )
             }
 
             // Initialize
             plugin.initialize(instance, context, settings)
-            instance.addPlugin(PluginInfo(
-              pluginId      = plugin.pluginId,
-              pluginName    = plugin.pluginName,
-              pluginVersion = plugin.versions.last.getVersion,
-              description   = plugin.description,
-              pluginClass   = plugin,
-              pluginJar     = pluginJar,
-              classLoader   = classLoader
-            ))
+            instance.addPlugin(
+              PluginInfo(
+                pluginId = plugin.pluginId,
+                pluginName = plugin.pluginName,
+                pluginVersion = plugin.versions.last.getVersion,
+                description = plugin.description,
+                pluginClass = plugin,
+                pluginJar = pluginJar,
+                classLoader = classLoader
+              )
+            )
           }
         }
       } catch {
@@ -311,13 +336,13 @@ object PluginRegistry {
       }
     }
 
-    if(watcher == null){
+    if (watcher == null) {
       watcher = new PluginWatchThread(context, PluginHome)
       watcher.start()
     }
 
     extraPluginDir.foreach { extraDir =>
-      if(extraWatcher == null){
+      if (extraWatcher == null) {
         extraWatcher = new PluginWatchThread(context, extraDir)
         extraWatcher.start()
       }
@@ -328,11 +353,11 @@ object PluginRegistry {
     instance.getPlugins().foreach { plugin =>
       try {
         plugin.pluginClass.shutdown(instance, context, settings)
-        if(watcher != null){
+        if (watcher != null) {
           watcher.interrupt()
           watcher = null
         }
-        if(extraWatcher != null){
+        if (extraWatcher != null) {
           extraWatcher.interrupt()
           extraWatcher = null
         }
@@ -380,17 +405,19 @@ class PluginWatchThread(context: ServletContext, dir: String) extends Thread wit
 
   override def run(): Unit = {
     val path = Paths.get(dir)
-    if(!Files.exists(path)){
+    if (!Files.exists(path)) {
       Files.createDirectories(path)
     }
     val fs = path.getFileSystem
     val watcher = fs.newWatchService
 
-    val watchKey = path.register(watcher,
+    val watchKey = path.register(
+      watcher,
       StandardWatchEventKinds.ENTRY_CREATE,
       StandardWatchEventKinds.ENTRY_MODIFY,
       StandardWatchEventKinds.ENTRY_DELETE,
-      StandardWatchEventKinds.OVERFLOW)
+      StandardWatchEventKinds.OVERFLOW
+    )
 
     logger.info("Start PluginWatchThread: " + path)
 
@@ -400,13 +427,13 @@ class PluginWatchThread(context: ServletContext, dir: String) extends Thread wit
         val events = detectedWatchKey.pollEvents.asScala.filter { e =>
           e.context.toString != ".installed" && !e.context.toString.endsWith(".bak")
         }
-        if(events.nonEmpty){
+        if (events.nonEmpty) {
           events.foreach { event =>
             logger.info(event.kind + ": " + event.context)
           }
           new Thread {
             override def run(): Unit = {
-                gitbucket.core.servlet.Database() withTransaction { session =>
+              gitbucket.core.servlet.Database() withTransaction { session =>
                 logger.info("Reloading plugins...")
                 PluginRegistry.reload(context, loadSystemSettings(), session.conn)
                 logger.info("Reloading finished.")

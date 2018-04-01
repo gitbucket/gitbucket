@@ -17,8 +17,9 @@ object DatabaseConfig {
 
   private lazy val config = {
     val file = new File(GitBucketHome, "database.conf")
-    if(!file.exists){
-      FileUtils.write(file,
+    if (!file.exists) {
+      FileUtils.write(
+        file,
         """db {
           |  url = "jdbc:h2:${DatabaseHome};MVCC=true"
           |  user = "sa"
@@ -29,7 +30,9 @@ object DatabaseConfig {
           |#  minimumIdle = 10
           |#  maximumPoolSize = 10
           |}
-          |""".stripMargin, "UTF-8")
+          |""".stripMargin,
+        "UTF-8"
+      )
     }
     ConfigFactory.parseFile(file)
   }
@@ -39,27 +42,27 @@ object DatabaseConfig {
   def url(directory: Option[String]): String =
     dbUrl.replace("${DatabaseHome}", directory.getOrElse(DatabaseHome))
 
-  lazy val url                : String = url(None)
-  lazy val user               : String = getValue("db.user", config.getString)
-  lazy val password           : String = getValue("db.password", config.getString)
-  lazy val jdbcDriver         : String = DatabaseType(url).jdbcDriver
-  lazy val slickDriver        : BlockingJdbcProfile  = DatabaseType(url).slickDriver
-  lazy val liquiDriver        : AbstractJdbcDatabase = DatabaseType(url).liquiDriver
-  lazy val connectionTimeout  : Option[Long]   = getOptionValue("db.connectionTimeout", config.getLong)
-  lazy val idleTimeout        : Option[Long]   = getOptionValue("db.idleTimeout"      , config.getLong)
-  lazy val maxLifetime        : Option[Long]   = getOptionValue("db.maxLifetime"      , config.getLong)
-  lazy val minimumIdle        : Option[Int]    = getOptionValue("db.minimumIdle"      , config.getInt)
-  lazy val maximumPoolSize    : Option[Int]    = getOptionValue("db.maximumPoolSize"  , config.getInt)
+  lazy val url: String = url(None)
+  lazy val user: String = getValue("db.user", config.getString)
+  lazy val password: String = getValue("db.password", config.getString)
+  lazy val jdbcDriver: String = DatabaseType(url).jdbcDriver
+  lazy val slickDriver: BlockingJdbcProfile = DatabaseType(url).slickDriver
+  lazy val liquiDriver: AbstractJdbcDatabase = DatabaseType(url).liquiDriver
+  lazy val connectionTimeout: Option[Long] = getOptionValue("db.connectionTimeout", config.getLong)
+  lazy val idleTimeout: Option[Long] = getOptionValue("db.idleTimeout", config.getLong)
+  lazy val maxLifetime: Option[Long] = getOptionValue("db.maxLifetime", config.getLong)
+  lazy val minimumIdle: Option[Int] = getOptionValue("db.minimumIdle", config.getInt)
+  lazy val maximumPoolSize: Option[Int] = getOptionValue("db.maximumPoolSize", config.getInt)
 
   private def getValue[T](path: String, f: String => T): T = {
-    getSystemProperty(path).getOrElse(getEnvironmentVariable(path).getOrElse{
+    getSystemProperty(path).getOrElse(getEnvironmentVariable(path).getOrElse {
       f(path)
     })
   }
 
   private def getOptionValue[T](path: String, f: String => T): Option[T] = {
     getSystemProperty(path).orElse(getEnvironmentVariable(path).orElse {
-      if(config.hasPath(path)) Some(f(path)) else None
+      if (config.hasPath(path)) Some(f(path)) else None
     })
   }
 
@@ -74,11 +77,11 @@ sealed trait DatabaseType {
 object DatabaseType {
 
   def apply(url: String): DatabaseType = {
-    if(url.startsWith("jdbc:h2:")){
+    if (url.startsWith("jdbc:h2:")) {
       H2
-    } else if(url.startsWith("jdbc:mysql:")){
+    } else if (url.startsWith("jdbc:mysql:")) {
       MySQL
-    } else if(url.startsWith("jdbc:postgresql:")){
+    } else if (url.startsWith("jdbc:postgresql:")) {
       PostgreSQL
     } else {
       throw new IllegalArgumentException(s"${url} is not supported.")
@@ -106,7 +109,7 @@ object DatabaseType {
   object BlockingPostgresDriver extends slick.jdbc.PostgresProfile with BlockingJdbcProfile {
     override def quoteIdentifier(id: String): String = {
       val s = new StringBuilder(id.length + 4) append '"'
-      for(c <- id) if(c == '"') s append "\"\"" else s append c.toLower
+      for (c <- id) if (c == '"') s append "\"\"" else s append c.toLower
       (s append '"').toString
     }
   }
@@ -116,7 +119,7 @@ object ConfigUtil {
 
   def getEnvironmentVariable[A](key: String): Option[A] = {
     val value = System.getenv("GITBUCKET_" + key.toUpperCase.replace('.', '_'))
-    if(value != null && value.nonEmpty){
+    if (value != null && value.nonEmpty) {
       Some(convertType(value)).asInstanceOf[Option[A]]
     } else {
       None
@@ -125,7 +128,7 @@ object ConfigUtil {
 
   def getSystemProperty[A](key: String): Option[A] = {
     val value = System.getProperty("gitbucket." + key)
-    if(value != null && value.nonEmpty){
+    if (value != null && value.nonEmpty) {
       Some(convertType(value)).asInstanceOf[Option[A]]
     } else {
       None
@@ -133,10 +136,10 @@ object ConfigUtil {
   }
 
   def convertType[A: ClassTag](value: String) =
-    defining(implicitly[ClassTag[A]].runtimeClass){ c =>
-      if(c == classOf[Boolean])  value.toBoolean
-      else if(c == classOf[Long]) value.toLong
-      else if(c == classOf[Int]) value.toInt
+    defining(implicitly[ClassTag[A]].runtimeClass) { c =>
+      if (c == classOf[Boolean]) value.toBoolean
+      else if (c == classOf[Long]) value.toLong
+      else if (c == classOf[Int]) value.toInt
       else value
     }
 

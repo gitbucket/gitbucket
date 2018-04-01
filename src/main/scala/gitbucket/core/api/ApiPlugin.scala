@@ -10,7 +10,7 @@ case class ApiPlugin(
   jarFileName: String
 )
 
-object ApiPlugin{
+object ApiPlugin {
   def apply(plugin: PluginInfo): ApiPlugin = {
     ApiPlugin(plugin.pluginId, plugin.pluginName, plugin.pluginVersion, plugin.description, plugin.pluginJar.getName)
   }

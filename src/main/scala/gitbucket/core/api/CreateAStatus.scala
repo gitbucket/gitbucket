@@ -18,9 +18,9 @@ case class CreateAStatus(
 ) {
   def isValid: Boolean = {
     CommitState.valueOf(state).isDefined &&
-      // only http
-      target_url.forall(f => "\\Ahttps?://".r.findPrefixOf(f).isDefined && f.length < 255) &&
-      context.forall(f => f.length < 255) &&
-      description.forall(f => f.length < 1000)
+    // only http
+    target_url.forall(f => "\\Ahttps?://".r.findPrefixOf(f).isDefined && f.length < 255) &&
+    context.forall(f => f.length < 255) &&
+    description.forall(f => f.length < 1000)
   }
 }

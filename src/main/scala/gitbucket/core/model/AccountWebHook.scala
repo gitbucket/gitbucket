@@ -3,7 +3,8 @@ package gitbucket.core.model
 trait AccountWebHookComponent extends TemplateComponent { self: Profile =>
   import profile.api._
 
-  private implicit val whContentTypeColumnType = MappedColumnType.base[WebHookContentType, String](whct => whct.code , code => WebHookContentType.valueOf(code))
+  private implicit val whContentTypeColumnType =
+    MappedColumnType.base[WebHookContentType, String](whct => whct.code, code => WebHookContentType.valueOf(code))
 
   lazy val AccountWebHooks = TableQuery[AccountWebHooks]
 

@@ -7,7 +7,6 @@ import gitbucket.core.util.StringUtil
 
 import scala.util.Random
 
-
 trait AccessTokenService {
 
   def makeAccessTokenString: String = {
@@ -27,13 +26,10 @@ trait AccessTokenService {
 
     do {
       token = makeAccessTokenString
-      hash  = tokenToHash(token)
+      hash = tokenToHash(token)
     } while (AccessTokens.filter(_.tokenHash === hash.bind).exists.run)
 
-    val newToken = AccessToken(
-        userName = userName,
-        note = note,
-        tokenHash = hash)
+    val newToken = AccessToken(userName = userName, note = note, tokenHash = hash)
     val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) insert newToken
     (tokenId, token)
   }
@@ -41,8 +37,11 @@ trait AccessTokenService {
   def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] =
     Accounts
       .join(AccessTokens)
-      .filter { case (ac, t) => (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind) }
-      .map    { case (ac, t) => ac }
+      .filter {
+        case (ac, t) =>
+          (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind)
+      }
+      .map { case (ac, t) => ac }
       .firstOption
 
   def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] =
