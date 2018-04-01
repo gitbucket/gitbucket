@@ -7,7 +7,13 @@ class AccountFederationServiceSpec extends FunSpec with ServiceSpecBase {
   describe("getOrCreateFederatedUser") {
     it("should create a federated account if it does not exist") {
       withTestDB { implicit session =>
-        val actual = AccountFederationService.getOrCreateFederatedUser("someIssuer", "someSubject", "dummy@example.com", Some("foo"), Some("Foo"))
+        val actual = AccountFederationService.getOrCreateFederatedUser(
+          "someIssuer",
+          "someSubject",
+          "dummy@example.com",
+          Some("foo"),
+          Some("Foo")
+        )
         assert(actual.get.userName == "foo")
         assert(actual.get.password == "[DUMMY]")
         assert(actual.get.fullName == "Foo")
@@ -22,7 +28,13 @@ class AccountFederationServiceSpec extends FunSpec with ServiceSpecBase {
         generateNewAccount("someUser")
         AccountFederationService.createAccountFederation("someIssuer", "someSubject", "someUser")
 
-        val actual = AccountFederationService.getOrCreateFederatedUser("someIssuer", "someSubject", "dummy@example.com", Some("dummy"), Some("dummy"))
+        val actual = AccountFederationService.getOrCreateFederatedUser(
+          "someIssuer",
+          "someSubject",
+          "dummy@example.com",
+          Some("dummy"),
+          Some("dummy")
+        )
         assert(actual.get.userName == "someUser")
       }
     }
@@ -32,7 +44,13 @@ class AccountFederationServiceSpec extends FunSpec with ServiceSpecBase {
         AccountFederationService.createAccountFederation("someIssuer", "someSubject", "someUser")
         AccountService.updateAccount(user.copy(isRemoved = true))
 
-        val actual = AccountFederationService.getOrCreateFederatedUser("someIssuer", "someSubject", "dummy@example.com", Some("dummy"), Some("dummy"))
+        val actual = AccountFederationService.getOrCreateFederatedUser(
+          "someIssuer",
+          "someSubject",
+          "dummy@example.com",
+          Some("dummy"),
+          Some("dummy")
+        )
         assert(actual.isEmpty)
       }
     }
