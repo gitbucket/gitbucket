@@ -371,6 +371,23 @@ trait AccountManagementControllerBase extends ControllerBase {
     }
   }
 
+  protected def uniqueExtraMailAddress(paramName: String = ""): Constraint = new Constraint() {
+    override def validate(
+      name: String,
+      value: String,
+      params: Map[String, Seq[String]],
+      messages: Messages
+    ): Option[String] = {
+      getAccountByMailAddress(value, true)
+        .filter { x =>
+          if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
+        }
+        .map { _ =>
+          "Mail address is already registered."
+        }
+    }
+  }
+
   val allReservedNames = Set(
     "git",
     "admin",

@@ -1,4 +1,4 @@
-@(account: Option[gitbucket.core.model.Account], error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
+@(account: Option[gitbucket.core.model.Account], extraMailAddresses: List[String], error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main(if(account.isEmpty) "New user" else "Update user"){
   @gitbucket.core.admin.html.menu("users"){
     @gitbucket.core.helper.html.error(error)
@@ -50,6 +50,13 @@
             </div>
             <input type="text" name="mailAddress" id="mailAddress" class="form-control" value="@account.map(_.mailAddress)"/>
           </fieldset>
+          <fieldset class="form-group" id="extraMailAddresses">
+            <span class="strong">Additional Mail Address:</span>
+            @extraMailAddresses.zipWithIndex.map { case (mail, idx) =>
+            <input type="text" name="extraMailAddresses[@idx]" id="extraMailAddresses[@idx]" class="form-control extraMailAddress" value="@mail"/>
+            <span id="error-extraMailAddresses_@idx" class="error"></span>
+            }
+          </fieldset>
           <fieldset class="form-group">
             <label class="strong">User Type:</label>
             <label class="radio" for="userType_Normal">
@@ -94,6 +101,8 @@
 }
 <script>
 $(function(){
+  addExtraMailAddress();
+  $('#extraMailAddresses').on('change', '.extraMailAddress', checkExtraMailAddress);
   $('#update').click(function(){
     if($('#password').val() != ''){
       return confirm('Are you sure you want to change password of this user?');
