@@ -95,6 +95,13 @@ trait AccountService {
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
     Accounts filter (t => (t.userName === userName.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
 
+  def getAccountByUserNameIgnoreCase(userName: String, includeRemoved: Boolean = false)(
+    implicit s: Session
+  ): Option[Account] =
+    Accounts filter (
+      t => (t.userName.toLowerCase === userName.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)
+    ) firstOption
+
   def getAccountsByUserNames(userNames: Set[String], knowns: Set[Account], includeRemoved: Boolean = false)(
     implicit s: Session
   ): Map[String, Account] = {

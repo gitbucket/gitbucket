@@ -715,7 +715,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   private def existsAccount: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if (getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
+      if (getAccountByUserNameIgnoreCase(value).isEmpty) Some("User or group does not exist.") else None
   }
 
   private def uniqueRepository: Constraint = new Constraint() {
@@ -727,7 +727,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     ): Option[String] = {
       for {
         userName <- params.optionValue("owner")
-        _ <- getRepositoryNamesOfUser(userName).find(_ == value)
+        _ <- getRepositoryNamesOfUser(userName).find(_.equalsIgnoreCase(value))
       } yield {
         "Repository already exists."
       }

@@ -349,7 +349,7 @@ trait AccountManagementControllerBase extends ControllerBase {
 
   protected def uniqueUserName: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      getAccountByUserName(value, true).map { _ =>
+      getAccountByUserNameIgnoreCase(value, true).map { _ =>
         "User already exists."
       }
   }
@@ -386,9 +386,10 @@ trait AccountManagementControllerBase extends ControllerBase {
     "groups",
     "new"
   )
+
   protected def reservedNames(): Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if (allReservedNames.contains(value)) {
+      if (allReservedNames.contains(value.toLowerCase)) {
         Some(s"${value} is reserved")
       } else {
         None
