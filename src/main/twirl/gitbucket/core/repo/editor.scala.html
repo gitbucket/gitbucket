@@ -82,7 +82,11 @@ $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
-  //editor.getSession().setUseWrapMode(false);
+
+  if(localStorage.getItem('gitbucket.editor.wrap') == 'true'){
+    editor.getSession().setUseWrapMode(true);
+    $('#wrap').val('true');
+  }
 
   @if(fileName.isDefined){
     editor.getSession().setMode("ace/mode/@helpers.editorType(fileName.get)");
@@ -106,8 +110,10 @@ $(function(){
   $('#wrap').change(function(){
     if($('#wrap option:selected').val() == 'true'){
       editor.getSession().setUseWrapMode(true);
+      localStorage.setItem('gitbucket.editor.wrap', 'true');
     } else {
       editor.getSession().setUseWrapMode(false);
+      localStorage.setItem('gitbucket.editor.wrap', 'false');
     }
   });
 
