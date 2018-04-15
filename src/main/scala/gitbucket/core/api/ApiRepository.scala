@@ -14,6 +14,7 @@ case class ApiRepository(
   default_branch: String,
   owner: ApiUser
 )(urlIsHtmlUrl: Boolean) {
+  val id = 0 // dummy id
   val forks_count = forks
   val watchers_count = watchers
   val url = if (urlIsHtmlUrl) {
