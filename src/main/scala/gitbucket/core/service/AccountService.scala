@@ -114,20 +114,16 @@ trait AccountService {
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(
     implicit s: Session
   ): Option[Account] =
-    Accounts
-      .filter(
-        t => (t.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)
-      )
-      .firstOption
-      .map(Some(_)) getOrElse {
-      AccountExtraMailAddresses
-        .filter(
-          t => (t.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind)
-        )
-        .firstOption
-        .map(x => getAccountByUserName(x.userName, includeRemoved))
-        .flatten
-    }
+    (Accounts joinLeft AccountExtraMailAddresses on { case (a, e) => a.userName === e.userName })
+      .filter {
+        case (a, x) =>
+          ((a.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) ||
+            (x.map { e =>
+                e.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind
+              }
+              .getOrElse(false.bind))) && (a.removed === false.bind, !includeRemoved)
+      }
+      .map { case (a, e) => a } firstOption
 
   def getAllUsers(includeRemoved: Boolean = true, includeGroups: Boolean = true)(implicit s: Session): List[Account] = {
     Accounts filter { t =>
