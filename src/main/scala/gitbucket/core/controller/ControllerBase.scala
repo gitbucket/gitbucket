@@ -361,13 +361,21 @@ trait AccountManagementControllerBase extends ControllerBase {
       params: Map[String, Seq[String]],
       messages: Messages
     ): Option[String] = {
-      getAccountByMailAddress(value, true)
-        .filter { x =>
-          if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
-        }
-        .map { _ =>
-          "Mail address is already registered."
-        }
+      val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
+      if (extraMailAddresses.find {
+            case (k, v) =>
+              v.contains(value)
+          }.isDefined) {
+        Some("These mail addresses are duplicated.")
+      } else {
+        getAccountByMailAddress(value, true)
+          .filter { x =>
+            if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
+          }
+          .map { _ =>
+            "Mail address is already registered."
+          }
+      }
     }
   }
 
@@ -378,13 +386,21 @@ trait AccountManagementControllerBase extends ControllerBase {
       params: Map[String, Seq[String]],
       messages: Messages
     ): Option[String] = {
-      getAccountByMailAddress(value, true)
-        .filter { x =>
-          if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
-        }
-        .map { _ =>
-          "Mail address is already registered."
-        }
+      val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
+      if (Some(value) == params.optionValue("mailAddress") || extraMailAddresses.count {
+            case (k, v) =>
+              v.contains(value)
+          } > 1) {
+        Some("These mail addresses are duplicated.")
+      } else {
+        getAccountByMailAddress(value, true)
+          .filter { x =>
+            if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
+          }
+          .map { _ =>
+            "Mail address is already registered."
+          }
+      }
     }
   }
 
