@@ -70,6 +70,11 @@ Support
 
 What's New in 4.23.x
 -------------
+### 4.23.1 - 10 Apr 2018
+- Fix bug that the contents API doesn't work for the repository root
+- Fix shutdown problem in Tomcat deployment
+- Render by plugins at the blob view even if it's a binary file
+
 ### 4.23.0 - 31 Mar 2018
 - Allow tail slash in URL
 - Display commit message of tags at the releases page
