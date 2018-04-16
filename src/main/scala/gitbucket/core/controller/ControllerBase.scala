@@ -362,18 +362,16 @@ trait AccountManagementControllerBase extends ControllerBase {
       messages: Messages
     ): Option[String] = {
       val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
-      if (extraMailAddresses.find {
+      if (extraMailAddresses.exists {
             case (k, v) =>
               v.contains(value)
-          }.isDefined) {
+          }) {
         Some("These mail addresses are duplicated.")
       } else {
         getAccountByMailAddress(value, true)
-          .filter { x =>
-            if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
-          }
-          .map { _ =>
-            "Mail address is already registered."
+          .collect {
+            case x if paramName.isEmpty || Some(x.userName) != params.optionValue(paramName) =>
+              "Mail address is already registered."
           }
       }
     }
@@ -394,11 +392,9 @@ trait AccountManagementControllerBase extends ControllerBase {
         Some("These mail addresses are duplicated.")
       } else {
         getAccountByMailAddress(value, true)
-          .filter { x =>
-            if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
-          }
-          .map { _ =>
-            "Mail address is already registered."
+          .collect {
+            case x if paramName.isEmpty || Some(x.userName) != params.optionValue(paramName) =>
+              "Mail address is already registered."
           }
       }
     }
