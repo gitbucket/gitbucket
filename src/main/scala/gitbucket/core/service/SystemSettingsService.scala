@@ -1,7 +1,6 @@
 package gitbucket.core.service
 
 import javax.servlet.http.HttpServletRequest
-
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.oauth2.sdk.auth.Secret
 import com.nimbusds.oauth2.sdk.id.{ClientID, Issuer}
@@ -155,6 +154,8 @@ trait SystemSettingsService {
 object SystemSettingsService {
   import scala.reflect.ClassTag
 
+  private val HttpProtocols = Vector("http", "https")
+
   case class SystemSettings(
     baseUrl: Option[String],
     information: Option[String],
@@ -177,11 +178,20 @@ object SystemSettingsService {
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
-      baseUrl.fold {
-        val url = request.getRequestURL.toString
-        val len = url.length - (request.getRequestURI.length - request.getContextPath.length)
-        url.substring(0, len).stripSuffix("/")
-      }(_.stripSuffix("/"))
+      baseUrl.getOrElse(parseBaseUrl(request)).stripSuffix("/")
+
+    def parseBaseUrl(req: HttpServletRequest): String = {
+      val url = req.getRequestURL.toString
+      val path = req.getRequestURI
+      val contextPath = req.getContextPath
+      val len = url.length - path.length + contextPath.length
+
+      val base = url.substring(0, len).stripSuffix("/")
+      Option(req.getHeader("X-Forwarded-Proto"))
+        .map(_.toLowerCase())
+        .filter(HttpProtocols.contains)
+        .fold(base)(_ + base.dropWhile(_ != ':'))
+    }
 
     def sshAddress: Option[SshAddress] = sshHost.collect {
       case host if ssh =>
