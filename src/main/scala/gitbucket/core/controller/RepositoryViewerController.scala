@@ -974,7 +974,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             createIssueComment(repository.owner, repository.name, commitInfo)
 
             // close issue by commit message
-            closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+            if (branch == repository.repository.defaultBranch) {
+              closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+            }
 
             // call post commit hook
             PluginRegistry().getReceiveHooks.foreach { hook =>
