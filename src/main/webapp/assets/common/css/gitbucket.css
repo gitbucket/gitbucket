@@ -1405,9 +1405,7 @@ ul.collaborator li:hover {
 }
 
 ul.collaborator a.remove {
-  color: #dd0000;
-  text-decoration: underline;
-  padding-top: 4px;
+  padding: 6px;
 }
 
 /****************************************************************************/

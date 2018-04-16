@@ -77,6 +77,7 @@ $(function(){
       function(data, status){
         if(data == 'user'){
           addMemberHTML(userName, false);
+          $('#memberName').val('');
         } else {
           $('#error-members').text('User does not exist.');
         }
@@ -118,7 +119,7 @@ $(function(){
       .append(' ')
       .append($('<a>').attr('href', '@context.path/' + userName).text(userName))
       .append(' ')
-      .append($('<a href="#" class="remove pull-right">(remove)</a>')));
+      .append($('<a href="#" class="remove pull-right"><span class="octicon octicon-x"></span></a>')));
   }
 
   function updateMembers(){
