@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import java.io.FileInputStream
 
-import gitbucket.core.api.ApiError
+import gitbucket.core.api.{ApiError, JsonFormat}
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
 import gitbucket.core.util.SyntaxSugars._
@@ -46,6 +46,7 @@ abstract class ControllerBase
 
   before("/api/v3/*") {
     contentType = formats("json")
+    request.setAttribute(Keys.Request.APIv3, true)
   }
 
   override def requestPath(uri: String, idx: Int): String = {
@@ -67,9 +68,6 @@ abstract class ControllerBase
         // Git repository
         chain.doFilter(request, response)
       } else {
-        if (path.startsWith("/api/v3/")) {
-          httpRequest.setAttribute(Keys.Request.APIv3, true)
-        }
         // Scalatra actions
         super.doFilter(request, response, chain)
       }
@@ -125,7 +123,7 @@ abstract class ControllerBase
       org.scalatra.NotFound()
     } else if (request.hasAttribute(Keys.Request.APIv3)) {
       contentType = formats("json")
-      org.scalatra.NotFound(ApiError("Not Found"))
+      org.scalatra.NotFound(JsonFormat(ApiError("Not Found")))
     } else {
       org.scalatra.NotFound(gitbucket.core.html.error("Not Found"))
     }
@@ -145,7 +143,7 @@ abstract class ControllerBase
       org.scalatra.Unauthorized()
     } else if (request.hasAttribute(Keys.Request.APIv3)) {
       contentType = formats("json")
-      org.scalatra.Unauthorized(ApiError("Requires authentication"))
+      org.scalatra.Unauthorized(JsonFormat(ApiError("Requires authentication")))
     } else if (!isBrowser(request.getHeader("USER-AGENT"))) {
       org.scalatra.Unauthorized()
     } else {
@@ -177,7 +175,7 @@ abstract class ControllerBase
         org.scalatra.InternalServerError()
       } else if (request.hasAttribute(Keys.Request.APIv3)) {
         contentType = formats("json")
-        org.scalatra.InternalServerError(ApiError("Internal Server Error"))
+        org.scalatra.InternalServerError(JsonFormat(ApiError("Internal Server Error")))
       } else {
         org.scalatra.InternalServerError(gitbucket.core.html.error("Internal Server Error", Some(e)))
       }
