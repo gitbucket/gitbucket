@@ -313,28 +313,33 @@ trait RepositoryService { self: AccountService =>
    * @return the repository information
    */
   def getRepository(userName: String, repositoryName: String)(implicit s: Session): Option[RepositoryInfo] = {
-    (Repositories filter { t =>
-      t.byRepository(userName, repositoryName)
-    } firstOption) map { repository =>
-      // for getting issue count and pull request count
-      val issues = Issues
-        .filter { t =>
-          t.byRepository(repository.userName, repository.repositoryName) && (t.closed === false.bind)
-        }
-        .map(_.pullRequest)
-        .list
+    (Repositories
+      .join(Accounts)
+      .on(_.userName === _.userName)
+      .filter {
+        case (t1, t2) =>
+          t1.byRepository(userName, repositoryName) && t2.removed === false.bind
+    } firstOption) map {
+      case (repository, account) =>
+        // for getting issue count and pull request count
+        val issues = Issues
+          .filter { t =>
+            t.byRepository(repository.userName, repository.repositoryName) && (t.closed === false.bind)
+          }
+          .map(_.pullRequest)
+          .list
 
-      new RepositoryInfo(
-        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName),
-        repository,
-        issues.count(_ == false),
-        issues.count(_ == true),
-        getForkedCount(
-          repository.originUserName.getOrElse(repository.userName),
-          repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ),
-        getRepositoryManagers(repository.userName)
-      )
+        new RepositoryInfo(
+          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName),
+          repository,
+          issues.count(_ == false),
+          issues.count(_ == true),
+          getForkedCount(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          ),
+          getRepositoryManagers(repository.userName)
+        )
     }
   }
 
@@ -425,21 +430,35 @@ trait RepositoryService { self: AccountService =>
   )(implicit s: Session): List[RepositoryInfo] = {
     (loginAccount match {
       // for Administrators
-      case Some(x) if (x.isAdmin) => Repositories
+      case Some(x) if (x.isAdmin) =>
+        Repositories
+          .join(Accounts)
+          .on(_.userName === _.userName)
+          .filter { case (t1, t2) => t2.removed === false.bind }
+          .map { case (t1, t2) => t1 }
       // for Normal Users
       case Some(x) if (!x.isAdmin) =>
-        Repositories filter { t =>
-          (t.isPrivate === false.bind) || (t.userName === x.userName) ||
-          (t.userName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)) ||
-          (Collaborators.filter { t2 =>
-            t2.byRepository(t.userName, t.repositoryName) &&
-            ((t2.collaboratorName === x.userName.bind) || (t2.collaboratorName in GroupMembers
-              .filter(_.userName === x.userName.bind)
-              .map(_.groupName)))
-          } exists)
-        }
+        Repositories
+          .join(Accounts)
+          .on(_.userName === _.userName)
+          .filter {
+            case (t1, t2) =>
+              (t2.removed === false.bind) && ((t1.isPrivate === false.bind) || (t1.userName === x.userName) ||
+                (t1.userName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)) ||
+                (Collaborators.filter { t3 =>
+                  t3.byRepository(t1.userName, t1.repositoryName) &&
+                  ((t3.collaboratorName === x.userName.bind) ||
+                  (t3.collaboratorName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)))
+                } exists))
+          }
+          .map { case (t1, t2) => t1 }
       // for Guests
-      case None => Repositories filter (_.isPrivate === false.bind)
+      case None =>
+        Repositories
+          .join(Accounts)
+          .on(_.userName === _.userName)
+          .filter { case (t1, t2) => t1.isPrivate === false.bind && t2.removed === false.bind }
+          .map { case (t1, t2) => t1 }
     }).filter { t =>
         repositoryUserName.map { userName =>
           t.userName === userName.bind
