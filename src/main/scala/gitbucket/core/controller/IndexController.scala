@@ -222,7 +222,7 @@ trait IndexControllerBase extends ControllerBase {
    * Returns a single string which is any of "group", "user" or "".
    */
   post("/_user/existence")(usersOnly {
-    getAccountByUserName(params("userName")).map { account =>
+    getAccountByUserNameIgnoreCase(params("userName")).map { account =>
       if (account.isGroupAccount) "group" else "user"
     } getOrElse ""
   })
