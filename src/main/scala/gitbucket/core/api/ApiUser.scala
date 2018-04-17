@@ -5,6 +5,7 @@ import gitbucket.core.model.Account
 import java.util.Date
 
 case class ApiUser(login: String, email: String, `type`: String, site_admin: Boolean, created_at: Date) {
+  val id = 0 // dummy id
   val url = ApiPath(s"/api/v3/users/${login}")
   val html_url = ApiPath(s"/${login}")
   val avatar_url = ApiPath(s"/${login}/_avatar")

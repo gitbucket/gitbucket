@@ -23,6 +23,7 @@ case class ApiPullRequest(
   labels: List[ApiLabel],
   assignee: Option[ApiUser]
 ) {
+  val id = 0 // dummy id
   val html_url = ApiPath(s"${base.repo.html_url.path}/pull/${number}")
   //val diff_url            = ApiPath(s"${base.repo.html_url.path}/pull/${number}.diff")
   //val patch_url           = ApiPath(s"${base.repo.html_url.path}/pull/${number}.patch")
