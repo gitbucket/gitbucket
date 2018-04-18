@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.WebHook
+import gitbucket.core.model.{CommitComment, IssueComment, WebHook}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
@@ -117,14 +117,25 @@ trait PullRequestsControllerBase extends ControllerBase {
               git =>
                 val (commits, diffs) =
                   getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+
+                val comments = (commits.flatten
+                  .map(commit => getCommitComments(owner, name, commit.id, true))
+                  .flatten
+                  .toList ::: getComments(owner, name, issueId))
+                  .groupBy {
+                    case x: IssueComment  => (None, None, None)
+                    case x: CommitComment => (x.fileName, x.oldLine, x.newLine)
+                  }
+                  .toSeq
+                  .sortWith {
+                    case ((key1, comments1), (key2, comments2)) =>
+                      comments1.head.registeredDate before comments2.head.registeredDate
+                  }
+
                 html.pullreq(
                   issue,
                   pullreq,
-                  (commits.flatten
-                    .map(commit => getCommitComments(owner, name, commit.id, true))
-                    .flatten
-                    .toList ::: getComments(owner, name, issueId))
-                    .sortWith((a, b) => a.registeredDate before b.registeredDate),
+                  comments,
                   getIssueLabels(owner, name, issueId),
                   getAssignableUserNames(owner, name),
                   getMilestonesWithIssueCount(owner, name),
