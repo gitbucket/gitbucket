@@ -103,8 +103,8 @@
         } else {
           @if(diff.newContent != None || diff.oldContent != None){
             <div id="diffText-@i" class="diffText"></div>
-            <textarea id="newText-@i" style="display: none;" data-file-name="@diff.oldPath">@diff.newContent.getOrElse("")</textarea>
-            <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.newPath">@diff.oldContent.getOrElse("")</textarea>
+            <textarea id="newText-@i" style="display: none;" data-file-name="@diff.oldPath" data-val='@diff.newContent.getOrElse("")'></textarea>
+            <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.newPath" data-val='@diff.oldContent.getOrElse("")'></textarea>
           } else {
             @if(diff.newIsImage || diff.oldIsImage){
               <div class="diff-image-render diff2up">
