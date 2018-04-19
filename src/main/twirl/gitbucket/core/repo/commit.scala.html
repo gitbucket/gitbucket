@@ -1,3 +1,4 @@
+@import gitbucket.core.model.CommitComment
 @(commitId: String,
   commit: gitbucket.core.util.JGitUtil.CommitInfo,
   branches: List[String],
@@ -87,7 +88,20 @@
       <input type="checkbox" id="show-notes"> Show line notes below
     </label>
     <div id="comment-list">
-      @gitbucket.core.issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+      @gitbucket.core.issues.html.commentlist(
+        None,
+        comments.filter(_.asInstanceOf[gitbucket.core.model.CommitComment].fileName.isEmpty),
+        hasWritePermission,
+        repository,
+        None)
+      <div style="display: none;">
+        @gitbucket.core.issues.html.commentlist(
+          None,
+          comments.filter(_.asInstanceOf[gitbucket.core.model.CommitComment].fileName.isDefined),
+          hasWritePermission,
+          repository,
+          None)
+      </div>
     </div>
     @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
   }
