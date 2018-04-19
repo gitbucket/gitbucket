@@ -4,7 +4,7 @@
   latestCommitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
 <div class="panel panel-default">
   <div class="panel-heading">
-    @comments.fileName
+    <span class="monospace">@comments.fileName</span>
   </div>
   @comments.comments.map { comment =>
     @gitbucket.core.helper.html.commitcomment(comment, hasWritePermission, repository, latestCommitId)

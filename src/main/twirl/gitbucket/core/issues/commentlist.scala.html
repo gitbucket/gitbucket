@@ -29,7 +29,7 @@
       </span>
     }
   </div>
-  <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
+  <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
     @helpers.markdown(
       markdown = comment.content,
       repository = repository,
@@ -54,7 +54,7 @@
         }
       </span>
     </div>
-    <div class="panel-body issue-content markdown-body" id="issueContent">
+    <div class="panel-body markdown-body" id="issueContent">
       @helpers.markdown(
         markdown = issue.get.content getOrElse "No description provided.",
         repository = repository,

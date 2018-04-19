@@ -5,7 +5,7 @@
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div class="issue-comment-box" style="background-color: @if(status.hasProblem){ #fbeed5 }else{ #d8f5cd };">
-  <div class="box-content issue-content" style="border: 1px solid @if(status.hasProblem){ #c09853 }else{ #95c97e };padding:0">
+  <div class="box-content" style="border: 1px solid @if(status.hasProblem){ #c09853 }else{ #95c97e };padding:0">
     <div id="merge-pull-request">
       @if(!status.statuses.isEmpty){
         <div class="build-statuses">
