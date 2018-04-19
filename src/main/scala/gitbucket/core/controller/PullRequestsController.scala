@@ -126,8 +126,6 @@ trait PullRequestsControllerBase extends ControllerBase {
               getMilestonesWithIssueCount(owner, name),
               getPriorities(owner, name),
               getLabels(owner, name),
-              //commits,
-              //diffs,
               isEditable(repository),
               isManageable(repository),
               hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),

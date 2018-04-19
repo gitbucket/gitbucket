@@ -16,4 +16,7 @@
     isManageable,
     true
   )
+  <div id="comment-list" style="visibility: hidden;">
+    @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))
+  </div>
 }
