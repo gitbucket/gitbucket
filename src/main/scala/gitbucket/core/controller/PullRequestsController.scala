@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.{CommitComment, IssueComment, WebHook}
+import gitbucket.core.model.{CommitComment, CommitComments, IssueComment, WebHook}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
@@ -123,14 +123,22 @@ trait PullRequestsControllerBase extends ControllerBase {
                   .flatten
                   .toList ::: getComments(owner, name, issueId))
                   .groupBy {
-                    case x: IssueComment  => (None, None, None)
-                    case x: CommitComment => (x.fileName, x.oldLine, x.newLine)
+                    case x: IssueComment  => (Some(x.commentId), None, None, None)
+                    case x: CommitComment => (None, x.fileName, x.oldLine, x.newLine)
                   }
-                  .toSeq
-                  .sortWith {
-                    case ((key1, comments1), (key2, comments2)) =>
-                      comments1.head.registeredDate before comments2.head.registeredDate
+                  .toList
+                  .map {
+                    case ((Some(_), _, _, _), comments) =>
+                      comments.head
+                    case ((None, Some(fileName), _, _), comments) =>
+                      CommitComments(
+                        fileName = fileName,
+                        commentedUserName = comments.head.commentedUserName,
+                        registeredDate = comments.head.registeredDate,
+                        comments = comments.map(_.asInstanceOf[CommitComment])
+                      )
                   }
+                  .sortWith(_.registeredDate before _.registeredDate)
 
                 html.pullreq(
                   issue,

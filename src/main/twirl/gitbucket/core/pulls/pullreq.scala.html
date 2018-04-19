@@ -90,7 +90,7 @@
         </div>
         <div class="tab-pane" id="commits">
           @if(commits.nonEmpty){
-            @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
+            @gitbucket.core.pulls.html.commits(dayByDayCommits, repository)
           }
         </div>
         <div class="tab-pane" id="files">
