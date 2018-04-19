@@ -1,7 +1,7 @@
 package gitbucket.core.model
 import java.util.Date
 
-trait Comment {
+sealed trait Comment {
   val commentedUserName: String
   val registeredDate: java.util.Date
 }

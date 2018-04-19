@@ -85,10 +85,10 @@
           $tr.after(tmp);
         }
 
-        $('#comment-list').append(data);
-        if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
-          $('#comment-list').children('.inline-comment').hide();
-        }
+        // $('#comment-list').append(data);
+        // if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
+        //   $('#comment-list').children('.inline-comment').hide();
+        // }
       }).fail(function(req) {
         $('.btn-inline-comment').removeAttr('disabled');
         $('#error-content', $form).html($.parseJSON(req.responseText).content);

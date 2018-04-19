@@ -113,52 +113,91 @@ trait PullRequestsControllerBase extends ControllerBase {
         val name = repository.name
         getPullRequest(owner, name, issueId) map {
           case (issue, pullreq) =>
-            using(Git.open(getRepositoryDir(owner, name))) {
-              git =>
-                val (commits, diffs) =
-                  getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+            val (commits, _) =
+              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
-                val comments = (commits.flatten
-                  .map(commit => getCommitComments(owner, name, commit.id, true))
-                  .flatten
-                  .toList ::: getComments(owner, name, issueId))
-                  .groupBy {
-                    case x: IssueComment  => (Some(x.commentId), None, None, None)
-                    case x: CommitComment => (None, x.fileName, x.oldLine, x.newLine)
-                  }
-                  .toList
-                  .map {
-                    case ((Some(_), _, _, _), comments) =>
-                      comments.head
-                    case ((None, Some(fileName), _, _), comments) =>
-                      CommitComments(
-                        fileName = fileName,
-                        commentedUserName = comments.head.commentedUserName,
-                        registeredDate = comments.head.registeredDate,
-                        comments = comments.map(_.asInstanceOf[CommitComment])
-                      )
-                  }
-                  .sortWith(_.registeredDate before _.registeredDate)
+            html.conversation(
+              issue,
+              pullreq,
+              commits.flatten,
+              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              getIssueLabels(owner, name, issueId),
+              getAssignableUserNames(owner, name),
+              getMilestonesWithIssueCount(owner, name),
+              getPriorities(owner, name),
+              getLabels(owner, name),
+              //commits,
+              //diffs,
+              isEditable(repository),
+              isManageable(repository),
+              hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
+              repository,
+              getRepository(pullreq.requestUserName, pullreq.requestRepositoryName)
+              //flash.toMap.map(f => f._1 -> f._2.toString)
+            )
 
-                html.pullreq(
-                  issue,
-                  pullreq,
-                  comments,
-                  getIssueLabels(owner, name, issueId),
-                  getAssignableUserNames(owner, name),
-                  getMilestonesWithIssueCount(owner, name),
-                  getPriorities(owner, name),
-                  getLabels(owner, name),
-                  commits,
-                  diffs,
-                  isEditable(repository),
-                  isManageable(repository),
-                  hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
-                  repository,
-                  getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
-                  flash.toMap.map(f => f._1 -> f._2.toString)
-                )
-            }
+//                html.pullreq(
+//                  issue,
+//                  pullreq,
+//                  comments,
+//                  getIssueLabels(owner, name, issueId),
+//                  getAssignableUserNames(owner, name),
+//                  getMilestonesWithIssueCount(owner, name),
+//                  getPriorities(owner, name),
+//                  getLabels(owner, name),
+//                  commits,
+//                  diffs,
+//                  isEditable(repository),
+//                  isManageable(repository),
+//                  hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
+//                  repository,
+//                  getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
+//                  flash.toMap.map(f => f._1 -> f._2.toString)
+//                )
+        }
+    } getOrElse NotFound()
+  })
+
+  get("/:owner/:repository/pull/:id/commits")(referrersOnly { repository =>
+    params("id").toIntOpt.flatMap { issueId =>
+      val owner = repository.owner
+      val name = repository.name
+      getPullRequest(owner, name, issueId) map {
+        case (issue, pullreq) =>
+          val (commits, _) =
+            getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+
+          html.commits(
+            issue,
+            pullreq,
+            commits,
+            getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+            isManageable(repository),
+            repository
+          )
+      }
+    } getOrElse NotFound()
+  })
+
+  get("/:owner/:repository/pull/:id/files")(referrersOnly { repository =>
+    params("id").toIntOpt.flatMap {
+      issueId =>
+        val owner = repository.owner
+        val name = repository.name
+        getPullRequest(owner, name, issueId) map {
+          case (issue, pullreq) =>
+            val (commits, diffs) =
+              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+
+            html.files(
+              issue,
+              pullreq,
+              diffs,
+              commits.flatten,
+              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              isManageable(repository),
+              repository
+            )
         }
     } getOrElse NotFound()
   })
