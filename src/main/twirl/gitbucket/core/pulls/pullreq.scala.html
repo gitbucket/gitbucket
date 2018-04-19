@@ -73,7 +73,7 @@
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
         <li><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
           case comment: IssueComment => Some(comment)
-          case _: CommitComment => None
+          case _ => None
         }.size</span></a></li>
         <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
         <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
