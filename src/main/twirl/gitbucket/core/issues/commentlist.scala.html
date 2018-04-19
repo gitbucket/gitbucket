@@ -6,7 +6,7 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.CommitComment
 @issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
-@showFormatedComment(comment: gitbucket.core.model.IssueComment)={
+@showFormattedComment(comment: gitbucket.core.model.IssueComment)={
 <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
   <div class="panel-heading">
     @helpers.avatar(comment.commentedUserName, 20)
@@ -117,7 +117,7 @@
         </div>
       }
       case "merge" => {
-        @showFormatedComment(comment)
+        @showFormattedComment(comment)
         <div class="discussion-item discussion-item-merge">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-git-merge"></i></span>
@@ -136,7 +136,7 @@
       }
       case "close" | "close_comment" => {
         @if(comment.action == "close_comment"){
-          @showFormatedComment(comment)
+          @showFormattedComment(comment)
         }
         <div class="discussion-item discussion-item-close">
           <div class="discussion-item-header">
@@ -150,7 +150,7 @@
       }
       case "reopen" | "reopen_comment" => {
         @if(comment.action == "reopen_comment"){
-          @showFormatedComment(comment)
+          @showFormattedComment(comment)
         }
         <div class="discussion-item discussion-item-reopen">
           <div class="discussion-item-header">
@@ -229,7 +229,7 @@
         </div>
       }
       case _ => {
-        @showFormatedComment(comment)
+        @showFormattedComment(comment)
       }
     }
   }
