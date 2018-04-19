@@ -4,7 +4,8 @@
   commits: Seq[gitbucket.core.util.JGitUtil.CommitInfo],
   comments: Seq[gitbucket.core.model.Comment],
   isManageable: Boolean,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: => Html)(implicit context: gitbucket.core.controller.Context)
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  flash: Map[String, String] = Map.empty)(body: => Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
 @gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)) {
@@ -72,28 +73,13 @@
         <li @if(active=="files"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed</a></li>
       </ul>
       <div class="tab-content fill-width" style="padding-top: 20px;">
+        @flash.get("error").map { error =>
+          <div class="alert alert-error">@error</div>
+        }
+        @flash.get("info").map { info =>
+          <div class="alert alert-info">@info</div>
+        }
         @body
-        @*
-        <div class="tab-pane" id="conversation">
-          @flash.get("error").map { error =>
-            <div class="alert alert-error">@error</div>
-          }
-          @flash.get("info").map { info =>
-            <div class="alert alert-info">@info</div>
-          }
-          @gitbucket.core.pulls.html.conversation(issue, pullreq, commits, comments, issueLabels, collaborators, milestones, priorities, labels, isEditable, isManageable, isManageableForkedRepository, repository, forkedRepository)
-        </div>
-        <div class="tab-pane" id="commits">
-          @if(commits.nonEmpty) {
-            @gitbucket.core.pulls.html.commits(dayByDayCommits, repository)
-          }
-        </div>
-        <div class="tab-pane" id="files">
-          @if(commits.nonEmpty) {
-            @gitbucket.core.helper.html.diff(diffs, repository, commits.headOption.map(_.id), commits.lastOption.map(_.id), true, Some(pullreq.issueId), isManageable, true)
-          }
-        </div>
-        *@
       </div>
   }
 }

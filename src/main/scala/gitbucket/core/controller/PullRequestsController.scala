@@ -130,8 +130,8 @@ trait PullRequestsControllerBase extends ControllerBase {
               isManageable(repository),
               hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
               repository,
-              getRepository(pullreq.requestUserName, pullreq.requestRepositoryName)
-              //flash.toMap.map(f => f._1 -> f._2.toString)
+              getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
+              flash.toMap.map(f => f._1 -> f._2.toString)
             )
 
 //                html.pullreq(

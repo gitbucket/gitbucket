@@ -11,9 +11,10 @@
   isManageable: Boolean,
   isManageableForkedRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  forkedRepository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+  forkedRepository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  flash: Map[String, String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.pulls.html.menu("conversation", issue, pullreq, commits, comments, isManageable, repository){
+@gitbucket.core.pulls.html.menu("conversation", issue, pullreq, commits, comments, isManageable, repository, flash){
   <div class="col-md-9">
     <div id="comment-list">
       @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))
