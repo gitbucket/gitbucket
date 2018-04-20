@@ -33,6 +33,7 @@ trait IndexControllerBase extends ControllerBase {
   self: RepositoryService
     with ActivityService
     with AccountService
+    with IssuesService
     with RepositorySearchService
     with UsersAuthenticator
     with ReferrerAuthenticator
@@ -194,11 +195,54 @@ trait IndexControllerBase extends ControllerBase {
     contentType = formats("json")
     val user = params("user").toBoolean
     val group = params("group").toBoolean
+
+    val issueRe = (context.baseUrl + """/(\w+)/(\w+)/(?:issues|pull)/(\d+)""").r
+    val sortByFunc: Account => String = context.request.referrer match {
+      case Some(issueRe(owner, repo, num)) =>
+        val collabolatorNames = getCollaboratorUserNames(owner, repo)
+        val comments = getComments(owner, repo, num.toInt)
+        val commentIdMax =
+          if (comments.isEmpty) 0
+          else
+            comments.map { c =>
+              c.commentId
+            }.max
+        val userCommentMap = comments.groupBy(c => c.commentedUserName).mapValues { lst =>
+          lst.map { c =>
+            commentIdMax - c.commentId
+          }.max
+        }
+        val groupMembers = getGroupMembers(owner).map(_.userName)
+        val issue = getIssue(owner, repo, num).get
+        a: Account =>
+          {
+            val typeStr = if (Some(a.userName) == context.loginAccount.map(_.userName)) {
+              "8"
+            } else if (userCommentMap.contains(a.userName)) {
+              f"""0${userCommentMap(a.userName)}%08d"""
+            } else if (a.userName == issue.openedUserName) {
+              "1"
+            } else if (a.userName == issue.assignedUserName) {
+              "2"
+            } else if (a.userName == owner || groupMembers.contains(a.userName)) {
+              "3"
+            } else if (collabolatorNames.contains(a.userName)) {
+              "4"
+            } else {
+              "9"
+            }
+            s"""${typeStr}${a.userName}"""
+          }
+      case _ =>
+        a: Account =>
+          a.userName
+    }
+
     org.json4s.jackson.Serialization.write(
       Map(
         "options" -> (
           getAllUsers(false)
-            .withFilter { t =>
+            .filter { t =>
               (user, group) match {
                 case (true, true)   => true
                 case (true, false)  => !t.isGroupAccount
@@ -206,6 +250,7 @@ trait IndexControllerBase extends ControllerBase {
                 case (false, false) => false
               }
             }
+            .sortBy(sortByFunc)
             .map { t =>
               Map(
                 "label" -> s"<b>@${t.userName}</b> ${t.fullName}",
