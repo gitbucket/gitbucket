@@ -4,7 +4,11 @@
   fileName: Option[String],
   content: gitbucket.core.util.JGitUtil.ContentInfo,
   protectedBranch: Boolean,
-  commit: String)(implicit context: gitbucket.core.controller.Context)
+  commit: String,
+  newLineMode: String = "auto",
+  useSoftTabs: Boolean = false,
+  tabSize: Int = 8
+)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
@@ -94,6 +98,9 @@ $(function(){
   @if(protectedBranch){
     editor.setReadOnly(true);
   }
+  editor.getSession().setOption("tabSize", @tabSize);
+  editor.getSession().setOption("newLineMode", "@newLineMode");
+  editor.getSession().setOption("useSoftTabs", @useSoftTabs);
 
   editor.on('change', function(){
     updateCommitButtonStatus();
