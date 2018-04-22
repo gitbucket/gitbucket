@@ -23,12 +23,7 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 import org.cache2k.Cache2kBuilder
-import org.eclipse.jgit.api.errors.{
-  InvalidRefNameException,
-  JGitInternalException,
-  NoHeadException,
-  RefAlreadyExistsException
-}
+import org.eclipse.jgit.api.errors._
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter, RawTextComparator}
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.eclipse.jgit.util.io.DisabledOutputStream
@@ -814,6 +809,24 @@ object JGitUtil {
         case None      => None
       }
       .find(_._1 != null)
+  }
+
+  def createTag(git: Git, name: String, message: String, commitId: String) = {
+    try {
+      val objectId: ObjectId = git.getRepository.resolve(commitId)
+      val walk: RevWalk = new RevWalk(git.getRepository)
+      val tagCommand = git.tag().setName(name).setObjectId(walk.parseCommit(objectId))
+      if (!message.isEmpty) {
+        tagCommand.setMessage(message)
+      }
+      tagCommand.call()
+      Right("Tag added.")
+    } catch {
+      case e: GitAPIException              => Left("Sorry, some Git operation error occurs.")
+      case e: ConcurrentRefUpdateException => Left("Sorry some error occurs.")
+      case e: InvalidTagNameException      => Left("Sorry, that name is invalid.")
+      case e: NoHeadException              => Left("Sorry, this repo doesn't have HEAD reference")
+    }
   }
 
   def createBranch(git: Git, fromBranch: String, newBranch: String) = {

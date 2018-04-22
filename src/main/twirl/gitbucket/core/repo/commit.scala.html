@@ -6,16 +6,35 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   oldCommitId: Option[String],
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean,
+  info: Option[Any] = None,
+  error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.view.helpers.RichHtmlSeq
 @gitbucket.core.html.main(commit.shortMessage, Some(repository)){
-  @gitbucket.core.html.menu("files", repository){
+  @gitbucket.core.html.menu("files", repository, None, info, error){
     <table class="table table-bordered">
       <tr>
         <th class="box-header">
-          <div class="pull-right align-right">
+          <div class="pull-right align-right btn-group">
             <a href="@helpers.url(repository)/tree/@commit.id" class="btn btn-default">Browse code</a>
+            @if(hasWritePermission) {
+              <button class="dropdown-toggle btn btn-default" data-toggle="dropdown" aria-expanded="false">Add tag</button>
+              <ul class="dropdown-menu input-tag">
+                <form action="@helpers.url(repository)/tags" method="post">
+                <li>
+                  <input type="text" name="name" placeholder="Tag name" class="form-control input-sm dropdown-filter-input">
+                </li>
+                <li>
+                  <input type="text" name="message" placeholder="Message" class="form-control input-sm dropdown-filter-input">
+                </li>
+                <li>
+                  <input type="hidden" name="commit" value="@commit.id">
+                  <button type="submit" class="btn btn-default">Add tag</button>
+                </li>
+                </form>
+              </ul>
+            }
           </div>
           <div class="commit-log">@helpers.link(commit.summary, repository)</div>
           @if(commit.description.isDefined){

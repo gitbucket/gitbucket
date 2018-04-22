@@ -515,7 +515,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 repository,
                 diffs,
                 oldCommitId,
-                hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+                hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
+                flash.get("info"),
+                flash.get("error")
               )
           }
       }
@@ -728,6 +730,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       .reverse
 
     html.branches(branches, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
+  })
+
+  /**
+   * Creates a tag
+   */
+  post("/:owner/:repository/tags")(writableUsersOnly { repository =>
+    val tagName = params.getOrElse("name", halt(400))
+    val message = params.getOrElse("message", halt(400))
+    val commitId = params.getOrElse("commit", halt(400))
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      JGitUtil.createTag(git, tagName, message, commitId)
+    } match {
+      case Right(message) =>
+        flash += "info" -> message
+        redirect(s"/${repository.owner}/${repository.name}/commit/${commitId}")
+      case Left(message) =>
+        flash += "error" -> message
+        redirect(s"/${repository.owner}/${repository.name}/commit/${commitId}")
+    }
   })
 
   /**
