@@ -69,7 +69,7 @@ libraryDependencies ++= Seq(
   "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.6" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.2.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.7.0",
-  "org.ec4j.core" % "ec4j-core" % "0.0.1"
+  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.1"
 )
 
 // Compiler settings
