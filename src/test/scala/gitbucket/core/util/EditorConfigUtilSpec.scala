@@ -12,15 +12,15 @@ class EditorConfigUtilSpec extends FunSuite {
   test("no EditorConfig file") {
     withTestRepository { git =>
       createFile(git, "master", "README.md", "body", message = "commit1")
-      val props = EditorConfigUtil.readProperties(git, "master", "test.txt")
-      assert(EditorConfigUtil.getTabWidth(props) == 8)
-      assert(EditorConfigUtil.getUseSoftTabs(props) == false)
-      assert(EditorConfigUtil.getNewLineMode(props) == "auto")
+      val info = EditorConfigUtil.getEditorConfigInfo(git, "master", "test.txt")
+      assert(info.tabSize == 8)
+      assert(info.useSoftTabs == false)
+      assert(info.newLineMode == "auto")
 
-      val subdirProps = EditorConfigUtil.readProperties(git, "master", "dir1/dir2/dir3/dir4/test.txt")
-      assert(EditorConfigUtil.getTabWidth(subdirProps) == 8)
-      assert(EditorConfigUtil.getUseSoftTabs(subdirProps) == false)
-      assert(EditorConfigUtil.getNewLineMode(subdirProps) == "auto")
+      val subdirInfo = EditorConfigUtil.getEditorConfigInfo(git, "master", "dir1/dir2/dir3/dir4/test.txt")
+      assert(subdirInfo.tabSize == 8)
+      assert(subdirInfo.useSoftTabs == false)
+      assert(subdirInfo.newLineMode == "auto")
     }
   }
 
@@ -28,11 +28,22 @@ class EditorConfigUtilSpec extends FunSuite {
     withTestRepository { git =>
       createFile(git, "master", ".editorconfig", simpleConfig, message = "commit1")
 
-      val props = EditorConfigUtil.readProperties(git, "master", "test.txt")
-      assert(EditorConfigUtil.getTabWidth(props) == 4)
+      val info = EditorConfigUtil.getEditorConfigInfo(git, "master", "test.txt")
+      assert(info.tabSize == 4)
 
-      val subdirProps = EditorConfigUtil.readProperties(git, "master", "dir1/dir2/dir3/dir4/test.txt")
-      assert(EditorConfigUtil.getTabWidth(subdirProps) == 4)
+      val subdirInfo = EditorConfigUtil.getEditorConfigInfo(git, "master", "dir1/dir2/dir3/dir4/test.txt")
+      assert(subdirInfo.tabSize == 4)
+    }
+  }
+
+  test(".editorconfig parse error") {
+    withTestRepository { git =>
+      createFile(git, "master", ".editorconfig", "equal_missing", message = "commit1")
+
+      val info = EditorConfigUtil.getEditorConfigInfo(git, "master", "test.txt")
+      assert(info.tabSize == 8)
+      assert(info.useSoftTabs == false)
+      assert(info.newLineMode == "auto")
     }
   }
 }

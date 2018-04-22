@@ -318,7 +318,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         getPathObjectId(git, path, revCommit).map {
           objectId =>
             val paths = path.split("/")
-            val props = EditorConfigUtil.readProperties(git, branch, path)
+            val info = EditorConfigUtil.getEditorConfigInfo(git, branch, path)
 
             html.editor(
               branch = branch,
@@ -328,9 +328,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               content = JGitUtil.getContentInfo(git, path, objectId),
               protectedBranch = protectedBranch,
               commit = revCommit.getName,
-              newLineMode = EditorConfigUtil.getNewLineMode(props),
-              useSoftTabs = EditorConfigUtil.getUseSoftTabs(props),
-              tabSize = EditorConfigUtil.getTabWidth(props)
+              newLineMode = info.newLineMode,
+              useSoftTabs = info.useSoftTabs,
+              tabSize = info.tabSize
             )
         } getOrElse NotFound()
     }
@@ -442,8 +442,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               // Download (This route is left for backword compatibility)
               responseRawFile(git, objectId, path, repository)
             } else {
-              val props = EditorConfigUtil.readProperties(git, id, path)
-              val tabSize = EditorConfigUtil.getTabWidth(props)
+              val info = EditorConfigUtil.getEditorConfigInfo(git, id, path)
               html.blob(
                 branch = id,
                 repository = repository,
@@ -453,7 +452,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",
                 isLfsFile = isLfsFile(git, objectId),
-                tabSize = tabSize
+                tabSize = info.tabSize
               )
             }
         } getOrElse NotFound()
