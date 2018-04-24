@@ -763,24 +763,22 @@ object JGitUtil {
   /**
    * Returns the list of tags of the specified commit.
    */
-  def getTagsOfCommit(git: Git, commitId: String): List[String] =
-    using(new RevWalk(git.getRepository)) { revWalk =>
-      defining(revWalk.parseCommit(git.getRepository.resolve(commitId + "^0"))) { commit =>
-        git.getRepository.getAllRefs.entrySet.asScala
-          .filter { e =>
-            (e.getKey.startsWith(Constants.R_TAGS) && revWalk.isMergedInto(
-              commit,
-              revWalk.parseCommit(e.getValue.getObjectId)
-            ))
-          }
-          .map { e =>
-            e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_TAGS.length)
+  def getTagsOfCommit(git: Git, commitId: String): List[String] = {
+    git.getRepository.getAllRefsByPeeledObjectId.asScala
+      .get(git.getRepository.resolve(commitId + "^0"))
+      .map {
+        _.asScala
+          .collect {
+            case x if x.getName.startsWith(Constants.R_TAGS) =>
+              x.getName.substring(Constants.R_TAGS.length)
           }
           .toList
           .sorted
-          .reverse
       }
-    }
+      .getOrElse {
+        List.empty
+      }
+  }
 
   def initRepository(dir: java.io.File): Unit =
     using(new RepositoryBuilder().setGitDir(dir).setBare.build) { repository =>
