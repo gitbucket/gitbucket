@@ -31,9 +31,8 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
   protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
-    val paths = request.paths
-    val userName = params.getOrElse("owner", paths(0))
-    val repoName = params.getOrElse("repository", paths(1))
+    val userName = params("owner")
+    val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
       context.loginAccount match {
         case Some(x) if (x.isAdmin)                      => action(repository)
@@ -89,9 +88,8 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with A
   protected def referrersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
-    val paths = request.paths
-    val userName = params.getOrElse("owner", paths(0))
-    val repoName = params.getOrElse("repository", paths(1))
+    val userName = params("owner")
+    val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
       if (isReadable(repository.repository, context.loginAccount)) {
         action(repository)
@@ -112,9 +110,8 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService w
   }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
-    val paths = request.paths
-    val userName = params.getOrElse("owner", paths(0))
-    val repoName = params.getOrElse("repository", paths(1))
+    val userName = params("owner")
+    val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
       context.loginAccount match {
         case Some(x) if (x.isAdmin)                                                          => action(repository)
@@ -138,9 +135,8 @@ trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService w
   }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
-    val paths = request.paths
-    val userName = params.getOrElse("owner", paths(0))
-    val repoName = params.getOrElse("repository", paths(1))
+    val userName = params("owner")
+    val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
       context.loginAccount match {
         case Some(x) if (x.isAdmin)                                                          => action(repository)
