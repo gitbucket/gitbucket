@@ -1,4 +1,4 @@
-GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.svg)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
+GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.svg)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.gitbucket/gitbucket_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.gitbucket/gitbucket_2.12)
 =========
 
 GitBucket is a Git web platform powered by Scala offering:

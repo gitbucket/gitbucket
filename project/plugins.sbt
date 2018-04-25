@@ -1,6 +1,6 @@
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-addSbtPlugin("com.geirsson"     % "sbt-scalafmt" % "1.4.0")
+addSbtPlugin("com.geirsson"     % "sbt-scalafmt" % "1.5.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl"    % "1.3.13")
 addSbtPlugin("com.eed3si9n"     % "sbt-assembly" % "0.14.5")
 //addSbtPlugin("com.earldouglas"      % "xsbt-web-plugin"   % "4.0.0")

@@ -78,9 +78,9 @@ function displayErrors(data, elem){
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
   var old = $('#'+oldTextId), head = $('#'+newTextId);
   var render = new JsDiffRender({
-    oldText: old.val(),
+    oldText: old.data('val'),
     oldTextName: old.data('file-name'),
-    newText: head.val(),
+    newText: head.data('val'),
     newTextName: head.data('file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
@@ -116,7 +116,7 @@ function JsDiffRender(params){
     return function(ln){
       if(dom===null){
         var html = prettyPrintOne(
-          text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;'),
+          text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/^\n/, '\n\n'),
           (/\.([^.]*)$/.exec(fileName)||[])[1],
           true);
         var re = /<li[^>]*id="?L([0-9]+)"?[^>]*>(.*?)<\/li>/gi, h;
