@@ -694,3 +694,35 @@ var imageDiff ={
   }
 };
 
+/**
+ * function for account extra mail address form control.
+ */
+function addExtraMailAddress() {
+  var fieldset = $('#extraMailAddresses');
+  var count = $('.extraMailAddress').length;
+  var html =   '<input type="text" name="extraMailAddresses[' + count + ']" id="extraMailAddresses[' + count + ']" class="form-control extraMailAddress"/>'
+  + '<span id="error-extraMailAddresses_' + count + '" class="error"></span>';
+  fieldset.append(html);
+}
+
+/**
+ * function for check account extra mail address form control.
+ */
+function checkExtraMailAddress(){
+  if ($(this).val() != ""){
+    var needAdd = true;
+    $('.extraMailAddress').each(function(){
+      if($(this).val() == ""){
+        needAdd = false;
+        return false;
+      }
+      return true;
+    });
+    if (needAdd){
+      addExtraMailAddress();
+    }
+  }
+  else {
+    $(this).remove();
+  }
+}
