@@ -103,7 +103,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     oldLineNumber: Option[Int],
     newLineNumber: Option[Int],
     content: String,
-    issueId: Option[Int]
+    issueId: Option[Int],
+    diff: Option[String]
   )
 
   val uploadForm = mapping(
@@ -138,7 +139,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "oldLineNumber" -> trim(label("Old line number", optional(number()))),
     "newLineNumber" -> trim(label("New line number", optional(number()))),
     "content" -> trim(label("Content", text(required))),
-    "issueId" -> trim(label("Issue Id", optional(number())))
+    "issueId" -> trim(label("Issue Id", optional(number()))),
+    "diff" -> optional(text())
   )(CommentForm.apply)
 
   /**
@@ -613,6 +615,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.newLineNumber,
       form.issueId
     )
+
+    println(form.diff) // TODO store diff into the database
+
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
       case Some(issueId) =>

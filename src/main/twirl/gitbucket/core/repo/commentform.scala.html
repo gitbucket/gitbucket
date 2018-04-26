@@ -49,6 +49,15 @@
       $($form.serializeArray()).each(function(i, v) {
         param[v.name] = v.value;
       });
+
+      @if(newLineNumber.isDefined){
+        var diff = getDiffData($('table[filename="@fileName"] table.diff tr:has(th.line-num.newline[line-number=@newLineNumber])'));
+        param['diff'] = JSON.stringify(diff);
+      } else if(oldLineNumber.isDefined){
+        var diff = getDiffData($('table[filename="@fileName"] table.diff tr:has(th.line-num.oldline[line-number=@oldLineNumber])'));
+        param['diff'] = JSON.stringify(diff);
+      }
+
       $.ajax({
         url: '@helpers.url(repository)/commit/@commitId/comment/_data/new',
         type: 'POST',
@@ -96,7 +105,6 @@
     });
 
     function getInlineContainer() {
-      console.log(window.viewType);
       if (window.viewType == 0) {
         if(@newLineNumber.isDefined){
           return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
@@ -106,6 +114,32 @@
         }
       }
       return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
+    }
+
+    function getDiffData(tr){
+      var result = [];
+      var count = 0;
+
+      while(tr && count < 4){
+        var oldTh = tr.find('th.oldline');
+        var newTh = tr.find('th.newline');
+
+        if(!oldTh.attr('line-number') && !newTh.attr('line-number')){
+          break;
+        }
+
+        result.unshift({
+          'oldLine': oldTh.attr('line-number'),
+          'newLine': newTh.attr('line-number'),
+          'type': tr.has('td.insert') ? 'insert' : tr.has('td.delete') ? 'delete' : 'equal',
+          'text': tr.find('td>span').text()
+        })
+
+        tr = tr.prev('tr:has(th.line-num)');
+        count++;
+      }
+
+      return result;
     }
   </script>
 }
