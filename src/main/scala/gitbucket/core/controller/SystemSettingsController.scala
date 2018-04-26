@@ -124,6 +124,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     password: String,
     fullName: String,
     mailAddress: String,
+    extraMailAddresses: List[String],
     isAdmin: Boolean,
     description: Option[String],
     url: Option[String],
@@ -135,6 +136,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     password: Option[String],
     fullName: String,
     mailAddress: String,
+    extraMailAddresses: List[String],
     isAdmin: Boolean,
     description: Option[String],
     url: Option[String],
@@ -166,6 +168,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "password" -> trim(label("Password", text(required, maxlength(20), password))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
+    "extraMailAddresses" -> list(
+      trim(label("Additional Mail Address", text(maxlength(100), uniqueExtraMailAddress("userName"))))
+    ),
     "isAdmin" -> trim(label("User Type", boolean())),
     "description" -> trim(label("bio", optional(text()))),
     "url" -> trim(label("URL", optional(text(maxlength(200))))),
@@ -177,6 +182,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "password" -> trim(label("Password", optional(text(maxlength(20), password)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "extraMailAddresses" -> list(
+      trim(label("Additional Mail Address", text(maxlength(100), uniqueExtraMailAddress("userName"))))
+    ),
     "isAdmin" -> trim(label("User Type", boolean())),
     "description" -> trim(label("bio", optional(text()))),
     "url" -> trim(label("URL", optional(text(maxlength(200))))),
@@ -400,7 +408,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/users/_newuser")(adminOnly {
-    html.user(None)
+    html.user(None, Nil)
   })
 
   post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
@@ -414,12 +422,14 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       form.url
     )
     updateImage(form.userName, form.fileId, false)
+    updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses.filter(_ != ""))
     redirect("/admin/users")
   })
 
   get("/admin/users/:userName/_edituser")(adminOnly {
     val userName = params("userName")
-    html.user(getAccountByUserName(userName, true), flash.get("error"))
+    val extraMails = getAccountExtraMailAddresses(userName)
+    html.user(getAccountByUserName(userName, true), extraMails, flash.get("error"))
   })
 
   post("/admin/users/:name/_edituser", editUserForm)(adminOnly { form =>
@@ -455,6 +465,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           )
 
           updateImage(userName, form.fileId, form.clearImage)
+          updateAccountExtraMailAddresses(userName, form.extraMailAddresses.filter(_ != ""))
 
           // call hooks
           if (form.isRemoved) PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
