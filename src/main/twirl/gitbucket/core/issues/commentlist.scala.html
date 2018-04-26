@@ -292,7 +292,7 @@ $(function(){
         if(data > 0) {
           var comment = $('.commit-comment-' + id).closest('.not-diff');
           if(comment.prev('.not-diff').length == 0){
-            comment.next('.not-diff').find('.reply-comment').remove();
+            comment.next('.not-diff:has(.reply-comment)').remove();
           }
           comment.remove();
         }
