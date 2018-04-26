@@ -334,8 +334,10 @@ trait PullRequestService { self: IssuesService with CommitsService =>
       }
       .toSeq
       .map {
+        // Normal comment
         case ((Some(_), _, _, _), comments) =>
           comments.head
+        // Comment on a specific line of a commit
         case ((None, Some(fileName), _, _), comments) =>
           gitbucket.core.model.CommitComments(
             fileName = fileName,
@@ -343,6 +345,9 @@ trait PullRequestService { self: IssuesService with CommitsService =>
             registeredDate = comments.head.registeredDate,
             comments = comments.map(_.asInstanceOf[CommitComment])
           )
+        // Comment on a specific commit
+        case (_, comments) =>
+          comments.head // TODO In this case, something wrong in the presentation of the comments list.
       }
       .sortWith(_.registeredDate before _.registeredDate)
   }
