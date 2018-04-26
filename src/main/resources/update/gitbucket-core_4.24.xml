@@ -7,4 +7,7 @@
 
   <addPrimaryKey constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_PK" tableName="ACCOUNT_EXTRA_MAIL_ADDRESS" columnNames="USER_NAME, EXTRA_MAIL_ADDRESS"/>
   <addUniqueConstraint constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_1" tableName="ACCOUNT_EXTRA_MAIL_ADDRESS" columnNames="EXTRA_MAIL_ADDRESS"/>
+
+  <modifyDataType tableName="WEB_HOOK" columnName="URL" newDataType="text"/>
+  <modifyDataType tableName="WEB_HOOK_EVENT" columnName="URL" newDataType="text"/>
 </changeSet>
