@@ -163,9 +163,9 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         // Collect comment positions
         val positions = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
           .collect {
-            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _) =>
+            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _, _) =>
               (file, commentId, Right(newLine))
-            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _) =>
+            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _, _) =>
               (file, commentId, Left(oldLine))
           }
           .groupBy { case (file, _, _) => file }

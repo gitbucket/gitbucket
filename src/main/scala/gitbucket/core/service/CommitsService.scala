@@ -31,7 +31,8 @@ trait CommitsService {
     fileName: Option[String],
     oldLine: Option[Int],
     newLine: Option[Int],
-    issueId: Option[Int]
+    issueId: Option[Int],
+    diff: Option[String]
   )(implicit s: Session): Int =
     CommitComments returning CommitComments.map(_.commentId) insert CommitComment(
       userName = owner,
@@ -44,7 +45,8 @@ trait CommitsService {
       newLine = newLine,
       registeredDate = currentDate,
       updatedDate = currentDate,
-      issueId = issueId
+      issueId = issueId,
+      diff = diff
     )
 
   def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(

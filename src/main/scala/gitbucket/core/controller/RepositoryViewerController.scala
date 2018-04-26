@@ -562,7 +562,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.fileName,
       form.oldLineNumber,
       form.newLineNumber,
-      form.issueId
+      form.issueId,
+      form.diff
     )
     form.issueId match {
       case Some(issueId) =>
@@ -613,10 +614,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.fileName,
       form.oldLineNumber,
       form.newLineNumber,
-      form.issueId
+      form.issueId,
+      form.diff
     )
-
-    println(form.diff) // TODO store diff into the database
 
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
