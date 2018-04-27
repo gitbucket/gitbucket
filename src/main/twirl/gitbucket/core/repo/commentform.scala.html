@@ -131,7 +131,7 @@
         result.unshift({
           'oldLine': oldTh.attr('line-number'),
           'newLine': newTh.attr('line-number'),
-          'type': tr.has('td.insert') ? 'insert' : tr.has('td.delete') ? 'delete' : 'equal',
+          'type': tr.has('td.insert').length > 0 ? 'insert' : tr.has('td.delete').length > 0 ? 'delete' : 'equal',
           'text': tr.find('td>span').text()
         })
 
