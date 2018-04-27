@@ -1,9 +1,14 @@
 package gitbucket.core.service
 
+import java.io.File
+
 import gitbucket.core.model.CommitComment
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.StringUtil
+import org.apache.commons.io.FileUtils
 
 trait CommitsService {
 
@@ -68,4 +73,48 @@ trait CommitsService {
 
   def deleteCommitComment(commentId: Int)(implicit s: Session) =
     CommitComments filter (_.byPrimaryKey(commentId)) delete
+
+  def saveCommitCommentDiff(
+    owner: String,
+    repository: String,
+    commitId: String,
+    fileName: String,
+    oldLine: Option[Int],
+    newLine: Option[Int],
+    diffJson: String
+  ): Unit = {
+    val dir = new java.io.File(getDiffDir(owner, repository), commitId)
+    if (!dir.exists) {
+      dir.mkdirs()
+    }
+    val file = diffFile(dir, fileName, oldLine, newLine)
+    FileUtils.write(file, diffJson, "UTF-8")
+  }
+
+  def loadCommitCommentDiff(
+    owner: String,
+    repository: String,
+    commitId: String,
+    fileName: String,
+    oldLine: Option[Int],
+    newLine: Option[Int]
+  ): Option[String] = {
+    val dir = new java.io.File(getDiffDir(owner, repository), commitId)
+    val file = diffFile(dir, fileName, oldLine, newLine)
+    if (file.exists) {
+      Option(FileUtils.readFileToString(file, "UTF-8"))
+    } else None
+  }
+
+  private def diffFile(dir: java.io.File, fileName: String, oldLine: Option[Int], newLine: Option[Int]): File = {
+    new File(
+      dir,
+      StringUtil.sha1(
+        fileName +
+          "_oldLine:" + oldLine.map(_.toString).getOrElse("") +
+          "_newLine:" + newLine.map(_.toString).getOrElse("")
+      )
+    )
+  }
+
 }

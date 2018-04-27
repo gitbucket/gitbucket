@@ -17,6 +17,7 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
 @import gitbucket.core.model.CommitComment
+@*
 @gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     @defining(dayByDayCommits.flatten){ commits =>
@@ -73,7 +74,7 @@
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
         <li><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
           case comment: IssueComment => Some(comment)
-          case _: CommitComment => None
+          case _ => None
         }.size</span></a></li>
         <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
         <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
@@ -90,7 +91,7 @@
         </div>
         <div class="tab-pane" id="commits">
           @if(commits.nonEmpty){
-            @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
+            @gitbucket.core.pulls.html.commits(dayByDayCommits, repository)
           }
         </div>
         <div class="tab-pane" id="files">
@@ -157,3 +158,4 @@ $(function(){
   });
 });
 </script>
+*@

@@ -103,7 +103,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     oldLineNumber: Option[Int],
     newLineNumber: Option[Int],
     content: String,
-    issueId: Option[Int]
+    issueId: Option[Int],
+    diff: Option[String]
   )
 
   val uploadForm = mapping(
@@ -138,7 +139,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "oldLineNumber" -> trim(label("Old line number", optional(number()))),
     "newLineNumber" -> trim(label("New line number", optional(number()))),
     "content" -> trim(label("Content", text(required))),
-    "issueId" -> trim(label("Issue Id", optional(number())))
+    "issueId" -> trim(label("Issue Id", optional(number()))),
+    "diff" -> optional(text())
   )(CommentForm.apply)
 
   /**
@@ -562,6 +564,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.newLineNumber,
       form.issueId
     )
+
+    for {
+      fileName <- form.fileName
+      diff <- form.diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        id,
+        fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        diff
+      )
+    }
+
     form.issueId match {
       case Some(issueId) =>
         recordCommentPullRequestActivity(
@@ -613,6 +631,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.newLineNumber,
       form.issueId
     )
+
+    for {
+      fileName <- form.fileName
+      diff <- form.diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        id,
+        fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        diff
+      )
+    }
+
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
       case Some(issueId) =>

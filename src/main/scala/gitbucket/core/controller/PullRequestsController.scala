@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.WebHook
+import gitbucket.core.model.{CommitComment, CommitComments, IssueComment, WebHook}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
@@ -113,33 +113,89 @@ trait PullRequestsControllerBase extends ControllerBase {
         val name = repository.name
         getPullRequest(owner, name, issueId) map {
           case (issue, pullreq) =>
-            using(Git.open(getRepositoryDir(owner, name))) {
-              git =>
-                val (commits, diffs) =
-                  getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
-                html.pullreq(
-                  issue,
-                  pullreq,
-                  (commits.flatten
-                    .map(commit => getCommitComments(owner, name, commit.id, true))
-                    .flatten
-                    .toList ::: getComments(owner, name, issueId))
-                    .sortWith((a, b) => a.registeredDate before b.registeredDate),
-                  getIssueLabels(owner, name, issueId),
-                  getAssignableUserNames(owner, name),
-                  getMilestonesWithIssueCount(owner, name),
-                  getPriorities(owner, name),
-                  getLabels(owner, name),
-                  commits,
-                  diffs,
-                  isEditable(repository),
-                  isManageable(repository),
-                  hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
-                  repository,
-                  getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
-                  flash.toMap.map(f => f._1 -> f._2.toString)
-                )
-            }
+            val (commits, _) =
+              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+
+            html.conversation(
+              issue,
+              pullreq,
+              commits.flatten,
+              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              getIssueLabels(owner, name, issueId),
+              getAssignableUserNames(owner, name),
+              getMilestonesWithIssueCount(owner, name),
+              getPriorities(owner, name),
+              getLabels(owner, name),
+              isEditable(repository),
+              isManageable(repository),
+              hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
+              repository,
+              getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
+              flash.toMap.map(f => f._1 -> f._2.toString)
+            )
+
+//                html.pullreq(
+//                  issue,
+//                  pullreq,
+//                  comments,
+//                  getIssueLabels(owner, name, issueId),
+//                  getAssignableUserNames(owner, name),
+//                  getMilestonesWithIssueCount(owner, name),
+//                  getPriorities(owner, name),
+//                  getLabels(owner, name),
+//                  commits,
+//                  diffs,
+//                  isEditable(repository),
+//                  isManageable(repository),
+//                  hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
+//                  repository,
+//                  getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
+//                  flash.toMap.map(f => f._1 -> f._2.toString)
+//                )
+        }
+    } getOrElse NotFound()
+  })
+
+  get("/:owner/:repository/pull/:id/commits")(referrersOnly { repository =>
+    params("id").toIntOpt.flatMap { issueId =>
+      val owner = repository.owner
+      val name = repository.name
+      getPullRequest(owner, name, issueId) map {
+        case (issue, pullreq) =>
+          val (commits, _) =
+            getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+
+          html.commits(
+            issue,
+            pullreq,
+            commits,
+            getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+            isManageable(repository),
+            repository
+          )
+      }
+    } getOrElse NotFound()
+  })
+
+  get("/:owner/:repository/pull/:id/files")(referrersOnly { repository =>
+    params("id").toIntOpt.flatMap {
+      issueId =>
+        val owner = repository.owner
+        val name = repository.name
+        getPullRequest(owner, name, issueId) map {
+          case (issue, pullreq) =>
+            val (commits, diffs) =
+              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+
+            html.files(
+              issue,
+              pullreq,
+              diffs,
+              commits.flatten,
+              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              isManageable(repository),
+              repository
+            )
         }
     } getOrElse NotFound()
   })

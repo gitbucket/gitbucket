@@ -772,19 +772,23 @@ div.issue-participants {
   margin-left: 50px;
 }
 
-div.issue-comment-box, div.commit-comment-box {
-  margin-bottom: 15px;
-}
-
-div.issue-comment-box > div.panel-body,
-div.commit-comment-box > div.panel-body {
-  padding: 8px;
-}
-
-
-div.issue-comment-box textarea {
+div.commit-comment-box textarea,
+div.issue-comment-box textarea{
   height: 100px;
   max-height: 300px;
+}
+/*
+div.commit-comment-box.panel-body {
+  padding-top: 8px;
+  padding-bottom: 0px;
+}
+*/
+div.commit-comment-box div.tabbable {
+  margin-top: 5px;
+}
+
+div.reply-comment-box {
+  margin-bottom: 5px;
 }
 
 div.issue-comment-action {
@@ -1172,6 +1176,7 @@ table.diff tbody tr.not-diff:hover td {
 .not-diff > .comment-box-container {
   white-space: normal;
   line-height: initial;
+  padding-top: 8px;
   padding-left: 10px;
   padding-right: 10px;
 }

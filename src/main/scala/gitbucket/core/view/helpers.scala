@@ -3,6 +3,7 @@ package gitbucket.core.view
 import java.text.SimpleDateFormat
 import java.util.{Date, Locale, TimeZone}
 
+import com.nimbusds.jose.util.JSONObjectUtils
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
@@ -461,5 +462,45 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * @param size total size of object in bytes
    */
   def readableSize(size: Option[Long]): String = FileUtil.readableSize(size.getOrElse(0))
+
+  /**
+   * Make HTML fragment of the partial diff for a comment on a line of diff.
+   *
+   * @param jsonString JSON string which is stored in COMMIT_COMMENT table.
+   * @return HTML fragment of diff
+   */
+  def diff(jsonString: String): Html = {
+    import org.json4s._
+    import org.json4s.jackson.JsonMethods._
+    implicit val formats = DefaultFormats
+
+    val diff = parse(jsonString).extract[Seq[CommentDiffLine]]
+
+    val sb = new StringBuilder()
+    sb.append("<table class=\"diff inlinediff\">")
+    diff.foreach { line =>
+      sb.append("<tr>")
+      sb.append(s"""<th class="line-num oldline ${line.`type`}">""")
+      line.oldLine.foreach { oldLine =>
+        sb.append(oldLine)
+      }
+      sb.append("</th>")
+      sb.append(s"""<th class="line-num newline ${line.`type`}">""")
+      line.newLine.foreach { newLine =>
+        sb.append(newLine)
+      }
+      sb.append("</th>")
+
+      sb.append(s"""<td class="body ${line.`type`}">""")
+      sb.append(StringUtil.escapeHtml(line.text))
+      sb.append("</td>")
+      sb.append("</tr>")
+    }
+    sb.append("</table>")
+
+    Html(sb.toString())
+  }
+
+  case class CommentDiffLine(newLine: Option[String], oldLine: Option[String], `type`: String, text: String)
 
 }
