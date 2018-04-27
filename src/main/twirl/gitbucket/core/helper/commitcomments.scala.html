@@ -6,9 +6,6 @@
 <div class="panel panel-default">
   <div class="panel-heading">
     <span class="monospace">@comments.fileName</span>
-    <span class="pull-right">
-      <a href="@helpers.url(repository)/commit/@comments.comments.head.commitId" class="monospace">@comments.comments.head.commitId.substring(0, 7)</a>
-    </span>
   </div>
   @comments.diff.map(helpers.diff)
   <div class="panel-body">

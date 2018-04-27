@@ -328,9 +328,10 @@ trait PullRequestService { self: IssuesService with CommitsService =>
       .map(commit => getCommitComments(userName, repositoryName, commit.id, true))
       .flatten ++ getComments(userName, repositoryName, issueId))
       .groupBy {
-        case x: IssueComment  => (Some(x.commentId), None, None, None)
-        case x: CommitComment => (None, x.fileName, x.oldLine, x.newLine)
-        case x                => throw new MatchError(x)
+        case x: IssueComment                        => (Some(x.commentId), None, None, None)
+        case x: CommitComment if x.fileName.isEmpty => (Some(x.commentId), None, None, None)
+        case x: CommitComment                       => (None, x.fileName, x.oldLine, x.newLine)
+        case x                                      => throw new MatchError(x)
       }
       .toSeq
       .map {
@@ -353,9 +354,6 @@ trait PullRequestService { self: IssuesService with CommitsService =>
               newLine
             )
           )
-        // Comment on a specific commit
-        case (_, comments) =>
-          comments.head // TODO In this case, something wrong in the presentation of the comments list.
       }
       .sortWith(_.registeredDate before _.registeredDate)
   }
