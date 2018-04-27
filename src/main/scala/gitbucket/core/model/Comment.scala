@@ -54,7 +54,6 @@ trait CommitCommentComponent extends TemplateComponent { self: Profile =>
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
     val issueId = column[Option[Int]]("ISSUE_ID")
-    val diff = column[Option[String]]("DIFF")
     def * =
       (
         userName,
@@ -68,8 +67,7 @@ trait CommitCommentComponent extends TemplateComponent { self: Profile =>
         newLine,
         registeredDate,
         updatedDate,
-        issueId,
-        diff
+        issueId
       ) <> (CommitComment.tupled, CommitComment.unapply)
 
     def byPrimaryKey(commentId: Int) = this.commentId === commentId.bind
@@ -88,13 +86,13 @@ case class CommitComment(
   newLine: Option[Int],
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
-  issueId: Option[Int],
-  diff: Option[String]
+  issueId: Option[Int]
 ) extends Comment
 
 case class CommitComments(
   fileName: String,
   commentedUserName: String,
   registeredDate: Date,
-  comments: Seq[CommitComment]
+  comments: Seq[CommitComment],
+  diff: Option[String]
 ) extends Comment

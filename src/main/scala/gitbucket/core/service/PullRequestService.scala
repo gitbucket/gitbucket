@@ -163,9 +163,9 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         // Collect comment positions
         val positions = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
           .collect {
-            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _, _) =>
+            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _) =>
               (file, commentId, Right(newLine))
-            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _, _) =>
+            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _) =>
               (file, commentId, Left(oldLine))
           }
           .groupBy { case (file, _, _) => file }
@@ -338,12 +338,20 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         case ((Some(_), _, _, _), comments) =>
           comments.head
         // Comment on a specific line of a commit
-        case ((None, Some(fileName), _, _), comments) =>
+        case ((None, Some(fileName), oldLine, newLine), comments) =>
           gitbucket.core.model.CommitComments(
             fileName = fileName,
             commentedUserName = comments.head.commentedUserName,
             registeredDate = comments.head.registeredDate,
-            comments = comments.map(_.asInstanceOf[CommitComment])
+            comments = comments.map(_.asInstanceOf[CommitComment]),
+            diff = loadCommitCommentDiff(
+              userName,
+              repositoryName,
+              comments.head.asInstanceOf[CommitComment].commitId,
+              fileName,
+              oldLine,
+              newLine
+            )
           )
         // Comment on a specific commit
         case (_, comments) =>

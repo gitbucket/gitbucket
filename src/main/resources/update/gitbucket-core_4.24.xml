@@ -7,8 +7,4 @@
 
   <addPrimaryKey constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_PK" tableName="ACCOUNT_EXTRA_MAIL_ADDRESS" columnNames="USER_NAME, EXTRA_MAIL_ADDRESS"/>
   <addUniqueConstraint constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_1" tableName="ACCOUNT_EXTRA_MAIL_ADDRESS" columnNames="EXTRA_MAIL_ADDRESS"/>
-
-  <addColumn tableName="COMMIT_COMMENT">
-    <column name="DIFF" type="text" nullable="true" />
-  </addColumn>
 </changeSet>

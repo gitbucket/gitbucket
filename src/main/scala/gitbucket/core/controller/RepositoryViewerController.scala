@@ -562,9 +562,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.fileName,
       form.oldLineNumber,
       form.newLineNumber,
-      form.issueId,
-      form.diff
+      form.issueId
     )
+
+    for {
+      fileName <- form.fileName
+      diff <- form.diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        id,
+        fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        diff
+      )
+    }
+
     form.issueId match {
       case Some(issueId) =>
         recordCommentPullRequestActivity(
@@ -614,9 +629,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.fileName,
       form.oldLineNumber,
       form.newLineNumber,
-      form.issueId,
-      form.diff
+      form.issueId
     )
+
+    for {
+      fileName <- form.fileName
+      diff <- form.diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        id,
+        fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        diff
+      )
+    }
 
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {

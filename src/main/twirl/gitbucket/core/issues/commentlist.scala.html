@@ -237,7 +237,7 @@
   }
   case comment: gitbucket.core.model.CommitComment => {
     @gitbucket.core.helper.html.commitcomments(gitbucket.core.model.CommitComments(
-      comment.fileName.getOrElse(""), comment.commentedUserName, comment.registeredDate, Seq(comment)
+      comment.fileName.getOrElse(""), comment.commentedUserName, comment.registeredDate, Seq(comment), None
     ), isManageable, repository, pullreq.map(_.commitIdTo))
   }
 }

@@ -68,6 +68,12 @@ object Directory {
     new File(getRepositoryFilesDir(owner, repository), "lfs")
 
   /**
+   * Directory for files which store diff fragment
+   */
+  def getDiffDir(owner: String, repository: String): File =
+    new File(getRepositoryFilesDir(owner, repository), "diff")
+
+  /**
    * Directory for uploaded files by the specified user.
    */
   def getUserUploadDir(userName: String): File =
