@@ -15,6 +15,7 @@
   flash: Map[String, String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.pulls.html.menu("conversation", issue, pullreq, commits, comments, isManageable, repository, flash){
+  <link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
   <div class="col-md-9">
     <div id="comment-list">
       @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))

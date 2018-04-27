@@ -10,6 +10,11 @@
       <a href="@helpers.url(repository)/commit/@comments.comments.head.commitId" class="monospace">@comments.comments.head.commitId.substring(0, 7)</a>
     </span>
   </div>
+  @comments.comments.headOption.map { comment =>
+    @comment.diff.map { diff =>
+      @helpers.diff(diff)
+    }
+  }
   <div class="panel-body">
     @comments.comments.map { comment =>
       @gitbucket.core.helper.html.commitcomment(comment, hasWritePermission, repository, latestCommitId)
