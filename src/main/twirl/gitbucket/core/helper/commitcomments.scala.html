@@ -6,11 +6,16 @@
 <div class="panel panel-default">
   <div class="panel-heading">
     <span class="monospace">@comments.fileName</span>
+    @if(!latestCommitId.contains(comments.comments.head.commitId)) {
+      <span class="pull-right"><a href="javascript:$('.outdated-comments-@comments.comments.head.commentId').toggle();"><i class="octicon octicon-unfold"></i></a></span>
+    }
   </div>
-  @comments.diff.map(helpers.diff)
-  <div class="panel-body">
+  <div style="@if(!latestCommitId.contains(comments.comments.head.commitId)){display: none;}" class="outdated-comments-@comments.comments.head.commentId">
+    @comments.diff.map(helpers.diff)
+    <div class="panel-body">
     @comments.comments.map { comment =>
       @gitbucket.core.helper.html.commitcomment(comment, hasWritePermission, repository, latestCommitId)
     }
+    </div>
   </div>
 </div>
