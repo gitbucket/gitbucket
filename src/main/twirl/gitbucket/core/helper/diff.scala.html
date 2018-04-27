@@ -365,14 +365,14 @@ $(function(){
     });
     for(var key in elements){
       filename = elements[key]['filename'];
-      oldline = elements[key]['oldline'];
-      newline = elements[key]['newline'];
+      oldline = elements[key]['oldline'] ? elements[key]['oldline'] : '';
+      newline = elements[key]['newline'] ? elements[key]['newline'] : '';
 
       var $v = $('<div class="commit-comment-box reply-comment-box">')
-        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply...">')
-          .data('filename', filename)
-          .data('newline',  newline)
-          .data('oldline',  oldline));
+        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply..." '
+                       + 'data-filename="' + filename + '" '
+                       + 'data-newline="' + newline + '" '
+                       + 'data-oldline="' + oldline + '">'));
 
       var tmp;
       if (typeof oldline !== 'undefined') {
