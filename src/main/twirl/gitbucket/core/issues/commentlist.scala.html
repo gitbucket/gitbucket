@@ -290,11 +290,25 @@ $(function(){
       $.post('@helpers.url(repository)/commit_comments/delete/' + id,
       function(data){
         if(data > 0) {
-          var comment = $('.commit-comment-' + id).closest('.not-diff');
-          if(comment.prev('.not-diff').length == 0){
-            comment.next('.not-diff:has(.reply-comment)').remove();
+          var comment = $('.commit-comment-' + id);
+
+          // diff view
+          var tr = comment.closest('.not-diff');
+          if(tr.length > 0){
+            if(tr.prev('.not-diff').length == 0){
+              tr.next('.not-diff:has(.reply-comment)').remove();
+            }
+            tr.remove();
           }
-          comment.remove();
+
+          // comment list view
+          var panel = comment.closest('div.panel:has(.commit-comment-box)');
+          if(panel.length > 0){
+            comment.parent('.commit-comment-box').remove();
+            if(panel.has('.commit-comment-box').length == 0){
+              panel.remove();
+            }
+          }
         }
       });
     }
