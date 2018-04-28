@@ -6,7 +6,8 @@
   hasNext: Boolean,
   hasWritePermission: Boolean,
   getStatuses: String => List[gitbucket.core.model.CommitStatus],
-  getSummary: List[gitbucket.core.model.CommitStatus] => (gitbucket.core.model.CommitState, String))(implicit context: gitbucket.core.controller.Context)
+  getSummary: List[gitbucket.core.model.CommitStatus] => (gitbucket.core.model.CommitState, String),
+  getTags: String => List[String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
@@ -39,6 +40,16 @@
           @if(i != 0){ <tr> }
           <td>
             <div class="pull-right text-right">
+              @defining(getTags(commit.id)) { tags =>
+                @if(tags.nonEmpty){
+                  <span class="muted">
+                    <i class="octicon octicon-tag"></i>
+                    @tags.map { tag =>
+                      <a href="@helpers.url(repository)/tree/@tag" class="tag">@tag</a>
+                    }
+                  </span>
+                }
+              }
               <a href="@helpers.url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
               <a href="@helpers.url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
             </div>
