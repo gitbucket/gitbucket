@@ -296,7 +296,13 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   createIssueComment(owner, repository, commit)
                   // close issues
                   if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
-                    closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository)
+                    getAccountByUserName(pusher).map { pusherAccount =>
+                      closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
+                        getIssue(owner, repository, issueId.toString).map { issue =>
+                          callIssuesWebHook("closed", repositoryInfo, issue, baseUrl, pusherAccount)
+                        }
+                      }
+                    }
                   }
                 }
                 Some(commit)
