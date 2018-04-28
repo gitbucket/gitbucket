@@ -761,7 +761,27 @@ object JGitUtil {
     }
 
   /**
-   * Returns the list of tags of the specified commit.
+   * Returns the list of tags which pointed on the specified commit.
+   */
+  def getTagsOnCommit(git: Git, commitId: String): List[String] = {
+    git.getRepository.getAllRefsByPeeledObjectId.asScala
+      .get(git.getRepository.resolve(commitId + "^0"))
+      .map {
+        _.asScala
+          .collect {
+            case x if x.getName.startsWith(Constants.R_TAGS) =>
+              x.getName.substring(Constants.R_TAGS.length)
+          }
+          .toList
+          .sorted
+      }
+      .getOrElse {
+        List.empty
+      }
+  }
+
+  /**
+   * Returns the list of tags which contains the specified commit.
    */
   def getTagsOfCommit(git: Git, commitId: String): List[String] =
     using(new RevWalk(git.getRepository)) { revWalk =>

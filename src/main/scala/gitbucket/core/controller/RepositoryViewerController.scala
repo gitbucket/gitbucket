@@ -239,6 +239,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
+        def getTags(sha: String): List[String] = {
+          JGitUtil.getTagsOnCommit(git, sha)
+        }
+
         JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
           case Right((logs, hasNext)) =>
             html.commits(
@@ -252,7 +256,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               hasNext,
               hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
               getStatuses,
-              getSummary
+              getSummary,
+              getTags
             )
           case Left(_) => NotFound()
         }
