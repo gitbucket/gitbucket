@@ -1,0 +1,36 @@
+{
+  "name": "file-icons-js",
+  "version": "1.0.3",
+  "description": "File specific icons for the browser from Atom File-icons, https://github.com/file-icons/atom",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/websemantics/file-icons-js.git"
+  },
+  "keywords": [
+    "javascript",
+    "nodejs",
+    "icons",
+    "octicons",
+    "mfizz",
+    "devicons"
+  ],
+  "author": {
+    "name": "Daniel Brooker.",
+    "email": "dan@nocturnalcode.com"
+  },
+  "contributors": [{
+    "name": "Adnan M.Sagar, PhD.",
+    "email": "adnan@websemantics.ca"
+  }],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/websemantics/file-icons-js/issues"
+  },
+  "dependencies": {
+  },
+  "homepage": "https://github.com/websemantics/file-icons-js"
+}
