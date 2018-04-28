@@ -44,8 +44,8 @@
         <span class="muted">
           @helpers.user(comment.commentedUserName, styleClass = "username strong")
           merged @commits.size @helpers.plural(commits.size, "commit")
-          into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName
-          :@pullreq.requestBranch</code>
+          into <code>@pullreq.userName:@pullreq.branch</code>
+          from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </span>
         }.getOrElse {
@@ -53,8 +53,8 @@
           <span class="muted">
             @helpers.user(issue.openedUserName, styleClass = "username strong")
             wants to merge @commits.size @helpers.plural(commits.size, "commit")
-            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName
-            :@pullreq.requestBranch</code>
+            into <code>@pullreq.userName:@pullreq.branch</code>
+            from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
           </span>
         }
       } else {
@@ -62,8 +62,8 @@
         <span class="muted">
           @helpers.user(issue.openedUserName, styleClass = "username strong")
           wants to merge @commits.size @helpers.plural(commits.size, "commit")
-          into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName
-          :@pullreq.requestBranch</code>
+          into <code>@pullreq.userName:@pullreq.branch</code>
+          from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
         </span>
       }
       </div>
