@@ -80,7 +80,7 @@ trait ReleaseControllerBase extends ControllerBase {
       response.setHeader("Content-Disposition", s"attachment; filename=${asset.label}")
       RawData(
         FileUtil.getMimeType(asset.label),
-        new File(getReleaseFilesDir(repository.owner, repository.name), tagName + "/" + fileId)
+        new File(getReleaseFilesDir(repository.owner, repository.name), FileUtil.checkFilename(tagName + "/" + fileId))
       )
     }).getOrElse(NotFound())
   })
@@ -111,7 +111,10 @@ trait ReleaseControllerBase extends ControllerBase {
     files.foreach {
       case (fileId, fileName) =>
         val size =
-          new java.io.File(getReleaseFilesDir(repository.owner, repository.name), tagName + "/" + fileId).length
+          new File(
+            getReleaseFilesDir(repository.owner, repository.name),
+            FileUtil.checkFilename(tagName + "/" + fileId)
+          ).length
         createReleaseAsset(repository.owner, repository.name, tagName, fileId, fileName, size, loginAccount)
     }
 
@@ -153,15 +156,18 @@ trait ReleaseControllerBase extends ControllerBase {
           files.foreach {
             case (fileId, fileName) =>
               val size =
-                new java.io.File(getReleaseFilesDir(repository.owner, repository.name), tagName + "/" + fileId).length
+                new File(
+                  getReleaseFilesDir(repository.owner, repository.name),
+                  FileUtil.checkFilename(tagName + "/" + fileId)
+                ).length
               createReleaseAsset(repository.owner, repository.name, tagName, fileId, fileName, size, loginAccount)
           }
 
           assets.foreach { asset =>
             if (!files.exists { case (fileId, _) => fileId == asset.fileName }) {
-              val file = new java.io.File(
+              val file = new File(
                 getReleaseFilesDir(repository.owner, repository.name),
-                release.tag + "/" + asset.fileName
+                FileUtil.checkFilename(release.tag + "/" + asset.fileName)
               )
               FileUtils.forceDelete(file)
             }
@@ -175,7 +181,9 @@ trait ReleaseControllerBase extends ControllerBase {
   post("/:owner/:repository/releases/:tag/delete")(writableUsersOnly { repository =>
     val tagName = params("tag")
     getRelease(repository.owner, repository.name, tagName).foreach { release =>
-      FileUtils.deleteDirectory(new File(getReleaseFilesDir(repository.owner, repository.name), release.tag))
+      FileUtils.deleteDirectory(
+        new File(getReleaseFilesDir(repository.owner, repository.name), FileUtil.checkFilename(release.tag))
+      )
     }
     deleteRelease(repository.owner, repository.name, tagName)
     redirect(s"/${repository.owner}/${repository.name}/releases")

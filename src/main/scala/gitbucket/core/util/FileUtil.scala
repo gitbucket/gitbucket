@@ -52,7 +52,7 @@ object FileUtil {
   }
 
   def getLfsFilePath(owner: String, repository: String, oid: String): String =
-    Directory.getLfsDir(owner, repository) + "/" + oid
+    Directory.getLfsDir(owner, repository) + "/" + checkFilename(oid)
 
   def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
 
@@ -74,6 +74,16 @@ object FileUtil {
       FileUtils.forceDelete(file)
     }
     file
+  }
+
+  /**
+   * Create an instance of java.io.File safely.
+   */
+  def checkFilename(name: String): String = {
+    if (name.contains("..")) {
+      throw new IllegalArgumentException(s"Invalid file name: ${name}")
+    }
+    name
   }
 
   lazy val MaxFileSize =

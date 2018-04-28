@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 
 import gitbucket.core.api.{ApiError, JsonFormat}
 import gitbucket.core.model.Account
@@ -327,7 +327,7 @@ trait AccountManagementControllerBase extends ControllerBase {
   protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit =
     if (clearImage) {
       getAccountByUserName(userName).flatMap(_.image).map { image =>
-        new java.io.File(getUserUploadDir(userName), image).delete()
+        new File(getUserUploadDir(userName), FileUtil.checkFilename(image)).delete()
         updateAvatarImage(userName, None)
       }
     } else {
@@ -338,9 +338,9 @@ trait AccountManagementControllerBase extends ControllerBase {
           uploadDir.mkdirs()
         }
         Thumbnails
-          .of(new java.io.File(getTemporaryDir(session.getId), fileId))
+          .of(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)))
           .size(324, 324)
-          .toFile(new java.io.File(uploadDir, filename))
+          .toFile(new File(uploadDir, FileUtil.checkFilename(filename)))
         updateAvatarImage(userName, Some(filename))
       }
     }

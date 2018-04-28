@@ -896,7 +896,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
 
         newFiles.foreach { file =>
-          val bytes = FileUtils.readFileToByteArray(new File(getTemporaryDir(session.getId), file.id))
+          val bytes =
+            FileUtils.readFileToByteArray(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(file.id)))
           builder.add(
             JGitUtil.createDirCacheEntry(file.name, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes))
           )

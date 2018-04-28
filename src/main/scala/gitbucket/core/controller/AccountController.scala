@@ -1,5 +1,7 @@
 package gitbucket.core.controller
 
+import java.io.File
+
 import gitbucket.core.account.html
 import gitbucket.core.helper
 import gitbucket.core.model._
@@ -284,7 +286,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         response.setDateHeader("Last-Modified", account.updatedDate.getTime)
         account.image
           .map { image =>
-            Some(RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image)))
+            Some(
+              RawData(FileUtil.getMimeType(image), new File(getUserUploadDir(userName), FileUtil.checkFilename(image)))
+            )
           }
           .getOrElse {
             if (account.isGroupAccount) {
