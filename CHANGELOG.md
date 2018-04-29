@@ -1,6 +1,14 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.24.0 - 30 Apr 2018
+- Diff for each review comment on pull requests
+- Extra mail addresses support
+- Show tags at the commit list
+- Keep wrap mode of the online editor
+- Renew layout of gitbucket-gist-plugin
+- Web API of gitbucket-ci-plugin
+
 ### 4.23.1 - 10 Apr 2018
 - Fix bug that the contents API doesn't work for the repository root
 - Fix shutdown problem in Tomcat deployment
