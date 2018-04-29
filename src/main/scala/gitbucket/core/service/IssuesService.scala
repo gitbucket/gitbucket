@@ -700,11 +700,12 @@ trait IssuesService {
 
   def closeIssuesFromMessage(message: String, userName: String, owner: String, repository: String)(
     implicit s: Session
-  ): Unit = {
-    extractCloseId(message).foreach { issueId =>
-      for (issue <- getIssue(owner, repository, issueId) if !issue.closed) {
+  ): Seq[Int] = {
+    extractCloseId(message).flatMap { issueId =>
+      for (issue <- getIssue(owner, repository, issueId) if !issue.closed) yield {
         createComment(owner, repository, userName, issue.issueId, "Close", "close")
         updateClosed(owner, repository, issue.issueId, true)
+        issue.issueId
       }
     }
   }
