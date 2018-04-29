@@ -7,10 +7,10 @@
   <div class="panel-heading">
     <span class="monospace">@comments.fileName</span>
     @if(!latestCommitId.contains(comments.comments.head.commitId)) {
-      <span class="pull-right"><a href="javascript:$('.outdated-comments-@comments.comments.head.commentId').toggle();"><i class="octicon octicon-unfold"></i></a></span>
+      <span class="pull-right"><a href="javascript:$('.fold-comments-@comments.comments.head.commentId').toggle();"><i class="octicon octicon-unfold"></i></a></span>
     }
   </div>
-  <div style="@if(!latestCommitId.contains(comments.comments.head.commitId)){display: none;}" class="outdated-comments-@comments.comments.head.commentId">
+  <div style="@if(!latestCommitId.contains(comments.comments.head.commitId)){display: none;}" class="fold-comments-@comments.comments.head.commentId">
     @comments.diff.map(helpers.diff)
     <div class="panel-body">
     @comments.comments.map { comment =>

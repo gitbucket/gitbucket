@@ -236,16 +236,16 @@
     @gitbucket.core.helper.html.commitcomments(comments, isManageable, repository, pullreq.map(_.commitIdTo))
   }
   case comment: gitbucket.core.model.CommitComment => {
-    <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
+    <div class="panel panel-default commit-comment-box commit-comment-@comment.commentId">
       <div class="panel-heading">
         @helpers.avatar(comment.commentedUserName, 20)
         @helpers.user(comment.commentedUserName, styleClass="username strong")
-      <span class="muted">
-        commented
-        <a href="#comment-@comment.commentId">@gitbucket.core.helper.html.datetimeago(comment.registeredDate)</a>
-        on
-        <a href="@helpers.url(repository)/commit/@comment.commitId" class="monospace">@comment.commitId.substring(0, 7)</a>
-      </span>
+        <span class="muted">
+          commented
+          <a href="#comment-@comment.commentId">@gitbucket.core.helper.html.datetimeago(comment.registeredDate)</a>
+          on
+          <a href="@helpers.url(repository)/commit/@comment.commitId" class="monospace">@comment.commitId.substring(0, 7)</a>
+        </span>
         @if((isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
           <span class="pull-right">
             <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
@@ -253,16 +253,16 @@
           </span>
         }
       </div>
-      <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
-      @helpers.markdown(
-        markdown = comment.content,
-        repository = repository,
-        enableWikiLink = false,
-        enableRefsLink = true,
-        enableLineBreaks = true,
-        enableTaskList = true,
-        hasWritePermission = isManageable
-      )
+      <div class="panel-body markdown-body commit-commentContent-@comment.commentId">
+        @helpers.markdown(
+          markdown = comment.content,
+          repository = repository,
+          enableWikiLink = false,
+          enableRefsLink = true,
+          enableLineBreaks = true,
+          enableTaskList = true,
+          hasWritePermission = isManageable
+        )
       </div>
     </div>
   }
@@ -334,6 +334,8 @@ $(function(){
             if(panel.has('.commit-comment-box').length == 0){
               panel.remove();
             }
+          } else {
+            comment.remove();
           }
         }
       });

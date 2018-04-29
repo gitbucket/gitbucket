@@ -3,7 +3,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   latestCommitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<div class="commit-comment-box @if((!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}" id="discussion_r@comment.commentId"
+<div class="commit-comment-box @if(latestCommitId.contains(comment.commitId)){inline-comment}" id="discussion_r@comment.commentId"
   @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
   @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
   @if(comment.oldLine.isDefined){oldline="@comment.oldLine.get"}>
