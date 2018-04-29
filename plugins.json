@@ -31,9 +31,9 @@
     "description": "Provides Gist feature on GitBucket.",
     "versions": [
       {
-        "version": "4.13.0",
+        "version": "4.14.0",
         "range": ">=4.23.0",
-        "url": "https://github.com/gitbucket/gitbucket-gist-plugin/releases/download/4.13.0/gitbucket-gist-plugin-assembly-4.13.0.jar"
+        "url": "https://github.com/gitbucket/gitbucket-gist-plugin/releases/download/4.14.0/gitbucket-gist-plugin-assembly-4.14.0.jar"
       }
     ],
     "default": false
