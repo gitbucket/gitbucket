@@ -1,5 +1,5 @@
 @(latestUpdatedDate: java.util.Date,
-  recentOnly: Boolean = true)
+  recentOnly: Boolean = true)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <span data-toggle="tooltip" title="@helpers.datetime(latestUpdatedDate)">
   @if(recentOnly){

@@ -132,6 +132,21 @@
   </label>
 </fieldset>
 <!--====================================================================-->
+<!-- Time format  -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Date time format</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="relativeTime" value="true"@if(context.settings.relativeTime){ checked}>
+    <span class="strong">Relative</span> <span class="normal">- Show date time as: "3 days ago."</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="relativeTime" value="false"@if(!context.settings.relativeTime){ checked}>
+    <span class="strong">Absolute</span> <span class="normal">- Show date time as: "2018/04/01"</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
 <!-- Activity -->
 <!--====================================================================-->
 <hr>
