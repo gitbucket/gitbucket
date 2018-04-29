@@ -157,8 +157,8 @@ $(function(){
       // Show diff
       $('#preview').empty()
         .append($('<div id="diffText">'))
-        .append($('<textarea id="newText" style="display: none;">').data('file-name',$("#newFileName").val()).html(editor.getValue()))
-        .append($('<textarea id="oldText" style="display: none;">').data('file-name',$("#oldFileName").val()).html($('#initial').val()));
+        .append($('<textarea id="newText" style="display: none;">').data('file-name',$("#newFileName").val()).data('val', editor.getValue()))
+        .append($('<textarea id="oldText" style="display: none;">').data('file-name',$("#oldFileName").val()).data('val', $('#initial').val()));
       diffUsingJS('oldText', 'newText', 'diffText', 1);
     }
   });
