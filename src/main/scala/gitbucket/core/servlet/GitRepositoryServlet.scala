@@ -303,6 +303,19 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               } else None
             }
 
+            // set PR as merged
+            val pulls = getPullRequestsByBranch(owner, repository, branchName, Some(false))
+            pulls.foreach { pull =>
+              if (commits.find { c =>
+                    c.id == pull.commitIdTo
+                  }.isDefined) {
+                markMergeAndClosePullRequest(pusher, owner, repository, pull)
+                getAccountByUserName(pusher).map { pusherAccount =>
+                  callPullRequestWebHook("closed", repositoryInfo, pull.issueId, baseUrl, pusherAccount)
+                }
+              }
+            }
+
             // record activity
             if (refName(1) == "heads") {
               command.getType match {
