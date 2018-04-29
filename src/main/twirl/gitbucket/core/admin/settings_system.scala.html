@@ -132,6 +132,21 @@
   </label>
 </fieldset>
 <!--====================================================================-->
+<!-- Show mail address -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Show mail address</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="showMailAddress" value="true"@if(context.settings.showMailAddress){ checked}>
+    <span class="strong">Show</span> <span class="normal">- Anyone can view mail address by user's profile page.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="allowAnonymousAccess" value="false"@if(!context.settings.showMailAddress){ checked}>
+    <span class="strong">Hide</span> <span class="normal">- Hide mail address in user's profile page.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
 <!-- Activity -->
 <!--====================================================================-->
 <hr>
