@@ -38,7 +38,7 @@
             <input type="text" name="message" class="form-control"/>
           </div>
           <div style="text-align: right;">
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.mkString("/"))" class="btn btn-danger">Cancel</a>
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.mkString("/"))" class="btn btn-default">Cancel</a>
             <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
             <input type="hidden" id="upload-files-data" name="uploadFiles" value=""/>
           </div>
