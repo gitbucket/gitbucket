@@ -1,6 +1,7 @@
 package gitbucket.core.util
 
-import java.io.ByteArrayOutputStream
+import java.io._
+import java.nio.charset.MalformedInputException
 
 import gitbucket.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
@@ -22,6 +23,10 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
+import gitbucket.core.controller.Context
+import gitbucket.core.plugin._
+import org.apache.commons.io.IOUtils
+import org.apache.tika.Tika
 import org.cache2k.Cache2kBuilder
 import org.eclipse.jgit.api.errors.{
   InvalidRefNameException,
@@ -32,7 +37,10 @@ import org.eclipse.jgit.api.errors.{
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter, RawTextComparator}
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.eclipse.jgit.util.io.DisabledOutputStream
+import org.mozilla.universalchardet.UniversalDetector
 import org.slf4j.LoggerFactory
+
+import scala.io.Source
 
 /**
  * Provides complex JGit operations.
@@ -136,32 +144,179 @@ object JGitUtil {
     changeType: ChangeType,
     oldPath: String,
     newPath: String,
-    oldContent: Option[String],
-    newContent: Option[String],
-    oldIsImage: Boolean,
-    newIsImage: Boolean,
+    oldContentInfo: Option[ContentInfo],
+    newContentInfo: Option[ContentInfo],
     oldObjectId: Option[String],
     newObjectId: Option[String],
     oldMode: String,
     newMode: String,
     tooLarge: Boolean,
     patch: Option[String]
-  )
+  ) {
+
+    def getOldEnhancedRenderRequest(
+      branch: String,
+      repository: RepositoryService.RepositoryInfo,
+      enableWikiLink: Boolean,
+      enableRefsLink: Boolean,
+      enableAnchor: Boolean
+    )(implicit context: Context): Option[EnhancedRenderRequest] = {
+      oldContentInfo.map(
+        EnhancedRenderRequest(
+          oldPath.split("/").toList,
+          _,
+          branch,
+          repository,
+          enableWikiLink,
+          enableRefsLink,
+          enableAnchor,
+          context
+        )
+      )
+    }
+
+    def getNewEnhancedRenderRequest(
+      branch: String,
+      repository: RepositoryService.RepositoryInfo,
+      enableWikiLink: Boolean,
+      enableRefsLink: Boolean,
+      enableAnchor: Boolean
+    )(implicit context: Context): Option[EnhancedRenderRequest] = {
+      newContentInfo.map(
+        EnhancedRenderRequest(
+          newPath.split("/").toList,
+          _,
+          branch,
+          repository,
+          enableWikiLink,
+          enableRefsLink,
+          enableAnchor,
+          context
+        )
+      )
+    }
+
+  }
 
   /**
    * The file content data for the file content view of the repository viewer.
    *
-   * @param viewType "image", "large" or "other"
-   * @param size total size of object in bytes
-   * @param content the string content
-   * @param charset the character encoding
+   * @param repository RepositoryInfo
+   * @param commitId Commit id for this file
+   * @param loader ObjectLoader for this file
+   * @param branch branchname for this file
+   * @param filePath path for this file
    */
-  case class ContentInfo(viewType: String, size: Option[Long], content: Option[String], charset: Option[String]) {
+  case class ContentInfo(
+    owner: String,
+    repository: String,
+    commitId: String,
+    loader: ObjectLoader,
+    branch: String,
+    filePath: String
+  ) {
+    val lfsKey: String = "version https://git-lfs.github.com/spec/v1"
+    val isLfs: Boolean = {
+      if (loader.isLarge) {
+        false
+      } else {
+        val cbuf: Array[Char] = new Array(lfsKey.length)
+        try {
+          using(loader.openStream()) { in =>
+            val readLen = Source.fromInputStream(in, "UTF-8").reader.read(cbuf, 0, lfsKey.length)
+            if (readLen != lfsKey.length) {
+              false
+            } else {
+              new String(cbuf).equals(lfsKey)
+            }
+          }
+        } catch {
+          case e: MalformedInputException =>
+            false
+        }
+      }
+    }
+
+    val size: Long = getContentSize(loader)
+
+    val renderer: EnhancedRenderer = {
+      val r = PluginRegistry().getRenderer(FileUtil.getExtension(filePath)).getOrElse {
+        defining(new Tika()) { tika =>
+          using(loader.openStream) { in =>
+            val mimeType = tika.detect(in)
+            if (mimeType.startsWith("text")) {
+              DefaultTextRenderer
+            } else {
+              DefaultBinaryRenderer
+            }
+          }
+        }
+      }
+      if (size > 1 * 1024 * 1024 && !r.allowLargeFile) {
+        LargeFileRenderer
+      } else {
+        r
+      }
+    }
+
+    def openFile[T](default: T)(f: InputStream => T): T = {
+      if (isLfs) {
+        val bytes = loader.getCachedBytes
+        val text = new String(bytes, "UTF-8")
+
+        val attrs = JGitUtil.getLfsObjects(text)
+        if (attrs.nonEmpty) {
+          val oid = attrs("oid").split(":")(1)
+
+          val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
+          using(new FileInputStream(FileUtil.getLfsFilePath(owner, repository, oid))) { in =>
+            f(in)
+          }
+        } else {
+          default
+        }
+      } else {
+        using(loader.openStream()) { in =>
+          f(in)
+        }
+      }
+    }
+
+    def content: String = {
+      openFile("") { in =>
+        Source.fromInputStream(in, charset).mkString
+      }
+    }
+
+    def contentBytes: Array[Byte] = {
+      openFile(Array.emptyByteArray) { in =>
+        IOUtils.toByteArray(in)
+      }
+    }
+
+    def charset: String = {
+      val size = 4096
+      val buf = openFile(Array.emptyByteArray) { in =>
+        val buf: Array[Byte] = new Array[Byte](size)
+        in.read(buf, 0, size)
+        buf
+      }
+      defining(new UniversalDetector(null)) { detector =>
+        detector.handleData(buf, 0, size)
+        detector.dataEnd()
+        detector.getDetectedCharset match {
+          case null => "UTF-8"
+          case e    => e
+        }
+      }
+    }
 
     /**
      * the line separator of this content ("LF" or "CRLF")
      */
-    val lineSeparator: String = if (content.exists(_.indexOf("\r\n") >= 0)) "CRLF" else "LF"
+    def lineSeparator: String = if (content.indexOf("\r\n") >= 0) "CRLF" else "LF"
+
+    val isText: Boolean = renderer.isInstanceOf[TextRenderer]
   }
 
   /**
@@ -660,6 +815,8 @@ object JGitUtil {
 
   def getDiffs(
     git: Git,
+    owner: String,
+    repository: String,
     from: Option[String],
     to: String,
     fetchContent: Boolean,
@@ -667,65 +824,36 @@ object JGitUtil {
   ): List[DiffInfo] = {
     val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
-      if (diffs.size > 100) {
-        DiffInfo(
-          changeType = diff.getChangeType,
-          oldPath = diff.getOldPath,
-          newPath = diff.getNewPath,
-          oldContent = None,
-          newContent = None,
-          oldIsImage = false,
-          newIsImage = false,
-          oldObjectId = Option(diff.getOldId).map(_.name),
-          newObjectId = Option(diff.getNewId).map(_.name),
-          oldMode = diff.getOldMode.toString,
-          newMode = diff.getNewMode.toString,
-          tooLarge = true,
-          patch = None
-        )
-      } else {
-        val oldIsImage = FileUtil.isImage(diff.getOldPath)
-        val newIsImage = FileUtil.isImage(diff.getNewPath)
-        if (!fetchContent || oldIsImage || newIsImage) {
-          DiffInfo(
-            changeType = diff.getChangeType,
-            oldPath = diff.getOldPath,
-            newPath = diff.getNewPath,
-            oldContent = None,
-            newContent = None,
-            oldIsImage = oldIsImage,
-            newIsImage = newIsImage,
-            oldObjectId = Option(diff.getOldId).map(_.name),
-            newObjectId = Option(diff.getNewId).map(_.name),
-            oldMode = diff.getOldMode.toString,
-            newMode = diff.getNewMode.toString,
-            tooLarge = false,
-            patch = (if (makePatch) Some(makePatchFromDiffEntry(git, diff)) else None) // TODO use DiffFormatter
-          )
-        } else {
-          DiffInfo(
-            changeType = diff.getChangeType,
-            oldPath = diff.getOldPath,
-            newPath = diff.getNewPath,
-            oldContent = JGitUtil
-              .getContentFromId(git, diff.getOldId.toObjectId, false)
-              .filter(FileUtil.isText)
-              .map(convertFromByteArray),
-            newContent = JGitUtil
-              .getContentFromId(git, diff.getNewId.toObjectId, false)
-              .filter(FileUtil.isText)
-              .map(convertFromByteArray),
-            oldIsImage = oldIsImage,
-            newIsImage = newIsImage,
-            oldObjectId = Option(diff.getOldId).map(_.name),
-            newObjectId = Option(diff.getNewId).map(_.name),
-            oldMode = diff.getOldMode.toString,
-            newMode = diff.getNewMode.toString,
-            tooLarge = false,
-            patch = (if (makePatch) Some(makePatchFromDiffEntry(git, diff)) else None) // TODO use DiffFormatter
-          )
-        }
+      val oldObjectId = Option(diff.getOldId).map(_.name)
+      val newObjectId = Option(diff.getNewId).map(_.name)
+      val repo = git.getRepository()
+
+      val oldContentInfo = Option(diff.getOldId).collect {
+        case x if x.name != "0000000000000000000000000000000000000000" =>
+          val fromId = from.getOrElse(JGitUtil.getParentCommitId(git, to).get)
+          JGitUtil.getContentInfo(git, owner, repository, fromId, diff.getOldPath, x.toObjectId)
       }
+      val newContentInfo = Option(diff.getNewId).collect {
+        case x if x.name != "0000000000000000000000000000000000000000" =>
+          JGitUtil.getContentInfo(git, owner, repository, to, diff.getNewPath, x.toObjectId)
+      }
+      DiffInfo(
+        changeType = diff.getChangeType,
+        oldPath = diff.getOldPath,
+        newPath = diff.getNewPath,
+        oldContentInfo = oldContentInfo,
+        newContentInfo = newContentInfo,
+        oldObjectId = oldObjectId,
+        newObjectId = newObjectId,
+        oldMode = diff.getOldMode.toString,
+        newMode = diff.getNewMode.toString,
+        tooLarge = (diffs.size > 100),
+        patch =
+          if (diffs.size > 100) {
+            None
+          } else if (makePatch) Some(makePatchFromDiffEntry(git, diff))
+          else None
+      )
     }.toList
   }
 
@@ -968,33 +1096,18 @@ object JGitUtil {
     !loader.isLarge && new String(loader.getBytes(), "UTF-8").startsWith("version https://git-lfs.github.com/spec/v1")
   }
 
-  def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
+  def getContentInfo(
+    git: Git,
+    owner: String,
+    repository: String,
+    branch: String,
+    path: String,
+    objectId: ObjectId
+  ): ContentInfo = {
     // Viewer
     using(git.getRepository.getObjectDatabase) { db =>
       val loader = db.open(objectId)
-      val isLfs = isLfsPointer(loader)
-      val large = FileUtil.isLarge(loader.getSize)
-      val viewer = if (FileUtil.isImage(path)) "image" else if (large) "large" else "other"
-      val bytes = if (viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
-      val size = Some(getContentSize(loader))
-
-      if (viewer == "other") {
-        if (!isLfs && bytes.isDefined && FileUtil.isText(bytes.get)) {
-          // text
-          ContentInfo(
-            "text",
-            size,
-            Some(StringUtil.convertFromByteArray(bytes.get)),
-            Some(StringUtil.detectEncoding(bytes.get))
-          )
-        } else {
-          // binary
-          ContentInfo("binary", size, None, None)
-        }
-      } else {
-        // image or large
-        ContentInfo(viewer, size, None, None)
-      }
+      ContentInfo(owner, repository, objectId.toString, loader, branch, path)
     }
   }
 

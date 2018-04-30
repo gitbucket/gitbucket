@@ -251,10 +251,10 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         diffs
           .find(x => x.oldPath == file)
           .map { diff =>
-            (diff.oldContent, diff.newContent) match {
-              case (Some(oldContent), Some(newContent)) => {
-                val oldLines = oldContent.replace("\r\n", "\n").split("\n")
-                val newLines = newContent.replace("\r\n", "\n").split("\n")
+            (diff.oldContentInfo, diff.newContentInfo) match {
+              case (Some(oldContentInfo), Some(newContentInfo)) if oldContentInfo.isText && newContentInfo.isText => {
+                val oldLines = oldContentInfo.content.replace("\r\n", "\n").split("\n")
+                val newLines = newContentInfo.content.replace("\r\n", "\n").split("\n")
                 file -> Option(DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava))
               }
               case _ =>
@@ -334,7 +334,15 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         }
 
       // TODO Isolate to an another method?
-      val diffs = JGitUtil.getDiffs(newGit, Some(oldId.getName), newId.getName, true, false)
+      val diffs = JGitUtil.getDiffs(
+        newGit,
+        requestUserName,
+        requestRepositoryName,
+        Some(oldId.getName),
+        newId.getName,
+        true,
+        false
+      )
 
       (commits, diffs)
     }

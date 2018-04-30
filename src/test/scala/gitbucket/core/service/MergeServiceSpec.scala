@@ -110,11 +110,13 @@ class MergeServiceSpec extends FunSpec {
   }
   describe("mergePullRequest") {
     it("can merge") {
-      val repo8Dir = initRepository("user1", "repo8")
+      val owner = "user1"
+      val repository = "repo8"
+      val repo8Dir = initRepository(owner, repository)
       using(Git.open(repo8Dir)) { git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge2")
         val committer = new PersonIdent("dummy2", "dummy2@example.com")
-        assert(getFile(git, branch, "test.txt").content.get == "hoge")
+        assert(getFile(git, owner, repository, branch, "test.txt").content == "hoge")
         val requestBranchId = git.getRepository.resolve(s"refs/pull/${issueId}/head")
         val masterId = git.getRepository.resolve(branch)
         service.mergePullRequest(git, branch, issueId, "merged", committer)
@@ -124,7 +126,7 @@ class MergeServiceSpec extends FunSpec {
         assert(commit.getAuthorIdent() == committer)
         assert(commit.getFullMessage() == "merged")
         assert(commit.getParents.toSet == Set(requestBranchId, masterId))
-        assert(getFile(git, branch, "test.txt").content.get == "hoge2")
+        assert(getFile(git, owner, repository, branch, "test.txt").content == "hoge2")
       }
     }
   }

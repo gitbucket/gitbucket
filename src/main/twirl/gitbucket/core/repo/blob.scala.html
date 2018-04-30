@@ -8,30 +8,32 @@
   isLfsFile: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @gitbucket.core.html.menu("files", repository){
+  @gitbucket.core.html.menu("files", repository) {
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
-        <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
-        <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
+        <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">
+          Transfer to URL with SHA</a>
+        <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">
+          Find file</a>
       </div></div>
       <div class="line-age-legend">
         <span>Newer</span>
         <ol>
-            <li class="heat1"></li>
-            <li class="heat2"></li>
-            <li class="heat3"></li>
-            <li class="heat4"></li>
-            <li class="heat5"></li>
-            <li class="heat6"></li>
-            <li class="heat7"></li>
-            <li class="heat8"></li>
-            <li class="heat9"></li>
-            <li class="heat10"></li>
+          <li class="heat1"></li>
+          <li class="heat2"></li>
+          <li class="heat3"></li>
+          <li class="heat4"></li>
+          <li class="heat5"></li>
+          <li class="heat6"></li>
+          <li class="heat7"></li>
+          <li class="heat8"></li>
+          <li class="heat9"></li>
+          <li class="heat10"></li>
         </ol>
         <span>Older</span>
       </div>
-      <div id="branchCtrlWrapper" style="display:inline;">
-      @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
+      <div id="branchCtrlWrapper" style="display: inline;">
+      @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission) {
         @repository.branchList.map { x =>
           <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName((x :: pathList).mkString("/"))">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
         }
@@ -39,13 +41,14 @@
       </div>
       <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>
-        @if(i == pathList.length - 1){
+        @if(i == pathList.length - 1) {
           @section
         } else {
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a>
+          /
         }
       }
-      @if(isLfsFile){
+      @if(isLfsFile) {
         <span class="label label-info">LFS</span>
       }
     </div>
@@ -53,47 +56,37 @@
       @helpers.avatar(latestCommit, 28)
       @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
       <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
-      <span class="label label-default">@helpers.readableSize(content.size)</span>
+      <span class="label label-default">@helpers.readableSize(Some(content.size))</span>
       <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
-        @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-default" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))">Edit</a>
+        @if(hasWritePermission && content.isText && repository.branchList.contains(branch)) {
+          <a class="btn btn-sm btn-default" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))">
+            Edit</a>
         }
-        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">Raw</a>
-        @if(content.viewType == "text"){
+        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">
+          Raw</a>
+        @if(content.isText) {
           <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))"
-            data-url="@helpers.url(repository)/get-blame/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-repository="@helpers.url(repository)">Blame</a>
+          data-url="@helpers.url(repository)/get-blame/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-repository="@helpers.url(repository)">
+            Blame</a>
         }
-        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">History</a>
-        @if(hasWritePermission && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-danger" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))">Delete</a>
+        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">
+          History</a>
+        @if(hasWritePermission && repository.branchList.contains(branch)) {
+          <a class="btn btn-sm btn-danger" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))">
+            Delete</a>
         }
       </div>
     </div>
-    @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
-      @if(!isBlame && isRenderable) {
-        <div class="box-content-bottom @if(content.viewType == "text"){ markdown-body } " style="padding-left: 20px; padding-right: 20px;">
-          @helpers.renderMarkup(pathList, content.content.getOrElse(""), branch, repository, false, false, true)
-        </div>
-      }else{
-        @if(content.viewType == "text"){
-          <div class="box-content-bottom">
-            <pre class="prettyprint linenums blob @if(!isRenderable){ no-renderable } ">@content.content.map(_.replaceAll("^(\r?\n)", "$1$1"))</pre>
-          </div>
-        }
-        @if(content.viewType == "image"){
-          <div class="box-content-bottom">
-            <img src="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))"/>
-          </div>
-        }
-        @if(content.viewType == "large" || content.viewType == "binary"){
-          <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-            <a href="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))">View Raw</a><br>
-            <br>
-            (Sorry about that, but we can't show files that are this big right now)
-          </div>
-        }
-      }
+    @if(isBlame && content.isText) {
+      <div class="box-content-bottom">
+        <pre class="prettyprint linenums blob">@content.content.replaceAll("^(\r?\n)", "$1$1")</pre>
+      </div>
+    } else {
+      <div class="box-content-bottom @if(content.isText) { markdown-body } " style="padding-left: 20px;
+        padding-right: 20px;">
+      @helpers.renderContent(pathList, content, branch, repository, false, false, true)
+      </div>
     }
   }
 }

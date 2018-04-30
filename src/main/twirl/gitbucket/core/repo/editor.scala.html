@@ -2,7 +2,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   fileName: Option[String],
-  content: gitbucket.core.util.JGitUtil.ContentInfo,
+  content: Option[gitbucket.core.util.JGitUtil.ContentInfo],
   protectedBranch: Boolean,
   commit: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -63,10 +63,10 @@
               <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList ++ Seq(fileName.get)).mkString("/"))" class="btn btn-default">Cancel</a>
             }
             <input type="submit" id="commitButton" class="btn btn-success" value="Commit changes" disabled="true"/>
-            <input type="hidden" id="charset" name="charset" value="@content.charset"/>
-            <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.lineSeparator"/>
+            <input type="hidden" id="charset" name="charset" value="@content.map(_.charset).getOrElse("UTF-8")"/>
+            <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.map(_.lineSeparator).getOrElse("LF")"/>
             <input type="hidden" id="content" name="content" value=""/>
-            <input type="hidden" id="initial" value="@content.content"/>
+            <input type="hidden" id="initial" value="@content.map(_.content).getOrElse("")"/>
             <input type="hidden" id="commit" name="commit" value="@commit"/>
           </div>
         </div>
@@ -138,7 +138,7 @@ $(function(){
     $('#btn-code').removeClass('active');
     $('#btn-preview').addClass('active');
 
-    @if(fileName.map(helpers.isRenderable _).getOrElse(false)) {
+    @if(fileName.isDefined) {
       // update preview
       $('#preview').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
       $.post('@helpers.url(repository)/_preview', {

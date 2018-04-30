@@ -6,10 +6,12 @@ import java.util.{Date, Locale, TimeZone}
 import com.nimbusds.jose.util.JSONObjectUtils
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
-import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
+import gitbucket.core.plugin._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
+import gitbucket.core.util.JGitUtil.ContentInfo
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
+import org.scalatra.ContentNegotiation
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -126,7 +128,35 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
 
   /**
    * Render the given source (only markdown is supported in default) as HTML.
-   * You can test if a file is renderable in this method by [[isRenderable()]].
+   */
+  def renderContent(
+    filePath: List[String],
+    contentInfo: ContentInfo,
+    branch: String,
+    repository: RepositoryService.RepositoryInfo,
+    enableWikiLink: Boolean,
+    enableRefsLink: Boolean,
+    enableAnchor: Boolean
+  )(implicit context: Context): Html = {
+    val fileName = filePath.last.toLowerCase
+    val extension = FileUtil.getExtension(fileName)
+    val renderer = contentInfo.renderer
+    renderer.renderContent(
+      EnhancedRenderRequest(
+        filePath,
+        contentInfo,
+        branch,
+        repository,
+        enableWikiLink,
+        enableRefsLink,
+        enableAnchor,
+        context
+      )
+    )
+  }
+
+  /**
+   * Render the given source (only markdown is supported in default) as HTML.
    */
   def renderMarkup(
     filePath: List[String],
@@ -141,16 +171,24 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     val fileName = filePath.last.toLowerCase
     val extension = FileUtil.getExtension(fileName)
     val renderer = PluginRegistry().getRenderer(extension)
-    renderer.render(
-      RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, enableAnchor, context)
-    )
-  }
-
-  /**
-   * Tests whether the given file is renderable. It's tested by the file extension.
-   */
-  def isRenderable(fileName: String): Boolean = {
-    PluginRegistry().renderableExtensions.exists(extension => fileName.toLowerCase.endsWith("." + extension))
+    if (renderer.isInstanceOf[TextRenderer]) {
+      renderer
+        .asInstanceOf[TextRenderer]
+        .renderMarkup(
+          RenderRequest(
+            filePath,
+            fileContent,
+            branch,
+            repository,
+            enableWikiLink,
+            enableRefsLink,
+            enableAnchor,
+            context
+          )
+        )
+    } else {
+      Html("<div>Not Supported</div>")
+    }
   }
 
   /**

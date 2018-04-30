@@ -22,7 +22,6 @@ import org.eclipse.jgit.transport.resolver._
 import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.json4s.jackson.Serialization._
 
@@ -441,7 +440,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
             case (oldCommitId, newCommitId) =>
               val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
                 JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
-                  val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+                  val diffs = JGitUtil.getDiffs(git, owner, repository, None, commit.id, false, false)
                   diffs.collect {
                     case diff if diff.newPath.toLowerCase.endsWith(".md") =>
                       val action = if (diff.changeType == ChangeType.ADD) "created" else "edited"

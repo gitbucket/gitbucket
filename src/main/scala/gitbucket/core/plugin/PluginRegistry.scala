@@ -34,9 +34,25 @@ class PluginRegistry {
   private val javaScripts = new ConcurrentLinkedQueue[(String, String)]
   private val controllers = new ConcurrentLinkedQueue[(ControllerBase, String)]
   private val images = new ConcurrentHashMap[String, String]
-  private val renderers = new ConcurrentHashMap[String, Renderer]
-  renderers.put("md", MarkdownRenderer)
-  renderers.put("markdown", MarkdownRenderer)
+  private val renderers = new ConcurrentHashMap[String, EnhancedRenderer]
+  renderers.put("svg", SVGRenderer)
+  renderers.put("png", new ImgRenderer("image/png"))
+  renderers.put("gif", new ImgRenderer("image/gif"))
+  renderers.put("bmp", new ImgRenderer("image/bmp"))
+  private val jpgRenderer = new ImgRenderer("image/jpeg")
+  List("jpeg", "jpg", "jpe", "jfif").foreach { ext =>
+    renderers.put(ext, jpgRenderer)
+  }
+  List("mp4", "webm", "ogv").foreach { ext =>
+    renderers.put(ext, VideoRenderer)
+  }
+  List("mp3", "aac", "ogg", "flac", "wav").foreach { ext =>
+    renderers.put(ext, AudioRenderer)
+  }
+  renderers.put("pdf", PdfRenderer)
+
+  renderers.put("md", new RendererWrapper(MarkdownRenderer))
+  renderers.put("markdown", new RendererWrapper(MarkdownRenderer))
   private val repositoryRoutings = new ConcurrentLinkedQueue[GitRepositoryRouting]
   private val accountHooks = new ConcurrentLinkedQueue[AccountHook]
   private val receiveHooks = new ConcurrentLinkedQueue[ReceiveHook]
@@ -93,9 +109,12 @@ class PluginRegistry {
   def getJavaScript(currentPath: String): List[String] =
     javaScripts.asScala.filter(x => currentPath.matches(x._1)).toList.map(_._2)
 
-  def addRenderer(extension: String, renderer: Renderer): Unit = renderers.put(extension, renderer)
+  def addRenderer(extension: String, renderer: Renderer): Unit = renderers.put(extension, new RendererWrapper(renderer))
 
-  def getRenderer(extension: String): Renderer = renderers.asScala.getOrElse(extension, DefaultRenderer)
+  def addRenderer(extension: String, renderer: EnhancedRenderer): Unit = renderers.put(extension, renderer)
+
+  def getRenderer(extension: String): Option[EnhancedRenderer] =
+    renderers.asScala.get(extension)
 
   def renderableExtensions: Seq[String] = renderers.keys.asScala.toSeq
 

@@ -11,7 +11,7 @@ import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util._
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
+import gitbucket.core.view.helpers.renderContent
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.{Created, NoContent, UnprocessableEntity}
@@ -190,40 +190,25 @@ trait ApiControllerBase extends ControllerBase {
           .flatMap { f =>
             val largeFile = params.get("large_file").exists(s => s.equals("true"))
             val content = getContentFromId(git, f.id, largeFile)
+            val contentInfo = JGitUtil.getContentInfo(git, repository.owner, repository.name, refStr, path, f.id)
             request.getHeader("Accept") match {
               case "application/vnd.github.v3.raw" => {
                 contentType = "application/vnd.github.v3.raw"
                 content
               }
-              case "application/vnd.github.v3.html" if isRenderable(f.name) => {
+              case "application/vnd.github.v3.html" => {
                 contentType = "application/vnd.github.v3.html"
-                content.map { c =>
+                Some(
                   List(
                     "<div data-path=\"",
                     path,
                     "\" id=\"file\">",
                     "<article>",
-                    renderMarkup(path.split("/").toList, new String(c), refStr, repository, false, false, true).body,
+                    renderContent(path.split("/").toList, contentInfo, refStr, repository, false, false, true).body,
                     "</article>",
                     "</div>"
                   ).mkString
-                }
-              }
-              case "application/vnd.github.v3.html" => {
-                contentType = "application/vnd.github.v3.html"
-                content.map { c =>
-                  List(
-                    "<div data-path=\"",
-                    path,
-                    "\" id=\"file\">",
-                    "<div class=\"plain\">",
-                    "<pre>",
-                    play.twirl.api.HtmlFormat.escape(new String(c)).body,
-                    "</pre>",
-                    "</div>",
-                    "</div>"
-                  ).mkString
-                }
+                )
               }
               case _ =>
                 Some(JsonFormat(ApiContents(f, RepositoryName(repository), content)))
@@ -806,7 +791,15 @@ trait ApiControllerBase extends ControllerBase {
           ApiCommits(
             repositoryName = RepositoryName(repository),
             commitInfo = commitInfo,
-            diffs = JGitUtil.getDiffs(git, Some(commitInfo.parents.head), commitInfo.id, false, true),
+            diffs = JGitUtil.getDiffs(
+              git,
+              repository.owner,
+              repository.name,
+              Some(commitInfo.parents.head),
+              commitInfo.id,
+              false,
+              true
+            ),
             author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
             committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
             commentCount = getCommitComment(repository.owner, repository.name, sha).size
