@@ -1,6 +1,9 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.24.1 - 1 May 2018
+- Fix bug in Web API authentication
+
 ### 4.24.0 - 30 Apr 2018
 - Diff for each review comment on pull requests
 - Extra mail addresses support
