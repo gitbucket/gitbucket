@@ -1,7 +1,7 @@
 package gitbucket.core.util
 
 import java.net.{URLDecoder, URLEncoder}
-import java.util.Base64
+import java.util.{Base64, UUID}
 
 import org.mozilla.universalchardet.UniversalDetector
 import SyntaxSugars._
@@ -13,9 +13,7 @@ import scala.util.control.Exception._
 object StringUtil {
 
   private lazy val BlowfishKey = {
-    // last 4 numbers in current timestamp
-    val time = System.currentTimeMillis.toString
-    time.substring(time.length - 4)
+    UUID.randomUUID().toString
   }
 
   def sha1(value: String): String =
