@@ -13,7 +13,7 @@ import scala.util.control.Exception._
 object StringUtil {
 
   private lazy val BlowfishKey = {
-    UUID.randomUUID().toString
+    UUID.randomUUID().toString.substring(0, 16)
   }
 
   def sha1(value: String): String =
