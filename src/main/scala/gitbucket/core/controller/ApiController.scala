@@ -122,7 +122,7 @@ trait ApiControllerBase extends ControllerBase {
   /*
    * https://developer.github.com/v3/repos/branches/#list-branches
    */
-  get("/api/v3/repos/:owner/:repo/branches")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/branches")(referrersOnly { repository =>
     JsonFormat(
       JGitUtil
         .getBranches(
@@ -140,7 +140,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/branches/#get-branch
    */
-  get("/api/v3/repos/:owner/:repo/branches/*")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/branches/*")(referrersOnly { repository =>
     //import gitbucket.core.api._
     (for {
       branch <- params.get("splat") if repository.branchList.contains(branch)
@@ -161,14 +161,14 @@ trait ApiControllerBase extends ControllerBase {
   /*
    * https://developer.github.com/v3/repos/contents/#get-contents
    */
-  get("/api/v3/repos/:owner/:repo/contents")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/contents")(referrersOnly { repository =>
     getContents(repository, ".", params.getOrElse("ref", repository.repository.defaultBranch))
   })
 
   /*
    * https://developer.github.com/v3/repos/contents/#get-contents
    */
-  get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/contents/*")(referrersOnly { repository =>
     getContents(repository, multiParams("splat").head, params.getOrElse("ref", repository.repository.defaultBranch))
   })
 
@@ -183,7 +183,7 @@ trait ApiControllerBase extends ControllerBase {
       getFileList(git, revision, dirName).find(f => f.name.equals(fileName))
     }
 
-    using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
+    using(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path)
       if (fileList.isEmpty) { // file or NotFound
         getFileInfo(git, refStr, path)
@@ -242,9 +242,9 @@ trait ApiControllerBase extends ControllerBase {
   /*
    * https://developer.github.com/v3/git/refs/#get-a-reference
    */
-  get("/api/v3/repos/:owner/:repo/git/refs/*")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     val revstr = multiParams("splat").head
-    using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
+    using(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository().findRef(revstr)
 
       if (ref != null) {
@@ -269,9 +269,11 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/collaborators/#list-collaborators
    */
-  get("/api/v3/repos/:owner/:repo/collaborators")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/collaborators")(referrersOnly { repository =>
     // TODO Should ApiUser take permission? getCollaboratorUserNames does not return owner group members.
-    JsonFormat(getCollaboratorUserNames(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
+    JsonFormat(
+      getCollaboratorUserNames(params("owner"), params("repository")).map(u => ApiUser(getAccountByUserName(u).get))
+    )
   })
 
   /**
@@ -360,7 +362,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection
    */
-  patch("/api/v3/repos/:owner/:repo/branches/*")(ownerOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
     (for {
       branch <- params.get("splat") if repository.branchList.contains(branch)
@@ -718,7 +720,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/statuses/#create-a-status
    */
-  post("/api/v3/repos/:owner/:repo/statuses/:sha")(writableUsersOnly { repository =>
+  post("/api/v3/repos/:owner/:repository/statuses/:sha")(writableUsersOnly { repository =>
     (for {
       ref <- params.get("sha")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
@@ -747,7 +749,7 @@ trait ApiControllerBase extends ControllerBase {
    *
    * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
    */
-  val listStatusesRoute = get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
+  val listStatusesRoute = get("/api/v3/repos/:owner/:repository/commits/:ref/statuses")(referrersOnly { repository =>
     (for {
       ref <- params.get("ref")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
@@ -764,7 +766,7 @@ trait ApiControllerBase extends ControllerBase {
    *
    * legacy route
    */
-  get("/api/v3/repos/:owner/:repo/statuses/:ref") {
+  get("/api/v3/repos/:owner/:repository/statuses/:ref") {
     listStatusesRoute.action()
   }
 
@@ -773,7 +775,7 @@ trait ApiControllerBase extends ControllerBase {
    *
    * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
    */
-  get("/api/v3/repos/:owner/:repo/commits/:ref/status")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/commits/:ref/status")(referrersOnly { repository =>
     (for {
       ref <- params.get("ref")
       owner <- getAccountByUserName(repository.owner)
@@ -787,7 +789,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/commits/#get-a-single-commit
    */
-  get("/api/v3/repos/:owner/:repo/commits/:sha")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/commits/:sha")(referrersOnly { repository =>
     val owner = repository.owner
     val name = repository.name
     val sha = params("sha")
@@ -839,7 +841,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * non-GitHub compatible API for Jenkins-Plugin
    */
-  get("/api/v3/repos/:owner/:repo/raw/*")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/raw/*")(referrersOnly { repository =>
     val (id, path) = repository.splitPath(multiParams("splat").head)
     using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
