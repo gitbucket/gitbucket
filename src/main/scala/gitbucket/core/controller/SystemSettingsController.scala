@@ -314,7 +314,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     } catch {
       case e: EmailException => s"[Error] ${e.getCause}"
-      case e: Exception => "[Error] " + e.toString
+      case e: Exception      => "[Error] " + e.toString
     }
   })
 
