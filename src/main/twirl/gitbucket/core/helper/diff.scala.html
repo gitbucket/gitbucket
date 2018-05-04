@@ -110,7 +110,7 @@
             }
             case (Some(oldCI: ContentInfo), Some(newCI: ContentInfo)) if oldCI.renderer.isInstanceOf[DiffRenderer] && newCI.renderer.isInstanceOf[DiffRenderer] => {
               @for(oldId <- oldCommitId; newId <- newCommitId; oldReq <- diff.getOldEnhancedRenderRequest(oldId, repository, false, false, false); newReq <- diff.getNewEnhancedRenderRequest(newId, repository, false, false, false)) {
-                @oldCI.renderer.asInstanceOf[DiffRenderer].renderDiff(oldReq, newReq)
+                @oldCI.renderer.asInstanceOf[DiffRenderer].renderDiff(oldReq, newReq, i)
               }
             }
             case (oldCI: Option[ContentInfo], newCI: Option[ContentInfo]) if oldCI.map(_.renderer.isInstanceOf[TextImageRenderer]).getOrElse(true) && newCI.map(_.renderer.isInstanceOf[TextImageRenderer]).getOrElse(true) => {

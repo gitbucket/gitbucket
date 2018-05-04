@@ -53,7 +53,7 @@ trait ObjectRenderer extends EnhancedRenderer {
 }
 
 trait DiffRenderer extends EnhancedRenderer {
-  def renderDiff(oldRequest: EnhancedRenderRequest, newRequest: EnhancedRenderRequest): Html
+  def renderDiff(oldRequest: EnhancedRenderRequest, newRequest: EnhancedRenderRequest, diffIndex: Int): Html
 }
 
 case class EnhancedRenderRequest(
