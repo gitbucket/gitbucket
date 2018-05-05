@@ -3,13 +3,11 @@ const GoogleFontsPlugin = require("google-fonts-plugin").default;
 
 module.exports = {
   context: path.join(__dirname, '/src/main/webapp/assets/common'),
-  mode: 'development',
   entry: [
     './js/main.js',
     './js/gitbucket.js',
     './js/validation.js'
   ],
-  //devtool: 'source-map',
   module: {
     rules: [
       {
@@ -64,4 +62,4 @@ module.exports = {
       outputDir: "target/webapp/assets/fonts"
     })
   ]
-}
+};

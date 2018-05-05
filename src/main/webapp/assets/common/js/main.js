@@ -1,6 +1,6 @@
 window.$ = window.jQuery = require('jquery');
 require('jquery-ui');
-require('dropzone');
+window.Dropzone = require('dropzone');
 
 require('bootstrap3');
 require('bootstrap-3-typeahead');
