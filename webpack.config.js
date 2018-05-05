@@ -36,7 +36,7 @@ module.exports = {
         }
       },
       {
-        test: /\.(woff(\d+)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+        test: /\.(woff(\d+)?|ttf|eot)(\?v=\d+\.\d+\.\d+|\?#iefix)?$/,
         loader: "url-loader",
         options:{
           mimetype: "application/font-woff",
