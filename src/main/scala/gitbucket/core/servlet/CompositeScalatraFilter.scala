@@ -39,7 +39,7 @@ class CompositeScalatraFilter extends Filter {
     }
 
     if (!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
-        !checkPath.startsWith("/plugin-assets/")) {
+        !checkPath.startsWith("/plugin-assets/") && !checkPath.startsWith("/assets/")) {
       filters
         .filter {
           case (_, path) =>

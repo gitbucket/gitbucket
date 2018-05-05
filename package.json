@@ -1,0 +1,54 @@
+{
+  "name": "gitbucket",
+  "version": "4.24.0",
+  "description": "A Git platform powered by Scala with easy installation, high extensibility & GitHub API compatibility",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gitbucket/gitbucket.git"
+  },
+  "keywords": [
+    "git",
+    "scala"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/gitbucket/gitbucket/issues"
+  },
+  "homepage": "https://github.com/gitbucket/gitbucket#readme",
+  "devDependencies": {
+    "css-loader": "^0.28.11",
+    "file-loader": "^1.1.11",
+    "google-fonts-plugin": "^1.0.3",
+    "node-sass": "^4.9.0",
+    "sass-loader": "^7.0.1",
+    "style-loader": "^0.21.0",
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "url-loader": "^1.0.1",
+    "webpack": "^4.7.0",
+    "webpack-cli": "^2.1.2"
+  },
+  "dependencies": {
+    "bootstrap-3-typeahead": "^4.0.2",
+    "bootstrap-colorpicker": "^2.5.2",
+    "bootstrap-datetimepicker-npm": "^4.17.37-npm",
+    "bootstrap3": "^3.3.5",
+    "code-prettify": "^0.1.0",
+    "dropzone": "^5.4.0",
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.3.1",
+    "jquery-hotkeys": "^0.2.2",
+    "jquery-textcomplete": "^1.8.4",
+    "jquery-ui": "^1.12.1",
+    "jquery.elastic": "^1.0.1",
+    "jquery.facebox": "^1.4.1",
+    "octicons": "^4.4.0"
+  }
+}

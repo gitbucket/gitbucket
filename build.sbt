@@ -8,7 +8,7 @@ val ScalatraVersion = "2.6.1"
 val JettyVersion = "9.4.7.v20170914"
 
 lazy val root = (project in file("."))
-  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
+  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin, SbtWeb)
   .settings(
     )
 

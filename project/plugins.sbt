@@ -9,3 +9,4 @@ addSbtPlugin("org.scalatra.sbt" % "sbt-scalatra" % "1.0.1")
 addSbtPlugin("com.jsuereth"     % "sbt-pgp"      % "1.1.0")
 addSbtCoursier
 addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.2.0")
+addSbtPlugin("com.github.stonexx.sbt" % "sbt-webpack" % "1.3.1")

@@ -24,3 +24,6 @@ project/plugins/project/
 .idea/
 .idea_modules/
 *.iml
+/package-lock.json
+
+/node_modules/

@@ -151,7 +151,7 @@ $(function(){
       }, function(data){
         $('#preview').empty().append(
           $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
-        prettyPrint();
+        PR.prettyPrint();
       });
     } else {
       // Show diff
