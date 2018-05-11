@@ -2,7 +2,8 @@
   comments: List[gitbucket.core.model.Comment],
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  pullreq: Option[gitbucket.core.model.PullRequest] = None)(implicit context: gitbucket.core.controller.Context)
+  pullreq: Option[gitbucket.core.model.PullRequest] = None,
+  commitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
 @showFormattedComment(comment: gitbucket.core.model.IssueComment)={
@@ -233,7 +234,7 @@
     }
   }
   case comments: gitbucket.core.model.CommitComments => {
-    @gitbucket.core.helper.html.commitcomments(comments, isManageable, repository, pullreq.map(_.commitIdTo))
+    @gitbucket.core.helper.html.commitcomments(comments, isManageable, repository, commitId.orElse(pullreq.map(_.commitIdTo)))
   }
   case comment: gitbucket.core.model.CommitComment => {
     <div class="panel panel-default commit-comment-box commit-comment-@comment.commentId">
