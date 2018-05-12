@@ -53,9 +53,6 @@
           @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
         }
       }
-      @if(repository.repository.options.allowFork) {
-        @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
-      }
       @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
         @menuitem("/settings", "settings", "Settings", "gear")
       }
@@ -78,6 +75,9 @@
             @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
               @repositoryHeaderComponent(repository, context)
             }
+            <a class="btn btn-default btn-sm" href="@helpers.url(repository)/network/members">
+              <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+            </a>
           </div>
           @gitbucket.core.helper.html.repositoryicon(repository, true)
           <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
