@@ -59,7 +59,7 @@ module.exports = {
       fonts: [
         { family: "Source Sans Pro"}
       ],
-      outputDir: "target/webapp/assets/fonts"
+      path: "target/webapp/assets/fonts"
     })
   ]
 };
