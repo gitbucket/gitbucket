@@ -5,7 +5,7 @@
   comments: Seq[gitbucket.core.model.Comment],
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@gitbucket.core.pulls.html.menu("files", issue, pullreq, commits, comments, isManageable, repository) {
+@gitbucket.core.pulls.html.menu("files", issue, pullreq, commits, comments, diffs.size, isManageable, repository) {
   @gitbucket.core.helper.html.diff(
     diffs,
     repository,
