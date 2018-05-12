@@ -52,7 +52,7 @@ trait ObjectRenderer extends EnhancedRenderer {
   def renderAsObject(request: EnhancedRenderRequest): Html
 }
 
-trait DiffRenderer extends EnhancedRenderer {
+trait DiffRenderer {
   def renderDiff(oldRequest: EnhancedRenderRequest, newRequest: EnhancedRenderRequest, diffIndex: Int): Html
 }
 

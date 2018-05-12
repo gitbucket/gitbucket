@@ -103,34 +103,33 @@
             <div class="diff-same">File mode changed</div>
           }
         } else {
-          @* TODO: too Large check *@
           @(diff.oldContentInfo, diff.newContentInfo) match {
             case (None, None) => {
               <div>Error???</div>
             }
-            case (Some(oldCI: ContentInfo), Some(newCI: ContentInfo)) if oldCI.renderer.isInstanceOf[DiffRenderer] && newCI.renderer.isInstanceOf[DiffRenderer] => {
+            case (Some(oldContentInfo: ContentInfo), Some(newContentInfo: ContentInfo)) if oldContentInfo.renderer.isInstanceOf[DiffRenderer] && newContentInfo.renderer.isInstanceOf[DiffRenderer] => {
               @for(oldId <- oldCommitId; newId <- newCommitId; oldReq <- diff.getOldEnhancedRenderRequest(oldId, repository, false, false, false); newReq <- diff.getNewEnhancedRenderRequest(newId, repository, false, false, false)) {
-                @oldCI.renderer.asInstanceOf[DiffRenderer].renderDiff(oldReq, newReq, i)
+                @oldContentInfo.renderer.asInstanceOf[DiffRenderer].renderDiff(oldReq, newReq, i)
               }
             }
-            case (oldCI: Option[ContentInfo], newCI: Option[ContentInfo]) if oldCI.map(_.renderer.isInstanceOf[TextImageRenderer]).getOrElse(true) && newCI.map(_.renderer.isInstanceOf[TextImageRenderer]).getOrElse(true) => {
+            case (oldContentInfo: Option[ContentInfo], newContentInfo: Option[ContentInfo]) if oldContentInfo.map(_.renderer.isInstanceOf[TextImageRenderer]).getOrElse(true) && newContentInfo.map(_.renderer.isInstanceOf[TextImageRenderer]).getOrElse(true) => {
               <div>
                 <div class="diff-image-render diff2up">
-                  @for(ci <- oldCI; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
+                  @for(contentInfo <- oldContentInfo; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
                     <div class="diff-image-frame diff-old">
-                     @ci.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
+                     @contentInfo.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
                     </div>
                   }
-                  @for(ci <- newCI; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
+                  @for(contentInfo <- newContentInfo; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
                     <div class="diff-image-frame diff-new">
-                      @ci.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
+                      @contentInfo.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
                     </div>
                   }
                 </div>
               </div>
               <div id="diffText-@i" class="diffText"></div>
-              @defining(for(ci <- oldCI; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) yield {
-                ci.content
+              @defining(for(contentInfo <- oldContentInfo; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) yield {
+                contentInfo.content
               }){ x =>
                 @x.map{ content =>
                 <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.oldPath" data-val='@content'></textarea>
@@ -138,8 +137,8 @@
                   <textarea id="oldText-@i" style="display: none;" data-file-name="" data-val=''></textarea>
                 }
               }
-              @defining(for(ci <- newCI; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) yield {
-                ci.content
+              @defining(for(contentInfo <- newContentInfo; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) yield {
+                contentInfo.content
               }){ x =>
                 @x.map{ content =>
                 <textarea id="newText-@i" style="display: none;" data-file-name="@(diff.newPath)" data-val='@(content)'></textarea>
@@ -148,10 +147,10 @@
                 }
               }
             }
-            case (oldCI: Option[ContentInfo], newCI: Option[ContentInfo]) if oldCI.map(_.renderer.isInstanceOf[TextRenderer]).getOrElse(true) && newCI.map(_.renderer.isInstanceOf[TextRenderer]).getOrElse(true) => {
+            case (oldContentInfo: Option[ContentInfo], newContentInfo: Option[ContentInfo]) if oldContentInfo.map(_.renderer.isInstanceOf[TextRenderer]).getOrElse(true) && newContentInfo.map(_.renderer.isInstanceOf[TextRenderer]).getOrElse(true) => {
               <div id="diffText-@i" class="diffText"></div>
-              @defining(for(ci <- oldCI; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) yield {
-                ci.content
+              @defining(for(contentInfo <- oldContentInfo; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) yield {
+                contentInfo.content
               }){ x =>
                 @x.map{ content =>
                   <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.oldPath" data-val='@content'></textarea>
@@ -159,8 +158,8 @@
                   <textarea id="oldText-@i" style="display: none;" data-file-name="" data-val=''></textarea>
                 }
               }
-              @defining(for(ci <- newCI; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) yield {
-                ci.content
+              @defining(for(contentInfo <- newContentInfo; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) yield {
+                contentInfo.content
               }){ x =>
                 @x.map{ content =>
                   <textarea id="newText-@i" style="display: none;" data-file-name="@(diff.newPath)" data-val='@(content)'></textarea>
@@ -169,44 +168,44 @@
                 }
               }
             }
-            case (oldCI: Option[ContentInfo], newCI: Option[ContentInfo]) if oldCI.map(_.renderer.isInstanceOf[ImageRenderer]).getOrElse(true) && newCI.map(_.renderer.isInstanceOf[ImageRenderer]).getOrElse(true) => {
+            case (oldContentInfo: Option[ContentInfo], newContentInfo: Option[ContentInfo]) if oldContentInfo.map(_.renderer.isInstanceOf[ImageRenderer]).getOrElse(true) && newContentInfo.map(_.renderer.isInstanceOf[ImageRenderer]).getOrElse(true) => {
               <div class="diff-image-render diff2up">
-                @for(ci <- oldCI; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
+                @for(contentInfo <- oldContentInfo; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
                   <div class="diff-image-frame diff-old">
-                    @ci.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
+                    @contentInfo.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
                   </div>
                 }
-                @for(ci <- newCI; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
+                @for(contentInfo <- newContentInfo; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
                   <div class="diff-image-frame diff-new">
-                    @ci.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
+                    @contentInfo.renderer.asInstanceOf[ImageRenderer].renderAsImage(req, """class = "diff-image" onload = "onLoadedDiffImages(this)" style = "display:none" """)
                   </div>
                 }
               </div>
             }
-            case (oldCI: Option[ContentInfo], newCI: Option[ContentInfo]) if oldCI.map(_.renderer.isInstanceOf[ObjectRenderer]).getOrElse(true) && newCI.map(_.renderer.isInstanceOf[ObjectRenderer]).getOrElse(true) => {
+            case (oldContentInfo: Option[ContentInfo], newContentInfo: Option[ContentInfo]) if oldContentInfo.map(_.renderer.isInstanceOf[ObjectRenderer]).getOrElse(true) && newContentInfo.map(_.renderer.isInstanceOf[ObjectRenderer]).getOrElse(true) => {
               <div>
-                @for(ci <- oldCI; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
+                @for(contentInfo <- oldContentInfo; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
                   <div>
-                    @ci.renderer.asInstanceOf[ObjectRenderer].renderAsObject(req)
+                    @contentInfo.renderer.asInstanceOf[ObjectRenderer].renderAsObject(req)
                   </div>
                 }
-                @for(ci <- newCI; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
+                @for(contentInfo <- newContentInfo; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
                   <div>
-                    @ci.renderer.asInstanceOf[ObjectRenderer].renderAsObject(req)
+                    @contentInfo.renderer.asInstanceOf[ObjectRenderer].renderAsObject(req)
                   </div>
                 }
               </div>
             }
-            case (oldCI: Option[ContentInfo], newCI: Option[ContentInfo]) => {
+            case (oldContentInfo: Option[ContentInfo], newContentInfo: Option[ContentInfo]) => {
               <div>
-                @for(ci <- oldCI; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
+                @for(contentInfo <- oldContentInfo; id <- oldCommitId; req <- diff.getOldEnhancedRenderRequest(id, repository, false, false, false) ) {
                   <div>
-                    @ci.renderer.renderContent(req)
+                    @contentInfo.renderer.renderContent(req)
                   </div>
                 }
-                @for(ci <- newCI; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
+                @for(contentInfo <- newContentInfo; id <- newCommitId; req <- diff.getNewEnhancedRenderRequest(id, repository, false, false, false)) {
                   <div>
-                    @ci.renderer.renderContent(req)
+                    @contentInfo.renderer.renderContent(req)
                   </div>
                 }
               </div>

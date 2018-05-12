@@ -116,6 +116,12 @@ class PluginRegistry {
   def getRenderer(extension: String): Option[EnhancedRenderer] =
     renderers.asScala.get(extension)
 
+  def getTextRenderer(extension: String): Option[TextRenderer] =
+    renderers.asScala.get(extension) match {
+      case Some(t: TextRenderer) => Some(t)
+      case _                     => None
+    }
+
   def renderableExtensions: Seq[String] = renderers.keys.asScala.toSeq
 
   def addRepositoryRouting(routing: GitRepositoryRouting): Unit = repositoryRoutings.add(routing)

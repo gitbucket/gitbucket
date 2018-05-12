@@ -66,7 +66,7 @@
             <input type="hidden" id="charset" name="charset" value="@content.map(_.charset).getOrElse("UTF-8")"/>
             <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.map(_.lineSeparator).getOrElse("LF")"/>
             <input type="hidden" id="content" name="content" value=""/>
-            <input type="hidden" id="initial" value="@content.map(_.content).getOrElse("")"/>
+            <input type="hidden" id="initial" value="@content.map(_.content)"/>
             <input type="hidden" id="commit" name="commit" value="@commit"/>
           </div>
         </div>

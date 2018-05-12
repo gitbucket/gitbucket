@@ -259,7 +259,7 @@ object JGitUtil {
       }
     }
 
-    def openFile[T](default: T)(f: InputStream => T): T = {
+    private def openFile[T](default: T)(f: InputStream => T): T = {
       if (isLfs) {
         val bytes = loader.getCachedBytes
         val text = new String(bytes, "UTF-8")
@@ -283,9 +283,7 @@ object JGitUtil {
     }
 
     def content: String = {
-      openFile("") { in =>
-        Source.fromInputStream(in, charset).mkString
-      }
+      StringUtil.convertFromByteArray(contentBytes)
     }
 
     def contentBytes: Array[Byte] = {

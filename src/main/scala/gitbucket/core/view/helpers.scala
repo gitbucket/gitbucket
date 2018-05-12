@@ -170,11 +170,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
 
     val fileName = filePath.last.toLowerCase
     val extension = FileUtil.getExtension(fileName)
-    val renderer = PluginRegistry().getRenderer(extension)
-    if (renderer.isInstanceOf[TextRenderer]) {
-      renderer
-        .asInstanceOf[TextRenderer]
-        .renderMarkup(
+    PluginRegistry()
+      .getTextRenderer(extension)
+      .map { renderer =>
+        renderer.renderMarkup(
           RenderRequest(
             filePath,
             fileContent,
@@ -186,9 +185,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
             context
           )
         )
-    } else {
-      Html("<div>Not Supported</div>")
-    }
+      }
+      .getOrElse {
+        Html("<div>Not Supported</div>")
+      }
   }
 
   /**
