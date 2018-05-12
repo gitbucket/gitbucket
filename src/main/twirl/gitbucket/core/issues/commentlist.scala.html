@@ -344,27 +344,6 @@ $(function(){
     return false;
   });
 
-  var extractMarkdown = function(data){
-    $('body').append('<div id="tmp"></div>');
-    $('#tmp').html(data);
-    var markdown = $('#tmp textarea').val();
-    $('#tmp').remove();
-    return markdown;
-  };
-
-  var replaceTaskList = function(issueContentHtml, checkboxes) {
-    var ss = [],
-        markdown = extractMarkdown(issueContentHtml),
-        xs = markdown.split(/- \[[x| ]\]/g);
-    for (var i=0; i<xs.length; i++) {
-      ss.push(xs[i]);
-      if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
-      else ss.push('- [ ]');
-    }
-    ss.pop();
-    return ss.join('');
-  };
-
   $('div[class*=commit-commentContent-]').on('click', ':checkbox', function(ev){
     var $commentContent = $(ev.target).parents('div[class*=commit-commentContent-]'),
         commentId = $commentContent.attr('class').match(/commit-commentContent-.+/)[0].replace(/commit-commentContent-/, ''),
@@ -376,7 +355,7 @@ $(function(){
           type: 'POST',
           data: {
             issueId : 0,
-            content : replaceTaskList(responseContent, checkboxes)
+            content : applyTaskListCheckedStatus(responseContent, checkboxes)
           },
           success: function(data) {
             $('.commit-commentContent-' + commentId).html(data.content);
@@ -396,7 +375,7 @@ $(function(){
           type: 'POST',
           data: {
             title   : $('#issueTitle').text(),
-            content : replaceTaskList(responseContent, checkboxes)
+            content : applyTaskListCheckedStatus(responseContent, checkboxes)
           }
         });
       }
@@ -414,7 +393,7 @@ $(function(){
           type: 'POST',
           data: {
             issueId : 0,
-            content : replaceTaskList(responseContent, checkboxes)
+            content : applyTaskListCheckedStatus(responseContent, checkboxes)
           }
         });
       }
