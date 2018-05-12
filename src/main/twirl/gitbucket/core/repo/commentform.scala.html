@@ -4,7 +4,8 @@
   newLineNumber: Option[Int] = None,
   issueId: Option[Int] = None,
   hasWritePermission: Boolean,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @if(context.loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
@@ -21,13 +22,14 @@
           hasWritePermission = hasWritePermission,
           completionContext  = "issues",
           style              = "height: 100px; max-height: 150px;",
-          elastic            = true
+          elastic            = true,
+          uid                = uid
         )
       </div>
       @if(fileName.isDefined){
         <div class="pull-right" style="margin-top: 10px;">
           <input type="button" class="btn btn-default" value="Cancel"/>
-          <input type="submit" class="btn btn-success btn-inline-comment" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
+          <input type="submit" id="btn-inline-comment-@uid" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
         </div>
       }
     </div>
@@ -42,7 +44,7 @@
     @newLineNumber.map { newLineNumber => <input type="hidden" name="newLineNumber" value="@newLineNumber"> }
   </form>
   <script>
-    $('.btn-inline-comment').click(function(e) {
+    $('#btn-inline-comment-@uid').click(function(e) {
       e.preventDefault();
       var $form = $(e.target).attr('disabled', 'disabled').closest('form');
       var param = {};

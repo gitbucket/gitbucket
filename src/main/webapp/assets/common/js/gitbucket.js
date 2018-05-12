@@ -78,10 +78,10 @@ function displayErrors(data, elem){
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
   var old = $('#'+oldTextId), head = $('#'+newTextId);
   var render = new JsDiffRender({
-    oldText: old.data('val'),
-    oldTextName: old.data('file-name'),
-    newText: head.data('val'),
-    newTextName: head.data('file-name'),
+    oldText: old.attr('data-val'),
+    oldTextName: old.attr('data-file-name'),
+    newText: head.attr('data-val'),
+    newTextName: head.attr('data-file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
   });

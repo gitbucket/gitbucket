@@ -134,7 +134,8 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       ldap = None,
       oidcAuthentication = false,
       oidc = None,
-      skinName = "skin-blue"
+      skinName = "skin-blue",
+      showMailAddress = false
     )
 
   /**

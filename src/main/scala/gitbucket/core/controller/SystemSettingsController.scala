@@ -90,7 +90,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "jwsAlgorithm" -> trim(label("Signature algorithm", optional(text())))
       )(OIDC.apply)
     ),
-    "skinName" -> trim(label("AdminLTE skin name", text(required)))
+    "skinName" -> trim(label("AdminLTE skin name", text(required))),
+    "showMailAddress" -> trim(label("Show mail address", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh && settings.baseUrl.isEmpty) {
