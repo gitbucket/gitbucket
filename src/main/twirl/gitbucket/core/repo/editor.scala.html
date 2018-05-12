@@ -60,7 +60,7 @@
             @if(fileName.isEmpty){
               <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default">Cancel</a>
             } else {
-              <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList ++ Seq(fileName.get)).mkString("/"))" class="btn btn-danger">Cancel</a>
+              <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList ++ Seq(fileName.get)).mkString("/"))" class="btn btn-default">Cancel</a>
             }
             <input type="submit" id="commitButton" class="btn btn-success" value="Commit changes" disabled="true"/>
             <input type="hidden" id="charset" name="charset" value="@content.charset"/>
@@ -75,6 +75,7 @@
   }
 }
 <script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
+<script src="@helpers.assets("/vendors/ace/ext-modelist.js")" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
 <link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
 <script>
@@ -89,7 +90,9 @@ $(function(){
   }
 
   @if(fileName.isDefined){
-    editor.getSession().setMode("ace/mode/@helpers.editorType(fileName.get)");
+    var modelist = ace.require("ace/ext/modelist");
+    var mode = modelist.getModeForPath("@fileName.get");
+    editor.getSession().setMode(mode.mode);
   }
   @if(protectedBranch){
     editor.setReadOnly(true);

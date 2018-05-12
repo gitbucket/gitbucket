@@ -10,6 +10,7 @@
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.view.helpers.RichHtmlSeq
+@import gitbucket.core.model._
 @gitbucket.core.html.main(commit.shortMessage, Some(repository)){
   @gitbucket.core.html.menu("files", repository){
     <table class="table table-bordered">
@@ -97,10 +98,19 @@
       <div style="display: none;">
         @gitbucket.core.issues.html.commentlist(
           None,
-          comments.filter(_.asInstanceOf[gitbucket.core.model.CommitComment].fileName.isDefined),
+          comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
+            CommitComments(
+              fileName          = fileName.get,
+              commentedUserName = comments.head.commentedUserName,
+              registeredDate    = comments.head.registeredDate,
+              comments          = comments,
+              diff              = None
+            )
+          }.toList,
           hasWritePermission,
           repository,
-          None)
+          None,
+          Some(commitId))
       </div>
     </div>
     @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)

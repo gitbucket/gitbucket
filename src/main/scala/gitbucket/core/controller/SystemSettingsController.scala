@@ -15,6 +15,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import org.apache.commons.io.IOUtils
+import org.apache.commons.mail.EmailException
 import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.forms._
@@ -90,6 +91,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
     "relativeTime" -> trim(label("Relative Time", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
@@ -313,7 +315,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "Test mail has been sent to: " + form.testAddress
 
     } catch {
-      case e: Exception => "[Error] " + e.toString
+      case e: EmailException => s"[Error] ${e.getCause}"
+      case e: Exception      => "[Error] " + e.toString
     }
   })
 

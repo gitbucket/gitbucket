@@ -3,6 +3,7 @@
   pullreq: gitbucket.core.model.PullRequest,
   commits: Seq[gitbucket.core.util.JGitUtil.CommitInfo],
   comments: Seq[gitbucket.core.model.Comment],
+  changedFileSize: Int,
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   flash: Map[String, String] = Map.empty)(body: => Html)(implicit context: gitbucket.core.controller.Context)
@@ -68,9 +69,9 @@
       }
       </div>
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
-        <li @if(active=="conversation"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId">Conversation</a></li>
-        <li @if(active=="commits"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits</a></li>
-        <li @if(active=="files"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed</a></li>
+        <li @if(active=="conversation"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId">Conversation <span class="badge">@comments.size</span></a></li>
+        <li @if(active=="commits"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge">@commits.size</span></a></li>
+        <li @if(active=="files"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge">@changedFileSize</span></a></li>
       </ul>
       <div class="tab-content fill-width" style="padding-top: 20px;">
         @flash.get("error").map { error =>
@@ -83,3 +84,37 @@
       </div>
   }
 }
+<script>
+  $(function(){
+   $('#edit').click(function(){
+      $('.edit-title').show();
+      $('.show-title').hide();
+      return false;
+    });
+
+    $('#update').click(function(){
+      $(this).attr('disabled', 'disabled');
+      $.ajax({
+        url: '@helpers.url(repository)/issues/edit_title/@issue.issueId',
+        type: 'POST',
+        data: {
+          title   : $('#edit-title').val()
+        }
+      }).done(function(data){
+        $('#show-title').empty().text(data.title);
+        $('#cancel').click();
+        $(this).removeAttr('disabled');
+      }).fail(function(req){
+        $(this).removeAttr('disabled');
+        $('#error-edit-title').text($.parseJSON(req.responseText).title);
+      });
+      return false;
+    });
+
+    $('#cancel').click(function(){
+      $('.edit-title').hide();
+      $('.show-title').show();
+      return false;
+    });
+  });
+</script>

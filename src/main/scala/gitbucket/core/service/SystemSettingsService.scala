@@ -68,6 +68,7 @@ trait SystemSettingsService {
         }
       }
       props.setProperty(SkinName, settings.skinName.toString)
+      props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
       props.setProperty(RelativeTime, settings.relativeTime.toString)
       using(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
@@ -146,6 +147,7 @@ trait SystemSettingsService {
           None
         },
         getValue(props, SkinName, "skin-blue"),
+        getValue(props, ShowMailAddress, false),
         getValue(props, RelativeTime, true)
       )
     }
@@ -177,6 +179,7 @@ object SystemSettingsService {
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
     skinName: String,
+    showMailAddress: Boolean,
     relativeTime: Boolean
   ) {
 
@@ -286,6 +289,7 @@ object SystemSettingsService {
   private val OidcClientSecret = "oidc.client_secret"
   private val OidcJwsAlgorithm = "oidc.jws_algorithm"
   private val SkinName = "skinName"
+  private val ShowMailAddress = "showMailAddress"
   private val RelativeTime = "relativeTime"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {

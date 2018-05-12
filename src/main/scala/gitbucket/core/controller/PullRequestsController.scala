@@ -113,7 +113,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         val name = repository.name
         getPullRequest(owner, name, issueId) map {
           case (issue, pullreq) =>
-            val (commits, _) =
+            val (commits, diffs) =
               getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
             html.conversation(
@@ -121,6 +121,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               pullreq,
               commits.flatten,
               getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              diffs.size,
               getIssueLabels(owner, name, issueId),
               getAssignableUserNames(owner, name),
               getMilestonesWithIssueCount(owner, name),
@@ -157,23 +158,25 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/pull/:id/commits")(referrersOnly { repository =>
-    params("id").toIntOpt.flatMap { issueId =>
-      val owner = repository.owner
-      val name = repository.name
-      getPullRequest(owner, name, issueId) map {
-        case (issue, pullreq) =>
-          val (commits, _) =
-            getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+    params("id").toIntOpt.flatMap {
+      issueId =>
+        val owner = repository.owner
+        val name = repository.name
+        getPullRequest(owner, name, issueId) map {
+          case (issue, pullreq) =>
+            val (commits, diffs) =
+              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
-          html.commits(
-            issue,
-            pullreq,
-            commits,
-            getPullRequestComments(owner, name, issue.issueId, commits.flatten),
-            isManageable(repository),
-            repository
-          )
-      }
+            html.commits(
+              issue,
+              pullreq,
+              commits,
+              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              diffs.size,
+              isManageable(repository),
+              repository
+            )
+        }
     } getOrElse NotFound()
   })
 
