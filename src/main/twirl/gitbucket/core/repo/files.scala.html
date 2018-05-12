@@ -33,10 +33,10 @@
     <div class="head" style="height: 24px;">
       <div class="pull-right">
         <div class="btn-group">
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
           <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
         </div>
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
       </div>
       @if(pathList.isEmpty){
         <div class="pull-right pc" style="margin-right: 5px;">
