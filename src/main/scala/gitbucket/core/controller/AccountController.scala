@@ -229,13 +229,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName") {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
+      val extraMailAddresses = getAccountExtraMailAddresses(userName)
       params.getOrElse("tab", "repositories") match {
         // Public Activity
         case "activity" =>
           gitbucket.core.account.html.activity(
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getActivitiesByUser(userName, true)
+            getActivitiesByUser(userName, true),
+            extraMailAddresses
           )
 
         // Members
@@ -244,6 +246,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           gitbucket.core.account.html.members(
             account,
             members,
+            extraMailAddresses,
             context.loginAccount.exists(
               x =>
                 members.exists { member =>
@@ -260,6 +263,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, Some(userName)),
+            extraMailAddresses,
             context.loginAccount.exists(
               x =>
                 members.exists { member =>
