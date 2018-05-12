@@ -85,7 +85,6 @@ fork in Test := true
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 
-
 WebpackKeys.config in webpack := (baseDirectory.value / "webpack.config.dev.js")
 WebpackKeys.config in (WebpackModes.Dev, webpack) := (baseDirectory.value / "webpack.config.dev.js")
 WebpackKeys.config in (WebpackModes.Prod, webpack) := (baseDirectory.value / "webpack.config.prod.js")
