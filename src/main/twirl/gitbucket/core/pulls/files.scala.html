@@ -10,7 +10,7 @@
     diffs,
     repository,
     commits.headOption.map(_.id),
-    commits.lastOption.map(_.id),
+    Some(pullreq.commitIdFrom),
     true,
     Some(pullreq.issueId),
     isManageable,
