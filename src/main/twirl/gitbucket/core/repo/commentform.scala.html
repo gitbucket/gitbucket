@@ -78,7 +78,28 @@
         var $tr = $form.closest('tr.not-diff');
 
         // Apply comment
-        $tr.removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+        var $addedCommentContent = $tr.removeClass('inline-comment-form').html(tmp).find('.comment-box-container');
+        $addedCommentContent.html(data);
+        $addedCommentContent.find('div[class*=commit-commentContent-]').on('click', ':checkbox', function(ev){
+          var $commentContent = $(ev.target).parents('div[class*=commit-commentContent-]'),
+            commentId = $commentContent.attr('class').match(/commit-commentContent-.+/)[0].replace(/commit-commentContent-/, ''),
+            checkboxes = $commentContent.find(':checkbox');
+          $.get('@helpers.url(repository)/commit_comments/_data/' + commentId, { dataType : 'html' },
+            function(responseContent){
+              $.ajax({
+                url: '@helpers.url(repository)/commit_comments/edit/' + commentId,
+                type: 'POST',
+                data: {
+                  issueId : 0,
+                  content : applyTaskListCheckedStatus(responseContent, checkboxes)
+                },
+                success: function(data) {
+                  $('.commit-commentContent-' + commentId).html(data.content);
+                }
+              });
+            }
+          );
+        });
 
         // Show reply comment form
         var replyComment = $tr.prev().find('.reply-comment').closest('.not-diff').show();

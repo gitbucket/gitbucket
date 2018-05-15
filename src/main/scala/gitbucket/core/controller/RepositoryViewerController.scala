@@ -705,6 +705,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                   enableRefsLink = true,
                   enableAnchor = true,
                   enableLineBreaks = true,
+                  enableTaskList = true,
                   hasWritePermission = true
                 )
               )
