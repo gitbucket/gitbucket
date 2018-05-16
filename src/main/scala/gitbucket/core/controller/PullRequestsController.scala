@@ -353,7 +353,16 @@ trait PullRequestsControllerBase extends ControllerBase {
                   // close issue by commit message
                   if (pullreq.requestBranch == repository.repository.defaultBranch) {
                     commits.map { commit =>
-                      closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+                      closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
+                        issueId =>
+                          getIssue(repository.owner, repository.name, issueId.toString).map { issue =>
+                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                            PluginRegistry().getIssueHooks
+                              .foreach(
+                                _.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount)
+                              )
+                          }
+                      }
                     }
                   }
 
@@ -458,15 +467,37 @@ trait PullRequestsControllerBase extends ControllerBase {
                     val defaultBranch = getRepository(owner, name).get.repository.defaultBranch
                     if (pullreq.branch == defaultBranch) {
                       commits.flatten.foreach { commit =>
-                        closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+                        closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
+                          issueId =>
+                            getIssue(owner, name, issueId.toString).map { issue =>
+                              callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                              PluginRegistry().getIssueHooks
+                                .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
+                            }
+                        }
                       }
+                      val issueContent = issue.title + " " + issue.content.getOrElse("")
                       closeIssuesFromMessage(
-                        issue.title + " " + issue.content.getOrElse(""),
+                        issueContent,
                         loginAccount.userName,
                         owner,
                         name
-                      )
-                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
+                      ).foreach {
+                        issueId =>
+                          getIssue(owner, name, issueId.toString).map { issue =>
+                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                            PluginRegistry().getIssueHooks
+                              .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
+                          }
+                      }
+                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach {
+                        issueId =>
+                          getIssue(owner, name, issueId.toString).map { issue =>
+                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                            PluginRegistry().getIssueHooks
+                              .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
+                          }
+                      }
                     }
 
                     updatePullRequests(owner, name, pullreq.branch)
