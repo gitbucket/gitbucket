@@ -8,7 +8,7 @@ val ScalatraVersion = "2.6.1"
 val JettyVersion = "9.4.7.v20170914"
 
 lazy val root = (project in file("."))
-  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
+  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin, SbtWeb)
   .settings(
     )
 
@@ -85,6 +85,10 @@ fork in Test := true
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 
+WebpackKeys.config in webpack := (baseDirectory.value / "webpack.config.dev.js")
+WebpackKeys.config in (WebpackModes.Dev, webpack) := (baseDirectory.value / "webpack.config.dev.js")
+WebpackKeys.config in (WebpackModes.Prod, webpack) := (baseDirectory.value / "webpack.config.prod.js")
+
 // Assembly settings
 test in assembly := {}
 assemblyMergeStrategy in assembly := {
@@ -137,6 +141,9 @@ val executableKey = TaskKey[File]("executable")
 executableKey := {
   import java.util.jar.Attributes.{Name => AttrName}
   import java.util.jar.{Manifest => JarManifest}
+
+  // Webpack with production settings
+  compile in Compile := (compile in Compile).dependsOn(webpack.toTask("prod")).value
 
   val workDir = Keys.target.value / "executable"
   val warName = Keys.name.value + ".war"

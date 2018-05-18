@@ -23,7 +23,7 @@ $(function(){
   var callback = function(data){
     $('#update-comment-@commentId, #cancel-comment-@commentId').removeAttr('disabled');
     $('#commentContent-@commentId').empty().html(data.content);
-    prettyPrint();
+    PR.prettyPrint();
   };
 
   $('#update-comment-@commentId').click(function(){

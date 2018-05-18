@@ -27,7 +27,7 @@ $(function(){
   });
 
   // syntax highlighting by google-code-prettify
-  prettyPrint();
+  PR.prettyPrint();
 
   // Suppress transition animation on load
   $("body").removeClass("page-load");
