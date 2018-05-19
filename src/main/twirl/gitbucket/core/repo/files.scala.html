@@ -33,6 +33,7 @@
     <div class="head" style="height: 24px;">
       <div class="pull-right">
         <div class="btn-group">
+          <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}@if(pathList.length > 0){/@pathList.mkString("/")}/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
           <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
         </div>
@@ -44,7 +45,6 @@
             @if(context.platform != "linux" && context.platform != null){
               <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
             }
-            <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
           </div>
         </div>
         <div class="pull-right pc">
