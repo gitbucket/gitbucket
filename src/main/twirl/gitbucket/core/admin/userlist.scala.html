@@ -26,7 +26,7 @@
               }
             </div>
             <div class="strong">
-              @helpers.avatar(account.userName, 20)
+              @helpers.avatarLink(account.userName, 20)
               <a href="@helpers.url(account.userName)">@account.userName</a>
               @if(account.isGroupAccount){
                 (Group)
@@ -39,7 +39,7 @@
               }
               @if(account.isGroupAccount){
                 @members(account.userName).map { userName =>
-                  @helpers.avatar(userName, 20, tooltip = true)
+                  @helpers.avatarLink(userName, 20, tooltip = true)
                 }
               }
             </div>

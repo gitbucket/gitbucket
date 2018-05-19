@@ -9,7 +9,7 @@
 @showFormattedComment(comment: gitbucket.core.model.IssueComment)={
 <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
   <div class="panel-heading">
-    @helpers.avatar(comment.commentedUserName, 20)
+    @helpers.avatarLink(comment.commentedUserName, 20)
     @helpers.user(comment.commentedUserName, styleClass="username strong")
     <span class="muted">
       @if(comment.action == "comment"){
@@ -45,7 +45,7 @@
 @if(issue.isDefined){
   <div class="panel panel-default issue-comment-box">
     <div class="panel-heading">
-      @helpers.avatar(issue.get.openedUserName, 20)
+      @helpers.avatarLink(issue.get.openedUserName, 20)
       @helpers.user(issue.get.openedUserName, styleClass="username strong")
       <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
@@ -81,7 +81,7 @@
           <div class="discussion-item discussion-item-commit">
             <div class="discussion-item-header">
               <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
-              @helpers.avatar(comment.commentedUserName, 16)
+              @helpers.avatarLink(comment.commentedUserName, 16)
               @helpers.user(comment.commentedUserName, styleClass="username strong")
               added a commit that referenced this @issueOrPullRequest()
               @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -104,7 +104,7 @@
         <div class="discussion-item discussion-item-refer">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             referenced the @issueOrPullRequest()
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -121,7 +121,7 @@
         <div class="discussion-item discussion-item-merge">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-git-merge"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             merged commit
             <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
@@ -141,7 +141,7 @@
         <div class="discussion-item discussion-item-close">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-circle-slash"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             closed this @issueOrPullRequest()
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -155,7 +155,7 @@
         <div class="discussion-item discussion-item-reopen">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-primitive-dot"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             reopened the @issueOrPullRequest()
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -166,7 +166,7 @@
         <div class="discussion-item discussion-item-delete_branch">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-git-branch"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             deleted the <code>@pullreq.map(_.requestBranch)</code> branch
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -177,7 +177,7 @@
         <div class="discussion-item discussion-item-add-label">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-tag"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             add the <code>@comment.content</code> label
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -188,7 +188,7 @@
         <div class="discussion-item discussion-item-delete-label">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-tag"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             removed the <code>@comment.content</code> label
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -199,7 +199,7 @@
         <div class="discussion-item discussion-item-change-priority">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-flame"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             change priority from <code>@comment.content.split(":")(0)</code> to <code>@comment.content.split(":")(1)</code>
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -210,7 +210,7 @@
         <div class="discussion-item discussion-item-change-milestone">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-milestone"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             change milestone from <code>@comment.content.split(":")(0)</code> to <code>@comment.content.split(":")(1)</code>
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -221,7 +221,7 @@
         <div class="discussion-item discussion-item-assign">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-person"></i></span>
-            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.avatarLink(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             change assignee from <code>@comment.content.split(":")(0)</code> to <code>@comment.content.split(":")(1)</code>
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
@@ -239,7 +239,7 @@
   case comment: gitbucket.core.model.CommitComment => {
     <div class="panel panel-default commit-comment-box commit-comment-@comment.commentId">
       <div class="panel-heading">
-        @helpers.avatar(comment.commentedUserName, 20)
+        @helpers.avatarLink(comment.commentedUserName, 20)
         @helpers.user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
           commented

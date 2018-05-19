@@ -67,7 +67,7 @@
   <div>
     <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
-      @helpers.avatar(activity.activityUserName, 16)
+      @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
     </div>
     @activity.additionalInfo.map { additionalInfo =>
@@ -83,7 +83,7 @@
   <div>
     <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
-      @helpers.avatar(activity.activityUserName, 16)
+      @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
     </div>
     @additionalInfo
@@ -97,7 +97,7 @@
   <div>
     <span class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
     <div>
-      @helpers.avatar(activity.activityUserName, 16)
+      @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
     </div>
   </div>

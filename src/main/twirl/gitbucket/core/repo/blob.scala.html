@@ -50,7 +50,7 @@
       }
     </div>
     <div class="box-header">
-      @helpers.avatar(latestCommit, 28)
+      @helpers.avatarLink(latestCommit, 28)
       @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
       <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
       <span class="label label-default">@helpers.readableSize(content.size)</span>
