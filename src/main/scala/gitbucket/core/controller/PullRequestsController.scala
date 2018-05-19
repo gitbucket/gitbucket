@@ -482,21 +482,19 @@ trait PullRequestsControllerBase extends ControllerBase {
                         loginAccount.userName,
                         owner,
                         name
-                      ).foreach {
-                        issueId =>
-                          getIssue(owner, name, issueId.toString).map { issue =>
-                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
-                            PluginRegistry().getIssueHooks
-                              .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
-                          }
+                      ).foreach { issueId =>
+                        getIssue(owner, name, issueId.toString).map { issue =>
+                          callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                          PluginRegistry().getIssueHooks
+                            .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
+                        }
                       }
-                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach {
-                        issueId =>
-                          getIssue(owner, name, issueId.toString).map { issue =>
-                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
-                            PluginRegistry().getIssueHooks
-                              .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
-                          }
+                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach { issueId =>
+                        getIssue(owner, name, issueId.toString).map { issue =>
+                          callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                          PluginRegistry().getIssueHooks
+                            .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
+                        }
                       }
                     }
 
