@@ -7,7 +7,7 @@
     @members.map { member =>
       <div class="block">
         <div class="block-header">
-          @helpers.avatar(member.userName, 20) <a href="@helpers.url(member.userName)">@member.userName</a>
+          @helpers.avatarLink(member.userName, 20) <a href="@helpers.url(member.userName)">@member.userName</a>
           @if(member.isManager){ (Manager) }
         </div>
       </div>

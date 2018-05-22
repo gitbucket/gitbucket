@@ -116,7 +116,7 @@
             </div>
             <div class="author-info">
               <div class="author">
-                @helpers.avatar(latestCommit, 20)
+                @helpers.avatarLink(latestCommit, 20)
                 <span>@helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
                 <span class="muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
               </div>

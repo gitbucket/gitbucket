@@ -24,7 +24,7 @@
     }
     <div class="block">
       @if(originRepository.isDefined){
-        @helpers.avatar(originRepository.get.owner, 20)
+        @helpers.avatarLink(originRepository.get.owner, 20)
         <span@if(repository.owner == originRepository.get.owner){ class="highlight"}>
           <a href="@helpers.url(originRepository.get.owner)">@originRepository.get.owner</a> / <a href="@context.path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
         </span>
@@ -38,7 +38,7 @@
     </div>
     @members.map { case (owner, name) =>
       <div class="block">
-        @helpers.avatar(owner, 20)
+        @helpers.avatarLink(owner, 20)
         <span@if(repository.owner == owner){ class="highlight"}>
           <a href="@helpers.url(owner)">@owner</a> / <a href="@context.path/@owner/@name">@name</a>
         </span>
