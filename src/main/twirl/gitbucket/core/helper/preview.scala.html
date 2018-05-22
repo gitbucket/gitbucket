@@ -57,6 +57,7 @@ $(function(){
       enableTaskList   : @enableTaskList
     }, function(data){
       $('#preview-area@uid').html(data);
+      $('#preview-area@uid input').prop('disabled', true);
       prettyPrint();
     });
   });
