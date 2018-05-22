@@ -154,15 +154,25 @@ trait IssuesControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnly { (title, repository) =>
     defining(repository.owner, repository.name) {
       case (owner, name) =>
-        getIssue(owner, name, params("id")).map { issue =>
-          if (isEditableContent(owner, name, issue.openedUserName)) {
-            // update issue
-            updateIssue(owner, name, issue.issueId, title, issue.content)
-            // extract references and create refer comment
-            createReferComment(owner, name, issue.copy(title = title), title, context.loginAccount.get)
-
-            redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
-          } else Unauthorized()
+        getIssue(owner, name, params("id")).map {
+          issue =>
+            if (isEditableContent(owner, name, issue.openedUserName)) {
+              if (issue.title != title) {
+                // update issue
+                updateIssue(owner, name, issue.issueId, title, issue.content)
+                // extract references and create refer comment
+                createReferComment(owner, name, issue.copy(title = title), title, context.loginAccount.get)
+                createComment(
+                  owner,
+                  name,
+                  context.loginAccount.get.userName,
+                  issue.issueId,
+                  issue.title + "\r\n" + title,
+                  "change_title"
+                )
+              }
+              redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
+            } else Unauthorized()
         } getOrElse NotFound()
     }
   })

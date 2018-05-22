@@ -228,6 +228,17 @@
           </div>
         </div>
       }
+      case "change_title" => {
+        <div class="discussion-item discussion-item-pencil">
+          <div class="discussion-item-header">
+            <span class="discussion-item-icon"><i class="octicon octicon-pencil"></i></span>
+            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.user(comment.commentedUserName, styleClass="username strong")
+            change title from <code>@comment.content.split("\r\n")(0)</code> to <code>@comment.content.split("\r\n")(1)</code>
+            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+          </div>
+        </div>
+      }
       case _ => {
         @showFormattedComment(comment)
       }
