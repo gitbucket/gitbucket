@@ -6,22 +6,26 @@ The details are saved at `ISSUE_COMMENT` table.
 To determine if it was any operation, you see the `ACTION` column.
 And in the case of some actions, `CONTENT` column value contains additional information.
 
-|ACTION          |CONTENT               |
-|----------------|----------------------|
-|comment         |comment               |
-|close_comment   |comment               |
-|reopen_comment  |comment               |
-|close           |"Close"               |
-|reopen          |"Reopen"              |
-|commit          |comment commitId      |
-|merge           |comment               |
-|delete_branch   |branchName            |
-|refer           |issueId:title         |
-|add_label       |labelName             |
-|delete_label    |labelName             |
-|change_priority |oldPriority:priority  |
-|change_milestone|oldMilestone:milestone|
-|assign          |oldAssigned:assigned  |
+|ACTION          |CONTENT                   |
+|----------------|--------------------------|
+|comment         |comment                   |
+|close_comment   |comment                   |
+|reopen_comment  |comment                   |
+|close           |"Close"                   |
+|reopen          |"Reopen"                  |
+|commit          |comment commitId          |
+|merge           |comment                   |
+|delete_branch   |branchName                |
+|refer           |issueId:title             |
+|add_label       |labelName                 |
+|delete_label    |labelName                 |
+|change_priority |oldPriority:priority      |
+|change_milestone|oldMilestone:milestone    |
+|assign          |oldAssigned:assigned      |
+|change_title    |oldTitle(CRLF)title \[1\] |
+
+\[1\]: (CRLF) is "\r\n"
+
 
 ### comment
 
@@ -79,3 +83,7 @@ This value is saved when users have changed the milestone.
 ### assign
 
 This value is saved when users have assign issue/PR to user or remove the assign.
+
+### change_title
+
+This value is saved when users have changed the title.
