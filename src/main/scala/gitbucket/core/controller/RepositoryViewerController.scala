@@ -1140,7 +1140,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     filename: String,
     repository: RepositoryService.RepositoryInfo,
     path: String
-  ): Unit = {
+  ) = {
     def archive(archiveFormat: String, archive: ArchiveOutputStream)(
       entryCreator: (String, Long, Int) => ArchiveEntry
     ): Unit = {
@@ -1194,6 +1194,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             entry
           }
         }
+        ()
       case tarRe(compressor) =>
         response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
         contentType = "application/octet-stream"
@@ -1215,6 +1216,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             }
           }
         }
+        ()
       case _ =>
         BadRequest()
     }

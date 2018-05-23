@@ -1253,7 +1253,7 @@ object JGitUtil {
           f(in)
         }
       } else {
-        throw new RuntimeException
+        throw new EmptyLfsAttributesException
       }
     } else {
       using(loader.openStream()) { in =>
@@ -1276,4 +1276,7 @@ object JGitUtil {
 
     JGitUtil.getLfsObjects(text)
   }
+
+  case class EmptyLfsAttributesException() extends Exception
+
 }
