@@ -1253,7 +1253,7 @@ object JGitUtil {
           f(in)
         }
       } else {
-        throw new EmptyLfsAttributesException
+        throw new NoSuchElementException("LFS attribute is empty.")
       }
     } else {
       using(loader.openStream()) { in =>
@@ -1276,7 +1276,5 @@ object JGitUtil {
 
     JGitUtil.getLfsObjects(text)
   }
-
-  case class EmptyLfsAttributesException() extends Exception
 
 }

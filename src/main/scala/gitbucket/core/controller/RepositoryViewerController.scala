@@ -31,7 +31,6 @@ import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.treewalk.filter.PathFilter
@@ -1151,28 +1150,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
         val pathSuffix = if (path.isEmpty) "" else '-' + path.replace('/', '-')
         val baseName = repository.name + "-" + repositorySuffix + pathSuffix
-        val filename = baseName + archiveFormat
 
-        using(new RevWalk(git.getRepository)) { revWalk =>
-          using(new TreeWalk(git.getRepository)) { treeWalk =>
-            treeWalk.addTree(revCommit.getTree)
-            treeWalk.setRecursive(true)
-            if (!path.isEmpty) {
-              treeWalk.setFilter(PathFilter.create(path))
-            }
-            if (treeWalk != null) {
-              while (treeWalk.next()) {
-                val entryPath =
-                  if (path.isEmpty) baseName + "/" + treeWalk.getPathString
-                  else path.split("/").last + treeWalk.getPathString.substring(path.length)
-                val size = JGitUtil.getFileSize(git, repository, treeWalk)
-                val mode = treeWalk.getFileMode.getBits
-                val entry: ArchiveEntry = entryCreator(entryPath, size, mode)
-                JGitUtil.openFile(git, repository, revCommit.getTree, treeWalk.getPathString) { in =>
-                  archive.putArchiveEntry(entry)
-                  IOUtils.copy(in, archive)
-                  archive.closeArchiveEntry()
-                }
+        using(new TreeWalk(git.getRepository)) { treeWalk =>
+          treeWalk.addTree(revCommit.getTree)
+          treeWalk.setRecursive(true)
+          if (!path.isEmpty) {
+            treeWalk.setFilter(PathFilter.create(path))
+          }
+          if (treeWalk != null) {
+            while (treeWalk.next()) {
+              val entryPath =
+                if (path.isEmpty) baseName + "/" + treeWalk.getPathString
+                else path.split("/").last + treeWalk.getPathString.substring(path.length)
+              val size = JGitUtil.getFileSize(git, repository, treeWalk)
+              val mode = treeWalk.getFileMode.getBits
+              val entry: ArchiveEntry = entryCreator(entryPath, size, mode)
+              JGitUtil.openFile(git, repository, revCommit.getTree, treeWalk.getPathString) { in =>
+                archive.putArchiveEntry(entry)
+                IOUtils.copy(in, archive)
+                archive.closeArchiveEntry()
               }
             }
           }
