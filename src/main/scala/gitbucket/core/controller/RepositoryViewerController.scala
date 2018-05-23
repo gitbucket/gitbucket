@@ -1,8 +1,8 @@
 package gitbucket.core.controller
 
 import java.io.File
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
@@ -277,7 +277,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         repository = repository,
         pathList = if (path.length == 0) Nil else path.split("/").toList,
         fileName = None,
-        content = JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
+        content = None,
         protectedBranch = protectedBranch,
         commit = revCommit.getName
       )
@@ -328,7 +328,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repository = repository,
             pathList = paths.take(paths.size - 1).toList,
             fileName = Some(paths.last),
-            content = JGitUtil.getContentInfo(git, path, objectId),
+            content = Some(JGitUtil.getContentInfo(git, repository.owner, repository.name, branch, path, objectId)),
             protectedBranch = protectedBranch,
             commit = revCommit.getName
           )
@@ -349,7 +349,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repository = repository,
             pathList = paths.take(paths.size - 1).toList,
             fileName = paths.last,
-            content = JGitUtil.getContentInfo(git, path, objectId),
+            content = JGitUtil.getContentInfo(git, repository.owner, repository.name, branch, path, objectId),
             commit = revCommit.getName
           )
         } getOrElse NotFound()
@@ -446,7 +446,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 branch = id,
                 repository = repository,
                 pathList = path.split("/").toList,
-                content = JGitUtil.getContentInfo(git, path, objectId),
+                content = JGitUtil.getContentInfo(git, repository.owner, repository.name, id, path, objectId),
                 latestCommit = new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",
@@ -510,7 +510,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         git =>
           defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))) {
             revCommit =>
-              val diffs = JGitUtil.getDiffs(git, None, id, true, false)
+              val diffs = JGitUtil.getDiffs(git, repository.owner, repository.name, None, id, true, false)
               val oldCommitId = JGitUtil.getParentCommitId(git, id)
 
               html.commit(

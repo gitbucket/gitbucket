@@ -3,10 +3,8 @@ package gitbucket.core.api
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
-
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.api.Git
-
 import java.util.Date
 
 /**
@@ -37,7 +35,7 @@ case class ApiCommit(
 
 object ApiCommit {
   def apply(git: Git, repositoryName: RepositoryName, commit: CommitInfo, urlIsHtmlUrl: Boolean = false): ApiCommit = {
-    val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+    val diffs = JGitUtil.getDiffs(git, repositoryName.owner, repositoryName.name, None, commit.id, false, false)
     ApiCommit(
       id = commit.id,
       message = commit.fullMessage,

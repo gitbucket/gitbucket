@@ -74,7 +74,7 @@ object GitSpecUtil {
     inserter.flush()
     inserter.close()
   }
-  def getFile(git: Git, branch: String, path: String) = {
+  def getFile(git: Git, owner: String, repository: String, branch: String, path: String) = {
     val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
     val objectId = using(new TreeWalk(git.getRepository)) { walk =>
       walk.addTree(revCommit.getTree)
@@ -87,7 +87,7 @@ object GitSpecUtil {
       }
       _getPathObjectId
     }
-    JGitUtil.getContentInfo(git, path, objectId)
+    JGitUtil.getContentInfo(git, owner, repository, branch, path, objectId)
   }
   def mergeAndCommit(git: Git, into: String, branch: String, message: String = null): Unit = {
     val repository = git.getRepository
