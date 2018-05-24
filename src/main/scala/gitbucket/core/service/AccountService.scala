@@ -33,7 +33,16 @@ trait AccountService {
    * Authenticate by internal database.
    */
   private def defaultAuthentication(userName: String, password: String)(implicit s: Session) = {
+    val pbkdf2re = """^\$pbkdf2-sha256\$(\d+)\$([0-9a-zA-Z+/=]+)\$([0-9a-zA-Z+/=]+)$""".r
     getAccountByUserName(userName).collect {
+      case account if !account.isGroupAccount =>
+        account.password match {
+          case pbkdf2re(iter, salt, hash) if (pbkdf2_sha256(iter.toInt, salt, password) == hash) => Some(account)
+          case p if p == sha1(password) =>
+            updateAccount(account.copy(password = pbkdf2_sha256(password)))
+            Some(account)
+          case _ => None
+        }
       case account if (!account.isGroupAccount && account.password == sha1(password)) => Some(account)
     } getOrElse None
   }

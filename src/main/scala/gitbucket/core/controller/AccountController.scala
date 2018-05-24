@@ -322,7 +322,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       account =>
         updateAccount(
           account.copy(
-            password = form.password.map(sha1).getOrElse(account.password),
+            password = form.password.map(pbkdf2_sha256).getOrElse(account.password),
             fullName = form.fullName,
             mailAddress = form.mailAddress,
             description = form.description,
@@ -563,7 +563,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     if (context.settings.allowAccountRegistration) {
       createAccount(
         form.userName,
-        sha1(form.password),
+        pbkdf2_sha256(form.password),
         form.fullName,
         form.mailAddress,
         false,
