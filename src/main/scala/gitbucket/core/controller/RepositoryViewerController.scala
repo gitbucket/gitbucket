@@ -1175,11 +1175,17 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
       }
     }
-    val tarRe = """\.tar\.(gz|bz2|xz)$""".r
+
+    val suffix = path.split("/").lastOption.map("-" + _).getOrElse("")
+    val zipRe = """(.+)\.zip$""".r
+    val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 
     filename match {
-      case name if name.endsWith(".zip") =>
-        response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
+      case zipRe(branch) =>
+        response.setHeader(
+          "Content-Disposition",
+          s"attachment; filename=${repository.name}-${branch}${suffix}.zip"
+        )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024);
         using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
@@ -1191,8 +1197,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         }
         ()
-      case tarRe(compressor) =>
-        response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
+      case tarRe(branch, compressor) =>
+        response.setHeader(
+          "Content-Disposition",
+          s"attachment; filename=${repository.name}-${branch}${suffix}.tar.${compressor}"
+        )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
         using(compressor match {
