@@ -285,7 +285,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName.keys") {
     val keys = getPublicKeys(params("userName"))
     contentType = "text/plain; charset=utf-8"
-    keys.map(_.publicKey).mkString("\n")
+    keys.map(_.publicKey).mkString("", "\n", "\n")
   }
 
   get("/:userName/_avatar") {
