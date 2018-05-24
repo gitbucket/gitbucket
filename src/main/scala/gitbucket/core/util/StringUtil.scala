@@ -1,10 +1,13 @@
 package gitbucket.core.util
 
 import java.net.{URLDecoder, URLEncoder}
+import java.security.SecureRandom
 import java.util.{Base64, UUID}
 
 import org.mozilla.universalchardet.UniversalDetector
 import SyntaxSugars._
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
 
@@ -14,6 +17,32 @@ object StringUtil {
 
   private lazy val BlowfishKey = {
     UUID.randomUUID().toString.substring(0, 16)
+  }
+
+  def base64Encode(value: Array[Byte]): String = {
+    Base64.getEncoder.encodeToString(value)
+  }
+
+  def base64Decode(value: String): Array[Byte] = {
+    Base64.getDecoder.decode(value)
+  }
+
+  def pbkdf2_sha256(iter: Int, salt: String, value: String): String = {
+    val keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+    val ks = new PBEKeySpec(value.toCharArray, base64Decode(salt), iter, 256)
+    val s = keyFactory.generateSecret(ks)
+    base64Encode(s.getEncoded)
+  }
+
+  def pbkdf2_sha256(value: String) = {
+    val keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+    val secureRandom = new SecureRandom
+    val salt: Array[Byte] = new Array(32)
+    secureRandom.nextBytes(salt)
+    val iter = 100000
+    val ks = new PBEKeySpec(value.toCharArray, salt, iter, 256)
+    val s = keyFactory.generateSecret(ks)
+    s"""$$pbkdf2-sha256$$${iter}$$${base64Encode(salt)}$$${base64Encode(s.getEncoded)}"""
   }
 
   def sha1(value: String): String =

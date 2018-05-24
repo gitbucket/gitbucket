@@ -417,7 +417,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
     createAccount(
       form.userName,
-      sha1(form.password),
+      pbkdf2_sha256(form.password),
       form.fullName,
       form.mailAddress,
       form.isAdmin,
@@ -457,7 +457,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
           updateAccount(
             account.copy(
-              password = form.password.map(sha1).getOrElse(account.password),
+              password = form.password.map(pbkdf2_sha256).getOrElse(account.password),
               fullName = form.fullName,
               mailAddress = form.mailAddress,
               isAdmin = form.isAdmin,
