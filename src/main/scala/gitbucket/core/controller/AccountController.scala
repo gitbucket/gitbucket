@@ -282,6 +282,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     helper.xml.feed(getActivitiesByUser(userName, true))
   }
 
+  get("/:userName.keys") {
+    val keys = getPublicKeys(params("userName"))
+    contentType = "text/plain; charset=utf-8"
+    keys.map(_.publicKey).mkString("\n")
+  }
+
   get("/:userName/_avatar") {
     val userName = params("userName")
     contentType = "image/png"
