@@ -31,7 +31,6 @@ import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.treewalk.filter.PathFilter
@@ -1151,39 +1150,42 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
         val pathSuffix = if (path.isEmpty) "" else '-' + path.replace('/', '-')
         val baseName = repository.name + "-" + repositorySuffix + pathSuffix
-        val filename = baseName + archiveFormat
 
-        using(new RevWalk(git.getRepository)) { revWalk =>
-          using(new TreeWalk(git.getRepository)) { treeWalk =>
-            treeWalk.addTree(revCommit.getTree)
-            treeWalk.setRecursive(true)
-            if (!path.isEmpty) {
-              treeWalk.setFilter(PathFilter.create(path))
-            }
-            if (treeWalk != null) {
-              while (treeWalk.next()) {
-                val entryPath =
-                  if (path.isEmpty) baseName + "/" + treeWalk.getPathString
-                  else path.split("/").last + treeWalk.getPathString.substring(path.length)
-                val size = JGitUtil.getFileSize(git, repository, treeWalk)
-                val mode = treeWalk.getFileMode.getBits
-                val entry: ArchiveEntry = entryCreator(entryPath, size, mode)
-                JGitUtil.openFile(git, repository, revCommit.getTree, treeWalk.getPathString) { in =>
-                  archive.putArchiveEntry(entry)
-                  IOUtils.copy(in, archive)
-                  archive.closeArchiveEntry()
-                }
+        using(new TreeWalk(git.getRepository)) { treeWalk =>
+          treeWalk.addTree(revCommit.getTree)
+          treeWalk.setRecursive(true)
+          if (!path.isEmpty) {
+            treeWalk.setFilter(PathFilter.create(path))
+          }
+          if (treeWalk != null) {
+            while (treeWalk.next()) {
+              val entryPath =
+                if (path.isEmpty) baseName + "/" + treeWalk.getPathString
+                else path.split("/").last + treeWalk.getPathString.substring(path.length)
+              val size = JGitUtil.getFileSize(git, repository, treeWalk)
+              val mode = treeWalk.getFileMode.getBits
+              val entry: ArchiveEntry = entryCreator(entryPath, size, mode)
+              JGitUtil.openFile(git, repository, revCommit.getTree, treeWalk.getPathString) { in =>
+                archive.putArchiveEntry(entry)
+                IOUtils.copy(in, archive)
+                archive.closeArchiveEntry()
               }
             }
           }
         }
       }
     }
-    val tarRe = """\.tar\.(gz|bz2|xz)$""".r
+
+    val suffix = path.split("/").lastOption.map("-" + _).getOrElse("")
+    val zipRe = """(.+)\.zip$""".r
+    val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 
     filename match {
-      case name if name.endsWith(".zip") =>
-        response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
+      case zipRe(branch) =>
+        response.setHeader(
+          "Content-Disposition",
+          s"attachment; filename=${repository.name}-${branch}${suffix}.zip"
+        )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024);
         using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
@@ -1195,8 +1197,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         }
         ()
-      case tarRe(compressor) =>
-        response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
+      case tarRe(branch, compressor) =>
+        response.setHeader(
+          "Content-Disposition",
+          s"attachment; filename=${repository.name}-${branch}${suffix}.tar.${compressor}"
+        )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
         using(compressor match {
