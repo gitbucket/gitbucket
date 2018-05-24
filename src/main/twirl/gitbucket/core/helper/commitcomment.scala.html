@@ -13,9 +13,6 @@
         @helpers.avatarLink(comment.commentedUserName, 20)
         @helpers.user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">@gitbucket.core.helper.html.datetimeago(comment.registeredDate)</span>
-        @if(comment.updatedDate.getTime > comment.registeredDate.getTime){
-          - edited
-        }
         <span class="pull-right">
         @if(hasWritePermission || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){
           <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil"></i></a>&nbsp;

@@ -20,9 +20,6 @@
       <a href="#comment-@comment.commentId">
         @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
       </a>
-      @if(comment.updatedDate.getTime > comment.registeredDate.getTime) {
-        - edited
-      }
     </span>
     @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
     && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
