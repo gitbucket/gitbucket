@@ -577,7 +577,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         form.url
       )
       updateImage(form.userName, form.fileId, false)
-      updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses)
+      updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses.filter(_ != ""))
       redirect("/signin")
     } else NotFound()
   }
