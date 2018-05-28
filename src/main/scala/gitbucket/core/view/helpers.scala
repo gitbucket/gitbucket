@@ -250,12 +250,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the url to the repository.
    */
   def url(repository: RepositoryService.RepositoryInfo)(implicit context: Context): String =
-    s"${context.path}/${repository.owner}/${repository.name}"
+    s"${context.path}/${encodeRefName(repository.owner)}/${encodeRefName(repository.name)}"
 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: Context): String = s"${context.path}/${StringUtil.urlEncode(userName)}"
+  def url(userName: String)(implicit context: Context): String = s"${context.path}/${encodeRefName(userName)}"
 
   /**
    * Returns the url to the root of assets.
@@ -273,7 +273,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * If user does not exist or disabled, this method returns user name as text without link.
    */
   def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: Context): Html =
-    userWithContent(userName, mailAddress, styleClass)(Html(userName))
+    userWithContent(userName, mailAddress, styleClass)(Html(StringUtil.escapeHtml(userName)))
 
   /**
    * Generates the avatar link to the account page.
