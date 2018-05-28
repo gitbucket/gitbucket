@@ -71,7 +71,7 @@ Support
 What's New in 4.25.x
 -------------
 ### 4.25.0 - 29 May 2018
-- Security improvement
+- Security improvements
 - Show mail address at the profile page
 - Task list on commit comments
 - More detailed editing history of issues and pull requests

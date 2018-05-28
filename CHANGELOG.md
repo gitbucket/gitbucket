@@ -2,7 +2,7 @@
 All changes to the project will be documented in this file.
 
 ### 4.25.0 - 29 May 2018
-- Security improvement
+- Security improvements
 - Show mail address at the profile page
 - Task list on commit comments
 - More detailed editing history of issues and pull requests
