@@ -122,5 +122,8 @@
 </script>
 
 @countConversation(comments: Seq[Comment]) = @{
-  comments.count(c => c.isInstanceOf[CommitComments] || c.asInstanceOf[IssueComment].action.endsWith("comment"))
+  comments.collect {
+    case c: CommitComments => c.comments.size
+    case c: IssueComment if c.action.endsWith("comment") => 1
+  }.sum
 }
