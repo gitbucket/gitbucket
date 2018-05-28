@@ -1,6 +1,14 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.25.0 - 29 May 2018
+- Security improvement
+- Show mail address at the profile page
+- Task list on commit comments
+- More detailed editing history of issues and pull requests
+- Expose user public keys
+- Download repository improvements
+
 ### 4.24.1 - 1 May 2018
 - Fix bug in Web API authentication
 
