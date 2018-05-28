@@ -255,7 +255,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: Context): String = s"${context.path}/${userName}"
+  def url(userName: String)(implicit context: Context): String = s"${context.path}/${StringUtil.urlEncode(userName)}"
 
   /**
    * Returns the url to the root of assets.
