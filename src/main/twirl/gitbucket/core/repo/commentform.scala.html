@@ -5,6 +5,7 @@
   issueId: Option[Int] = None,
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  focus: Boolean = false,
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @if(context.loginAccount.isDefined){
@@ -23,6 +24,7 @@
           completionContext  = "issues",
           style              = "height: 100px; max-height: 150px;",
           elastic            = true,
+          focus              = focus,
           uid                = uid
         )
       </div>
