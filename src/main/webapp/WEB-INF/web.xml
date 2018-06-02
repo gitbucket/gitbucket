@@ -89,5 +89,10 @@
     <param-value>PATH_TO_DATADIR</param-value>
   </context-param>
   -->
+  
+  <mime-mapping>
+    <extension>svg</extension>
+    <mime-type>image/svg+xml</mime-type>
+  </mime-mapping>
 
 </web-app>
