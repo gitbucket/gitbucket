@@ -142,7 +142,7 @@ object JDBCUtil {
                     columnType match {
                       case Types.BOOLEAN | Types.BIT                                   => rs.getBoolean(columnName)
                       case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => rs.getString(columnName)
-                      case Types.INTEGER                                               => rs.getInt(columnName)
+                      case Types.INTEGER | Types.BIGINT                                => rs.getInt(columnName)
                       case Types.TIMESTAMP                                             => rs.getTimestamp(columnName)
                     }
                   }
