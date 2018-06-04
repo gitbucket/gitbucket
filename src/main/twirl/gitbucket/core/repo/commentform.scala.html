@@ -122,7 +122,7 @@
         //   $('#comment-list').children('.inline-comment').hide();
         // }
       }).fail(function(req) {
-        $('.btn-inline-comment').removeAttr('disabled');
+        $(e.target).removeAttr('disabled');
         $('#error-content', $form).html($.parseJSON(req.responseText).content);
       });
     });
