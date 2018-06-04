@@ -45,6 +45,12 @@
     <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>GitRepositoryServlet</servlet-name>
+    <url-pattern>*.git</url-pattern>
+  </servlet-mapping>
+
 
   <servlet>
     <servlet-name>GitLfsTransferServlet</servlet-name>
