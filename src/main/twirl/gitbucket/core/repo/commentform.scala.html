@@ -25,13 +25,13 @@
           elastic            = true,
           uid                = uid
         )
+        @if(fileName.isDefined){
+          <div class="pull-right">
+            <input type="button" class="btn btn-default" value="Cancel"/>
+            <input type="submit" id="btn-inline-comment-@uid" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
+          </div>
+        }
       </div>
-      @if(fileName.isDefined){
-        <div class="pull-right" style="margin-top: 10px;">
-          <input type="button" class="btn btn-default" value="Cancel"/>
-          <input type="submit" id="btn-inline-comment-@uid" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
-        </div>
-      }
     </div>
     @if(!fileName.isDefined){
       <div class="pull-right">
