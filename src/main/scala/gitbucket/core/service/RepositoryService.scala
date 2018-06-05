@@ -494,12 +494,13 @@ trait RepositoryService { self: AccountService =>
   /**
    * TODO It seems to be able to improve performance. For example, RequestCache can be used for getAccountByUserName call.
    */
-  private def getRepositoryManagers(userName: String, repositoryName: String)(implicit s: Session): Seq[String] =
-    if (getAccountByUserName(userName).exists(_.isGroupAccount)) {
-      getGroupMembers(userName).collect { case x if (x.isManager) => x.userName }
-    } else {
-      Seq(userName)
-    } ++ getCollaboratorUserNames(userName, repositoryName, Seq(Role.ADMIN))
+  private def getRepositoryManagers(userName: String, repositoryName: String)(implicit s: Session): Seq[String] = {
+    (if (getAccountByUserName(userName).exists(_.isGroupAccount)) {
+       getGroupMembers(userName).collect { case x if (x.isManager) => x.userName }
+     } else {
+       Seq(userName)
+     }) ++ getCollaboratorUserNames(userName, repositoryName, Seq(Role.ADMIN))
+  }
 
   /**
    * Updates the last activity date of the repository.
