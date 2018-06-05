@@ -838,14 +838,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   /**
-   * Download repository contents as a tar.gz archive as compatible URL.
-   */
-  get("/:owner/:repository/archive/:branch.tar.gz")(referrersOnly { repository =>
-    val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.gz", repository, "")
-  })
-
-  /**
    * Download repository contents as a tar.bz2 archive as compatible URL.
    */
   get("/:owner/:repository/archive/:branch.tar.bz2")(referrersOnly { repository =>
@@ -858,7 +850,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/:branch.tar.xz")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.bz2", repository, "")
+    archiveRepository(branch, branch + ".tar.xz", repository, "")
   })
 
   /**
