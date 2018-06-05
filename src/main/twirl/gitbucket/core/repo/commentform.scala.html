@@ -140,6 +140,14 @@
     }
 
     function getDiffData(tr){
+      if(window.viewType === 0) {
+        return getDiffDataOnSplitMode(tr);
+      } else {
+        return getDiffDataOnUnifiedMode(tr);
+      }
+    }
+
+    function getDiffDataOnUnifiedMode(tr) {
       var result = [];
       var count = 0;
 
@@ -147,19 +155,72 @@
         var oldTh = tr.find('th.oldline');
         var newTh = tr.find('th.newline');
 
-        if(!oldTh.attr('line-number') && !newTh.attr('line-number')){
+        var oldLineNumber = oldTh.attr('line-number');
+        var newLineNumber = newTh.attr('line-number');
+
+        if(!oldLineNumber && !newLineNumber){
           break;
         }
 
         result.unshift({
-          'oldLine': oldTh.attr('line-number'),
-          'newLine': newTh.attr('line-number'),
+          'oldLine': oldLineNumber,
+          'newLine': newLineNumber,
           'type': tr.has('td.insert').length > 0 ? 'insert' : tr.has('td.delete').length > 0 ? 'delete' : 'equal',
           'text': tr.find('td span').text()
-        })
+        });
 
         tr = tr.prev('tr:has(th.line-num)');
         count++;
+      }
+
+      return result;
+    }
+
+    function getDiffDataOnSplitMode(tr) {
+      var result = [];
+      var count = 0;
+
+      while(tr && count < 4){
+        var oldTh = tr.find('th.oldline');
+        var newTh = tr.find('th.newline');
+
+        var oldLineNumber = oldTh.attr('line-number');
+        var newLineNumber = newTh.attr('line-number');
+
+        if(!oldLineNumber && !newLineNumber){
+          break;
+        }
+
+        var oldTd = oldTh.next();
+        var newTd = newTh.next();
+
+        if (oldTd.hasClass('equal') && newTd.hasClass('equal')) {
+          result.unshift({
+            'oldLine': oldLineNumber,
+            'newLine': newLineNumber,
+            'type': 'equal',
+            'text': newTd.find('span').text()
+          });
+          count++;
+        } else {
+          if(newLineNumber) {
+            result.unshift({
+              'newLine': newLineNumber,
+              'type': 'insert',
+              'text': newTd.find('span').text()
+            });
+            count++;
+          }
+          if(oldLineNumber) {
+            result.unshift({
+              'oldLine': oldLineNumber,
+              'type': 'delete',
+              'text': oldTd.find('span').text()
+            });
+            count++;
+          }
+        }
+        tr = tr.prev('tr:has(th.line-num)');
       }
 
       return result;
