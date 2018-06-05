@@ -155,7 +155,7 @@
           'oldLine': oldTh.attr('line-number'),
           'newLine': newTh.attr('line-number'),
           'type': tr.has('td.insert').length > 0 ? 'insert' : tr.has('td.delete').length > 0 ? 'delete' : 'equal',
-          'text': tr.find('td>span').text()
+          'text': tr.find('td span').text()
         })
 
         tr = tr.prev('tr:has(th.line-num)');
