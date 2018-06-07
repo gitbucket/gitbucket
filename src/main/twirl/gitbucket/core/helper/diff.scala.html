@@ -335,7 +335,11 @@ $(function(){
         .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
 
     @if(hasWritePermission) {
-      diffText.find('.body').each(function(){ $('<b class="add-comment">+</b>').prependTo(this); });
+      diffText.find('.body').filter(function(i, e) {
+        return $(e).has('span').length > 0;
+      }).each(function(){
+        $('<b class="add-comment">+</b>').prependTo(this);
+      });
     }
     @if(showLineNotes){
       var fileName = table.attr('filename');
