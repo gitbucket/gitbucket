@@ -272,8 +272,14 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the text link to the account page.
    * If user does not exist or disabled, this method returns user name as text without link.
    */
-  def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: Context): Html =
-    userWithContent(userName, mailAddress, styleClass)(Html(StringUtil.escapeHtml(userName)))
+  def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: Context): Html = {
+    userWithContent(userName, mailAddress, styleClass)(
+      Html(StringUtil.escapeHtml(getAccountByUserName(userName) match {
+        case Some(a) => a.fullName
+        case None    => userName
+      }))
+    )
+  }
 
   /**
    * Generates the avatar link to the account page.
