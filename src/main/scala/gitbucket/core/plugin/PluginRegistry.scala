@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.ServletContext
 
+import com.github.zafarkhaja.semver.Version
+import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
@@ -202,7 +204,7 @@ object PluginRegistry {
 
   private var watcher: PluginWatchThread = null
   private var extraWatcher: PluginWatchThread = null
-  private val initializing = new AtomicBoolean(false)
+  //private val initializing = new AtomicBoolean(false)
 
   /**
    * Returns the PluginRegistry singleton instance.
@@ -234,7 +236,15 @@ object PluginRegistry {
 //          logger.error(s"Error during uninstalling plugin: ${plugin.pluginJar.getName}", e)
 //      }
           shutdown(context, settings)
-          plugin.pluginJar.delete()
+
+          new File(PluginHome)
+            .listFiles((_: File, name: String) => {
+              name.startsWith(s"gitbucket-${pluginId}-plugin") && name.endsWith(".jar")
+            })
+            .foreach { file =>
+              file.delete()
+            }
+
           instance = new PluginRegistry()
           initialize(context, settings, conn)
         }
@@ -243,10 +253,11 @@ object PluginRegistry {
   /**
    * Install a plugin from a specified jar file.
    */
-  def install(file: File, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit =
+  def install(url: java.net.URL, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit =
     synchronized {
       shutdown(context, settings)
-      FileUtils.copyFile(file, new File(PluginHome, file.getName))
+      val in = url.openStream()
+      FileUtils.copyToFile(in, new File(PluginHome, new File(url.getFile).getName))
       instance = new PluginRegistry()
       initialize(context, settings, conn)
     }
@@ -257,11 +268,26 @@ object PluginRegistry {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
       })
       .toSeq
-      .sortBy(_.getName)
+      .sortBy(x => Version.valueOf(getPluginVersion(x.getName)))
       .reverse
   }
 
   lazy val extraPluginDir: Option[String] = Option(System.getProperty("gitbucket.pluginDir"))
+
+  def getGitBucketVersion(pluginJarFileName: String): Option[String] = {
+    val regex = ".+-gitbucket\\_(\\d+\\.\\d+\\.\\d+)-.+".r
+    pluginJarFileName match {
+      case regex(x) => Some(x)
+      case _        => None
+    }
+  }
+
+  def getPluginVersion(pluginJarFileName: String): String = {
+    val regex = ".+-(\\d+\\.\\d+\\.\\d+)\\.jar$".r
+    pluginJarFileName match {
+      case regex(x) => x
+    }
+  }
 
   /**
    * Initializes all installed plugins.
@@ -278,6 +304,7 @@ object PluginRegistry {
     installedDir.mkdirs()
 
     val pluginJars = listPluginJars(pluginDir)
+
     val extraJars = extraPluginDir
       .map { extraDir =>
         listPluginJars(new File(extraDir))
@@ -288,9 +315,9 @@ object PluginRegistry {
       val installedJar = new File(installedDir, pluginJar.getName)
 
       FileUtils.copyFile(pluginJar, installedJar)
-
       logger.info(s"Initialize ${pluginJar.getName}")
-      val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
+      val classLoader =
+        new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
       try {
         val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
         val pluginId = plugin.pluginId
@@ -304,7 +331,12 @@ object PluginRegistry {
             // Migration
             val solidbase = new Solidbase()
             solidbase
-              .migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
+              .migrate(
+                conn,
+                classLoader,
+                DatabaseConfig.liquiDriver,
+                new Module(plugin.pluginId, plugin.versions: _*)
+              )
             conn.commit()
 
             // Check database version
@@ -323,6 +355,7 @@ object PluginRegistry {
                 pluginId = plugin.pluginId,
                 pluginName = plugin.pluginName,
                 pluginVersion = plugin.versions.last.getVersion,
+                gitbucketVersion = getGitBucketVersion(installedJar.getName),
                 description = plugin.description,
                 pluginClass = plugin,
                 pluginJar = pluginJar,
@@ -334,6 +367,7 @@ object PluginRegistry {
       } catch {
         case e: Throwable => logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
       }
+//      }
     }
 
     if (watcher == null) {
@@ -384,6 +418,7 @@ class PluginInfoBase(
   val pluginId: String,
   val pluginName: String,
   val pluginVersion: String,
+  val gitbucketVersion: Option[String],
   val description: String
 )
 
@@ -391,11 +426,12 @@ case class PluginInfo(
   override val pluginId: String,
   override val pluginName: String,
   override val pluginVersion: String,
+  override val gitbucketVersion: Option[String],
   override val description: String,
   pluginClass: Plugin,
   pluginJar: File,
   classLoader: URLClassLoader
-) extends PluginInfoBase(pluginId, pluginName, pluginVersion, description)
+) extends PluginInfoBase(pluginId, pluginName, pluginVersion, gitbucketVersion, description)
 
 class PluginWatchThread(context: ServletContext, dir: String) extends Thread with SystemSettingsService {
   import gitbucket.core.model.Profile.profile.blockingApi._

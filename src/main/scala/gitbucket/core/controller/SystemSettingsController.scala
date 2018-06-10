@@ -322,21 +322,16 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   get("/admin/plugins")(adminOnly {
     // Installed plugins
     val enabledPlugins = PluginRegistry().getPlugins()
+    val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
 
-    val gitbucketVersion = Semver.valueOf(GitBucketCoreModule.getVersions.asScala.last.getVersion)
-
-    // Plugins in the local repository
+    // Plugins in the remote repository
     val repositoryPlugins = PluginRepository
       .getPlugins()
-      .filterNot { meta =>
-        enabledPlugins.exists { plugin =>
-          plugin.pluginId == meta.id &&
-          Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(Semver.valueOf(meta.latestVersion.version))
-        }
-      }
       .map { meta =>
         (meta, meta.versions.reverse.find { version =>
-          gitbucketVersion.satisfies(version.range)
+          gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
+            plugin.pluginId == meta.id && plugin.pluginVersion == version.version
+          }
         })
       }
       .collect {
@@ -345,12 +340,20 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
             pluginId = meta.id,
             pluginName = meta.name,
             pluginVersion = version.version,
+            gitbucketVersion = Some(version.gitbucketVersion),
             description = meta.description
           )
       }
 
     // Merge
-    val plugins = enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false))
+    val plugins = (enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false)))
+      .groupBy(_._1.pluginId)
+      .map {
+        case (pluginId, plugins) =>
+          val (plugin, enabled) = plugins.head
+          (plugin, enabled, if (plugins.length > 1) plugins.last._1.pluginVersion else "")
+      }
+      .toList
 
     html.plugins(plugins, flash.get("info"))
   })
@@ -378,21 +381,20 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/plugins/:pluginId/:version/_install")(adminOnly {
     val pluginId = params("pluginId")
     val version = params("version")
-    /// TODO!!!!
+
     PluginRepository
       .getPlugins()
       .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
       .foreach {
         case (meta, version) =>
           version.foreach { version =>
-            // TODO Install version!
             PluginRegistry.install(
-              new java.io.File(PluginHome, s".repository/${version.file}"),
+              new java.net.URL(version.url),
               request.getServletContext,
               loadSystemSettings(),
               request2Session(request).conn
             )
-            flash += "info" -> s"${pluginId} was installed."
+            flash += "info" -> s"${pluginId}:${version.version} was installed."
           }
       }
     redirect("/admin/plugins")
