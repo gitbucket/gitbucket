@@ -628,7 +628,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       newLineNumber,
       issueId,
       hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-      repository = repository
+      repository = repository,
+      focus = true
     )
   })
 
