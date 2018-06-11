@@ -16,21 +16,19 @@
       @plugins.map { case (plugin, enabled, updatableVersion) =>
         <div class="panel panel-default">
           <div class="panel-heading strong" id="@plugin.pluginId">
-            @if(enabled){
-              @if(updatableVersion.isEmpty){
-                <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_uninstall" method="POST" class="pull-right uninstall-form">
-                  <input type="submit" value="Uninstall" class="btn btn-danger btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
-                </form>
+            <form method="POST" class="pull-right">
+              @if(enabled){
+                @if(updatableVersion.nonEmpty){
+                  <input type="submit" value="Update" class="btn btn-success btn-sm update-plugin" style="position: relative; top: -5px; left: 10px;"
+                  data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/@{updatableVersion}/_install">
+                }
+                <input type="submit" value="Uninstall" class="btn btn-danger btn-sm uninstall-plugin" style="position: relative; top: -5px; left: 10px;"
+                       data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall">
               } else {
-                <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{updatableVersion}/_install" method="POST" class="pull-right install-form">
-                  <input type="submit" value="Update" class="btn btn-primary btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
-                </form>
+                <input type="submit" value="Install" class="btn btn-success btn-sm install-plugin" style="position: relative; top: -5px; left: 10px;"
+                       data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_install">
               }
-            } else {
-              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_install" method="POST" class="pull-right install-form">
-                <input type="submit" value="Install" class="btn btn-success btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
-              </form>
-            }
+            </form>
             @plugin.pluginName
           </div>
           <div class="panel-body">
@@ -60,14 +58,19 @@
 }
 <script>
   $(function(){
-    $('.uninstall-form').click(function(e){
+    $('.uninstall-plugin').click(function(e){
       var name = $(e.target).data('name');
       return confirm('Uninstall ' + name + '. Are you sure?');
     });
 
-    $('.install-form').click(function(e){
+    $('.install-plugin').click(function(e){
       var name = $(e.target).data('name');
       return confirm('Install ' + name + '. Are you sure?');
+    });
+
+    $('.update-plugin').click(function(e){
+      var name = $(e.target).data('name');
+      return confirm('Update ' + name + '. Are you sure?');
     });
   });
 </script>

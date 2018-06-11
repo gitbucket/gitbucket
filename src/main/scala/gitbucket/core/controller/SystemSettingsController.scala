@@ -364,17 +364,15 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/plugins")
   })
 
-  post("/admin/plugins/:pluginId/:version/_uninstall")(adminOnly {
+  post("/admin/plugins/:pluginId/_uninstall")(adminOnly { // TODO Is version unnecessary?
     val pluginId = params("pluginId")
-    val version = params("version")
-    PluginRegistry()
-      .getPlugins()
-      .collect { case plugin if (plugin.pluginId == pluginId && plugin.pluginVersion == version) => plugin }
-      .foreach { _ =>
-        PluginRegistry
-          .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-        flash += "info" -> s"${pluginId} was uninstalled."
-      }
+
+    if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
+      PluginRegistry
+        .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+      flash += "info" -> s"${pluginId} was uninstalled."
+    }
+
     redirect("/admin/plugins")
   })
 
@@ -389,6 +387,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         case (meta, version) =>
           version.foreach { version =>
             PluginRegistry.install(
+              pluginId,
               new java.net.URL(version.url),
               request.getServletContext,
               loadSystemSettings(),

@@ -225,37 +225,37 @@ object PluginRegistry {
    */
   def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit =
     synchronized {
-      instance
-        .getPlugins()
-        .collect { case plugin if plugin.pluginId == pluginId => plugin }
-        .foreach { plugin =>
-//      try {
-//        plugin.pluginClass.uninstall(instance, context, settings)
-//      } catch {
-//        case e: Exception =>
-//          logger.error(s"Error during uninstalling plugin: ${plugin.pluginJar.getName}", e)
-//      }
-          shutdown(context, settings)
+      shutdown(context, settings)
 
-          new File(PluginHome)
-            .listFiles((_: File, name: String) => {
-              name.startsWith(s"gitbucket-${pluginId}-plugin") && name.endsWith(".jar")
-            })
-            .foreach { file =>
-              file.delete()
-            }
+      new File(PluginHome)
+        .listFiles((_: File, name: String) => {
+          name.startsWith(s"gitbucket-${pluginId}-plugin") && name.endsWith(".jar")
+        })
+        .foreach(_.delete())
 
-          instance = new PluginRegistry()
-          initialize(context, settings, conn)
-        }
+      instance = new PluginRegistry()
+      initialize(context, settings, conn)
     }
 
   /**
    * Install a plugin from a specified jar file.
    */
-  def install(url: java.net.URL, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit =
+  def install(
+    pluginId: String,
+    url: java.net.URL,
+    context: ServletContext,
+    settings: SystemSettings,
+    conn: java.sql.Connection
+  ): Unit =
     synchronized {
       shutdown(context, settings)
+
+      new File(PluginHome)
+        .listFiles((_: File, name: String) => {
+          name.startsWith(s"gitbucket-${pluginId}-plugin") && name.endsWith(".jar")
+        })
+        .foreach(_.delete())
+
       val in = url.openStream()
       FileUtils.copyToFile(in, new File(PluginHome, new File(url.getFile).getName))
       instance = new PluginRegistry()
