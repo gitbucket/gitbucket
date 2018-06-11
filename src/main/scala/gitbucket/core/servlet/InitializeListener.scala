@@ -136,46 +136,36 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
   }
 
   private def extractBundledPlugins(gitbucketVersion: String): Unit = {
-//    logger.info("Extract bundled plugins")
-//    val cl = Thread.currentThread.getContextClassLoader
-//    try {
-//      using(cl.getResourceAsStream("plugins/plugins.json")) { pluginsFile =>
-//        if (pluginsFile != null) {
-//          val pluginsJson = IOUtils.toString(pluginsFile, "UTF-8")
-//
-//          FileUtils.forceMkdir(PluginRepository.LocalRepositoryDir)
-//          FileUtils.write(PluginRepository.LocalRepositoryIndexFile, pluginsJson, "UTF-8")
-//
-//          val plugins = PluginRepository.parsePluginJson(pluginsJson)
-//          plugins.foreach { plugin =>
-//            plugin.versions
-//              .sortBy { x =>
-//                Semver.valueOf(x.version)
-//              }
-//              .reverse
-//              .zipWithIndex
-//              .foreach {
-//                case (version, i) =>
-//                  val file = new File(PluginRepository.LocalRepositoryDir, version.file)
-//                  if (!file.exists) {
-//                    logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
-//                    FileUtils.forceMkdirParent(file)
-//                    using(cl.getResourceAsStream("plugins/" + version.file), new FileOutputStream(file)) {
-//                      case (in, out) => IOUtils.copy(in, out)
-//                    }
-//
-//                    if (plugin.default && i == 0) {
-//                      logger.info(s"Enable ${file.getName} in default")
-//                      FileUtils.copyFile(file, new File(PluginHome, version.file))
-//                    }
-//                  }
-//              }
-//          }
-//        }
-//      }
-//    } catch {
-//      case e: Exception => logger.error("Error in extracting bundled plugin", e)
-//    }
+    logger.info("Extract bundled plugins...")
+    val cl = Thread.currentThread.getContextClassLoader
+    try {
+      using(cl.getResourceAsStream("bundle-plugins.txt")) { pluginsFile =>
+        if (pluginsFile != null) {
+          val plugins = IOUtils.readLines(pluginsFile, "UTF-8")
+          val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+
+          plugins.asScala.foreach { plugin =>
+            plugin.trim.split(":") match {
+              case Array(pluginId, pluginVersion) =>
+                val fileName = s"gitbucket-${pluginId}-plugin-gitbucket_${gitbucketVersion}-${pluginVersion}.jar"
+                val in = cl.getResourceAsStream("plugins/" + fileName)
+                if (in != null) {
+                  val file = new File(PluginHome, fileName)
+                  logger.info(s"Extract to ${file.getAbsolutePath}")
+
+                  FileUtils.forceMkdirParent(file)
+                  using(in, new FileOutputStream(file)) {
+                    case (in, out) => IOUtils.copy(in, out)
+                  }
+                }
+              case _ => ()
+            }
+          }
+        }
+      }
+    } catch {
+      case e: Exception => logger.error("Error in extracting bundled plugin", e)
+    }
   }
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {

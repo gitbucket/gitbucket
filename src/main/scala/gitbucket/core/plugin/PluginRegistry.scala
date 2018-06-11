@@ -204,7 +204,6 @@ object PluginRegistry {
 
   private var watcher: PluginWatchThread = null
   private var extraWatcher: PluginWatchThread = null
-  //private val initializing = new AtomicBoolean(false)
 
   /**
    * Returns the PluginRegistry singleton instance.
