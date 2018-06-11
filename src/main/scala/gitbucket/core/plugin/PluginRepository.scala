@@ -15,7 +15,6 @@ object PluginRepository {
   lazy val LocalRepositoryIndexFile = new java.io.File(LocalRepositoryDir, "plugins.json")
 
   def getPlugins(): Seq[PluginMetadata] = {
-    // TODO Pre-load the plugin list in background
     val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
     val str = IOUtils.toString(url, "UTF-8")
     parsePluginJson(str)

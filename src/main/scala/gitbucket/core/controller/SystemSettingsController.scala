@@ -45,9 +45,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "gravatar" -> trim(label("Gravatar", boolean())),
     "notification" -> trim(label("Notification", boolean())),
     "activityLogLimit" -> trim(label("Limit of activity logs", optional(number()))),
-    "ssh" -> trim(label("SSH access", boolean())),
-    "sshHost" -> trim(label("SSH host", optional(text()))),
-    "sshPort" -> trim(label("SSH port", optional(number()))),
+    "ssh" -> mapping(
+      "enabled" -> trim(label("SSH access", boolean())),
+      "host" -> trim(label("SSH host", optional(text()))),
+      "port" -> trim(label("SSH port", optional(number()))),
+    )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
       "useSMTP",
@@ -91,13 +93,16 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
-    "showMailAddress" -> trim(label("Show mail address", boolean()))
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
+    "pluginNetworkInstall" -> new SingleValueType[Boolean] {
+      override def convert(value: String, messages: Messages): Boolean = context.settings.pluginNetworkInstall
+    }
   )(SystemSettings.apply).verifying { settings =>
     Vector(
-      if (settings.ssh && settings.baseUrl.isEmpty) {
+      if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
         Some("baseUrl" -> "Base URL is required if SSH access is enabled.")
       } else None,
-      if (settings.ssh && settings.sshHost.isEmpty) {
+      if (settings.ssh.enabled && settings.ssh.sshHost.isEmpty) {
         Some("sshHost" -> "SSH host is required if SSH access is enabled.")
       } else None
     ).flatten
@@ -325,25 +330,27 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
 
     // Plugins in the remote repository
-    val repositoryPlugins = PluginRepository
-      .getPlugins()
-      .map { meta =>
-        (meta, meta.versions.reverse.find { version =>
-          gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
-            plugin.pluginId == meta.id && plugin.pluginVersion == version.version
-          }
-        })
-      }
-      .collect {
-        case (meta, Some(version)) =>
-          new PluginInfoBase(
-            pluginId = meta.id,
-            pluginName = meta.name,
-            pluginVersion = version.version,
-            gitbucketVersion = Some(version.gitbucketVersion),
-            description = meta.description
-          )
-      }
+    val repositoryPlugins = if (context.settings.pluginNetworkInstall) {
+      PluginRepository
+        .getPlugins()
+        .map { meta =>
+          (meta, meta.versions.reverse.find { version =>
+            gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
+              plugin.pluginId == meta.id && plugin.pluginVersion == version.version
+            }
+          })
+        }
+        .collect {
+          case (meta, Some(version)) =>
+            new PluginInfoBase(
+              pluginId = meta.id,
+              pluginName = meta.name,
+              pluginVersion = version.version,
+              gitbucketVersion = Some(version.gitbucketVersion),
+              description = meta.description
+            )
+        }
+    } else Nil
 
     // Merge
     val plugins = (enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false)))
@@ -359,12 +366,17 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/plugins/_reload")(adminOnly {
+    // Update configuration
+    val pluginNetworkInstall = params.get("pluginNetworkInstall").map(_.toBoolean).getOrElse(false)
+    saveSystemSettings(context.settings.copy(pluginNetworkInstall = pluginNetworkInstall))
+
+    // Reload plugins
     PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
     flash += "info" -> "All plugins were reloaded."
     redirect("/admin/plugins")
   })
 
-  post("/admin/plugins/:pluginId/_uninstall")(adminOnly { // TODO Is version unnecessary?
+  post("/admin/plugins/:pluginId/_uninstall")(adminOnly {
     val pluginId = params("pluginId")
 
     if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
@@ -377,25 +389,28 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/plugins/:pluginId/:version/_install")(adminOnly {
-    val pluginId = params("pluginId")
-    val version = params("version")
+    if (context.settings.pluginNetworkInstall) {
+      val pluginId = params("pluginId")
+      val version = params("version")
 
-    PluginRepository
-      .getPlugins()
-      .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
-      .foreach {
-        case (meta, version) =>
-          version.foreach { version =>
-            PluginRegistry.install(
-              pluginId,
-              new java.net.URL(version.url),
-              request.getServletContext,
-              loadSystemSettings(),
-              request2Session(request).conn
-            )
-            flash += "info" -> s"${pluginId}:${version.version} was installed."
-          }
-      }
+      PluginRepository
+        .getPlugins()
+        .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
+        .foreach {
+          case (meta, version) =>
+            version.foreach { version =>
+              PluginRegistry.install(
+                pluginId,
+                new java.net.URL(version.url),
+                request.getServletContext,
+                loadSystemSettings(),
+                request2Session(request).conn
+              )
+              flash += "info" -> s"${pluginId}:${version.version} was installed."
+            }
+        }
+    }
+
     redirect("/admin/plugins")
   })
 

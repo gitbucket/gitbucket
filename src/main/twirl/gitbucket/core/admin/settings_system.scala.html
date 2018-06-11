@@ -182,7 +182,7 @@
 <label class="strong">SSH access</label>
 <fieldset>
   <label class="checkbox">
-    <input type="checkbox" id="ssh" name="ssh"@if(context.settings.ssh){ checked}/>
+    <input type="checkbox" id="sshEnabled" name="ssh.enabled"@if(context.settings.ssh.enabled){ checked}/>
     Enable SSH access to git repository
     <span class="muted normal">(Both SSH host and Base URL are required if SSH access is enabled)</span>
   </label>
@@ -191,15 +191,15 @@
   <div class="form-group">
     <label class="control-label col-md-2" for="sshHost">SSH host</label>
     <div class="col-md-10">
-      <input type="text" id="sshHost" name="sshHost" class="form-control" value="@context.settings.sshHost"/>
-      <span id="error-sshHost" class="error"></span>
+      <input type="text" id="sshHost" name="ssh.host" class="form-control" value="@context.settings.ssh.sshHost"/>
+      <span id="error-ssh_host" class="error"></span>
     </div>
   </div>
   <div class="form-group">
     <label class="control-label col-md-2" for="sshPort">SSH port</label>
     <div class="col-md-10">
-      <input type="text" id="sshPort" name="sshPort" class="form-control" value="@context.settings.sshPort"/>
-      <span id="error-sshPort" class="error"></span>
+      <input type="text" id="sshPort" name="ssh.port" class="form-control" value="@context.settings.ssh.sshPort"/>
+      <span id="error-ssh_port" class="error"></span>
     </div>
   </div>
 </div>
@@ -329,7 +329,7 @@ $(function(){
     }
   });
 
-  $('#ssh').change(function(){
+  $('#sshEnabled').change(function(){
     $('.ssh input').prop('disabled', !$(this).prop('checked'));
   }).change();
 

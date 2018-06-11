@@ -772,7 +772,7 @@ object RepositoryService {
   def httpUrl(owner: String, name: String)(implicit context: Context): String =
     s"${context.baseUrl}/git/${owner}/${name}.git"
   def sshUrl(owner: String, name: String)(implicit context: Context): Option[String] =
-    if (context.settings.ssh) {
+    if (context.settings.ssh.enabled) {
       context.settings.sshAddress.map { x =>
         s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git"
       }

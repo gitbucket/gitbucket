@@ -19,7 +19,7 @@
             <i class="menu-icon octicon octicon-person"></i> <span>Profile</span>
           </a>
         </li>
-        @if(context.settings.ssh){
+        @if(context.settings.ssh.enabled){
           <li class="menu-item-hover @if(active=="ssh"){active}">
             <a href="@context.path/@userName/_ssh">
               <i class="menu-icon octicon octicon-key"></i> <span>SSH Keys</span>

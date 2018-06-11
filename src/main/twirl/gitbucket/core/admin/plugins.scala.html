@@ -3,14 +3,16 @@
   @gitbucket.core.admin.html.menu("plugins") {
     @gitbucket.core.helper.html.information(info)
     <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
+      <input type="checkbox" name="pluginNetworkInstall" id="pluginNetworkInstall" value="true" @if(context.settings.pluginNetworkInstall){checked}>
+      <label for="pluginNetworkInstall">Install plugin from <a href="https://plugins.gitbucket-community.org" target="_blank">plugins.gitbucket-community.org</a></label>
       <input type="submit" value="Reload plugins" class="btn btn-default">
     </form>
     <h1 class="system-settings-title">Plugins</h1>
     @if(plugins.size > 0) {
       <ul>
-      @plugins.map { case (plugin, enabled, updatableVersion) =>
-        <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
-      }
+        @plugins.map { case (plugin, enabled, updatableVersion) =>
+          <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
+        }
       </ul>
 
       @plugins.map { case (plugin, enabled, updatableVersion) =>
