@@ -22,7 +22,7 @@
               @if(enabled){
                 @if(updatableVersion.nonEmpty){
                   <input type="submit" value="Update" class="btn btn-success btn-sm update-plugin" style="position: relative; top: -5px; left: 10px;"
-                  data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/@{updatableVersion}/_install">
+                         data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/@{updatableVersion}/_install">
                 }
                 <input type="submit" value="Uninstall" class="btn btn-danger btn-sm uninstall-plugin" style="position: relative; top: -5px; left: 10px;"
                        data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall">
