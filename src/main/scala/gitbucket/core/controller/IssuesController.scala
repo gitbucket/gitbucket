@@ -406,7 +406,7 @@ trait IssuesControllerBase extends ControllerBase {
       case dir if (dir.exists && dir.isDirectory) =>
         dir.listFiles.find(_.getName.startsWith(params("file") + ".")).map { file =>
           response.setHeader("Content-Disposition", f"""inline; filename=${file.getName}""")
-          RawData(FileUtil.getMimeType(file.getName), file)
+          RawData(FileUtil.getSafeMimeType(file.getName), file)
         }
       case _ => None
     }) getOrElse NotFound()
