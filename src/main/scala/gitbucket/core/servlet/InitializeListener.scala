@@ -5,7 +5,7 @@ import java.io.{File, FileOutputStream}
 import akka.event.Logging
 import com.typesafe.config.ConfigFactory
 import gitbucket.core.GitBucketCoreModule
-import gitbucket.core.plugin.{PluginRegistry, PluginRepository}
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
@@ -20,7 +20,6 @@ import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory
 import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
-import com.github.zafarkhaja.semver.{Version => Semver}
 
 import scala.collection.JavaConverters._
 

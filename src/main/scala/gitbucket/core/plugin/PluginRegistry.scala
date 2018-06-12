@@ -4,13 +4,11 @@ import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.ServletContext
 
 import com.github.zafarkhaja.semver.Version
-import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
@@ -366,7 +364,6 @@ object PluginRegistry {
       } catch {
         case e: Throwable => logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
       }
-//      }
     }
 
     if (watcher == null) {
