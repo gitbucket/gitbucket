@@ -781,6 +781,10 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   ajaxGet("/:owner/:repository/pulls/proposals")(readableUsersOnly { repository =>
+    val thresholdTime = System.currentTimeMillis() - (1000 * 60 * 60)
+    val mailAddresses =
+      context.loginAccount.map(x => Seq(x.mailAddress) ++ getAccountExtraMailAddresses(x.userName)).getOrElse(Nil)
+
     val branches = JGitUtil
       .getBranches(
         owner = repository.owner,
@@ -788,8 +792,14 @@ trait PullRequestsControllerBase extends ControllerBase {
         defaultBranch = repository.repository.defaultBranch,
         origin = repository.repository.originUserName.isEmpty
       )
-      .filter(x => x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0)
-      .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+      .filter { x =>
+        x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0 &&
+        x.commitTime.getTime > thresholdTime &&
+        mailAddresses.contains(x.committerEmailAddress)
+      }
+      .sortBy { br =>
+        (br.mergeInfo.isEmpty, br.commitTime)
+      }
       .map(_.name)
       .reverse
 
