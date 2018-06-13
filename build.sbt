@@ -30,8 +30,8 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
-  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "5.0.0.201805301535-rc2",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "5.0.0.201805301535-rc2",
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
