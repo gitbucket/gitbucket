@@ -713,7 +713,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           }
           helper.html.forkrepository(
             repository,
-            (groups zip managerPermissions).toMap
+            (groups zip managerPermissions).sortBy(_._1)
           )
         case _ => redirect(s"/${loginUserName}")
       }
