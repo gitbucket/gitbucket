@@ -26,7 +26,7 @@ trait DashboardControllerBase extends ControllerBase {
 
     html.repos(
       getGroupNames(userName),
-      Nil,
+      getVisibleRepositories(None, withoutPhysicalInfo = true),
       getUserRepositories(userName, withoutPhysicalInfo = true)
     )
   })
@@ -93,8 +93,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      Nil,
-      getUserRepositories(userName, withoutPhysicalInfo = true)
+      getVisibleRepositories(None, withoutPhysicalInfo = true)
     )
   }
 
@@ -119,8 +118,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      Nil,
-      getUserRepositories(userName, withoutPhysicalInfo = true)
+      getVisibleRepositories(None, withoutPhysicalInfo = true)
     )
   }
 

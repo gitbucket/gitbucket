@@ -3,7 +3,7 @@
   userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Repositories"){
-  @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories){
     @gitbucket.core.dashboard.html.tab("repos")
     <div class="container">
       @if(userRepositories.isEmpty){
