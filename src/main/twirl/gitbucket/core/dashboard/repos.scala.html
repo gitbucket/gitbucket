@@ -6,11 +6,23 @@
   @gitbucket.core.dashboard.html.sidebar(recentRepositories){
     @gitbucket.core.dashboard.html.tab("repos")
     <div class="container">
+      <div class="btn-group" id="owner-dropdown">
+        <button id="test" class="dropdown-toggle btn btn-default" data-toggle="dropdown" aria-expanded="false">
+          <span class="strong">All</span>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a></li>
+          @userRepositories.map(_.owner).distinct.map { userName =>
+            <li><a href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a></li>
+          }
+        </ul>
+      </div>
       @if(userRepositories.isEmpty){
         No repositories
       } else {
         @userRepositories.map { repository =>
-          <div class="block">
+          <div class="block" data-owner="@repository.owner">
             <div class="repository-icon">
               @gitbucket.core.helper.html.repositoryicon(repository, true)
             </div>
@@ -35,3 +47,25 @@
     </div>
   }
 }
+<script>
+$('#owner-dropdown a').click(function(){
+  var userName = $(this).data('name');
+
+  $('#owner-dropdown i').attr('class', 'octicon');
+  $(this).find('i').attr('class', 'octicon octicon-check');
+
+  $('#owner-dropdown span.strong').html($(this).find('span').html());
+
+  $('div.block').each(function(i, e){
+    if(userName == ''){
+      $(e).show();
+    } else {
+      if($(e).data('owner') == userName){
+        $(e).show();
+      } else {
+        $(e).hide();
+      }
+    }
+  });
+});
+</script>
