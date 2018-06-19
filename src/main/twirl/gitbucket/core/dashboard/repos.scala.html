@@ -1,0 +1,37 @@
+@(groups: List[String],
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Repositories"){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
+    @gitbucket.core.dashboard.html.tab("repos")
+    <div class="container">
+      @if(userRepositories.isEmpty){
+        No repositories
+      } else {
+        @userRepositories.map { repository =>
+          <div class="block">
+            <div class="repository-icon">
+              @gitbucket.core.helper.html.repositoryicon(repository, true)
+            </div>
+            <div class="repository-content">
+              <div class="block-header">
+                <a href="@helpers.url(repository)">@repository.owner/@repository.name</a>
+                @if(repository.repository.isPrivate){
+                  <i class="octicon octicon-lock"></i>
+                }
+              </div>
+              @if(repository.repository.originUserName.isDefined){
+                <div class="small muted">forked from <a href="@context.path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
+              }
+              @if(repository.repository.description.isDefined){
+                <div>@repository.repository.description</div>
+              }
+              <div><span class="muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+}

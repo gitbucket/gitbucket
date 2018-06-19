@@ -2,6 +2,7 @@
 <ul class="nav nav-tabs" style="margin-bottom: 20px;">
   <li @if(active == ""){ class="active"}><a href="@context.path/">News feed</a></li>
   @if(context.loginAccount.isDefined){
+    <li @if(active == "repos" ){ class="active"}><a href="@context.path/dashboard/repos">Repositories</a></li>
     <li @if(active == "pulls" ){ class="active"}><a href="@context.path/dashboard/pulls">Pull requests</a></li>
     <li @if(active == "issues"){ class="active"}><a href="@context.path/dashboard/issues">Issues</a></li>
     @gitbucket.core.plugin.PluginRegistry().getDashboardTabs.map { tab =>

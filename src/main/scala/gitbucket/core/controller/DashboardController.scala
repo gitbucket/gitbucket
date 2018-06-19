@@ -21,6 +21,16 @@ class DashboardController
 trait DashboardControllerBase extends ControllerBase {
   self: IssuesService with PullRequestService with RepositoryService with AccountService with UsersAuthenticator =>
 
+  get("/dashboard/repos")(usersOnly {
+    val userName = context.loginAccount.get.userName
+
+    html.repos(
+      getGroupNames(userName),
+      Nil,
+      getUserRepositories(userName, withoutPhysicalInfo = true)
+    )
+  })
+
   get("/dashboard/issues")(usersOnly {
     searchIssues("created_by")
   })
