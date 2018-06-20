@@ -229,13 +229,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName") {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
+      val extraMailAddresses = getAccountExtraMailAddresses(userName)
       params.getOrElse("tab", "repositories") match {
         // Public Activity
         case "activity" =>
           gitbucket.core.account.html.activity(
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getActivitiesByUser(userName, true)
+            getActivitiesByUser(userName, true),
+            extraMailAddresses
           )
 
         // Members
@@ -244,6 +246,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           gitbucket.core.account.html.members(
             account,
             members,
+            extraMailAddresses,
             context.loginAccount.exists(
               x =>
                 members.exists { member =>
@@ -260,6 +263,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, Some(userName)),
+            extraMailAddresses,
             context.loginAccount.exists(
               x =>
                 members.exists { member =>
@@ -276,6 +280,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     contentType = "application/atom+xml; type=feed"
     helper.xml.feed(getActivitiesByUser(userName, true))
+  }
+
+  get("/:userName.keys") {
+    val keys = getPublicKeys(params("userName"))
+    contentType = "text/plain; charset=utf-8"
+    keys.map(_.publicKey).mkString("", "\n", "\n")
   }
 
   get("/:userName/_avatar") {
@@ -318,7 +328,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       account =>
         updateAccount(
           account.copy(
-            password = form.password.map(sha1).getOrElse(account.password),
+            password = form.password.map(pbkdf2_sha256).getOrElse(account.password),
             fullName = form.fullName,
             mailAddress = form.mailAddress,
             description = form.description,
@@ -559,7 +569,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     if (context.settings.allowAccountRegistration) {
       createAccount(
         form.userName,
-        sha1(form.password),
+        pbkdf2_sha256(form.password),
         form.fullName,
         form.mailAddress,
         false,
@@ -567,7 +577,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         form.url
       )
       updateImage(form.userName, form.fileId, false)
-      updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses)
+      updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses.filter(_ != ""))
       redirect("/signin")
     } else NotFound()
   }
@@ -703,7 +713,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           }
           helper.html.forkrepository(
             repository,
-            (groups zip managerPermissions).toMap
+            (groups zip managerPermissions).sortBy(_._1)
           )
         case _ => redirect(s"/${loginUserName}")
       }

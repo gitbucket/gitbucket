@@ -3,7 +3,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.24.1"
+val GitBucketVersion = "4.25.0"
 val ScalatraVersion = "2.6.1"
 val JettyVersion = "9.4.7.v20170914"
 
@@ -30,8 +30,8 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
-  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "5.0.0.201805301535-rc2",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "5.0.0.201805301535-rc2",
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.196",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.3",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.5",
   "org.postgresql"                  % "postgresql"                   % "42.1.4",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "2.7.4",

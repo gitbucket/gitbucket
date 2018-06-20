@@ -68,6 +68,7 @@ trait SystemSettingsService {
         }
       }
       props.setProperty(SkinName, settings.skinName.toString)
+      props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
       using(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
       }
@@ -144,7 +145,8 @@ trait SystemSettingsService {
         } else {
           None
         },
-        getValue(props, SkinName, "skin-blue")
+        getValue(props, SkinName, "skin-blue"),
+        getValue(props, ShowMailAddress, false)
       )
     }
   }
@@ -174,7 +176,8 @@ object SystemSettingsService {
     ldap: Option[Ldap],
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
-    skinName: String
+    skinName: String,
+    showMailAddress: Boolean
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
@@ -283,6 +286,7 @@ object SystemSettingsService {
   private val OidcClientSecret = "oidc.client_secret"
   private val OidcJwsAlgorithm = "oidc.jws_algorithm"
   private val SkinName = "skinName"
+  private val ShowMailAddress = "showMailAddress"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {

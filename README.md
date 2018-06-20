@@ -68,17 +68,14 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.24.x
+What's New in 4.25.x
 -------------
-### 4.24.1 - 1 May 2018
-- Fix bug in Web API authentication
-
-### 4.24.0 - 30 Apr 2018
-- Diff for each review comment on pull requests
-- Extra mail addresses support
-- Show tags at the commit list
-- Keep wrap mode of the online editor
-- Renew layout of gitbucket-gist-plugin
-- Web API of gitbucket-ci-plugin
+### 4.25.0 - 29 May 2018
+- Security improvements
+- Show mail address at the profile page
+- Task list on commit comments
+- More detailed editing history of issues and pull requests
+- Expose user public keys
+- Download repository improvements
 
 See the [change log](CHANGELOG.md) for all of the updates.

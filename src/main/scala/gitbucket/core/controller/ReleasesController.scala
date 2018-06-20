@@ -79,7 +79,7 @@ trait ReleaseControllerBase extends ControllerBase {
     } yield {
       response.setHeader("Content-Disposition", s"attachment; filename=${asset.label}")
       RawData(
-        FileUtil.getMimeType(asset.label),
+        FileUtil.getSafeMimeType(asset.label),
         new File(getReleaseFilesDir(repository.owner, repository.name), FileUtil.checkFilename(tagName + "/" + fileId))
       )
     }).getOrElse(NotFound())

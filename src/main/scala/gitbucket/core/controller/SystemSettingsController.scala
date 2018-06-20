@@ -90,7 +90,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "jwsAlgorithm" -> trim(label("Signature algorithm", optional(text())))
       )(OIDC.apply)
     ),
-    "skinName" -> trim(label("AdminLTE skin name", text(required)))
+    "skinName" -> trim(label("AdminLTE skin name", text(required))),
+    "showMailAddress" -> trim(label("Show mail address", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh && settings.baseUrl.isEmpty) {
@@ -416,7 +417,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
     createAccount(
       form.userName,
-      sha1(form.password),
+      pbkdf2_sha256(form.password),
       form.fullName,
       form.mailAddress,
       form.isAdmin,
@@ -456,7 +457,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
           updateAccount(
             account.copy(
-              password = form.password.map(sha1).getOrElse(account.password),
+              password = form.password.map(pbkdf2_sha256).getOrElse(account.password),
               fullName = form.fullName,
               mailAddress = form.mailAddress,
               isAdmin = form.isAdmin,

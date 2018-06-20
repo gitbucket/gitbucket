@@ -3,10 +3,13 @@
   pullreq: gitbucket.core.model.PullRequest,
   commits: Seq[gitbucket.core.util.JGitUtil.CommitInfo],
   comments: Seq[gitbucket.core.model.Comment],
+  changedFileSize: Int,
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   flash: Map[String, String] = Map.empty)(body: => Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
+@import gitbucket.core.model.Comment
+@import gitbucket.core.model.CommitComments
 @import gitbucket.core.model.IssueComment
 @gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("pulls", repository) {
@@ -68,9 +71,9 @@
       }
       </div>
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
-        <li @if(active=="conversation"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId">Conversation</a></li>
-        <li @if(active=="commits"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits</a></li>
-        <li @if(active=="files"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed</a></li>
+        <li @if(active=="conversation"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId">Conversation <span class="badge">@countConversation(comments)</span></a></li>
+        <li @if(active=="commits"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge">@commits.size</span></a></li>
+        <li @if(active=="files"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge">@changedFileSize</span></a></li>
       </ul>
       <div class="tab-content fill-width" style="padding-top: 20px;">
         @flash.get("error").map { error =>
@@ -117,3 +120,10 @@
     });
   });
 </script>
+
+@countConversation(comments: Seq[Comment]) = @{
+  comments.collect {
+    case c: CommitComments => c.comments.size
+    case c: IssueComment if c.action.endsWith("comment") => 1
+  }.sum
+}
