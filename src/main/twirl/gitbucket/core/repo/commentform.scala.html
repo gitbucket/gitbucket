@@ -114,8 +114,18 @@
               .data('filename', '@fileName')
               .data('newline',  @newLineNumber.getOrElse("undefined"))
               .data('oldline',  @oldLineNumber.getOrElse("undefined")));
-          var tmp = getInlineContainer();
-          tmp.children('td:last').html($v)
+
+          @if(oldLineNumber.isDefined){
+            @if(newLineNumber.isDefined){
+              var tmp = getInlineContainer();
+            } else {
+              var tmp = getInlineContainer('old');
+            }
+            tmp.children('td:first').html($v);
+          } else {
+            var tmp = getInlineContainer('new');
+            tmp.children('td:last').html($v);
+          }
           $tr.after(tmp);
         }
 

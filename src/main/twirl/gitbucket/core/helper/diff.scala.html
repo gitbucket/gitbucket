@@ -183,14 +183,15 @@ $(function(){
   });
 
   $('.ignore-whitespace').change(function() {
-    renderOneDiff($(this).closest("table").find(".diffText"), viewType);
+    renderOneDiff($(this).closest("table").find(".diffText"), window.viewType);
   });
 
   function getInlineContainer(where) {
-    if (viewType == 0) {
+    if (window.viewType == 0) {
+      console.log(where);
       if (where === 'new') {
         return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
-      } else if (where === 'old') {
+      } else {
         return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
       }
     }
@@ -245,7 +246,7 @@ $(function(){
       var commitId = $this.closest('.table-bordered').attr('commitId'),
       fileName = $this.closest('.table-bordered').attr('fileName'),
       oldLineNumber, newLineNumber;
-      if (viewType == 0) {
+      if (window.viewType == 0) {
         oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
         newLineNumber = $this.parent().prev('.newline').attr('line-number');
       } else {
@@ -274,7 +275,7 @@ $(function(){
   });
 
   function renderOneCommitCommentIntoDiff($v, diff){
-    var filename = $v.attr('filename');
+    //var filename = $v.attr('filename');
     var oldline  = $v.attr('oldline');
     var newline  = $v.attr('newline');
     var tmp;
@@ -369,8 +370,8 @@ $(function(){
     });
     for(var key in elements){
       filename = elements[key]['filename'];
-      oldline = elements[key]['oldline'] ? elements[key]['oldline'] : '';
-      newline = elements[key]['newline'] ? elements[key]['newline'] : '';
+      oldline = elements[key]['oldline']; //? elements[key]['oldline'] : '';
+      newline = elements[key]['newline']; //? elements[key]['newline'] : '';
 
       var $v = $('<div class="commit-comment-box reply-comment-box">')
         .append($('<input type="text" class="form-control reply-comment" placeholder="Reply..." '
@@ -398,7 +399,7 @@ $(function(){
     var i = 0, diffs = $('.diffText');
     function render(){
       if(diffs[i]){
-        var $table = renderOneDiff($(diffs[i]), viewType);
+        var $table = renderOneDiff($(diffs[i]), window.viewType);
         @if(hasWritePermission) {
           renderReplyComment($table);
         }
