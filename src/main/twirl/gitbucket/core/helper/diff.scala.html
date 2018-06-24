@@ -16,9 +16,9 @@
     @if(oldCommitId.isDefined && newCommitId.isDefined) {
       <a href="@helpers.url(repository)/patch/@oldCommitId...@newCommitId" class="btn btn-default">Patch</a>
     }
-    <div class="btn-group" data-toggle="buttons">
-      <input type="button" id="btn-unified" class="btn btn-default active" value="Unified">
-      <input type="button" id="btn-split" class="btn btn-default" value="Split">
+    <div class="btn-group">
+      <a href="javascript:changeDisplaySetting('diff', 'unified');" id="btn-unified" class="btn btn-default">Unified</a>
+      <a href="javascript:changeDisplaySetting('diff', 'split');" id="btn-split" class="btn btn-default">Split</a>
     </div>
   </div>
   Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
@@ -151,29 +151,22 @@ $(function(){
     });
   }
 
+  window.params = {};
+
   // Render diffs as unified mode initially
   if(("&" + location.search.substring(1)).indexOf("&w=1") != -1){
-    $('.ignore-whitespace').prop('checked',true);
+    $('.ignore-whitespace').prop('checked', true);
+    window.params['w'] = 1;
   }
-  window.viewType = 1;
   if(("&" + location.search.substring(1)).indexOf("&diff=split") != -1){
     window.viewType = 0;
-  }
-  renderDiffs();
-
-  $('#btn-unified').click(function(){
+    $('#btn-split').addClass('active');
+    window.params['diff'] = 'split';
+  } else {
     window.viewType = 1;
     $('#btn-unified').addClass('active');
-    $('#btn-split').removeClass('active');
-    renderDiffs();
-  });
-
-  $('#btn-split').click(function(){
-    window.viewType = 0;
-    $('#btn-unified').removeClass('active');
-    $('#btn-split').addClass('active');
-    renderDiffs();
-  });
+  }
+  renderDiffs();
 
   $('.toggle-notes').change(function() {
     if (!$(this).prop('checked')) {
@@ -188,7 +181,6 @@ $(function(){
 
   function getInlineContainer(where) {
     if (window.viewType == 0) {
-      console.log(where);
       if (where === 'new') {
         return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
       } else {
@@ -410,4 +402,19 @@ $(function(){
     render();
   }
 });
+
+function changeDisplaySetting(key, value){
+  var url = '';
+  window.params[key] = value;
+  for(key in window.params){
+    if(window.params[key] != ''){
+      if(url != ''){
+        url = url + '&' + key + '=' + window.params[key];
+      } else {
+        url = url + '?' + key + '=' + window.params[key];
+      }
+    }
+  }
+  location.href = url;
+}
 </script>
