@@ -1,4 +1,3 @@
-@import gitbucket.core.model.CommitComment
 @(commitId: String,
   commit: gitbucket.core.util.JGitUtil.CommitInfo,
   branches: List[String],
@@ -26,7 +25,7 @@
           <div class="small" style="font-weight: normal;">
             @if(branches.nonEmpty){
               <span class="muted">
-                  <i class="octicon octicon-git-branch"></i>
+                <i class="octicon octicon-git-branch"></i>
                 @branches.zipWithIndex.map { case (branch, i) =>
                   <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
                 }
@@ -34,7 +33,7 @@
             }
             @if(tags.nonEmpty){
               <span class="muted">
-                  <i class="octicon octicon-tag"></i>
+                <i class="octicon octicon-tag"></i>
                 @tags.zipWithIndex.map { case (tag, i) =>
                   <a href="@helpers.url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
                 }
@@ -90,15 +89,16 @@
     </label>
     <div id="comment-list">
       @gitbucket.core.issues.html.commentlist(
-        None,
-        comments.filter(_.asInstanceOf[gitbucket.core.model.CommitComment].fileName.isEmpty),
-        hasWritePermission,
-        repository,
-        None)
+        issue        = None,
+        comments     = comments.filter(_.asInstanceOf[CommitComment].fileName.isEmpty),
+        isManageable = hasWritePermission,
+        repository   = repository,
+        pullreq      = None,
+        renderScript = false)
       <div style="display: none;">
         @gitbucket.core.issues.html.commentlist(
-          None,
-          comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
+          issue        = None,
+          comments     = comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
             CommitComments(
               fileName          = fileName.get,
               commentedUserName = comments.head.commentedUserName,
@@ -107,10 +107,10 @@
               diff              = None
             )
           }.toList,
-          hasWritePermission,
-          repository,
-          None,
-          Some(commitId))
+          isManageable = hasWritePermission,
+          repository   = repository,
+          pullreq      = None,
+          commitId     = Some(commitId))
       </div>
     </div>
     @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)

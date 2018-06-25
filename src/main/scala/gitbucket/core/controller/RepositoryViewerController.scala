@@ -628,7 +628,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       newLineNumber,
       issueId,
       hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-      repository = repository
+      repository = repository,
+      focus = true
     )
   })
 
@@ -822,12 +823,35 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   /**
-   * Download repository contents as an archive as compatible URL.
+   * Download repository contents as a zip archive as compatible URL.
    */
-  get("/:owner/:repository/archive/:branch.:suffix")(referrersOnly { repository =>
+  get("/:owner/:repository/archive/:branch.zip")(referrersOnly { repository =>
     val branch = params("branch")
-    val suffix = params("suffix")
-    archiveRepository(branch, branch + "." + suffix, repository, "")
+    archiveRepository(branch, branch + ".zip", repository, "")
+  })
+
+  /**
+   * Download repository contents as a tar.gz archive as compatible URL.
+   */
+  get("/:owner/:repository/archive/:branch.tar.gz")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".tar.gz", repository, "")
+  })
+
+  /**
+   * Download repository contents as a tar.bz2 archive as compatible URL.
+   */
+  get("/:owner/:repository/archive/:branch.tar.bz2")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".tar.bz2", repository, "")
+  })
+
+  /**
+   * Download repository contents as a tar.xz archive as compatible URL.
+   */
+  get("/:owner/:repository/archive/:branch.tar.xz")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".tar.xz", repository, "")
   })
 
   /**
@@ -1040,7 +1064,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             // close issue by commit message
             if (branch == repository.repository.defaultBranch) {
-              closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+              closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name).foreach {
+                issueId =>
+                  getIssue(repository.owner, repository.name, issueId.toString).map { issue =>
+                    callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                    PluginRegistry().getIssueHooks
+                      .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
+                  }
+              }
             }
 
             // call post commit hook
@@ -1134,7 +1165,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   }
 
-  def archiveRepository(
+  private def archiveRepository(
     revision: String,
     filename: String,
     repository: RepositoryService.RepositoryInfo,
@@ -1176,7 +1207,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
     }
 
-    val suffix = path.split("/").lastOption.map("-" + _).getOrElse("")
+    val suffix =
+      path.split("/").lastOption.collect { case x if x.length > 0 => "-" + x.replace('/', '_') }.getOrElse("")
     val zipRe = """(.+)\.zip$""".r
     val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 

@@ -19,3 +19,14 @@
     </div>
   </div>
 </div>
+
+@if(!latestCommitId.contains(comments.comments.head.commitId)) {
+  <script>
+    $(function(){
+      var foldComments = $('.fold-comments-@comments.comments.head.commentId');
+      if(foldComments.find('input:checkbox:not(:checked)').length > 0){
+        foldComments.show();
+      }
+    });
+  </script>
+}
