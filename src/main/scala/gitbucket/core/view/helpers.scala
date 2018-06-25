@@ -34,13 +34,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Format java.util.Date to "x {seconds/minutes/hours/days/months/years} ago"
    */
-  def datetimeAgo(date: Date): String = {
-    val duration = new Date().getTime - date.getTime
-    timeUnits.find(tuple => duration / tuple._1 > 0) match {
-      case Some((unitValue, unitString)) =>
-        val value = duration / unitValue
-        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
-      case None => "just now"
+  def datetimeAgo(date: Date)(implicit context: Context): String = {
+    if (context.settings.relativeTime) {
+      val duration = new Date().getTime - date.getTime
+      timeUnits.find(tuple => duration / tuple._1 > 0) match {
+        case Some((unitValue, unitString)) =>
+          val value = duration / unitValue
+          s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+        case None => "just now"
+      }
+    } else {
+      date.toString
     }
   }
 
@@ -48,15 +52,19 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Format java.util.Date to "x {seconds/minutes/hours/days} ago"
    * If duration over 1 month, format to "d MMM (yyyy)"
    */
-  def datetimeAgoRecentOnly(date: Date): String = {
-    val duration = new Date().getTime - date.getTime
-    timeUnits.find(tuple => duration / tuple._1 > 0) match {
-      case Some((_, "month")) => s"on ${new SimpleDateFormat("d MMM", Locale.ENGLISH).format(date)}"
-      case Some((_, "year"))  => s"on ${new SimpleDateFormat("d MMM yyyy", Locale.ENGLISH).format(date)}"
-      case Some((unitValue, unitString)) =>
-        val value = duration / unitValue
-        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
-      case None => "just now"
+  def datetimeAgoRecentOnly(date: Date)(implicit context: Context): String = {
+    if (context.settings.relativeTime) {
+      val duration = new Date().getTime - date.getTime
+      timeUnits.find(tuple => duration / tuple._1 > 0) match {
+        case Some((_, "month")) => s"on ${new SimpleDateFormat("d MMM", Locale.ENGLISH).format(date)}"
+        case Some((_, "year"))  => s"on ${new SimpleDateFormat("d MMM yyyy", Locale.ENGLISH).format(date)}"
+        case Some((unitValue, unitString)) =>
+          val value = duration / unitValue
+          s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+        case None => "just now"
+      }
+    } else {
+      date.toString
     }
   }
 

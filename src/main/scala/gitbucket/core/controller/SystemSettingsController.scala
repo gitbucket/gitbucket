@@ -91,7 +91,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
-    "showMailAddress" -> trim(label("Show mail address", boolean()))
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
+    "relativeTime" -> trim(label("Relative Time", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh && settings.baseUrl.isEmpty) {
