@@ -170,12 +170,17 @@ executableKey := {
   // include plugins
   val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
   IO createDirectory (pluginsDir)
-  IO copyFile (Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
 
-  val json = IO read (Keys.baseDirectory.value / "plugins.json")
-  PluginsJson.getUrls(json).foreach { url =>
-    log info s"Download: ${url}"
-    IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+  val plugins = IO readLines (Keys.baseDirectory.value / "src" / "main" / "resources" / "bundle-plugins.txt")
+  plugins.foreach { plugin =>
+    plugin.trim.split(":") match {
+      case Array(pluginId, pluginVersion) =>
+        val url = "https://plugins.gitbucket-community.org/releases/" +
+          s"gitbucket-${pluginId}-plugin/gitbucket-${pluginId}-plugin-gitbucket_${version.value}-${pluginVersion}.jar"
+        log info s"Download: ${url}"
+        IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+      case _ => ()
+    }
   }
 
   // zip it up
