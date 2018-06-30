@@ -47,7 +47,7 @@ $ sbt executable
 For plug-in development, we have to publish the GitBucket jar file to the Maven central repository as well. At first, hit following command to publish artifacts to the sonatype OSS repository:
 
 ```bash
-$ sbt publish-signed
+$ sbt publishSigned
 ```
 
 Then logged-in https://oss.sonatype.org/ and delete following files from the staging repository:
