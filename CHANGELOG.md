@@ -1,6 +1,14 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.26.0 - 30 Jun 2018
+- Installing plugins from the central registry
+- Repositories tab in the dashboard
+- Fork dialog enhancement
+- Adjust pull request creation suggestor
+- Keep showing incompleted task list
+- New notification hooks
+
 ### 4.25.0 - 29 May 2018
 - Security improvements
 - Show mail address at the profile page
