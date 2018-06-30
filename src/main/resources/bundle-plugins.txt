@@ -1,1 +1,1 @@
-notifications:1.5.1
+notifications:1.6.0
