@@ -106,7 +106,16 @@ $(function(){
       for(var i = 0; i < p.length; i++){
         var row = template.clone();
         row.find("a").attr("href", pathBase + "/" + encodeURIComponent(p[i].string).replace(/%2F/g, '/')).html(string_score_highlight(p[i], '<b>'));
-        row.find("i").addClass(FileIcons.getClassWithColor(p[i].string));
+        @context.settings.fileIcon match {
+          case "color" => {
+            row.find("i").addClass(FileIcons.getClassWithColor(p[i].string));
+          }
+          case "gray" => {
+            row.find("i").addClass(FileIcons.getClass(p[i].string));
+          }
+          case _ => {
+          }
+        }
         if(cursor == i){
           row.addClass("navigation-focus");
         }

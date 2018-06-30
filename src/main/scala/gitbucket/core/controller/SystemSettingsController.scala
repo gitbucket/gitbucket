@@ -96,7 +96,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "showMailAddress" -> trim(label("Show mail address", boolean())),
     "pluginNetworkInstall" -> new SingleValueType[Boolean] {
       override def convert(value: String, messages: Messages): Boolean = context.settings.pluginNetworkInstall
-    }
+    },
+    "fileIcon" -> trim(label("File icons", text(required)))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {

@@ -230,6 +230,19 @@ $(function() {
     });
   }
 
-  $(".file-icon > i[data-filename]").each(function(){$(this).addClass(FileIcons.getClassWithColor($(this).data("filename")));});
+  @context.settings.fileIcon match{
+    case "color" =>{
+      $(".file-icon > i[data-filename]").each(function () {
+        $(this).addClass(FileIcons.getClassWithColor($(this).data("filename")));
+      });
+    }
+    case "gray" => {
+      $(".file-icon > i[data-filename]").each(function () {
+        $(this).addClass(FileIcons.getClass($(this).data("filename")));
+      });
+    }
+    case _ => {
+    }
+  }
 });
 </script>

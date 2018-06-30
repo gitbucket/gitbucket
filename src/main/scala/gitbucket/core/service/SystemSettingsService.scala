@@ -70,6 +70,7 @@ trait SystemSettingsService {
       props.setProperty(SkinName, settings.skinName.toString)
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
       props.setProperty(PluginNetworkInstall, settings.pluginNetworkInstall.toString)
+      props.setProperty(FileIcon, settings.fileIcon)
 
       using(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
@@ -151,7 +152,8 @@ trait SystemSettingsService {
         },
         getValue(props, SkinName, "skin-blue"),
         getValue(props, ShowMailAddress, false),
-        getValue(props, PluginNetworkInstall, false)
+        getValue(props, PluginNetworkInstall, false),
+        getValue(props, FileIcon, "color")
       )
     }
   }
@@ -181,7 +183,8 @@ object SystemSettingsService {
     oidc: Option[OIDC],
     skinName: String,
     showMailAddress: Boolean,
-    pluginNetworkInstall: Boolean
+    pluginNetworkInstall: Boolean,
+    fileIcon: String
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
@@ -298,6 +301,7 @@ object SystemSettingsService {
   private val SkinName = "skinName"
   private val ShowMailAddress = "showMailAddress"
   private val PluginNetworkInstall = "plugin.networkInstall"
+  private val FileIcon = "FileIcon"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {

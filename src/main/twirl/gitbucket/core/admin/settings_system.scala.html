@@ -93,6 +93,23 @@
     </select>
   </div>
 </div>
+  <!--====================================================================-->
+  <!-- File Icon -->
+  <!--====================================================================-->
+<hr>
+<label class="strong">
+  File icons
+</label>
+<div class="form-group">
+  <label class="control-label col-md-2" for="fileIcon">Show file icon as</label>
+  <div class="col-md-10">
+    <select id="fileIcon" name="fileIcon" class="form-control">
+      <option value="color" @if(context.settings.fileIcon == "color"){ selected=""}>Color icons</option>
+      <option value="gray" @if(context.settings.fileIcon == "gray"){ selected=""}>Gray icons</option>
+      <option value="simple" @if(context.settings.fileIcon == "simple"){ selected=""}>Simple icons</option>
+    </select>
+  </div>
+</div>
 <!--====================================================================-->
 <!-- Account registration -->
 <!--====================================================================-->
