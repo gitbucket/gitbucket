@@ -17,7 +17,7 @@ case class ApiPullRequestReviewComment(
   commit_id: String, // "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
   // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
   user: ApiUser,
-  body: String, // "Maybe you should use more emojji on this line.",
+  body: String, // "Maybe you should use more emoji on this line.",
   created_at: Date, // "2015-05-05T23:40:27Z",
   updated_at: Date // "2015-05-05T23:40:27Z",
 )(repositoryName: RepositoryName, issueId: Int)
