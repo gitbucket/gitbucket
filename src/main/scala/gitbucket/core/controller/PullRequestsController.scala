@@ -113,7 +113,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         val name = repository.name
         getPullRequest(owner, name, issueId) map {
           case (issue, pullreq) =>
-            val (commits, _) =
+            val (commits, diffs) =
               getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
             html.conversation(
@@ -121,6 +121,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               pullreq,
               commits.flatten,
               getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              diffs.size,
               getIssueLabels(owner, name, issueId),
               getAssignableUserNames(owner, name),
               getMilestonesWithIssueCount(owner, name),
@@ -157,23 +158,25 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/pull/:id/commits")(referrersOnly { repository =>
-    params("id").toIntOpt.flatMap { issueId =>
-      val owner = repository.owner
-      val name = repository.name
-      getPullRequest(owner, name, issueId) map {
-        case (issue, pullreq) =>
-          val (commits, _) =
-            getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+    params("id").toIntOpt.flatMap {
+      issueId =>
+        val owner = repository.owner
+        val name = repository.name
+        getPullRequest(owner, name, issueId) map {
+          case (issue, pullreq) =>
+            val (commits, diffs) =
+              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
-          html.commits(
-            issue,
-            pullreq,
-            commits,
-            getPullRequestComments(owner, name, issue.issueId, commits.flatten),
-            isManageable(repository),
-            repository
-          )
-      }
+            html.commits(
+              issue,
+              pullreq,
+              commits,
+              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              diffs.size,
+              isManageable(repository),
+              repository
+            )
+        }
     } getOrElse NotFound()
   })
 
@@ -350,7 +353,16 @@ trait PullRequestsControllerBase extends ControllerBase {
                   // close issue by commit message
                   if (pullreq.requestBranch == repository.repository.defaultBranch) {
                     commits.map { commit =>
-                      closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+                      closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
+                        issueId =>
+                          getIssue(repository.owner, repository.name, issueId.toString).map { issue =>
+                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                            PluginRegistry().getIssueHooks
+                              .foreach(
+                                _.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount)
+                              )
+                          }
+                      }
                     }
                   }
 
@@ -455,15 +467,35 @@ trait PullRequestsControllerBase extends ControllerBase {
                     val defaultBranch = getRepository(owner, name).get.repository.defaultBranch
                     if (pullreq.branch == defaultBranch) {
                       commits.flatten.foreach { commit =>
-                        closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+                        closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
+                          issueId =>
+                            getIssue(owner, name, issueId.toString).map { issue =>
+                              callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                              PluginRegistry().getIssueHooks
+                                .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
+                            }
+                        }
                       }
+                      val issueContent = issue.title + " " + issue.content.getOrElse("")
                       closeIssuesFromMessage(
-                        issue.title + " " + issue.content.getOrElse(""),
+                        issueContent,
                         loginAccount.userName,
                         owner,
                         name
-                      )
-                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
+                      ).foreach { issueId =>
+                        getIssue(owner, name, issueId.toString).map { issue =>
+                          callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                          PluginRegistry().getIssueHooks
+                            .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
+                        }
+                      }
+                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach { issueId =>
+                        getIssue(owner, name, issueId.toString).map { issue =>
+                          callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                          PluginRegistry().getIssueHooks
+                            .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
+                        }
+                      }
                     }
 
                     updatePullRequests(owner, name, pullreq.branch)
@@ -749,6 +781,10 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   ajaxGet("/:owner/:repository/pulls/proposals")(readableUsersOnly { repository =>
+    val thresholdTime = System.currentTimeMillis() - (1000 * 60 * 60)
+    val mailAddresses =
+      context.loginAccount.map(x => Seq(x.mailAddress) ++ getAccountExtraMailAddresses(x.userName)).getOrElse(Nil)
+
     val branches = JGitUtil
       .getBranches(
         owner = repository.owner,
@@ -756,8 +792,14 @@ trait PullRequestsControllerBase extends ControllerBase {
         defaultBranch = repository.repository.defaultBranch,
         origin = repository.repository.originUserName.isEmpty
       )
-      .filter(x => x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0)
-      .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+      .filter { x =>
+        x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0 &&
+        x.commitTime.getTime > thresholdTime &&
+        mailAddresses.contains(x.committerEmailAddress)
+      }
+      .sortBy { br =>
+        (br.mergeInfo.isEmpty, br.commitTime)
+      }
       .map(_.name)
       .reverse
 

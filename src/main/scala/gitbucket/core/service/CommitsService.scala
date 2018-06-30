@@ -7,7 +7,7 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.StringUtil
+import gitbucket.core.util.{FileUtil, StringUtil}
 import org.apache.commons.io.FileUtils
 
 trait CommitsService {
@@ -83,7 +83,7 @@ trait CommitsService {
     newLine: Option[Int],
     diffJson: String
   ): Unit = {
-    val dir = new java.io.File(getDiffDir(owner, repository), commitId)
+    val dir = new File(getDiffDir(owner, repository), FileUtil.checkFilename(commitId))
     if (!dir.exists) {
       dir.mkdirs()
     }
@@ -99,7 +99,7 @@ trait CommitsService {
     oldLine: Option[Int],
     newLine: Option[Int]
   ): Option[String] = {
-    val dir = new java.io.File(getDiffDir(owner, repository), commitId)
+    val dir = new File(getDiffDir(owner, repository), FileUtil.checkFilename(commitId))
     val file = diffFile(dir, fileName, oldLine, newLine)
     if (file.exists) {
       Option(FileUtils.readFileToString(file, "UTF-8"))

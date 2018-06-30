@@ -4,7 +4,9 @@
   newLineNumber: Option[Int] = None,
   issueId: Option[Int] = None,
   hasWritePermission: Boolean,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  focus: Boolean = false,
+  uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @if(context.loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
@@ -21,15 +23,17 @@
           hasWritePermission = hasWritePermission,
           completionContext  = "issues",
           style              = "height: 100px; max-height: 150px;",
-          elastic            = true
+          elastic            = true,
+          focus              = focus,
+          uid                = uid
         )
+        @if(fileName.isDefined){
+          <div class="pull-right">
+            <input type="button" class="btn btn-default" value="Cancel"/>
+            <input type="submit" id="btn-inline-comment-@uid" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
+          </div>
+        }
       </div>
-      @if(fileName.isDefined){
-        <div class="pull-right" style="margin-top: 10px;">
-          <input type="button" class="btn btn-default" value="Cancel"/>
-          <input type="submit" class="btn btn-success btn-inline-comment" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
-        </div>
-      }
     </div>
     @if(!fileName.isDefined){
       <div class="pull-right">
@@ -42,7 +46,7 @@
     @newLineNumber.map { newLineNumber => <input type="hidden" name="newLineNumber" value="@newLineNumber"> }
   </form>
   <script>
-    $('.btn-inline-comment').click(function(e) {
+    $('#btn-inline-comment-@uid').click(function(e) {
       e.preventDefault();
       var $form = $(e.target).attr('disabled', 'disabled').closest('form');
       var param = {};
@@ -76,7 +80,28 @@
         var $tr = $form.closest('tr.not-diff');
 
         // Apply comment
-        $tr.removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+        var $addedCommentContent = $tr.removeClass('inline-comment-form').html(tmp).find('.comment-box-container');
+        $addedCommentContent.html(data);
+        $addedCommentContent.find('div[class*=commit-commentContent-]').on('click', ':checkbox', function(ev){
+          var $commentContent = $(ev.target).parents('div[class*=commit-commentContent-]'),
+            commentId = $commentContent.attr('class').match(/commit-commentContent-.+/)[0].replace(/commit-commentContent-/, ''),
+            checkboxes = $commentContent.find(':checkbox');
+          $.get('@helpers.url(repository)/commit_comments/_data/' + commentId, { dataType : 'html' },
+            function(responseContent){
+              $.ajax({
+                url: '@helpers.url(repository)/commit_comments/edit/' + commentId,
+                type: 'POST',
+                data: {
+                  issueId : 0,
+                  content : applyTaskListCheckedStatus(responseContent, checkboxes)
+                },
+                success: function(data) {
+                  $('.commit-commentContent-' + commentId).html(data.content);
+                }
+              });
+            }
+          );
+        });
 
         // Show reply comment form
         var replyComment = $tr.prev().find('.reply-comment').closest('.not-diff').show();
@@ -89,8 +114,18 @@
               .data('filename', '@fileName')
               .data('newline',  @newLineNumber.getOrElse("undefined"))
               .data('oldline',  @oldLineNumber.getOrElse("undefined")));
-          var tmp = getInlineContainer();
-          tmp.children('td:last').html($v)
+
+          @if(oldLineNumber.isDefined){
+            @if(newLineNumber.isDefined){
+              var tmp = getInlineContainer();
+            } else {
+              var tmp = getInlineContainer('old');
+            }
+            tmp.children('td:first').html($v);
+          } else {
+            var tmp = getInlineContainer('new');
+            tmp.children('td:last').html($v);
+          }
           $tr.after(tmp);
         }
 
@@ -99,7 +134,7 @@
         //   $('#comment-list').children('.inline-comment').hide();
         // }
       }).fail(function(req) {
-        $('.btn-inline-comment').removeAttr('disabled');
+        $(e.target).removeAttr('disabled');
         $('#error-content', $form).html($.parseJSON(req.responseText).content);
       });
     });
@@ -117,6 +152,14 @@
     }
 
     function getDiffData(tr){
+      if(window.viewType === 0) {
+        return getDiffDataOnSplitMode(tr);
+      } else {
+        return getDiffDataOnUnifiedMode(tr);
+      }
+    }
+
+    function getDiffDataOnUnifiedMode(tr) {
       var result = [];
       var count = 0;
 
@@ -124,19 +167,72 @@
         var oldTh = tr.find('th.oldline');
         var newTh = tr.find('th.newline');
 
-        if(!oldTh.attr('line-number') && !newTh.attr('line-number')){
+        var oldLineNumber = oldTh.attr('line-number');
+        var newLineNumber = newTh.attr('line-number');
+
+        if(!oldLineNumber && !newLineNumber){
           break;
         }
 
         result.unshift({
-          'oldLine': oldTh.attr('line-number'),
-          'newLine': newTh.attr('line-number'),
+          'oldLine': oldLineNumber,
+          'newLine': newLineNumber,
           'type': tr.has('td.insert').length > 0 ? 'insert' : tr.has('td.delete').length > 0 ? 'delete' : 'equal',
-          'text': tr.find('td>span').text()
-        })
+          'text': tr.find('td span').text()
+        });
 
         tr = tr.prev('tr:has(th.line-num)');
         count++;
+      }
+
+      return result;
+    }
+
+    function getDiffDataOnSplitMode(tr) {
+      var result = [];
+      var count = 0;
+
+      while(tr && count < 4){
+        var oldTh = tr.find('th.oldline');
+        var newTh = tr.find('th.newline');
+
+        var oldLineNumber = oldTh.attr('line-number');
+        var newLineNumber = newTh.attr('line-number');
+
+        if(!oldLineNumber && !newLineNumber){
+          break;
+        }
+
+        var oldTd = oldTh.next();
+        var newTd = newTh.next();
+
+        if (oldTd.hasClass('equal') && newTd.hasClass('equal')) {
+          result.unshift({
+            'oldLine': oldLineNumber,
+            'newLine': newLineNumber,
+            'type': 'equal',
+            'text': newTd.find('span').text()
+          });
+          count++;
+        } else {
+          if(newLineNumber) {
+            result.unshift({
+              'newLine': newLineNumber,
+              'type': 'insert',
+              'text': newTd.find('span').text()
+            });
+            count++;
+          }
+          if(oldLineNumber) {
+            result.unshift({
+              'oldLine': oldLineNumber,
+              'type': 'delete',
+              'text': oldTd.find('span').text()
+            });
+            count++;
+          }
+        }
+        tr = tr.prev('tr:has(th.line-num)');
       }
 
       return result;

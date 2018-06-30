@@ -2,10 +2,11 @@
   pullreq: gitbucket.core.model.PullRequest,
   commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   comments: Seq[gitbucket.core.model.Comment],
+  changedFileSize: Int,
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.pulls.html.menu("commits", issue, pullreq, commits.flatten, comments, isManageable, repository){
+@gitbucket.core.pulls.html.menu("commits", issue, pullreq, commits.flatten, comments, changedFileSize, isManageable, repository){
   <table class="table table-bordered">
   @commits.map { day =>
     <tr>

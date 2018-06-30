@@ -76,17 +76,22 @@ function displayErrors(data, elem){
  * @param ignoreSpace {Number} 0: include, 1: ignore
  */
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
-  var old = $('#'+oldTextId), head = $('#'+newTextId);
+  var old = $('#'+oldTextId), head = $('#' + newTextId);
   var render = new JsDiffRender({
-    oldText: old.data('val'),
-    oldTextName: old.data('file-name'),
-    newText: head.data('val'),
-    newTextName: head.data('file-name'),
+    oldText: old.attr('data-val'),
+    oldTextName: old.attr('data-file-name'),
+    newText: head.attr('data-val'),
+    newTextName: head.attr('data-file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
   });
-  var diff = render[viewType==1 ? "unified" : "split"]();
-  diff.appendTo($('#'+outputId).html(""));
+  var diff = render[viewType == 1 ? "unified" : "split"]();
+  if(viewType == 1){
+    diff.find('tr:last').after($('<tr><td></td><td></td><td></td></tr>'));
+  } else {
+    diff.find('tr:last').after($('<tr><td></td><td></td><td></td><td></td></tr>'));
+  }
+  diff.appendTo($('#' + outputId).html(""));
 }
 
 
@@ -726,3 +731,35 @@ function checkExtraMailAddress(){
     $(this).remove();
   }
 }
+
+/**
+ * function for extracting markdown from comment area.
+ * @param commentArea a comment area
+ * @returns {*|jQuery}
+ */
+var extractMarkdown = function(commentArea){
+  $('body').append('<div id="tmp"></div>');
+  $('#tmp').html(commentArea);
+  var markdown = $('#tmp textarea').val();
+  $('#tmp').remove();
+  return markdown;
+};
+
+/**
+ * function for applying checkboxes status of task list.
+ * @param commentArea a comment area
+ * @param checkboxes checkboxes for task list
+ * @returns {string} a markdown that applied checkbox status
+ */
+var applyTaskListCheckedStatus = function(commentArea, checkboxes) {
+  var ss = [],
+    markdown = extractMarkdown(commentArea),
+    xs = markdown.split(/- \[[x| ]\]/g);
+  for (var i=0; i<xs.length; i++) {
+    ss.push(xs[i]);
+    if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
+    else ss.push('- [ ]');
+  }
+  ss.pop();
+  return ss.join('');
+};

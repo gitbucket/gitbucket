@@ -9,6 +9,10 @@
     <th>Value</th>
   </tr>
   <tr>
+    <td>GITBUCKET_VERSION</td>
+    <td>@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</td>
+  </tr>
+  <tr>
     <td>GITBUCKET_HOME</td>
     <td>@gitbucket.core.util.Directory.GitBucketHome</td>
   </tr>
@@ -132,6 +136,21 @@
   </label>
 </fieldset>
 <!--====================================================================-->
+<!-- Show mail address -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Show mail address</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="showMailAddress" value="true"@if(context.settings.showMailAddress){ checked}>
+    <span class="strong">Show</span> <span class="normal">- Anyone can view mail address by user's profile page.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="showMailAddress" value="false"@if(!context.settings.showMailAddress){ checked}>
+    <span class="strong">Hide</span> <span class="normal">- Hide mail address in user's profile page.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
 <!-- Activity -->
 <!--====================================================================-->
 <hr>
@@ -163,7 +182,7 @@
 <label class="strong">SSH access</label>
 <fieldset>
   <label class="checkbox">
-    <input type="checkbox" id="ssh" name="ssh"@if(context.settings.ssh){ checked}/>
+    <input type="checkbox" id="sshEnabled" name="ssh.enabled"@if(context.settings.ssh.enabled){ checked}/>
     Enable SSH access to git repository
     <span class="muted normal">(Both SSH host and Base URL are required if SSH access is enabled)</span>
   </label>
@@ -172,15 +191,15 @@
   <div class="form-group">
     <label class="control-label col-md-2" for="sshHost">SSH host</label>
     <div class="col-md-10">
-      <input type="text" id="sshHost" name="sshHost" class="form-control" value="@context.settings.sshHost"/>
-      <span id="error-sshHost" class="error"></span>
+      <input type="text" id="sshHost" name="ssh.host" class="form-control" value="@context.settings.ssh.sshHost"/>
+      <span id="error-ssh_host" class="error"></span>
     </div>
   </div>
   <div class="form-group">
     <label class="control-label col-md-2" for="sshPort">SSH port</label>
     <div class="col-md-10">
-      <input type="text" id="sshPort" name="sshPort" class="form-control" value="@context.settings.sshPort"/>
-      <span id="error-sshPort" class="error"></span>
+      <input type="text" id="sshPort" name="ssh.port" class="form-control" value="@context.settings.ssh.sshPort"/>
+      <span id="error-ssh_port" class="error"></span>
     </div>
   </div>
 </div>
@@ -310,7 +329,7 @@ $(function(){
     }
   });
 
-  $('#ssh').change(function(){
+  $('#sshEnabled').change(function(){
     $('.ssh input').prop('disabled', !$(this).prop('checked'));
   }).change();
 

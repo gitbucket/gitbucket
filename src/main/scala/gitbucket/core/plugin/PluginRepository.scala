@@ -1,8 +1,7 @@
 package gitbucket.core.plugin
 
 import org.json4s._
-import gitbucket.core.util.Directory._
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 
 object PluginRepository {
   implicit val formats = DefaultFormats
@@ -11,13 +10,10 @@ object PluginRepository {
     org.json4s.jackson.JsonMethods.parse(json).extract[Seq[PluginMetadata]]
   }
 
-  lazy val LocalRepositoryDir = new java.io.File(PluginHome, ".repository")
-  lazy val LocalRepositoryIndexFile = new java.io.File(LocalRepositoryDir, "plugins.json")
-
   def getPlugins(): Seq[PluginMetadata] = {
-    if (LocalRepositoryIndexFile.exists) {
-      parsePluginJson(FileUtils.readFileToString(LocalRepositoryIndexFile, "UTF-8"))
-    } else Nil
+    val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
+    val str = IOUtils.toString(url, "UTF-8")
+    parsePluginJson(str)
   }
 
 }
@@ -36,7 +32,5 @@ case class PluginMetadata(
 case class VersionDef(
   version: String,
   url: String,
-  range: String
-) {
-  lazy val file = url.substring(url.lastIndexOf("/") + 1)
-}
+  gitbucketVersion: String
+)

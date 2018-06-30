@@ -37,7 +37,7 @@
       @commits.map { commit =>
         <tr>
           <td style="width: 32px; text-align: center ;"><input type="checkbox" name="commitId" value="@commit.id"></td>
-          <td style="width: 200px;">@helpers.avatar(commit, 20)&nbsp;@helpers.user(commit.authorName, commit.authorEmailAddress)</td>
+          <td style="width: 200px;">@helpers.avatarLink(commit, 20)&nbsp;@helpers.user(commit.authorName, commit.authorEmailAddress)</td>
           <td>
             <span class="muted">@gitbucket.core.helper.html.datetimeago(commit.authorTime):</span>&nbsp;@commit.shortMessage
           </td>

@@ -33,10 +33,11 @@
     <div class="head" style="height: 24px;">
       <div class="pull-right">
         <div class="btn-group">
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
+          <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}@if(pathList.length > 0){/@pathList.mkString("/")}/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default pc"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
           <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
         </div>
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
       </div>
       @if(pathList.isEmpty){
         <div class="pull-right pc" style="margin-right: 5px;">
@@ -44,7 +45,6 @@
             @if(context.platform != "linux" && context.platform != null){
               <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
             }
-            <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
           </div>
         </div>
         <div class="pull-right pc">
@@ -116,16 +116,16 @@
             </div>
             <div class="author-info">
               <div class="author">
-                @helpers.avatar(latestCommit, 20)
+                @helpers.avatarLink(latestCommit, 20)
                 <span>@helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
                 <span class="muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
               </div>
               @if(latestCommit.isDifferentFromAuthor) {
-              <div class="committer">
-                <span class="octicon octicon-arrow-right"></span>
-                <span>@helpers.user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
-                <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
-              </div>
+                <div class="committer">
+                  <span class="octicon octicon-arrow-right"></span>
+                  <span>@helpers.user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
+                  <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
+                </div>
               }
             </div>
           </div>
@@ -140,60 +140,60 @@
       </tr>
       }
       @files.map { file =>
-      <tr>
-        <td width="16" class="file-icon">
-        @if(file.isDirectory){
-          @if(file.linkUrl.isDefined){
-            <i class="octicon octicon-file-symlink-directory"></i>
-          } else {
-            <i class="octicon octicon-file-directory"></i>
-          }
-        } else {
-          <i class="octicon octicon-file-text" data-filename="@file.name"></i>
-        }
-        </td>
-        <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
-          @if(file.isDirectory){
-            @{file.linkUrl match {
-              case Some(linkUrl) if linkUrl.startsWith("http://") || linkUrl.startsWith("https://") => {
-                <a href={linkUrl}>
-                  <span class="simplified-path">{file.name.split("/").toList.init match {
-                    case Nil  => ""
-                    case list => list.mkString("", "/", "/")
-                  }}</span>
-                  {file.name.split("/").toList.last}
-                </a>
+        <tr>
+          <td width="16" class="file-icon">
+            @if(file.isDirectory){
+              @if(file.linkUrl.isDefined){
+                <i class="octicon octicon-file-symlink-directory"></i>
+              } else {
+                <i class="octicon octicon-file-directory"></i>
               }
-              case Some(_) => {
-                <span>
-                  <span class="simplified-path">{file.name.split("/").toList.init match {
-                    case Nil  => ""
-                    case list => list.mkString("", "/", "/")
-                  }}</span>
-                  {file.name.split("/").toList.last}
-                </span>
-              }
-              case None => {
-                <a href={helpers.url(repository) + "/tree" + helpers.encodeRefName((branch :: pathList).mkString("/", "/", "/") + file.name)}>
-                  <span class="simplified-path">{file.name.split("/").toList.init match {
-                    case Nil  => ""
-                    case list => list.mkString("", "/", "/")
-                  }}</span>
-                  {file.name.split("/").toList.last}
-                </a>
-              }
-            }}
-          } else {
-            <a href="@helpers.url(repository)/blob@{helpers.encodeRefName((branch :: pathList).mkString("/", "/", "/") + file.name)}">@file.name</a>
-          }
-        </td>
-        <td class="ellipsis-cell" style="width: 70%;">
-          <span>
-            <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
-          </span>
-        </td>
-        <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
-      </tr>
+            } else {
+              <i class="octicon octicon-file-text" data-filename="@file.name"></i>
+            }
+          </td>
+          <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
+            @if(file.isDirectory){
+              @{file.linkUrl match {
+                case Some(linkUrl) if linkUrl.startsWith("http://") || linkUrl.startsWith("https://") => {
+                  <a href={linkUrl}>
+                    <span class="simplified-path">{file.name.split("/").toList.init match {
+                      case Nil  => ""
+                      case list => list.mkString("", "/", "/")
+                    }}</span>
+                    {file.name.split("/").toList.last}
+                  </a>
+                }
+                case Some(_) => {
+                  <span>
+                    <span class="simplified-path">{file.name.split("/").toList.init match {
+                      case Nil  => ""
+                      case list => list.mkString("", "/", "/")
+                    }}</span>
+                    {file.name.split("/").toList.last}
+                  </span>
+                }
+                case None => {
+                  <a href={helpers.url(repository) + "/tree" + helpers.encodeRefName((branch :: pathList).mkString("/", "/", "/") + file.name)}>
+                    <span class="simplified-path">{file.name.split("/").toList.init match {
+                      case Nil  => ""
+                      case list => list.mkString("", "/", "/")
+                    }}</span>
+                    {file.name.split("/").toList.last}
+                  </a>
+                }
+              }}
+            } else {
+              <a href="@helpers.url(repository)/blob@{helpers.encodeRefName((branch :: pathList).mkString("/", "/", "/") + file.name)}">@file.name</a>
+            }
+          </td>
+          <td class="ellipsis-cell" style="width: 70%;">
+            <span>
+              <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
+            </span>
+          </td>
+          <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
+        </tr>
       }
     </table>
     @readme.map { case(filePath, content) =>

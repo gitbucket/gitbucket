@@ -80,63 +80,9 @@
 }
 
 .facebox-header {
-  margin: -15px -15px 15px;
+  margin: -15px -15px 0px -15px;
   padding: 15px;
   border-bottom: 1px solid #e5e5e5;
   font-size: 18px;
   font-weight: normal;
-}
-
-.owner-select-grid {
-  margin-left: -8px;
-  overflow: hidden;
-}
-
-.owner-select-target {
-  float: left;
-  padding: 10px;
-  margin: 0 8px 10px;
-  text-align: center;
-  background-color: #f2f2f2;
-  border-radius: 3px;
-}
-
-.owner-select-target.enabled {
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.owner-select-target.disabled {
-  color: #999;
-  cursor: not-allowed;
-}
-
-.owner-select-grid .avatar {
-  display: block;
-  overflow: hidden;
-  line-height: 1;
-  vertical-align: middle;
-  border-radius: 3px;
-}
-
-.owner-select-target.enabled .avatar {
-  opacity: 1;
-}
-
-.owner-select-target.disabled .avatar {
-  margin-bottom: 9px;
-  opacity: 0.3;
-}
-
-.css-truncate {
-  display: inline-block;
-  max-width: 125px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: top;
-}
-
-.owner-select-target .css-truncate {
-  max-width: 90px;
 }

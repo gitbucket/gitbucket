@@ -5,13 +5,13 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.{AccessToken, Account}
 import gitbucket.core.util.StringUtil
 
-import scala.util.Random
+import java.security.SecureRandom
 
 trait AccessTokenService {
 
   def makeAccessTokenString: String = {
     val bytes = new Array[Byte](20)
-    Random.nextBytes(bytes)
+    AccessTokenService.secureRandom.nextBytes(bytes)
     bytes.map("%02x".format(_)).mkString
   }
 
@@ -55,4 +55,6 @@ trait AccessTokenService {
 
 }
 
-object AccessTokenService extends AccessTokenService
+object AccessTokenService extends AccessTokenService {
+  private val secureRandom = new SecureRandom()
+}

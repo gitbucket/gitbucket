@@ -3,14 +3,14 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   latestCommitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<div class="commit-comment-box @if((!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}" id="discussion_r@comment.commentId"
+<div class="commit-comment-box @if(latestCommitId.contains(comment.commitId)){inline-comment}" id="discussion_r@comment.commentId"
   @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
   @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
   @if(comment.oldLine.isDefined){oldline="@comment.oldLine.get"}>
   <div class="commit-comment-@comment.commentId">
     <div class="markdown-body">
       <div>
-        @helpers.avatar(comment.commentedUserName, 20)
+        @helpers.avatarLink(comment.commentedUserName, 20)
         @helpers.user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">@gitbucket.core.helper.html.datetimeago(comment.registeredDate)</span>
         <span class="pull-right">
@@ -27,7 +27,7 @@
           enableWikiLink = false,
           enableRefsLink = true,
           enableLineBreaks = true,
-          enableTaskList = false,
+          enableTaskList = true,
           hasWritePermission = hasWritePermission
         )
       </div>

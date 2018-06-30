@@ -53,9 +53,6 @@
           @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
         }
       }
-      @if(repository.repository.options.allowFork) {
-        @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
-      }
       @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
         @menuitem("/settings", "settings", "Settings", "gear")
       }
@@ -78,6 +75,20 @@
             @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
               @repositoryHeaderComponent(repository, context)
             }
+            @if(repository.repository.options.allowFork) {
+              @if(context.loginAccount.isEmpty){
+                <a class="btn btn-default btn-sm" href="@context.path/signin?redirect=@helpers.urlEncode(s"${context.path}/${repository.owner}/${repository.name}")">
+                  <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+                </a>
+              } else {
+                <a class="btn btn-default btn-sm" href="@context.path/@repository.owner/@repository.name/fork" rel="facebox">
+                  <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+                </a>
+              }
+            }
+            <form id="fork-form" method="post" action="@context.path/@repository.owner/@repository.name/fork" style="display: none;">
+              <input type="hidden" name="account" value="@context.loginAccount.map(_.userName)"/>
+            </form>
           </div>
           @gitbucket.core.helper.html.repositoryicon(repository, true)
           <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
@@ -95,4 +106,19 @@
     @body
   </div>
 </div>
+<script>
+$(function(){
+  $('a[rel*=facebox]').facebox({
+    'loadingImage': '@helpers.assets("/vendors/facebox/loading.gif")',
+    'closeImage': '@helpers.assets("/vendors/facebox/closelabel.png")'
+  });
+
+  $(document).on("click", ".js-fork-owner-select-target", function() {
+    var account = $(this).text().replace("@@", "");
+    $("#account").val(account);
+    $("#fork").submit();
+  });
+});
+</script>
+
 

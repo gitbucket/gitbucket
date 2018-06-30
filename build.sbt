@@ -3,7 +3,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.23.1"
+val GitBucketVersion = "4.26.0"
 val ScalatraVersion = "2.6.1"
 val JettyVersion = "9.4.7.v20170914"
 
@@ -16,7 +16,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.5"
+scalaVersion := "2.12.6"
 
 scalafmtOnCompile := true
 
@@ -30,8 +30,8 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
-  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "5.0.1.201806211838-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "5.0.1.201806211838-r",
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.196",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.3",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.5",
   "org.postgresql"                  % "postgresql"                   % "42.1.4",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "2.7.4",
@@ -170,12 +170,17 @@ executableKey := {
   // include plugins
   val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
   IO createDirectory (pluginsDir)
-  IO copyFile (Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
 
-  val json = IO read (Keys.baseDirectory.value / "plugins.json")
-  PluginsJson.getUrls(json).foreach { url =>
-    log info s"Download: ${url}"
-    IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+  val plugins = IO readLines (Keys.baseDirectory.value / "src" / "main" / "resources" / "bundle-plugins.txt")
+  plugins.foreach { plugin =>
+    plugin.trim.split(":") match {
+      case Array(pluginId, pluginVersion) =>
+        val url = "https://plugins.gitbucket-community.org/releases/" +
+          s"gitbucket-${pluginId}-plugin/gitbucket-${pluginId}-plugin-gitbucket_${version.value}-${pluginVersion}.jar"
+        log info s"Download: ${url}"
+        IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+      case _ => ()
+    }
   }
 
   // zip it up

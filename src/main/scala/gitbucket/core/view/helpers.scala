@@ -250,12 +250,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the url to the repository.
    */
   def url(repository: RepositoryService.RepositoryInfo)(implicit context: Context): String =
-    s"${context.path}/${repository.owner}/${repository.name}"
+    s"${context.path}/${encodeRefName(repository.owner)}/${encodeRefName(repository.name)}"
 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: Context): String = s"${context.path}/${userName}"
+  def url(userName: String)(implicit context: Context): String = s"${context.path}/${encodeRefName(userName)}"
 
   /**
    * Returns the url to the root of assets.
@@ -273,7 +273,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * If user does not exist or disabled, this method returns user name as text without link.
    */
   def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: Context): Html =
-    userWithContent(userName, mailAddress, styleClass)(Html(userName))
+    userWithContent(userName, mailAddress, styleClass)(Html(StringUtil.escapeHtml(userName)))
 
   /**
    * Generates the avatar link to the account page.
@@ -315,44 +315,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Test whether the given Date is past date.
    */
   def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
-
-  /**
-   * Returns file type for AceEditor.
-   */
-  def editorType(fileName: String): String = {
-    fileName.toLowerCase match {
-      case x if (x.endsWith(".bat"))     => "batchfile"
-      case x if (x.endsWith(".java"))    => "java"
-      case x if (x.endsWith(".scala"))   => "scala"
-      case x if (x.endsWith(".js"))      => "javascript"
-      case x if (x.endsWith(".css"))     => "css"
-      case x if (x.endsWith(".md"))      => "markdown"
-      case x if (x.endsWith(".html"))    => "html"
-      case x if (x.endsWith(".xml"))     => "xml"
-      case x if (x.endsWith(".c"))       => "c_cpp"
-      case x if (x.endsWith(".cpp"))     => "c_cpp"
-      case x if (x.endsWith(".coffee"))  => "coffee"
-      case x if (x.endsWith(".ejs"))     => "ejs"
-      case x if (x.endsWith(".hs"))      => "haskell"
-      case x if (x.endsWith(".json"))    => "json"
-      case x if (x.endsWith(".jsp"))     => "jsp"
-      case x if (x.endsWith(".jsx"))     => "jsx"
-      case x if (x.endsWith(".cl"))      => "lisp"
-      case x if (x.endsWith(".clojure")) => "lisp"
-      case x if (x.endsWith(".lua"))     => "lua"
-      case x if (x.endsWith(".php"))     => "php"
-      case x if (x.endsWith(".py"))      => "python"
-      case x if (x.endsWith(".rdoc"))    => "rdoc"
-      case x if (x.endsWith(".rhtml"))   => "rhtml"
-      case x if (x.endsWith(".ruby"))    => "ruby"
-      case x if (x.endsWith(".sh"))      => "sh"
-      case x if (x.endsWith(".sql"))     => "sql"
-      case x if (x.endsWith(".tcl"))     => "tcl"
-      case x if (x.endsWith(".vbs"))     => "vbscript"
-      case x if (x.endsWith(".yml"))     => "yaml"
-      case _                             => "plain_text"
-    }
-  }
 
   def pre(value: Html): Html = Html(s"<pre>${value.body.trim.split("\n").map(_.trim).mkString("\n")}</pre>")
 

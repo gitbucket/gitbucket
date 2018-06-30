@@ -116,6 +116,24 @@ trait PullRequestService { self: IssuesService with CommitsService =>
       .map { case (t1, t2) => t1 }
       .list
 
+  def getPullRequestsByBranch(userName: String, repositoryName: String, branch: String, closed: Option[Boolean])(
+    implicit s: Session
+  ): List[PullRequest] =
+    PullRequests
+      .join(Issues)
+      .on { (t1, t2) =>
+        t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId)
+      }
+      .filter {
+        case (t1, t2) =>
+          (t1.requestUserName === userName.bind) &&
+            (t1.requestRepositoryName === repositoryName.bind) &&
+            (t1.branch === branch.bind) &&
+            (t2.closed === closed.get.bind, closed.isDefined)
+      }
+      .map { case (t1, t2) => t1 }
+      .list
+
   /**
    * for repository viewer.
    * 1. find pull request from `branch` to other branch on same repository
@@ -356,6 +374,14 @@ trait PullRequestService { self: IssuesService with CommitsService =>
           )
       }
       .sortWith(_.registeredDate before _.registeredDate)
+  }
+
+  def markMergeAndClosePullRequest(userName: String, owner: String, repository: String, pull: PullRequest)(
+    implicit s: Session
+  ): Unit = {
+    createComment(owner, repository, userName, pull.issueId, "Merged by user", "merge")
+    createComment(owner, repository, userName, pull.issueId, "Close", "close")
+    updateClosed(owner, repository, pull.issueId, true)
   }
 
 }

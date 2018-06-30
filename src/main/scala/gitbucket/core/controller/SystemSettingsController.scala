@@ -15,6 +15,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import org.apache.commons.io.IOUtils
+import org.apache.commons.mail.EmailException
 import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.forms._
@@ -44,9 +45,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "gravatar" -> trim(label("Gravatar", boolean())),
     "notification" -> trim(label("Notification", boolean())),
     "activityLogLimit" -> trim(label("Limit of activity logs", optional(number()))),
-    "ssh" -> trim(label("SSH access", boolean())),
-    "sshHost" -> trim(label("SSH host", optional(text()))),
-    "sshPort" -> trim(label("SSH port", optional(number()))),
+    "ssh" -> mapping(
+      "enabled" -> trim(label("SSH access", boolean())),
+      "host" -> trim(label("SSH host", optional(text()))),
+      "port" -> trim(label("SSH port", optional(number()))),
+    )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
       "useSMTP",
@@ -89,13 +92,17 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "jwsAlgorithm" -> trim(label("Signature algorithm", optional(text())))
       )(OIDC.apply)
     ),
-    "skinName" -> trim(label("AdminLTE skin name", text(required)))
+    "skinName" -> trim(label("AdminLTE skin name", text(required))),
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
+    "pluginNetworkInstall" -> new SingleValueType[Boolean] {
+      override def convert(value: String, messages: Messages): Boolean = context.settings.pluginNetworkInstall
+    }
   )(SystemSettings.apply).verifying { settings =>
     Vector(
-      if (settings.ssh && settings.baseUrl.isEmpty) {
+      if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
         Some("baseUrl" -> "Base URL is required if SSH access is enabled.")
       } else None,
-      if (settings.ssh && settings.sshHost.isEmpty) {
+      if (settings.ssh.enabled && settings.ssh.sshHost.isEmpty) {
         Some("sshHost" -> "SSH host is required if SSH access is enabled.")
       } else None
     ).flatten
@@ -312,86 +319,98 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "Test mail has been sent to: " + form.testAddress
 
     } catch {
-      case e: Exception => "[Error] " + e.toString
+      case e: EmailException => s"[Error] ${e.getCause}"
+      case e: Exception      => "[Error] " + e.toString
     }
   })
 
   get("/admin/plugins")(adminOnly {
     // Installed plugins
     val enabledPlugins = PluginRegistry().getPlugins()
+    val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
 
-    val gitbucketVersion = Semver.valueOf(GitBucketCoreModule.getVersions.asScala.last.getVersion)
-
-    // Plugins in the local repository
-    val repositoryPlugins = PluginRepository
-      .getPlugins()
-      .filterNot { meta =>
-        enabledPlugins.exists { plugin =>
-          plugin.pluginId == meta.id &&
-          Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(Semver.valueOf(meta.latestVersion.version))
+    // Plugins in the remote repository
+    val repositoryPlugins = if (context.settings.pluginNetworkInstall) {
+      PluginRepository
+        .getPlugins()
+        .map { meta =>
+          (meta, meta.versions.reverse.find { version =>
+            gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
+              plugin.pluginId == meta.id && plugin.pluginVersion == version.version
+            }
+          })
         }
-      }
-      .map { meta =>
-        (meta, meta.versions.reverse.find { version =>
-          gitbucketVersion.satisfies(version.range)
-        })
-      }
-      .collect {
-        case (meta, Some(version)) =>
-          new PluginInfoBase(
-            pluginId = meta.id,
-            pluginName = meta.name,
-            pluginVersion = version.version,
-            description = meta.description
-          )
-      }
+        .collect {
+          case (meta, Some(version)) =>
+            new PluginInfoBase(
+              pluginId = meta.id,
+              pluginName = meta.name,
+              pluginVersion = version.version,
+              gitbucketVersion = Some(version.gitbucketVersion),
+              description = meta.description
+            )
+        }
+    } else Nil
 
     // Merge
-    val plugins = enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false))
+    val plugins = (enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false)))
+      .groupBy(_._1.pluginId)
+      .map {
+        case (pluginId, plugins) =>
+          val (plugin, enabled) = plugins.head
+          (plugin, enabled, if (plugins.length > 1) plugins.last._1.pluginVersion else "")
+      }
+      .toList
 
     html.plugins(plugins, flash.get("info"))
   })
 
   post("/admin/plugins/_reload")(adminOnly {
+    // Update configuration
+    val pluginNetworkInstall = params.get("pluginNetworkInstall").map(_.toBoolean).getOrElse(false)
+    saveSystemSettings(context.settings.copy(pluginNetworkInstall = pluginNetworkInstall))
+
+    // Reload plugins
     PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
     flash += "info" -> "All plugins were reloaded."
     redirect("/admin/plugins")
   })
 
-  post("/admin/plugins/:pluginId/:version/_uninstall")(adminOnly {
+  post("/admin/plugins/:pluginId/_uninstall")(adminOnly {
     val pluginId = params("pluginId")
-    val version = params("version")
-    PluginRegistry()
-      .getPlugins()
-      .collect { case plugin if (plugin.pluginId == pluginId && plugin.pluginVersion == version) => plugin }
-      .foreach { _ =>
-        PluginRegistry
-          .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-        flash += "info" -> s"${pluginId} was uninstalled."
-      }
+
+    if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
+      PluginRegistry
+        .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+      flash += "info" -> s"${pluginId} was uninstalled."
+    }
+
     redirect("/admin/plugins")
   })
 
   post("/admin/plugins/:pluginId/:version/_install")(adminOnly {
-    val pluginId = params("pluginId")
-    val version = params("version")
-    /// TODO!!!!
-    PluginRepository
-      .getPlugins()
-      .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
-      .foreach {
-        case (meta, version) =>
-          version.foreach { version =>
-            // TODO Install version!
-            PluginRegistry.install(
-              new java.io.File(PluginHome, s".repository/${version.file}"),
-              request.getServletContext,
-              loadSystemSettings(),
-              request2Session(request).conn
-            )
-            flash += "info" -> s"${pluginId} was installed."
-          }
-      }
+    if (context.settings.pluginNetworkInstall) {
+      val pluginId = params("pluginId")
+      val version = params("version")
+
+      PluginRepository
+        .getPlugins()
+        .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
+        .foreach {
+          case (meta, version) =>
+            version.foreach { version =>
+              PluginRegistry.install(
+                pluginId,
+                new java.net.URL(version.url),
+                request.getServletContext,
+                loadSystemSettings(),
+                request2Session(request).conn
+              )
+              flash += "info" -> s"${pluginId}:${version.version} was installed."
+            }
+        }
+    }
+
     redirect("/admin/plugins")
   })
 
@@ -414,7 +433,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
     createAccount(
       form.userName,
-      sha1(form.password),
+      pbkdf2_sha256(form.password),
       form.fullName,
       form.mailAddress,
       form.isAdmin,
@@ -454,7 +473,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
           updateAccount(
             account.copy(
-              password = form.password.map(sha1).getOrElse(account.password),
+              password = form.password.map(pbkdf2_sha256).getOrElse(account.password),
               fullName = form.fullName,
               mailAddress = form.mailAddress,
               isAdmin = form.isAdmin,

@@ -1,6 +1,33 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.26.0 - 30 Jun 2018
+- Installing plugins from the central registry
+- Repositories tab in the dashboard
+- Fork dialog enhancement
+- Adjust pull request creation suggestor
+- Keep showing incompleted task list
+- New notification hooks
+
+### 4.25.0 - 29 May 2018
+- Security improvements
+- Show mail address at the profile page
+- Task list on commit comments
+- More detailed editing history of issues and pull requests
+- Expose user public keys
+- Download repository improvements
+
+### 4.24.1 - 1 May 2018
+- Fix bug in Web API authentication
+
+### 4.24.0 - 30 Apr 2018
+- Diff for each review comment on pull requests
+- Extra mail addresses support
+- Show tags at the commit list
+- Keep wrap mode of the online editor
+- Renew layout of gitbucket-gist-plugin
+- Web API of gitbucket-ci-plugin
+
 ### 4.23.1 - 10 Apr 2018
 - Fix bug that the contents API doesn't work for the repository root
 - Fix shutdown problem in Tomcat deployment
