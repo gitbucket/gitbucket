@@ -229,7 +229,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
     val collaborators = params("collaborators")
     removeCollaborators(repository.owner, repository.name)
-    collaborators.split(",").withFilter(_.nonEmpty).map { collaborator =>
+    collaborators.split(",").withFilter(_.nonEmpty).foreach { collaborator =>
       val userName :: role :: Nil = collaborator.split(":").toList
       addCollaborator(repository.owner, repository.name, userName, role)
     }

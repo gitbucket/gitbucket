@@ -1066,7 +1066,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             if (branch == repository.repository.defaultBranch) {
               closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name).foreach {
                 issueId =>
-                  getIssue(repository.owner, repository.name, issueId.toString).map { issue =>
+                  getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                     callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
                     PluginRegistry().getIssueHooks
                       .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))

@@ -390,7 +390,7 @@ object JGitUtil {
             lazy val newParentsMap = newCommit.getParents.map(_ -> newCommit).toMap
             useTreeWalk(newCommit) { walk =>
               while (walk.next) {
-                rest.remove(walk.getNameString -> walk.getObjectId(0)).map {
+                rest.remove(walk.getNameString -> walk.getObjectId(0)).foreach {
                   case (tuple, _) =>
                     if (newParentsMap.isEmpty) {
                       nextResult +:= tupleAdd(tuple, newCommit)
@@ -400,7 +400,7 @@ object JGitUtil {
                 }
               }
             }
-            rest.values.map {
+            rest.values.foreach {
               case (tuple, parentsMap) =>
                 val restParentsMap = parentsMap - newCommit
                 if (restParentsMap.isEmpty) {
