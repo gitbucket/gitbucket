@@ -8,7 +8,7 @@ val ScalatraVersion = "2.6.1"
 val JettyVersion = "9.4.7.v20170914"
 
 lazy val root = (project in file("."))
-  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
+  .enablePlugins(SbtTwirl, ScalatraPlugin)
   .settings(
     )
 
@@ -94,21 +94,6 @@ assemblyMergeStrategy in assembly := {
       case _                      => MergeStrategy.discard
     }
   case x => MergeStrategy.first
-}
-
-// JRebel
-//Seq(jrebelSettings: _*)
-
-//jrebel.webLinks += (target in webappPrepare).value
-//jrebel.enabled := System.getenv().get("JREBEL") != null
-javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { path =>
-  if (path.endsWith(".jar")) {
-    // Legacy JRebel agent
-    Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
-  } else {
-    // New JRebel agent
-    Seq(s"-agentpath:${path}")
-  }
 }
 
 // Exclude a war file from published artifacts
