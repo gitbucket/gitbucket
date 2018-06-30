@@ -296,9 +296,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   createIssueComment(owner, repository, commit)
                   // close issues
                   if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
-                    getAccountByUserName(pusher).map { pusherAccount =>
+                    getAccountByUserName(pusher).foreach { pusherAccount =>
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
-                        getIssue(owner, repository, issueId.toString).map { issue =>
+                        getIssue(owner, repository, issueId.toString).foreach { issue =>
                           callIssuesWebHook("closed", repositoryInfo, issue, baseUrl, pusherAccount)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repositoryInfo, commit.fullMessage, pusherAccount))
@@ -318,7 +318,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                     c.id == pull.commitIdTo
                   }.isDefined) {
                 markMergeAndClosePullRequest(pusher, owner, repository, pull)
-                getAccountByUserName(pusher).map { pusherAccount =>
+                getAccountByUserName(pusher).foreach { pusherAccount =>
                   callPullRequestWebHook("closed", repositoryInfo, pull.issueId, baseUrl, pusherAccount)
                 }
               }
@@ -347,7 +347,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                 case ReceiveCommand.Type.CREATE | ReceiveCommand.Type.UPDATE |
                     ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
                   updatePullRequests(owner, repository, branchName)
-                  getAccountByUserName(pusher).map { pusherAccount =>
+                  getAccountByUserName(pusher).foreach { pusherAccount =>
                     callPullRequestWebHookByRequestBranch(
                       "synchronize",
                       repositoryInfo,
@@ -439,7 +439,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
             }
           }
 
-          commitIds.map {
+          commitIds.foreach {
             case (oldCommitId, newCommitId) =>
               val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
                 JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>

@@ -326,12 +326,12 @@ trait AccountManagementControllerBase extends ControllerBase {
 
   protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit =
     if (clearImage) {
-      getAccountByUserName(userName).flatMap(_.image).map { image =>
+      getAccountByUserName(userName).flatMap(_.image).foreach { image =>
         new File(getUserUploadDir(userName), FileUtil.checkFilename(image)).delete()
         updateAvatarImage(userName, None)
       }
     } else {
-      fileId.map { fileId =>
+      fileId.foreach { fileId =>
         val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
         val uploadDir = getUserUploadDir(userName)
         if (!uploadDir.exists) {

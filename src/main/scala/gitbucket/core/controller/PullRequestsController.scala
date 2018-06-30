@@ -352,10 +352,10 @@ trait PullRequestsControllerBase extends ControllerBase {
 
                   // close issue by commit message
                   if (pullreq.requestBranch == repository.repository.defaultBranch) {
-                    commits.map { commit =>
+                    commits.foreach { commit =>
                       closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
                         issueId =>
-                          getIssue(repository.owner, repository.name, issueId.toString).map { issue =>
+                          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                             callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
                             PluginRegistry().getIssueHooks
                               .foreach(
@@ -469,7 +469,7 @@ trait PullRequestsControllerBase extends ControllerBase {
                       commits.flatten.foreach { commit =>
                         closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
                           issueId =>
-                            getIssue(owner, name, issueId.toString).map { issue =>
+                            getIssue(owner, name, issueId.toString).foreach { issue =>
                               callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
                               PluginRegistry().getIssueHooks
                                 .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
@@ -483,14 +483,14 @@ trait PullRequestsControllerBase extends ControllerBase {
                         owner,
                         name
                       ).foreach { issueId =>
-                        getIssue(owner, name, issueId.toString).map { issue =>
+                        getIssue(owner, name, issueId.toString).foreach { issue =>
                           callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                         }
                       }
                       closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach { issueId =>
-                        getIssue(owner, name, issueId.toString).map { issue =>
+                        getIssue(owner, name, issueId.toString).foreach { issue =>
                           callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
@@ -743,7 +743,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         // insert labels
         if (manageable) {
-          form.labelNames.map { value =>
+          form.labelNames.foreach { value =>
             val labels = getLabels(owner, name)
             value.split(",").foreach { labelName =>
               labels.find(_.labelName == labelName).map { label =>

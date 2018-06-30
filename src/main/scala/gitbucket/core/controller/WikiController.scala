@@ -180,7 +180,7 @@ trait WikiControllerBase extends ControllerBase {
             loginAccount,
             form.message.getOrElse(""),
             Some(form.id)
-          ).map {
+          ).foreach {
             commitId =>
               updateLastActivityDate(repository.owner, repository.name)
               recordEditWikiPageActivity(
@@ -224,7 +224,7 @@ trait WikiControllerBase extends ControllerBase {
             loginAccount,
             form.message.getOrElse(""),
             None
-          ).map {
+          ).foreach {
             commitId =>
               updateLastActivityDate(repository.owner, repository.name)
               recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)

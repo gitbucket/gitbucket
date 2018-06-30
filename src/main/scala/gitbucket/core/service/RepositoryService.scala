@@ -67,7 +67,7 @@ trait RepositoryService { self: AccountService =>
     getAccountByUserName(newUserName).foreach { account =>
       (Repositories filter { t =>
         t.byRepository(oldUserName, oldRepositoryName)
-      } firstOption).map { repository =>
+      } firstOption).foreach { repository =>
         Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
         val webHooks = RepositoryWebHooks.filter(_.byRepository(oldUserName, oldRepositoryName)).list

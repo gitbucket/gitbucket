@@ -41,7 +41,7 @@ trait SystemSettingsService {
       }
       props.setProperty(LdapAuthentication, settings.ldapAuthentication.toString)
       if (settings.ldapAuthentication) {
-        settings.ldap.map { ldap =>
+        settings.ldap.foreach { ldap =>
           props.setProperty(LdapHost, ldap.host)
           ldap.port.foreach(x => props.setProperty(LdapPort, x.toString))
           ldap.bindDN.foreach(x => props.setProperty(LdapBindDN, x))
@@ -58,11 +58,11 @@ trait SystemSettingsService {
       }
       props.setProperty(OidcAuthentication, settings.oidcAuthentication.toString)
       if (settings.oidcAuthentication) {
-        settings.oidc.map { oidc =>
+        settings.oidc.foreach { oidc =>
           props.setProperty(OidcIssuer, oidc.issuer.getValue)
           props.setProperty(OidcClientId, oidc.clientID.getValue)
           props.setProperty(OidcClientSecret, oidc.clientSecret.getValue)
-          oidc.jwsAlgorithm.map { x =>
+          oidc.jwsAlgorithm.foreach { x =>
             props.setProperty(OidcJwsAlgorithm, x.getName)
           }
         }

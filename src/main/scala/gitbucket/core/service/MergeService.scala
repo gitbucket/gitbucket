@@ -196,7 +196,7 @@ object MergeService {
       refUpdate.setNewObjectId(newObjectId)
       refUpdate.setForceUpdate(force)
       refUpdate.setRefLogIdent(committer)
-      refLogMessage.map(refUpdate.setRefLogMessage(_, true))
+      refLogMessage.foreach(refUpdate.setRefLogMessage(_, true))
       refUpdate.update()
     }
   }
