@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
 
 import gitbucket.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
@@ -390,7 +390,7 @@ object JGitUtil {
             lazy val newParentsMap = newCommit.getParents.map(_ -> newCommit).toMap
             useTreeWalk(newCommit) { walk =>
               while (walk.next) {
-                rest.remove(walk.getNameString -> walk.getObjectId(0)).map {
+                rest.remove(walk.getNameString -> walk.getObjectId(0)).foreach {
                   case (tuple, _) =>
                     if (newParentsMap.isEmpty) {
                       nextResult +:= tupleAdd(tuple, newCommit)
@@ -400,7 +400,7 @@ object JGitUtil {
                 }
               }
             }
-            rest.values.map {
+            rest.values.foreach {
               case (tuple, parentsMap) =>
                 val restParentsMap = parentsMap - newCommit
                 if (restParentsMap.isEmpty) {
@@ -761,7 +761,27 @@ object JGitUtil {
     }
 
   /**
-   * Returns the list of tags of the specified commit.
+   * Returns the list of tags which pointed on the specified commit.
+   */
+  def getTagsOnCommit(git: Git, commitId: String): List[String] = {
+    git.getRepository.getAllRefsByPeeledObjectId.asScala
+      .get(git.getRepository.resolve(commitId + "^0"))
+      .map {
+        _.asScala
+          .collect {
+            case x if x.getName.startsWith(Constants.R_TAGS) =>
+              x.getName.substring(Constants.R_TAGS.length)
+          }
+          .toList
+          .sorted
+      }
+      .getOrElse {
+        List.empty
+      }
+  }
+
+  /**
+   * Returns the list of tags which contains the specified commit.
    */
   def getTagsOfCommit(git: Git, commitId: String): List[String] =
     using(new RevWalk(git.getRepository)) { revWalk =>
@@ -1200,4 +1220,61 @@ object JGitUtil {
       Option(git.getRepository.resolve(revstr)).map(ObjectId.toString(_))
     }
   }
+
+  def getFileSize(git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk): Long = {
+    val attrs = treeWalk.getAttributes
+    val loader = git.getRepository.open(treeWalk.getObjectId(0))
+    if (attrs.containsKey("filter") && attrs.get("filter").getValue == "lfs") {
+      val lfsAttrs = getLfsAttributes(loader)
+      lfsAttrs.get("size").map(_.toLong).get
+    } else {
+      loader.getSize
+    }
+  }
+
+  def getFileSize(git: Git, repository: RepositoryService.RepositoryInfo, tree: RevTree, path: String): Long = {
+    using(TreeWalk.forPath(git.getRepository, path, tree)) { treeWalk =>
+      getFileSize(git, repository, treeWalk)
+    }
+  }
+
+  def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk)(
+    f: InputStream => T
+  ): T = {
+    val attrs = treeWalk.getAttributes
+    val loader = git.getRepository.open(treeWalk.getObjectId(0))
+    if (attrs.containsKey("filter") && attrs.get("filter").getValue == "lfs") {
+      val lfsAttrs = getLfsAttributes(loader)
+      if (lfsAttrs.nonEmpty) {
+        val oid = lfsAttrs("oid").split(":")(1)
+
+        val file = new File(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))
+        using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))) { in =>
+          f(in)
+        }
+      } else {
+        throw new NoSuchElementException("LFS attribute is empty.")
+      }
+    } else {
+      using(loader.openStream()) { in =>
+        f(in)
+      }
+    }
+  }
+
+  def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, tree: RevTree, path: String)(
+    f: InputStream => T
+  ): T = {
+    using(TreeWalk.forPath(git.getRepository, path, tree)) { treeWalk =>
+      openFile(git, repository, treeWalk)(f)
+    }
+  }
+
+  private def getLfsAttributes(loader: ObjectLoader): Map[String, String] = {
+    val bytes = loader.getCachedBytes
+    val text = new String(bytes, "UTF-8")
+
+    JGitUtil.getLfsObjects(text)
+  }
+
 }

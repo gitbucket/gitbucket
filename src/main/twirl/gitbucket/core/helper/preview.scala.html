@@ -10,12 +10,13 @@
   styleClass: String = "",
   placeholder: String = "Leave a comment",
   elastic: Boolean = false,
+  focus: Boolean = false,
   tabIndex: Int = -2,
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div class="tabbable">
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
-    <li class="active"><a href="#tab@uid" data-toggle="tab">Write</a></li>
+    <li class="active"><a href="#tab@uid" data-toggle="tab" id="write@uid">Write</a></li>
     <li><a href="#tab@(uid + 1)" data-toggle="tab" id="preview@uid">Preview</a></li>
   </ul>
   <div class="tab-content">
@@ -46,6 +47,13 @@ $(function(){
     $('#content@uid').elastic();
     $('#content@uid').trigger('blur');
   }
+  @if(focus){
+    $('#content@uid').trigger('focus');
+  }
+
+  $('#write@uid').on('shown.bs.tab', function(){
+    $('#content@uid').trigger('focus');
+  });
 
   $('#preview@uid').click(function(){
     $('#preview-area@uid').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
@@ -57,6 +65,7 @@ $(function(){
       enableTaskList   : @enableTaskList
     }, function(data){
       $('#preview-area@uid').html(data);
+      $('#preview-area@uid input').prop('disabled', true);
       prettyPrint();
     });
   });

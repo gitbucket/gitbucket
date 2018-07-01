@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
-import gitbucket.core.service.SystemSettingsService.SystemSettings
+import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
 import org.mockito.Mockito._
 import org.scalatest.FunSpec
 import org.scalatest.mockito.MockitoSugar
@@ -125,16 +125,20 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       gravatar = useGravatar,
       notification = false,
       activityLogLimit = None,
-      ssh = false,
-      sshHost = None,
-      sshPort = None,
+      ssh = Ssh(
+        enabled = false,
+        sshHost = None,
+        sshPort = None
+      ),
       useSMTP = false,
       smtp = None,
       ldapAuthentication = false,
       ldap = None,
       oidcAuthentication = false,
       oidc = None,
-      skinName = "skin-blue"
+      skinName = "skin-blue",
+      showMailAddress = false,
+      pluginNetworkInstall = false
     )
 
   /**

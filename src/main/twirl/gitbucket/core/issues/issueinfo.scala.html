@@ -139,7 +139,7 @@
 </div>
 <span id="label-assigned">
   @issue.flatMap(_.assignedUserName).map { userName =>
-    @helpers.avatar(userName, 20) @helpers.user(userName, styleClass="username strong small")
+    @helpers.avatarLink(userName, 20) @helpers.user(userName, styleClass="username strong small")
   }.getOrElse{
     <span class="muted small">No one</span>
   }

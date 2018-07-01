@@ -6,20 +6,21 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{
+  Account,
+  CommitState,
   Issue,
-  PullRequest,
   IssueComment,
   IssueLabel,
   Label,
-  Account,
+  PullRequest,
   Repository,
-  CommitState,
   Role
 }
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.plugin.PluginRegistry
 
 trait IssuesService {
   self: AccountService with RepositoryService with LabelsService with PrioritiesService with MilestonesService =>
@@ -511,19 +512,23 @@ trait IssuesService {
     assignedUserName: Option[String],
     insertComment: Boolean = false
   )(implicit context: Context, s: Session): Int = {
+    val oldAssigned = getIssue(owner, repository, s"${issueId}").get.assignedUserName
+    val assigned = assignedUserName
+    val assigner = context.loginAccount.map(_.userName)
     if (insertComment) {
-      val oldAssigned = getIssue(owner, repository, s"${issueId}").get.assignedUserName.getOrElse("Not assigned")
-      val assigned = assignedUserName.getOrElse("Not assigned")
       IssueComments insert IssueComment(
         userName = owner,
         repositoryName = repository,
         issueId = issueId,
         action = "assign",
-        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
-        content = s"${oldAssigned}:${assigned}",
+        commentedUserName = assigner.getOrElse("Unknown user"),
+        content = s"""${oldAssigned.getOrElse("Not assigned")}:${assigned.getOrElse("Not assigned")}""",
         registeredDate = currentDate,
         updatedDate = currentDate
       )
+    }
+    for (issue <- getIssue(owner, repository, issueId.toString); repo <- getRepository(owner, repository)) {
+      PluginRegistry().getIssueHooks.foreach(_.assigned(issue, repo, assigner, assigned, oldAssigned))
     }
     Issues
       .filter(_.byPrimaryKey(owner, repository, issueId))
@@ -700,11 +705,12 @@ trait IssuesService {
 
   def closeIssuesFromMessage(message: String, userName: String, owner: String, repository: String)(
     implicit s: Session
-  ): Unit = {
-    extractCloseId(message).foreach { issueId =>
-      for (issue <- getIssue(owner, repository, issueId) if !issue.closed) {
+  ): Seq[Int] = {
+    extractCloseId(message).flatMap { issueId =>
+      for (issue <- getIssue(owner, repository, issueId) if !issue.closed) yield {
         createComment(owner, repository, userName, issue.issueId, "Close", "close")
         updateClosed(owner, repository, issue.issueId, true)
+        issue.issueId
       }
     }
   }

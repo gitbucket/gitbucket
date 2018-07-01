@@ -345,7 +345,7 @@ class JsonFormatSpec extends FunSuite {
     commit_id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     user = apiUser,
-    body = "Maybe you should use more emojji on this line.",
+    body = "Maybe you should use more emoji on this line.",
     created_at = date("2015-05-05T23:40:27Z"),
     updated_at = date("2015-05-05T23:40:27Z")
   )(RepositoryName("baxterthehacker/public-repo"), 1)
@@ -359,7 +359,7 @@ class JsonFormatSpec extends FunSuite {
     "commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     "user": $apiUserJson,
-    "body": "Maybe you should use more emojji on this line.",
+    "body": "Maybe you should use more emoji on this line.",
     "created_at": "2015-05-05T23:40:27Z",
     "updated_at": "2015-05-05T23:40:27Z",
     "html_url": "http://gitbucket.exmple.com/baxterthehacker/public-repo/pull/1#discussion_r29724692",

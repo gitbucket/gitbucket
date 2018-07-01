@@ -8,5 +8,4 @@ Developer's Guide
  * [Activity Types](activity.md)
  * [Automatic Schema Updating](auto_update.md)
  * [Release Operation](release.md)
- * [JRebel integration (optional)](jrebel.md)
  * [Licenses](licenses.md)

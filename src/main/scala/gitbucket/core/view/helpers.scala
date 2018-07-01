@@ -3,6 +3,7 @@ package gitbucket.core.view
 import java.text.SimpleDateFormat
 import java.util.{Date, Locale, TimeZone}
 
+import com.nimbusds.jose.util.JSONObjectUtils
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
@@ -249,12 +250,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the url to the repository.
    */
   def url(repository: RepositoryService.RepositoryInfo)(implicit context: Context): String =
-    s"${context.path}/${repository.owner}/${repository.name}"
+    s"${context.path}/${encodeRefName(repository.owner)}/${encodeRefName(repository.name)}"
 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: Context): String = s"${context.path}/${userName}"
+  def url(userName: String)(implicit context: Context): String = s"${context.path}/${encodeRefName(userName)}"
 
   /**
    * Returns the url to the root of assets.
@@ -272,7 +273,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * If user does not exist or disabled, this method returns user name as text without link.
    */
   def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: Context): Html =
-    userWithContent(userName, mailAddress, styleClass)(Html(userName))
+    userWithContent(userName, mailAddress, styleClass)(Html(StringUtil.escapeHtml(userName)))
 
   /**
    * Generates the avatar link to the account page.
@@ -314,44 +315,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Test whether the given Date is past date.
    */
   def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
-
-  /**
-   * Returns file type for AceEditor.
-   */
-  def editorType(fileName: String): String = {
-    fileName.toLowerCase match {
-      case x if (x.endsWith(".bat"))     => "batchfile"
-      case x if (x.endsWith(".java"))    => "java"
-      case x if (x.endsWith(".scala"))   => "scala"
-      case x if (x.endsWith(".js"))      => "javascript"
-      case x if (x.endsWith(".css"))     => "css"
-      case x if (x.endsWith(".md"))      => "markdown"
-      case x if (x.endsWith(".html"))    => "html"
-      case x if (x.endsWith(".xml"))     => "xml"
-      case x if (x.endsWith(".c"))       => "c_cpp"
-      case x if (x.endsWith(".cpp"))     => "c_cpp"
-      case x if (x.endsWith(".coffee"))  => "coffee"
-      case x if (x.endsWith(".ejs"))     => "ejs"
-      case x if (x.endsWith(".hs"))      => "haskell"
-      case x if (x.endsWith(".json"))    => "json"
-      case x if (x.endsWith(".jsp"))     => "jsp"
-      case x if (x.endsWith(".jsx"))     => "jsx"
-      case x if (x.endsWith(".cl"))      => "lisp"
-      case x if (x.endsWith(".clojure")) => "lisp"
-      case x if (x.endsWith(".lua"))     => "lua"
-      case x if (x.endsWith(".php"))     => "php"
-      case x if (x.endsWith(".py"))      => "python"
-      case x if (x.endsWith(".rdoc"))    => "rdoc"
-      case x if (x.endsWith(".rhtml"))   => "rhtml"
-      case x if (x.endsWith(".ruby"))    => "ruby"
-      case x if (x.endsWith(".sh"))      => "sh"
-      case x if (x.endsWith(".sql"))     => "sql"
-      case x if (x.endsWith(".tcl"))     => "tcl"
-      case x if (x.endsWith(".vbs"))     => "vbscript"
-      case x if (x.endsWith(".yml"))     => "yaml"
-      case _                             => "plain_text"
-    }
-  }
 
   def pre(value: Html): Html = Html(s"<pre>${value.body.trim.split("\n").map(_.trim).mkString("\n")}</pre>")
 
@@ -461,5 +424,45 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * @param size total size of object in bytes
    */
   def readableSize(size: Option[Long]): String = FileUtil.readableSize(size.getOrElse(0))
+
+  /**
+   * Make HTML fragment of the partial diff for a comment on a line of diff.
+   *
+   * @param jsonString JSON string which is stored in COMMIT_COMMENT table.
+   * @return HTML fragment of diff
+   */
+  def diff(jsonString: String): Html = {
+    import org.json4s._
+    import org.json4s.jackson.JsonMethods._
+    implicit val formats = DefaultFormats
+
+    val diff = parse(jsonString).extract[Seq[CommentDiffLine]]
+
+    val sb = new StringBuilder()
+    sb.append("<table class=\"diff inlinediff\">")
+    diff.foreach { line =>
+      sb.append("<tr>")
+      sb.append(s"""<th class="line-num oldline ${line.`type`}">""")
+      line.oldLine.foreach { oldLine =>
+        sb.append(oldLine)
+      }
+      sb.append("</th>")
+      sb.append(s"""<th class="line-num newline ${line.`type`}">""")
+      line.newLine.foreach { newLine =>
+        sb.append(newLine)
+      }
+      sb.append("</th>")
+
+      sb.append(s"""<td class="body ${line.`type`}">""")
+      sb.append(StringUtil.escapeHtml(line.text))
+      sb.append("</td>")
+      sb.append("</tr>")
+    }
+    sb.append("</table>")
+
+    Html(sb.toString())
+  }
+
+  case class CommentDiffLine(newLine: Option[String], oldLine: Option[String], `type`: String, text: String)
 
 }

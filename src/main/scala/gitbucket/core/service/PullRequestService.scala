@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Issue, PullRequest, CommitStatus, CommitState, CommitComment}
+import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import difflib.{Delta, DiffUtils}
@@ -12,6 +12,7 @@ import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
+
 import scala.collection.JavaConverters._
 
 trait PullRequestService { self: IssuesService with CommitsService =>
@@ -110,6 +111,24 @@ trait PullRequestService { self: IssuesService with CommitsService =>
           (t1.requestUserName === userName.bind) &&
             (t1.requestRepositoryName === repositoryName.bind) &&
             (t1.requestBranch === branch.bind) &&
+            (t2.closed === closed.get.bind, closed.isDefined)
+      }
+      .map { case (t1, t2) => t1 }
+      .list
+
+  def getPullRequestsByBranch(userName: String, repositoryName: String, branch: String, closed: Option[Boolean])(
+    implicit s: Session
+  ): List[PullRequest] =
+    PullRequests
+      .join(Issues)
+      .on { (t1, t2) =>
+        t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId)
+      }
+      .filter {
+        case (t1, t2) =>
+          (t1.requestUserName === userName.bind) &&
+            (t1.requestRepositoryName === repositoryName.bind) &&
+            (t1.branch === branch.bind) &&
             (t2.closed === closed.get.bind, closed.isDefined)
       }
       .map { case (t1, t2) => t1 }
@@ -314,10 +333,56 @@ trait PullRequestService { self: IssuesService with CommitsService =>
           helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
         }
 
+      // TODO Isolate to an another method?
       val diffs = JGitUtil.getDiffs(newGit, Some(oldId.getName), newId.getName, true, false)
 
       (commits, diffs)
     }
+
+  def getPullRequestComments(userName: String, repositoryName: String, issueId: Int, commits: Seq[CommitInfo])(
+    implicit s: Session
+  ): Seq[Comment] = {
+    (commits
+      .map(commit => getCommitComments(userName, repositoryName, commit.id, true))
+      .flatten ++ getComments(userName, repositoryName, issueId))
+      .groupBy {
+        case x: IssueComment                        => (Some(x.commentId), None, None, None)
+        case x: CommitComment if x.fileName.isEmpty => (Some(x.commentId), None, None, None)
+        case x: CommitComment                       => (None, x.fileName, x.oldLine, x.newLine)
+        case x                                      => throw new MatchError(x)
+      }
+      .toSeq
+      .map {
+        // Normal comment
+        case ((Some(_), _, _, _), comments) =>
+          comments.head
+        // Comment on a specific line of a commit
+        case ((None, Some(fileName), oldLine, newLine), comments) =>
+          gitbucket.core.model.CommitComments(
+            fileName = fileName,
+            commentedUserName = comments.head.commentedUserName,
+            registeredDate = comments.head.registeredDate,
+            comments = comments.map(_.asInstanceOf[CommitComment]),
+            diff = loadCommitCommentDiff(
+              userName,
+              repositoryName,
+              comments.head.asInstanceOf[CommitComment].commitId,
+              fileName,
+              oldLine,
+              newLine
+            )
+          )
+      }
+      .sortWith(_.registeredDate before _.registeredDate)
+  }
+
+  def markMergeAndClosePullRequest(userName: String, owner: String, repository: String, pull: PullRequest)(
+    implicit s: Session
+  ): Unit = {
+    createComment(owner, repository, userName, pull.issueId, "Merged by user", "merge")
+    createComment(owner, repository, userName, pull.issueId, "Close", "close")
+    updateClosed(owner, repository, pull.issueId, true)
+  }
 
 }
 

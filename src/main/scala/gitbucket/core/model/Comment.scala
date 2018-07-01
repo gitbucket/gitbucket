@@ -1,6 +1,7 @@
 package gitbucket.core.model
+import java.util.Date
 
-trait Comment {
+sealed trait Comment {
   val commentedUserName: String
   val registeredDate: java.util.Date
 }
@@ -86,4 +87,12 @@ case class CommitComment(
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
   issueId: Option[Int]
+) extends Comment
+
+case class CommitComments(
+  fileName: String,
+  commentedUserName: String,
+  registeredDate: Date,
+  comments: Seq[CommitComment],
+  diff: Option[String]
 ) extends Comment

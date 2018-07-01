@@ -22,23 +22,23 @@
           elastic            = true,
           tabIndex           = 1
         )
-          <div class="text-right">
-            <input type="hidden" name="issueId" value="@issue.issueId"/>
-            @if((reopenable || !issue.closed) && (isManageable || issue.openedUserName == context.loginAccount.get.userName)){
-              <input type="hidden" id="action" name="action" value="comment"/>
-              <div class="btn-group dropup">
-                <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment" id="submit-button"/>
-                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span class="caret"></span>
-                </button>
-              <ul class="dropdown-menu dropdown-menu-right">
-                <li><a id="menu-comment">Comment</a></li>
-                <li><a id="menu-x-and-comment">@{if(issue.closed) "Reopen" else "Close"} and comment</a></li>
-              </ul>
-              </div>
-            } else {
-              <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment"/>
-            }
+        <div class="text-right">
+          <input type="hidden" name="issueId" value="@issue.issueId"/>
+          @if((reopenable || !issue.closed) && (isManageable || issue.openedUserName == context.loginAccount.get.userName)){
+            <input type="hidden" id="action" name="action" value="comment"/>
+            <div class="btn-group dropup">
+              <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment" id="submit-button"/>
+              <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+              </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+              <li><a id="menu-comment">Comment</a></li>
+              <li><a id="menu-x-and-comment">@{if(issue.closed) "Reopen" else "Close"} and comment</a></li>
+            </ul>
+            </div>
+          } else {
+            <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment"/>
+          }
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ object FileUtil {
       }
     }
 
-  def getContentType(name: String, bytes: Array[Byte]): String = {
+  def getMimeType(name: String, bytes: Array[Byte]): String = {
     defining(getMimeType(name)) { mimeType =>
       if (mimeType == "application/octet-stream" && isText(bytes)) {
         "text/plain"
@@ -24,6 +24,10 @@ object FileUtil {
         mimeType
       }
     }
+  }
+
+  def getSafeMimeType(name: String): String = {
+    getMimeType(name).replace("text/html", "text/plain")
   }
 
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
@@ -52,7 +56,7 @@ object FileUtil {
   }
 
   def getLfsFilePath(owner: String, repository: String, oid: String): String =
-    Directory.getLfsDir(owner, repository) + "/" + oid
+    Directory.getLfsDir(owner, repository) + "/" + checkFilename(oid)
 
   def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
 
@@ -74,6 +78,16 @@ object FileUtil {
       FileUtils.forceDelete(file)
     }
     file
+  }
+
+  /**
+   * Create an instance of java.io.File safely.
+   */
+  def checkFilename(name: String): String = {
+    if (name.contains("..")) {
+      throw new IllegalArgumentException(s"Invalid file name: ${name}")
+    }
+    name
   }
 
   lazy val MaxFileSize =

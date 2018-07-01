@@ -16,9 +16,9 @@
     @if(oldCommitId.isDefined && newCommitId.isDefined) {
       <a href="@helpers.url(repository)/patch/@oldCommitId...@newCommitId" class="btn btn-default">Patch</a>
     }
-    <div class="btn-group" data-toggle="buttons">
-      <input type="button" id="btn-unified" class="btn btn-default active" value="Unified">
-      <input type="button" id="btn-split" class="btn btn-default" value="Split">
+    <div class="btn-group">
+      <a href="javascript:changeDisplaySetting('diff', 'unified');" id="btn-unified" class="btn btn-default">Unified</a>
+      <a href="javascript:changeDisplaySetting('diff', 'split');" id="btn-split" class="btn btn-default">Split</a>
     </div>
   </div>
   Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
@@ -151,29 +151,22 @@ $(function(){
     });
   }
 
+  window.params = {};
+
   // Render diffs as unified mode initially
   if(("&" + location.search.substring(1)).indexOf("&w=1") != -1){
-    $('.ignore-whitespace').prop('checked',true);
+    $('.ignore-whitespace').prop('checked', true);
+    window.params['w'] = 1;
   }
-  window.viewType = 1;
   if(("&" + location.search.substring(1)).indexOf("&diff=split") != -1){
     window.viewType = 0;
-  }
-  renderDiffs();
-
-  $('#btn-unified').click(function(){
+    $('#btn-split').addClass('active');
+    window.params['diff'] = 'split';
+  } else {
     window.viewType = 1;
     $('#btn-unified').addClass('active');
-    $('#btn-split').removeClass('active');
-    renderDiffs();
-  });
-
-  $('#btn-split').click(function(){
-    window.viewType = 0;
-    $('#btn-unified').removeClass('active');
-    $('#btn-split').addClass('active');
-    renderDiffs();
-  });
+  }
+  renderDiffs();
 
   $('.toggle-notes').change(function() {
     if (!$(this).prop('checked')) {
@@ -183,14 +176,14 @@ $(function(){
   });
 
   $('.ignore-whitespace').change(function() {
-    renderOneDiff($(this).closest("table").find(".diffText"), viewType);
+    renderOneDiff($(this).closest("table").find(".diffText"), window.viewType);
   });
 
   function getInlineContainer(where) {
-    if (viewType == 0) {
+    if (window.viewType == 0) {
       if (where === 'new') {
         return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
-      } else if (where === 'old') {
+      } else {
         return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
       }
     }
@@ -245,7 +238,7 @@ $(function(){
       var commitId = $this.closest('.table-bordered').attr('commitId'),
       fileName = $this.closest('.table-bordered').attr('fileName'),
       oldLineNumber, newLineNumber;
-      if (viewType == 0) {
+      if (window.viewType == 0) {
         oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
         newLineNumber = $this.parent().prev('.newline').attr('line-number');
       } else {
@@ -274,7 +267,7 @@ $(function(){
   });
 
   function renderOneCommitCommentIntoDiff($v, diff){
-    var filename = $v.attr('filename');
+    //var filename = $v.attr('filename');
     var oldline  = $v.attr('oldline');
     var newline  = $v.attr('newline');
     var tmp;
@@ -335,7 +328,11 @@ $(function(){
         .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
 
     @if(hasWritePermission) {
-      diffText.find('.body').each(function(){ $('<b class="add-comment">+</b>').prependTo(this); });
+      diffText.find('.body').filter(function(i, e) {
+        return $(e).has('span').length > 0;
+      }).each(function(){
+        $('<b class="add-comment">+</b>').prependTo(this);
+      });
     }
     @if(showLineNotes){
       var fileName = table.attr('filename');
@@ -365,14 +362,14 @@ $(function(){
     });
     for(var key in elements){
       filename = elements[key]['filename'];
-      oldline = elements[key]['oldline'];
-      newline = elements[key]['newline'];
+      oldline = elements[key]['oldline']; //? elements[key]['oldline'] : '';
+      newline = elements[key]['newline']; //? elements[key]['newline'] : '';
 
       var $v = $('<div class="commit-comment-box reply-comment-box">')
-        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply...">')
-          .data('filename', filename)
-          .data('newline',  newline)
-          .data('oldline',  oldline));
+        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply..." '
+                       + 'data-filename="' + filename + '" '
+                       + 'data-newline="' + newline + '" '
+                       + 'data-oldline="' + oldline + '">'));
 
       var tmp;
       if (typeof oldline !== 'undefined') {
@@ -394,7 +391,7 @@ $(function(){
     var i = 0, diffs = $('.diffText');
     function render(){
       if(diffs[i]){
-        var $table = renderOneDiff($(diffs[i]), viewType);
+        var $table = renderOneDiff($(diffs[i]), window.viewType);
         @if(hasWritePermission) {
           renderReplyComment($table);
         }
@@ -405,4 +402,19 @@ $(function(){
     render();
   }
 });
+
+function changeDisplaySetting(key, value){
+  var url = '';
+  window.params[key] = value;
+  for(key in window.params){
+    if(window.params[key] != ''){
+      if(url != ''){
+        url = url + '&' + key + '=' + window.params[key];
+      } else {
+        url = url + '?' + key + '=' + window.params[key];
+      }
+    }
+  }
+  location.href = url;
+}
 </script>

@@ -1,8 +1,10 @@
 package gitbucket.core.controller
 
+import java.io.File
+
 import gitbucket.core.account.html
 import gitbucket.core.helper
-import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, Role, WebHook, WebHookContentType}
+import gitbucket.core.model._
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
@@ -54,6 +56,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     password: String,
     fullName: String,
     mailAddress: String,
+    extraMailAddresses: List[String],
     description: Option[String],
     url: Option[String],
     fileId: Option[String]
@@ -63,6 +66,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     password: Option[String],
     fullName: String,
     mailAddress: String,
+    extraMailAddresses: List[String],
     description: Option[String],
     url: Option[String],
     fileId: Option[String],
@@ -78,6 +82,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "password" -> trim(label("Password", text(required, maxlength(20), password))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
+    "extraMailAddresses" -> list(
+      trim(label("Additional Mail Address", text(maxlength(100), uniqueExtraMailAddress())))
+    ),
     "description" -> trim(label("bio", optional(text()))),
     "url" -> trim(label("URL", optional(text(maxlength(200))))),
     "fileId" -> trim(label("File ID", optional(text())))
@@ -87,6 +94,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "password" -> trim(label("Password", optional(text(maxlength(20), password)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "extraMailAddresses" -> list(
+      trim(label("Additional Mail Address", text(maxlength(100), uniqueExtraMailAddress("userName"))))
+    ),
     "description" -> trim(label("bio", optional(text()))),
     "url" -> trim(label("URL", optional(text(maxlength(200))))),
     "fileId" -> trim(label("File ID", optional(text()))),
@@ -219,13 +229,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName") {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
+      val extraMailAddresses = getAccountExtraMailAddresses(userName)
       params.getOrElse("tab", "repositories") match {
         // Public Activity
         case "activity" =>
           gitbucket.core.account.html.activity(
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getActivitiesByUser(userName, true)
+            getActivitiesByUser(userName, true),
+            extraMailAddresses
           )
 
         // Members
@@ -234,6 +246,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           gitbucket.core.account.html.members(
             account,
             members,
+            extraMailAddresses,
             context.loginAccount.exists(
               x =>
                 members.exists { member =>
@@ -250,6 +263,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, Some(userName)),
+            extraMailAddresses,
             context.loginAccount.exists(
               x =>
                 members.exists { member =>
@@ -268,6 +282,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     helper.xml.feed(getActivitiesByUser(userName, true))
   }
 
+  get("/:userName.keys") {
+    val keys = getPublicKeys(params("userName"))
+    contentType = "text/plain; charset=utf-8"
+    keys.map(_.publicKey).mkString("", "\n", "\n")
+  }
+
   get("/:userName/_avatar") {
     val userName = params("userName")
     contentType = "image/png"
@@ -276,7 +296,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         response.setDateHeader("Last-Modified", account.updatedDate.getTime)
         account.image
           .map { image =>
-            Some(RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image)))
+            Some(
+              RawData(FileUtil.getMimeType(image), new File(getUserUploadDir(userName), FileUtil.checkFilename(image)))
+            )
           }
           .getOrElse {
             if (account.isGroupAccount) {
@@ -295,26 +317,29 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      html.edit(x, flash.get("info"), flash.get("error"))
+      val extraMails = getAccountExtraMailAddresses(userName)
+      html.edit(x, extraMails, flash.get("info"), flash.get("error"))
     } getOrElse NotFound()
   })
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
     val userName = params("userName")
-    getAccountByUserName(userName).map { account =>
-      updateAccount(
-        account.copy(
-          password = form.password.map(sha1).getOrElse(account.password),
-          fullName = form.fullName,
-          mailAddress = form.mailAddress,
-          description = form.description,
-          url = form.url
+    getAccountByUserName(userName).map {
+      account =>
+        updateAccount(
+          account.copy(
+            password = form.password.map(pbkdf2_sha256).getOrElse(account.password),
+            fullName = form.fullName,
+            mailAddress = form.mailAddress,
+            description = form.description,
+            url = form.url
+          )
         )
-      )
 
-      updateImage(userName, form.fileId, form.clearImage)
-      flash += "info" -> "Account information has been updated."
-      redirect(s"/${userName}/_edit")
+        updateImage(userName, form.fileId, form.clearImage)
+        updateAccountExtraMailAddresses(userName, form.extraMailAddresses.filter(_ != ""))
+        flash += "info" -> "Account information has been updated."
+        redirect(s"/${userName}/_edit")
 
     } getOrElse NotFound()
   })
@@ -544,7 +569,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     if (context.settings.allowAccountRegistration) {
       createAccount(
         form.userName,
-        sha1(form.password),
+        pbkdf2_sha256(form.password),
         form.fullName,
         form.mailAddress,
         false,
@@ -552,6 +577,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         form.url
       )
       updateImage(form.userName, form.fileId, false)
+      updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses.filter(_ != ""))
       redirect("/signin")
     } else NotFound()
   }
@@ -687,7 +713,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           }
           helper.html.forkrepository(
             repository,
-            (groups zip managerPermissions).toMap
+            (groups zip managerPermissions).sortBy(_._1)
           )
         case _ => redirect(s"/${loginUserName}")
       }

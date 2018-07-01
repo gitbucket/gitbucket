@@ -7,18 +7,19 @@ class PreProcessController extends PreProcessControllerBase
 trait PreProcessControllerBase extends ControllerBase {
 
   /**
-   * Provides GitHub compatible URLs for Git client.
-   *
-   * <ul>
-   *   <li>git clone http://localhost:8080/owner/repo</li>
-   *   <li>git clone http://localhost:8080/owner/repo.git</li>
-   * </ul>
-   *
-   * @see https://git-scm.com/book/en/v2/Git-Internals-Transfer-Protocols
+   * Provides GitHub compatible URLs (e.g. http://localhost:8080/owner/repo.git) for Git client.
    */
   get("/*/*/info/refs") {
     val query = Option(request.getQueryString).map("?" + _).getOrElse("")
     halt(MovedPermanently(baseUrl + "/git" + request.getRequestURI + query))
+  }
+
+  /**
+   * Provides GitHub compatible URLs for GitLFS client.
+   */
+  post("/*/*/info/lfs/objects/batch") {
+    val dispatcher = request.getRequestDispatcher("/git" + request.getRequestURI)
+    dispatcher.forward(request, response)
   }
 
   /**

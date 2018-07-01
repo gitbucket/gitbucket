@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 
 import gitbucket.core.api.{ApiError, JsonFormat}
 import gitbucket.core.model.Account
@@ -254,7 +254,7 @@ abstract class ControllerBase
     repository: RepositoryService.RepositoryInfo
   ): Unit = {
     JGitUtil.getObjectLoaderFromId(git, objectId) { loader =>
-      contentType = FileUtil.getMimeType(path)
+      contentType = FileUtil.getSafeMimeType(path)
 
       if (loader.isLarge) {
         response.setContentLength(loader.getSize.toInt)
@@ -326,21 +326,21 @@ trait AccountManagementControllerBase extends ControllerBase {
 
   protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit =
     if (clearImage) {
-      getAccountByUserName(userName).flatMap(_.image).map { image =>
-        new java.io.File(getUserUploadDir(userName), image).delete()
+      getAccountByUserName(userName).flatMap(_.image).foreach { image =>
+        new File(getUserUploadDir(userName), FileUtil.checkFilename(image)).delete()
         updateAvatarImage(userName, None)
       }
     } else {
-      fileId.map { fileId =>
+      fileId.foreach { fileId =>
         val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
         val uploadDir = getUserUploadDir(userName)
         if (!uploadDir.exists) {
           uploadDir.mkdirs()
         }
         Thumbnails
-          .of(new java.io.File(getTemporaryDir(session.getId), fileId))
+          .of(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)))
           .size(324, 324)
-          .toFile(new java.io.File(uploadDir, filename))
+          .toFile(new File(uploadDir, FileUtil.checkFilename(filename)))
         updateAvatarImage(userName, Some(filename))
       }
     }
@@ -359,13 +359,42 @@ trait AccountManagementControllerBase extends ControllerBase {
       params: Map[String, Seq[String]],
       messages: Messages
     ): Option[String] = {
-      getAccountByMailAddress(value, true)
-        .filter { x =>
-          if (paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName)
-        }
-        .map { _ =>
-          "Mail address is already registered."
-        }
+      val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
+      if (extraMailAddresses.exists {
+            case (k, v) =>
+              v.contains(value)
+          }) {
+        Some("These mail addresses are duplicated.")
+      } else {
+        getAccountByMailAddress(value, true)
+          .collect {
+            case x if paramName.isEmpty || Some(x.userName) != params.optionValue(paramName) =>
+              "Mail address is already registered."
+          }
+      }
+    }
+  }
+
+  protected def uniqueExtraMailAddress(paramName: String = ""): Constraint = new Constraint() {
+    override def validate(
+      name: String,
+      value: String,
+      params: Map[String, Seq[String]],
+      messages: Messages
+    ): Option[String] = {
+      val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
+      if (Some(value) == params.optionValue("mailAddress") || extraMailAddresses.count {
+            case (k, v) =>
+              v.contains(value)
+          } > 1) {
+        Some("These mail addresses are duplicated.")
+      } else {
+        getAccountByMailAddress(value, true)
+          .collect {
+            case x if paramName.isEmpty || Some(x.userName) != params.optionValue(paramName) =>
+              "Mail address is already registered."
+          }
+      }
     }
   }
 

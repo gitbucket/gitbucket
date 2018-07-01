@@ -68,5 +68,6 @@ trait CoreProfile
     with DeployKeyComponent
     with ReleaseTagComponent
     with ReleaseAssetComponent
+    with AccountExtraMailAddressComponent
 
 object Profile extends CoreProfile

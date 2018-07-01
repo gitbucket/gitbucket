@@ -28,6 +28,9 @@
             <input type="text" name="mailAddress" id="mailAddress" class="form-control" value=""/>
             <span id="error-mailAddress" class="error"></span>
           </fieldset>
+          <div id="extraMailAddresses">
+            <span class="strong">Additional Mail Address:</span>
+          </div>
           <fieldset>
             <label for="url" class="strong">URL (optional):</label>
             <input type="text" name="url" id="url" class="form-control" value=""/>
@@ -52,4 +55,10 @@
     </form>
   </div>
 </div>
+<script>
+  $(function() {
+    addExtraMailAddress();
+    $('#extraMailAddresses').on('change', '.extraMailAddress', checkExtraMailAddress);
+  });
+</script>
 }

@@ -17,6 +17,13 @@ import gitbucket.core.model.{Account, CommitState, CommitStatus, WebHook}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveOutputStream}
+import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
+import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream}
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream
+import org.apache.commons.compress.utils.IOUtils
 import org.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.ec4j.core.model.PropertyType
@@ -26,6 +33,8 @@ import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
+import org.eclipse.jgit.treewalk.TreeWalk
+import org.eclipse.jgit.treewalk.filter.PathFilter
 import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.i18n.Messages
@@ -104,7 +113,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     oldLineNumber: Option[Int],
     newLineNumber: Option[Int],
     content: String,
-    issueId: Option[Int]
+    issueId: Option[Int],
+    diff: Option[String]
   )
 
   val uploadForm = mapping(
@@ -139,7 +149,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "oldLineNumber" -> trim(label("Old line number", optional(number()))),
     "newLineNumber" -> trim(label("New line number", optional(number()))),
     "content" -> trim(label("Content", text(required))),
-    "issueId" -> trim(label("Issue Id", optional(number())))
+    "issueId" -> trim(label("Issue Id", optional(number()))),
+    "diff" -> optional(text())
   )(CommentForm.apply)
 
   /**
@@ -238,6 +249,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
+        def getTags(sha: String): List[String] = {
+          JGitUtil.getTagsOnCommit(git, sha)
+        }
+
         JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
           case Right((logs, hasNext)) =>
             html.commits(
@@ -251,7 +266,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               hasNext,
               hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
               getStatuses,
-              getSummary
+              getSummary,
+              getTags
             )
           case Left(_) => NotFound()
         }
@@ -571,6 +587,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.newLineNumber,
       form.issueId
     )
+
+    for {
+      fileName <- form.fileName
+      diff <- form.diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        id,
+        fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        diff
+      )
+    }
+
     form.issueId match {
       case Some(issueId) =>
         recordCommentPullRequestActivity(
@@ -605,7 +637,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       newLineNumber,
       issueId,
       hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-      repository = repository
+      repository = repository,
+      focus = true
     )
   })
 
@@ -622,6 +655,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       form.newLineNumber,
       form.issueId
     )
+
+    for {
+      fileName <- form.fileName
+      diff <- form.diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        id,
+        fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        diff
+      )
+    }
+
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
       case Some(issueId) =>
@@ -675,6 +724,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                   enableRefsLink = true,
                   enableAnchor = true,
                   enableLineBreaks = true,
+                  enableTaskList = true,
                   hasWritePermission = true
                 )
               )
@@ -782,16 +832,54 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   /**
-   * Download repository contents as an archive.
+   * Download repository contents as a zip archive as compatible URL.
    */
-  get("/:owner/:repository/archive/*")(referrersOnly { repository =>
-    multiParams("splat").head match {
-      case name if name.endsWith(".zip") =>
-        archiveRepository(name, ".zip", repository)
-      case name if name.endsWith(".tar.gz") =>
-        archiveRepository(name, ".tar.gz", repository)
-      case _ => BadRequest()
-    }
+  get("/:owner/:repository/archive/:branch.zip")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".zip", repository, "")
+  })
+
+  /**
+   * Download repository contents as a tar.gz archive as compatible URL.
+   */
+  get("/:owner/:repository/archive/:branch.tar.gz")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".tar.gz", repository, "")
+  })
+
+  /**
+   * Download repository contents as a tar.bz2 archive as compatible URL.
+   */
+  get("/:owner/:repository/archive/:branch.tar.bz2")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".tar.bz2", repository, "")
+  })
+
+  /**
+   * Download repository contents as a tar.xz archive as compatible URL.
+   */
+  get("/:owner/:repository/archive/:branch.tar.xz")(referrersOnly { repository =>
+    val branch = params("branch")
+    archiveRepository(branch, branch + ".tar.xz", repository, "")
+  })
+
+  /**
+   * Download all repository contents as an archive.
+   */
+  get("/:owner/:repository/archive/:branch/:name")(referrersOnly { repository =>
+    val branch = params("branch")
+    val name = params("name")
+    archiveRepository(branch, name, repository, "")
+  })
+
+  /**
+   * Download repositories subtree contents as an archive.
+   */
+  get("/:owner/:repository/archive/:branch/*/:name")(referrersOnly { repository =>
+    val branch = params("branch")
+    val name = params("name")
+    val path = multiParams("splat").head
+    archiveRepository(branch, name, repository, path)
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
@@ -866,7 +954,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
 
         newFiles.foreach { file =>
-          val bytes = FileUtils.readFileToByteArray(new File(getTemporaryDir(session.getId), file.id))
+          val bytes =
+            FileUtils.readFileToByteArray(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(file.id)))
           builder.add(
             JGitUtil.createDirCacheEntry(file.name, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes))
           )
@@ -984,7 +1073,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             // close issue by commit message
             if (branch == repository.repository.defaultBranch) {
-              closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+              closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name).foreach {
+                issueId =>
+                  getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+                    callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                    PluginRegistry().getIssueHooks
+                      .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
+                  }
+              }
             }
 
             // call post commit hook
@@ -1078,26 +1174,97 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   }
 
-  private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): Unit = {
-    val revision = name.stripSuffix(suffix)
+  private def archiveRepository(
+    revision: String,
+    filename: String,
+    repository: RepositoryService.RepositoryInfo,
+    path: String
+  ) = {
+    def archive(archiveFormat: String, archive: ArchiveOutputStream)(
+      entryCreator: (String, Long, Int) => ArchiveEntry
+    ): Unit = {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val oid = git.getRepository.resolve(revision)
+        val revCommit = JGitUtil.getRevCommitFromId(git, oid)
+        val sha1 = oid.getName()
+        val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
+        val pathSuffix = if (path.isEmpty) "" else '-' + path.replace('/', '-')
+        val baseName = repository.name + "-" + repositorySuffix + pathSuffix
 
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-      val oid = git.getRepository.resolve(revision)
-      val revCommit = JGitUtil.getRevCommitFromId(git, oid)
-      val sha1 = oid.getName()
-      val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
-      val filename = repository.name + "-" + repositorySuffix + suffix
+        using(new TreeWalk(git.getRepository)) { treeWalk =>
+          treeWalk.addTree(revCommit.getTree)
+          treeWalk.setRecursive(true)
+          if (!path.isEmpty) {
+            treeWalk.setFilter(PathFilter.create(path))
+          }
+          if (treeWalk != null) {
+            while (treeWalk.next()) {
+              val entryPath =
+                if (path.isEmpty) baseName + "/" + treeWalk.getPathString
+                else path.split("/").last + treeWalk.getPathString.substring(path.length)
+              val size = JGitUtil.getFileSize(git, repository, treeWalk)
+              val mode = treeWalk.getFileMode.getBits
+              val entry: ArchiveEntry = entryCreator(entryPath, size, mode)
+              JGitUtil.openFile(git, repository, revCommit.getTree, treeWalk.getPathString) { in =>
+                archive.putArchiveEntry(entry)
+                IOUtils.copy(in, archive)
+                archive.closeArchiveEntry()
+              }
+            }
+          }
+        }
+      }
+    }
 
-      contentType = "application/octet-stream"
-      response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
-      response.setBufferSize(1024 * 1024);
+    val suffix =
+      path.split("/").lastOption.collect { case x if x.length > 0 => "-" + x.replace('/', '_') }.getOrElse("")
+    val zipRe = """(.+)\.zip$""".r
+    val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 
-      git.archive
-        .setFormat(suffix.tail)
-        .setPrefix(repository.name + "-" + repositorySuffix + "/")
-        .setTree(revCommit)
-        .setOutputStream(response.getOutputStream)
-        .call()
+    filename match {
+      case zipRe(branch) =>
+        response.setHeader(
+          "Content-Disposition",
+          s"attachment; filename=${repository.name}-${branch}${suffix}.zip"
+        )
+        contentType = "application/octet-stream"
+        response.setBufferSize(1024 * 1024);
+        using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
+          archive(".zip", zip) { (path, size, mode) =>
+            val entry = new ZipArchiveEntry(path)
+            entry.setSize(size)
+            entry.setUnixMode(mode)
+            entry
+          }
+        }
+        ()
+      case tarRe(branch, compressor) =>
+        response.setHeader(
+          "Content-Disposition",
+          s"attachment; filename=${repository.name}-${branch}${suffix}.tar.${compressor}"
+        )
+        contentType = "application/octet-stream"
+        response.setBufferSize(1024 * 1024)
+        using(compressor match {
+          case "gz"  => new GzipCompressorOutputStream(response.getOutputStream)
+          case "bz2" => new BZip2CompressorOutputStream(response.getOutputStream)
+          case "xz"  => new XZCompressorOutputStream(response.getOutputStream)
+        }) { compressorOutputStream =>
+          using(new TarArchiveOutputStream(compressorOutputStream)) { tar =>
+            tar.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR)
+            tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU)
+            tar.setAddPaxHeadersForNonAsciiNames(true)
+            archive(".tar.gz", tar) { (path, size, mode) =>
+              val entry = new TarArchiveEntry(path)
+              entry.setSize(size)
+              entry.setMode(mode)
+              entry
+            }
+          }
+        }
+        ()
+      case _ =>
+        BadRequest()
     }
   }
 

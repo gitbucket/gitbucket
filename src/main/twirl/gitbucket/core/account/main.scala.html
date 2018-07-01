@@ -1,4 +1,4 @@
-@(account: gitbucket.core.model.Account, groupNames: List[String], active: String,
+@(account: gitbucket.core.model.Account, groupNames: List[String], active: String, extraMailAddresses: List[String],
   isGroupManager: Boolean = false)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(account.userName){
@@ -19,6 +19,16 @@
           <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             <i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a>
           </p>
+        }
+        @if(context.settings.showMailAddress){
+          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <i class="octicon octicon-mail"></i> <a href="mailto: @account.mailAddress">@account.mailAddress</a>
+          </p>
+          @extraMailAddresses.map{ mail =>
+            <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <i class="octicon octicon-mail"></i> <a href="mailto: @mail">@mail</a>
+            </p>
+          }
         }
         <p style="color: #999">
           <i class="octicon octicon-clock"></i> Joined on @helpers.date(account.registeredDate)

@@ -23,9 +23,9 @@ trait SystemSettingsService {
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
-      props.setProperty(Ssh, settings.ssh.toString)
-      settings.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
-      settings.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
+      props.setProperty(SshEnabled, settings.ssh.enabled.toString)
+      settings.ssh.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
+      settings.ssh.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
       props.setProperty(UseSMTP, settings.useSMTP.toString)
       if (settings.useSMTP) {
         settings.smtp.foreach { smtp =>
@@ -41,7 +41,7 @@ trait SystemSettingsService {
       }
       props.setProperty(LdapAuthentication, settings.ldapAuthentication.toString)
       if (settings.ldapAuthentication) {
-        settings.ldap.map { ldap =>
+        settings.ldap.foreach { ldap =>
           props.setProperty(LdapHost, ldap.host)
           ldap.port.foreach(x => props.setProperty(LdapPort, x.toString))
           ldap.bindDN.foreach(x => props.setProperty(LdapBindDN, x))
@@ -58,16 +58,19 @@ trait SystemSettingsService {
       }
       props.setProperty(OidcAuthentication, settings.oidcAuthentication.toString)
       if (settings.oidcAuthentication) {
-        settings.oidc.map { oidc =>
+        settings.oidc.foreach { oidc =>
           props.setProperty(OidcIssuer, oidc.issuer.getValue)
           props.setProperty(OidcClientId, oidc.clientID.getValue)
           props.setProperty(OidcClientSecret, oidc.clientSecret.getValue)
-          oidc.jwsAlgorithm.map { x =>
+          oidc.jwsAlgorithm.foreach { x =>
             props.setProperty(OidcJwsAlgorithm, x.getName)
           }
         }
       }
       props.setProperty(SkinName, settings.skinName.toString)
+      props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
+      props.setProperty(PluginNetworkInstall, settings.pluginNetworkInstall.toString)
+
       using(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
       }
@@ -90,9 +93,11 @@ trait SystemSettingsService {
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
-        getValue(props, Ssh, false),
-        getOptionValue[String](props, SshHost, None).map(_.trim),
-        getOptionValue(props, SshPort, Some(DefaultSshPort)),
+        Ssh(
+          getValue(props, SshEnabled, false),
+          getOptionValue[String](props, SshHost, None).map(_.trim),
+          getOptionValue(props, SshPort, Some(DefaultSshPort))
+        ),
         getValue(props, UseSMTP, getValue(props, Notification, false)), // handle migration scenario from only notification to useSMTP
         if (getValue(props, UseSMTP, getValue(props, Notification, false))) {
           Some(
@@ -144,7 +149,9 @@ trait SystemSettingsService {
         } else {
           None
         },
-        getValue(props, SkinName, "skin-blue")
+        getValue(props, SkinName, "skin-blue"),
+        getValue(props, ShowMailAddress, false),
+        getValue(props, PluginNetworkInstall, false)
       )
     }
   }
@@ -165,16 +172,16 @@ object SystemSettingsService {
     gravatar: Boolean,
     notification: Boolean,
     activityLogLimit: Option[Int],
-    ssh: Boolean,
-    sshHost: Option[String],
-    sshPort: Option[Int],
+    ssh: Ssh,
     useSMTP: Boolean,
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
     ldap: Option[Ldap],
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
-    skinName: String
+    skinName: String,
+    showMailAddress: Boolean,
+    pluginNetworkInstall: Boolean
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
@@ -193,11 +200,17 @@ object SystemSettingsService {
         .fold(base)(_ + base.dropWhile(_ != ':'))
     }
 
-    def sshAddress: Option[SshAddress] = sshHost.collect {
-      case host if ssh =>
-        SshAddress(host, sshPort.getOrElse(DefaultSshPort), "git")
+    def sshAddress: Option[SshAddress] = ssh.sshHost.collect {
+      case host if ssh.enabled =>
+        SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
     }
   }
+
+  case class Ssh(
+    enabled: Boolean,
+    sshHost: Option[String],
+    sshPort: Option[Int]
+  )
 
   case class Ldap(
     host: String,
@@ -252,7 +265,7 @@ object SystemSettingsService {
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
-  private val Ssh = "ssh"
+  private val SshEnabled = "ssh"
   private val SshHost = "ssh.host"
   private val SshPort = "ssh.port"
   private val UseSMTP = "useSMTP"
@@ -283,6 +296,8 @@ object SystemSettingsService {
   private val OidcClientSecret = "oidc.client_secret"
   private val OidcJwsAlgorithm = "oidc.jws_algorithm"
   private val SkinName = "skinName"
+  private val ShowMailAddress = "showMailAddress"
+  private val PluginNetworkInstall = "plugin.networkInstall"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {

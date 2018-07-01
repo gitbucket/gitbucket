@@ -1,7 +1,9 @@
 package gitbucket.core.controller
 
+import java.io.File
+
 import gitbucket.core.model.Account
-import gitbucket.core.service.{AccountService, RepositoryService, ReleaseService}
+import gitbucket.core.service.{AccountService, ReleaseService, RepositoryService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
@@ -31,7 +33,8 @@ class FileUploadController
   post("/image") {
     execute(
       { (file, fileId) =>
-        FileUtils.writeByteArrayToFile(new java.io.File(getTemporaryDir(session.getId), fileId), file.get)
+        FileUtils
+          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get)
         session += Keys.Session.Upload(fileId) -> file.name
       },
       FileUtil.isImage
@@ -41,7 +44,8 @@ class FileUploadController
   post("/tmp") {
     execute(
       { (file, fileId) =>
-        FileUtils.writeByteArrayToFile(new java.io.File(getTemporaryDir(session.getId), fileId), file.get)
+        FileUtils
+          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get)
         session += Keys.Session.Upload(fileId) -> file.name
       },
       _ => true
@@ -52,9 +56,9 @@ class FileUploadController
     execute(
       { (file, fileId) =>
         FileUtils.writeByteArrayToFile(
-          new java.io.File(
+          new File(
             getAttachedDir(params("owner"), params("repository")),
-            fileId + "." + FileUtil.getExtension(file.getName)
+            FileUtil.checkFilename(fileId + "." + FileUtil.getExtension(file.getName))
           ),
           file.get
         )
@@ -129,12 +133,15 @@ class FileUploadController
           val owner = params("owner")
           val repository = params("repository")
           val tag = params("tag")
-          execute({ (file, fileId) =>
-            FileUtils.writeByteArrayToFile(
-              new java.io.File(getReleaseFilesDir(owner, repository), tag + "/" + fileId),
-              file.get
-            )
-          }, _ => true)
+          execute(
+            { (file, fileId) =>
+              FileUtils.writeByteArrayToFile(
+                new File(getReleaseFilesDir(owner, repository), FileUtil.checkFilename(tag + "/" + fileId)),
+                file.get
+              )
+            },
+            _ => true
+          )
       }
       .getOrElse(BadRequest())
   }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <createTable tableName="ACCOUNT_EXTRA_MAIL_ADDRESS">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="EXTRA_MAIL_ADDRESS" type="varchar(100)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_PK" tableName="ACCOUNT_EXTRA_MAIL_ADDRESS" columnNames="USER_NAME, EXTRA_MAIL_ADDRESS"/>
+  <addUniqueConstraint constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_1" tableName="ACCOUNT_EXTRA_MAIL_ADDRESS" columnNames="EXTRA_MAIL_ADDRESS"/>
+</changeSet>

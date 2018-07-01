@@ -1,0 +1,22 @@
+@(issue: gitbucket.core.model.Issue,
+  pullreq: gitbucket.core.model.PullRequest,
+  diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  commits: Seq[gitbucket.core.util.JGitUtil.CommitInfo],
+  comments: Seq[gitbucket.core.model.Comment],
+  isManageable: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.pulls.html.menu("files", issue, pullreq, commits, comments, diffs.size, isManageable, repository) {
+  @gitbucket.core.helper.html.diff(
+    diffs,
+    repository,
+    commits.headOption.map(_.id),
+    Some(pullreq.commitIdFrom),
+    true,
+    Some(pullreq.issueId),
+    isManageable,
+    true
+  )
+  <div id="comment-list" style="display: none;">
+    @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))
+  </div>
+}

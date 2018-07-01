@@ -1,11 +1,11 @@
 package gitbucket.core.service
 
 import org.slf4j.LoggerFactory
-import gitbucket.core.model.{GroupMember, Account}
+import gitbucket.core.model.{Account, AccountExtraMailAddress, GroupMember}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
-import gitbucket.core.util.{StringUtil, LDAPUtil}
+import gitbucket.core.util.{LDAPUtil, StringUtil}
 import StringUtil._
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 
@@ -33,7 +33,16 @@ trait AccountService {
    * Authenticate by internal database.
    */
   private def defaultAuthentication(userName: String, password: String)(implicit s: Session) = {
+    val pbkdf2re = """^\$pbkdf2-sha256\$(\d+)\$([0-9a-zA-Z+/=]+)\$([0-9a-zA-Z+/=]+)$""".r
     getAccountByUserName(userName).collect {
+      case account if !account.isGroupAccount =>
+        account.password match {
+          case pbkdf2re(iter, salt, hash) if (pbkdf2_sha256(iter.toInt, salt, password) == hash) => Some(account)
+          case p if p == sha1(password) =>
+            updateAccount(account.copy(password = pbkdf2_sha256(password)))
+            Some(account)
+          case _ => None
+        }
       case account if (!account.isGroupAccount && account.password == sha1(password)) => Some(account)
     } getOrElse None
   }
@@ -121,9 +130,16 @@ trait AccountService {
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(
     implicit s: Session
   ): Option[Account] =
-    Accounts filter (
-      t => (t.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)
-    ) firstOption
+    (Accounts joinLeft AccountExtraMailAddresses on { case (a, e) => a.userName === e.userName })
+      .filter {
+        case (a, x) =>
+          ((a.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) ||
+            (x.map { e =>
+                e.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind
+              }
+              .getOrElse(false.bind))) && (a.removed === false.bind, !includeRemoved)
+      }
+      .map { case (a, e) => a } firstOption
 
   def getAllUsers(includeRemoved: Boolean = true, includeGroups: Boolean = true)(implicit s: Session): List[Account] = {
     Accounts filter { t =>
@@ -198,6 +214,15 @@ trait AccountService {
 
   def updateAvatarImage(userName: String, image: Option[String])(implicit s: Session): Unit =
     Accounts.filter(_.userName === userName.bind).map(_.image.?).update(image)
+
+  def getAccountExtraMailAddresses(userName: String)(implicit s: Session): List[String] = {
+    AccountExtraMailAddresses.filter(_.userName === userName.bind).map(_.extraMailAddress) list
+  }
+
+  def updateAccountExtraMailAddresses(userName: String, mails: List[String])(implicit s: Session): Unit = {
+    AccountExtraMailAddresses.filter(_.userName === userName.bind).delete
+    mails.map(AccountExtraMailAddresses insert AccountExtraMailAddress(userName, _))
+  }
 
   def updateLastLoginDate(userName: String)(implicit s: Session): Unit =
     Accounts.filter(_.userName === userName.bind).map(_.lastLoginDate).update(currentDate)

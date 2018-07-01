@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <modifyDataType columnName="PASSWORD" newDataType="varchar(200)" tableName="ACCOUNT"/>
+
+  <delete tableName="ACCOUNT_EXTRA_MAIL_ADDRESS">
+    <where>EXTRA_MAIL_ADDRESS = ''</where>
+  </delete>
+</changeSet>

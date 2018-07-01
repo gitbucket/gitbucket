@@ -9,6 +9,7 @@
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.view.helpers.RichHtmlSeq
+@import gitbucket.core.model._
 @gitbucket.core.html.main(commit.shortMessage, Some(repository)){
   @gitbucket.core.html.menu("files", repository){
     <table class="table table-bordered">
@@ -24,7 +25,7 @@
           <div class="small" style="font-weight: normal;">
             @if(branches.nonEmpty){
               <span class="muted">
-                  <i class="octicon octicon-git-branch"></i>
+                <i class="octicon octicon-git-branch"></i>
                 @branches.zipWithIndex.map { case (branch, i) =>
                   <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
                 }
@@ -32,7 +33,7 @@
             }
             @if(tags.nonEmpty){
               <span class="muted">
-                  <i class="octicon octicon-tag"></i>
+                <i class="octicon octicon-tag"></i>
                 @tags.zipWithIndex.map { case (tag, i) =>
                   <a href="@helpers.url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
                 }
@@ -67,7 +68,7 @@
 
           <div class="author-info">
             <div class="author">
-              @helpers.avatar(commit, 20)
+              @helpers.avatarLink(commit, 20)
               <span>@helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
               <span class="muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
             </div>
@@ -87,7 +88,30 @@
       <input type="checkbox" id="show-notes"> Show line notes below
     </label>
     <div id="comment-list">
-      @gitbucket.core.issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+      @gitbucket.core.issues.html.commentlist(
+        issue        = None,
+        comments     = comments.filter(_.asInstanceOf[CommitComment].fileName.isEmpty),
+        isManageable = hasWritePermission,
+        repository   = repository,
+        pullreq      = None,
+        renderScript = false)
+      <div style="display: none;">
+        @gitbucket.core.issues.html.commentlist(
+          issue        = None,
+          comments     = comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
+            CommitComments(
+              fileName          = fileName.get,
+              commentedUserName = comments.head.commentedUserName,
+              registeredDate    = comments.head.registeredDate,
+              comments          = comments,
+              diff              = None
+            )
+          }.toList,
+          isManageable = hasWritePermission,
+          repository   = repository,
+          pullreq      = None,
+          commitId     = Some(commitId))
+      </div>
     </div>
     @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
   }
