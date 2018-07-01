@@ -26,6 +26,7 @@ import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream
 import org.apache.commons.compress.utils.IOUtils
 import org.scalatra.forms._
 import org.apache.commons.io.FileUtils
+import org.ec4j.core.model.PropertyType
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
@@ -330,17 +331,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
 
-        getPathObjectId(git, path, revCommit).map { objectId =>
-          val paths = path.split("/")
-          html.editor(
-            branch = branch,
-            repository = repository,
-            pathList = paths.take(paths.size - 1).toList,
-            fileName = Some(paths.last),
-            content = JGitUtil.getContentInfo(git, path, objectId),
-            protectedBranch = protectedBranch,
-            commit = revCommit.getName
-          )
+        getPathObjectId(git, path, revCommit).map {
+          objectId =>
+            val paths = path.split("/")
+            val info = EditorConfigUtil.getEditorConfigInfo(git, branch, path)
+
+            html.editor(
+              branch = branch,
+              repository = repository,
+              pathList = paths.take(paths.size - 1).toList,
+              fileName = Some(paths.last),
+              content = JGitUtil.getContentInfo(git, path, objectId),
+              protectedBranch = protectedBranch,
+              commit = revCommit.getName,
+              newLineMode = info.newLineMode,
+              useSoftTabs = info.useSoftTabs,
+              tabSize = info.tabSize
+            )
         } getOrElse NotFound()
     }
   })
@@ -451,6 +458,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               // Download (This route is left for backword compatibility)
               responseRawFile(git, objectId, path, repository)
             } else {
+              val info = EditorConfigUtil.getEditorConfigInfo(git, id, path)
               html.blob(
                 branch = id,
                 repository = repository,
@@ -459,7 +467,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 latestCommit = new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",
-                isLfsFile = isLfsFile(git, objectId)
+                isLfsFile = isLfsFile(git, objectId),
+                tabSize = info.tabSize
               )
             }
         } getOrElse NotFound()
