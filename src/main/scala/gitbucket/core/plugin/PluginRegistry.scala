@@ -272,17 +272,23 @@ object PluginRegistry {
   lazy val extraPluginDir: Option[String] = Option(System.getProperty("gitbucket.pluginDir"))
 
   def getGitBucketVersion(pluginJarFileName: String): Option[String] = {
-    val regex = ".+-gitbucket\\_(\\d+\\.\\d+\\.\\d+)-.+".r
+    val regex = ".+-gitbucket\\_(\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?)-.+".r
     pluginJarFileName match {
-      case regex(x) => Some(x)
-      case _        => None
+      case regex(all, _) => Some(all)
+      case _             => None
     }
   }
 
   def getPluginVersion(pluginJarFileName: String): String = {
-    val regex = ".+-(\\d+\\.\\d+\\.\\d+)\\.jar$".r
+    val regex = ".+-((\\d+)\\.(\\d+)(\\.(\\d+))?(-SNAPSHOT)?)\\.jar$".r
     pluginJarFileName match {
-      case regex(x) => x
+      case regex(all, major, minor, _, patch, modifier) => {
+        if (patch != null) all
+        else {
+          s"${major}.${minor}.0" + (if (modifier == null) "" else modifier)
+        }
+      }
+      case _ => "0.0.0"
     }
   }
 
