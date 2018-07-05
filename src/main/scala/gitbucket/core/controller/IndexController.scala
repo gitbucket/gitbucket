@@ -64,7 +64,7 @@ trait IndexControllerBase extends ControllerBase {
         val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
         gitbucket.core.html.index(
           getRecentActivitiesByOwners(visibleOwnerSet),
-          getVisibleRepositories(None, withoutPhysicalInfo = true),
+          getVisibleRepositories(Some(account), withoutPhysicalInfo = true),
           showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
             account.userName
           )

@@ -371,6 +371,10 @@ trait RepositoryService { self: AccountService =>
       .list
   }
 
+  /**
+   * Returns the list of repositories which are owned by the specified user.
+   * This list includes group repositories if the specified user is a member of the group.
+   */
   def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)(
     implicit s: Session
   ): List[RepositoryInfo] = {
@@ -388,29 +392,7 @@ trait RepositoryService { self: AccountService =>
       }
       .sortBy(_.lastActivityDate desc)
       .list
-      .map { repository =>
-        new RepositoryInfo(
-          if (withoutPhysicalInfo) {
-            new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
-          } else {
-            JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
-          },
-          repository,
-          if (withoutPhysicalInfo) {
-            -1
-          } else {
-            getForkedCount(
-              repository.originUserName.getOrElse(repository.userName),
-              repository.originRepositoryName.getOrElse(repository.repositoryName)
-            )
-          },
-          if (withoutPhysicalInfo) {
-            Nil
-          } else {
-            getRepositoryManagers(repository.userName, repository.repositoryName)
-          }
-        )
-      }
+      .map(createRepositoryInfo(_, withoutPhysicalInfo))
   }
 
   /**
@@ -466,29 +448,33 @@ trait RepositoryService { self: AccountService =>
       }
       .sortBy(_.lastActivityDate desc)
       .list
-      .map { repository =>
-        new RepositoryInfo(
-          if (withoutPhysicalInfo) {
-            new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
-          } else {
-            JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
-          },
-          repository,
-          if (withoutPhysicalInfo) {
-            -1
-          } else {
-            getForkedCount(
-              repository.originUserName.getOrElse(repository.userName),
-              repository.originRepositoryName.getOrElse(repository.repositoryName)
-            )
-          },
-          if (withoutPhysicalInfo) {
-            Nil
-          } else {
-            getRepositoryManagers(repository.userName, repository.repositoryName)
-          }
+      .map(createRepositoryInfo(_, withoutPhysicalInfo))
+  }
+
+  private def createRepositoryInfo(repository: Repository, withoutPhysicalInfo: Boolean = false)(
+    implicit s: Session
+  ): RepositoryInfo = {
+    new RepositoryInfo(
+      if (withoutPhysicalInfo) {
+        new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
+      } else {
+        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
+      },
+      repository,
+      if (withoutPhysicalInfo) {
+        -1
+      } else {
+        getForkedCount(
+          repository.originUserName.getOrElse(repository.userName),
+          repository.originRepositoryName.getOrElse(repository.repositoryName)
         )
+      },
+      if (withoutPhysicalInfo) {
+        Nil
+      } else {
+        getRepositoryManagers(repository.userName, repository.repositoryName)
       }
+    )
   }
 
   /**

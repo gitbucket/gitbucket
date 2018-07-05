@@ -1,6 +1,6 @@
 @(groups: List[String],
-  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+  visibleRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Repositories"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories){
@@ -13,15 +13,15 @@
         </button>
         <ul class="dropdown-menu">
           <li><a href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a></li>
-          @userRepositories.map(_.owner).distinct.map { userName =>
+          @visibleRepositories.map(_.owner).distinct.map { userName =>
             <li><a href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a></li>
           }
         </ul>
       </div>
-      @if(userRepositories.isEmpty){
+      @if(visibleRepositories.isEmpty){
         No repositories
       } else {
-        @userRepositories.map { repository =>
+        @visibleRepositories.map { repository =>
           <div class="block" data-owner="@repository.owner">
             <div class="repository-icon">
               @gitbucket.core.helper.html.repositoryicon(repository, true)
