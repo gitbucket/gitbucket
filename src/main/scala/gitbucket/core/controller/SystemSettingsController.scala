@@ -320,7 +320,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     } catch {
       case e: EmailException => s"[Error] ${e.getCause}"
-      case e: Exception      => "[Error] " + e.toString
+      case e: Exception      => s"[Error] ${e.toString}"
     }
   })
 
@@ -328,20 +328,31 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     // Installed plugins
     val enabledPlugins = PluginRegistry().getPlugins()
     val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+    val gitbucketSemver = Semver.valueOf(gitbucketVersion)
 
     // Plugins in the remote repository
     val repositoryPlugins = if (context.settings.pluginNetworkInstall) {
       PluginRepository
         .getPlugins()
-        .map { meta =>
-          (meta, meta.versions.reverse.find { version =>
-            val semver = Semver.valueOf(version.version)
-            gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
-              plugin.pluginId == meta.id &&
-              (Semver.valueOf(plugin.pluginVersion).greaterThan(semver) ||
-              (plugin.pluginVersion == version.version && plugin.gitbucketVersion == gitbucketVersion))
-            }
-          })
+        .map {
+          meta =>
+            (meta, meta.versions.reverse.find {
+              version =>
+                val semver = Semver.valueOf(version.version)
+                gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
+                  if (plugin.pluginId == meta.id) {
+                    Semver.valueOf(plugin.pluginVersion) match {
+                      case x if x.greaterThan(semver) => true
+                      case x if x.equals(semver) =>
+                        plugin.gitbucketVersion match {
+                          case None    => true
+                          case Some(x) => Semver.valueOf(x).greaterThanOrEqualTo(gitbucketSemver)
+                        }
+                      case _ => false
+                    }
+                  } else false
+                }
+            })
         }
         .collect {
           case (meta, Some(version)) =>
