@@ -337,7 +337,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           (meta, meta.versions.reverse.find { version =>
             val semver = Semver.valueOf(version.version)
             gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
-              plugin.pluginId == meta.id && Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(semver)
+              plugin.pluginId == meta.id &&
+              (Semver.valueOf(plugin.pluginVersion).greaterThan(semver) ||
+              (plugin.pluginVersion == version.version && plugin.gitbucketVersion == gitbucketVersion))
             }
           })
         }
@@ -393,10 +395,14 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     if (context.settings.pluginNetworkInstall) {
       val pluginId = params("pluginId")
       val version = params("version")
+      val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
 
       PluginRepository
         .getPlugins()
-        .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
+        .collectFirst {
+          case meta if meta.id == pluginId =>
+            (meta, meta.versions.find(x => x.gitbucketVersion == gitbucketVersion && x.version == version))
+        }
         .foreach {
           case (meta, version) =>
             version.foreach { version =>
