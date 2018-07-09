@@ -1228,7 +1228,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           s"attachment; filename=${repository.name}-${branch}${suffix}.zip"
         )
         contentType = "application/octet-stream"
-        response.setBufferSize(1024 * 1024);
+        response.setBufferSize(1024 * 1024)
         using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
           archive(".zip", zip) { (path, size, mode) =>
             val entry = new ZipArchiveEntry(path)

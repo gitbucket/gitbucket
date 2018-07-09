@@ -72,7 +72,7 @@ abstract class ControllerBase
         super.doFilter(request, response, chain)
       }
     } finally {
-      contextCache.remove();
+      contextCache.remove()
     }
 
   private val contextCache = new java.lang.ThreadLocal[Context]()
