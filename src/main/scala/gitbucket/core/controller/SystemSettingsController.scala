@@ -335,8 +335,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         .getPlugins()
         .map { meta =>
           (meta, meta.versions.reverse.find { version =>
+            val semver = Semver.valueOf(version.version)
             gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
-              plugin.pluginId == meta.id && plugin.pluginVersion == version.version
+              plugin.pluginId == meta.id && Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(semver)
             }
           })
         }
