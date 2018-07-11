@@ -836,7 +836,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/:branch.zip")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".zip", repository, "")
+    archiveRepository(branch, branch, repository, "", ".zip")
   })
 
   /**
@@ -844,7 +844,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/:branch.tar.gz")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.gz", repository, "")
+    archiveRepository(branch, branch + ".tar.gz", repository, "", ".tar.gz")
   })
 
   /**
@@ -852,7 +852,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/:branch.tar.bz2")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.bz2", repository, "")
+    archiveRepository(branch, branch + ".tar.bz2", repository, "", ".tar.bz2")
   })
 
   /**
@@ -860,7 +860,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/:branch.tar.xz")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.xz", repository, "")
+    archiveRepository(branch, branch + ".tar.xz", repository, "", ".tar.xz")
   })
 
   /**
@@ -869,7 +869,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/archive/:branch/:name")(referrersOnly { repository =>
     val branch = params("branch")
     val name = params("name")
-    archiveRepository(branch, name, repository, "")
+    var archType = "." + name.split("\\.").tail.mkString(".")
+    archiveRepository(branch, name, repository, "", archType)
   })
 
   /**
@@ -879,7 +880,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val branch = params("branch")
     val name = params("name")
     val path = multiParams("splat").head
-    archiveRepository(branch, name, repository, path)
+    var archType = "." + name.split("\\.").tail.mkString(".")
+    archiveRepository(branch, name, repository, path, archType)
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
@@ -1178,30 +1180,35 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     revision: String,
     filename: String,
     repository: RepositoryService.RepositoryInfo,
-    path: String
+    path: String,
+    archType: String
   ) = {
+    val branchName = revision.split(archType).head
+    var realBranch = filename.split(archType).head
+    var branchPath = branchName + "/" + realBranch
+    if (branchName == realBranch) {
+      branchPath = branchName
+    }
+    if (path != "") {
+      realBranch = branchName + "/" + path + "/" + filename.split(archType).head
+      branchPath = realBranch
+    }
     def archive(archiveFormat: String, archive: ArchiveOutputStream)(
       entryCreator: (String, Long, Int) => ArchiveEntry
     ): Unit = {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        val oid = git.getRepository.resolve(revision)
+        val oid = git.getRepository.resolve(branchPath)
         val revCommit = JGitUtil.getRevCommitFromId(git, oid)
         val sha1 = oid.getName()
-        val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
+        val repositorySuffix = (if (sha1.startsWith(branchPath)) sha1 else branchPath).replace('/', '-')
         val pathSuffix = if (path.isEmpty) "" else '-' + path.replace('/', '-')
-        val baseName = repository.name + "-" + repositorySuffix + pathSuffix
 
         using(new TreeWalk(git.getRepository)) { treeWalk =>
           treeWalk.addTree(revCommit.getTree)
           treeWalk.setRecursive(true)
-          if (!path.isEmpty) {
-            treeWalk.setFilter(PathFilter.create(path))
-          }
           if (treeWalk != null) {
             while (treeWalk.next()) {
-              val entryPath =
-                if (path.isEmpty) baseName + "/" + treeWalk.getPathString
-                else path.split("/").last + treeWalk.getPathString.substring(path.length)
+              val entryPath = repositorySuffix + "/" + treeWalk.getPathString
               val size = JGitUtil.getFileSize(git, repository, treeWalk)
               val mode = treeWalk.getFileMode.getBits
               val entry: ArchiveEntry = entryCreator(entryPath, size, mode)
@@ -1216,16 +1223,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
     }
 
+    var fileSuffix = "-" + filename.split(archType).head
+    var revisionSuffix = "-" + revision.split(archType).head
+    if (fileSuffix == revisionSuffix) {
+      revisionSuffix = ""
+    }
     val suffix =
       path.split("/").lastOption.collect { case x if x.length > 0 => "-" + x.replace('/', '_') }.getOrElse("")
+    fileSuffix = suffix + fileSuffix
+    val realFilename = revisionSuffix + fileSuffix + archType
+
     val zipRe = """(.+)\.zip$""".r
     val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 
-    filename match {
+    realFilename match {
       case zipRe(branch) =>
         response.setHeader(
           "Content-Disposition",
-          s"attachment; filename=${repository.name}-${branch}${suffix}.zip"
+          s"attachment; filename=${repository.name}${realFilename}"
         )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
@@ -1241,7 +1256,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case tarRe(branch, compressor) =>
         response.setHeader(
           "Content-Disposition",
-          s"attachment; filename=${repository.name}-${branch}${suffix}.tar.${compressor}"
+          s"attachment; filename=${repository.name}${realFilename}"
         )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
