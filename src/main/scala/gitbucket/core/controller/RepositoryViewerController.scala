@@ -834,52 +834,37 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Download repository contents as a zip archive as compatible URL.
    */
-  get("/:owner/:repository/archive/:branch.zip")(referrersOnly { repository =>
+  get("/:owner/:repository/archive/*/:branch.zip")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".zip", repository, "")
+    val path = multiParams("splat").head
+    archiveRepository(branch, branch + ".zip", repository, path)
   })
 
   /**
    * Download repository contents as a tar.gz archive as compatible URL.
    */
-  get("/:owner/:repository/archive/:branch.tar.gz")(referrersOnly { repository =>
+  get("/:owner/:repository/archive/*/:branch.tar.gz")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.gz", repository, "")
+    val path = multiParams("splat").head
+    archiveRepository(branch, branch + ".tar.gz", repository, path)
   })
 
   /**
    * Download repository contents as a tar.bz2 archive as compatible URL.
    */
-  get("/:owner/:repository/archive/:branch.tar.bz2")(referrersOnly { repository =>
+  get("/:owner/:repository/archive/*/:branch.tar.bz2")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.bz2", repository, "")
+    val path = multiParams("splat").head
+    archiveRepository(branch, branch + ".tar.bz2", repository, path)
   })
 
   /**
    * Download repository contents as a tar.xz archive as compatible URL.
    */
-  get("/:owner/:repository/archive/:branch.tar.xz")(referrersOnly { repository =>
+  get("/:owner/:repository/archive/*/:branch.tar.xz")(referrersOnly { repository =>
     val branch = params("branch")
-    archiveRepository(branch, branch + ".tar.xz", repository, "")
-  })
-
-  /**
-   * Download all repository contents as an archive.
-   */
-  get("/:owner/:repository/archive/:branch/:name")(referrersOnly { repository =>
-    val branch = params("branch")
-    val name = params("name")
-    archiveRepository(branch, name, repository, "")
-  })
-
-  /**
-   * Download repositories subtree contents as an archive.
-   */
-  get("/:owner/:repository/archive/:branch/*/:name")(referrersOnly { repository =>
-    val branch = params("branch")
-    val name = params("name")
     val path = multiParams("splat").head
-    archiveRepository(branch, name, repository, path)
+    archiveRepository(branch, branch + ".tar.xz", repository, path)
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
