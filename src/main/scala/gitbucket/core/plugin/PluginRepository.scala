@@ -4,6 +4,7 @@ import java.net.{InetSocketAddress, PasswordAuthentication}
 import java.net.{Proxy => JProxy}
 
 import gitbucket.core.controller.Context
+import gitbucket.core.util.SyntaxSugars.using
 import org.json4s._
 import org.apache.commons.io.IOUtils
 
@@ -21,7 +22,7 @@ object PluginRepository {
   def getPlugins()(implicit context: Context): Seq[PluginMetadata] = {
     try {
       val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
-      val in = context.settings.proxy match {
+      using(context.settings.proxy match {
         case Some(proxy) =>
           (proxy.user, proxy.password) match {
             case (Some(user), Some(password)) =>
@@ -31,15 +32,14 @@ object PluginRepository {
             case _ =>
               Authenticator.setDefault(null)
           }
-        
           url
             .openConnection(new JProxy(JProxy.Type.HTTP, new InetSocketAddress(proxy.host, proxy.port)))
             .getInputStream
-        
         case None => url.openStream()
+      }) { in =>
+        val str = IOUtils.toString(in, "UTF-8")
+        parsePluginJson(str)
       }
-      val str = IOUtils.toString(in, "UTF-8")
-      parsePluginJson(str)
     } catch {
       case t: Throwable =>
         logger.warn("Failed to access to the plugin repository: " + t.toString)
