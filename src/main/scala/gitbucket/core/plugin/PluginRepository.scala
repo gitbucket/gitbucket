@@ -6,9 +6,12 @@ import java.net.{Proxy => JProxy}
 import gitbucket.core.controller.Context
 import org.json4s._
 import org.apache.commons.io.IOUtils
+
 import java.net.Authenticator
+import org.slf4j.LoggerFactory
 
 object PluginRepository {
+  private val logger = LoggerFactory.getLogger(getClass)
   implicit val formats = DefaultFormats
 
   def parsePluginJson(json: String): Seq[PluginMetadata] = {
@@ -16,29 +19,33 @@ object PluginRepository {
   }
 
   def getPlugins()(implicit context: Context): Seq[PluginMetadata] = {
-    val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
-
-    val in = context.settings.proxy match {
-      case Some(proxy) =>
-        (proxy.user, proxy.password) match {
-          case (Some(user), Some(password)) =>
-            Authenticator.setDefault(new Authenticator() {
-              override def getPasswordAuthentication = new PasswordAuthentication(user, password.toCharArray)
-            })
-          case _ =>
-            Authenticator.setDefault(null)
-        }
-
-        url
-          .openConnection(new JProxy(JProxy.Type.HTTP, new InetSocketAddress(proxy.host, proxy.port)))
-          .getInputStream
-      case None => url.openStream()
+    try {
+      val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
+      val in = context.settings.proxy match {
+        case Some(proxy) =>
+          (proxy.user, proxy.password) match {
+            case (Some(user), Some(password)) =>
+              Authenticator.setDefault(new Authenticator() {
+                override def getPasswordAuthentication = new PasswordAuthentication(user, password.toCharArray)
+              })
+            case _ =>
+              Authenticator.setDefault(null)
+          }
+        
+          url
+            .openConnection(new JProxy(JProxy.Type.HTTP, new InetSocketAddress(proxy.host, proxy.port)))
+            .getInputStream
+        
+        case None => url.openStream()
+      }
+      val str = IOUtils.toString(in, "UTF-8")
+      parsePluginJson(str)
+    } catch {
+      case t: Throwable =>
+        logger.warn("Failed to access to the plugin repository: " + t.toString)
+        Nil
     }
-
-    val str = IOUtils.toString(in, "UTF-8")
-    parsePluginJson(str)
   }
-
 }
 
 // Mapped from plugins.json
