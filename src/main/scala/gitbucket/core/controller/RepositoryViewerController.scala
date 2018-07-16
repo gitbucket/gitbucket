@@ -831,40 +831,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     redirect(s"${repository.owner}/${repository.name}/releases")
   })
 
-  /**
-   * Download repository contents as a zip archive as compatible URL.
-   */
-  get("/:owner/:repository/archive/*/:branch.zip")(referrersOnly { repository =>
-    val branch = params("branch")
-    val path = multiParams("splat").head
-    archiveRepository(branch, branch + ".zip", repository, path)
+  get("/:owner/:repository/archive/:name")(referrersOnly { repository =>
+    val name = params("name")
+    archiveRepository(name, repository, "")
   })
 
-  /**
-   * Download repository contents as a tar.gz archive as compatible URL.
-   */
-  get("/:owner/:repository/archive/*/:branch.tar.gz")(referrersOnly { repository =>
-    val branch = params("branch")
+  get("/:owner/:repository/archive/*/:name")(referrersOnly { repository =>
+    val name = params("name")
     val path = multiParams("splat").head
-    archiveRepository(branch, branch + ".tar.gz", repository, path)
-  })
-
-  /**
-   * Download repository contents as a tar.bz2 archive as compatible URL.
-   */
-  get("/:owner/:repository/archive/*/:branch.tar.bz2")(referrersOnly { repository =>
-    val branch = params("branch")
-    val path = multiParams("splat").head
-    archiveRepository(branch, branch + ".tar.bz2", repository, path)
-  })
-
-  /**
-   * Download repository contents as a tar.xz archive as compatible URL.
-   */
-  get("/:owner/:repository/archive/*/:branch.tar.xz")(referrersOnly { repository =>
-    val branch = params("branch")
-    val path = multiParams("splat").head
-    archiveRepository(branch, branch + ".tar.xz", repository, path)
+    archiveRepository(name, repository, path)
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
@@ -1160,12 +1135,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
   private def archiveRepository(
-    revision: String,
     filename: String,
     repository: RepositoryService.RepositoryInfo,
     path: String
   ) = {
-    def archive(archiveFormat: String, archive: ArchiveOutputStream)(
+    def archive(revision: String, archiveFormat: String, archive: ArchiveOutputStream)(
       entryCreator: (String, Long, Int) => ArchiveEntry
     ): Unit = {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
@@ -1207,15 +1181,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 
     filename match {
-      case zipRe(branch) =>
+      case zipRe(revision) =>
         response.setHeader(
           "Content-Disposition",
-          s"attachment; filename=${repository.name}-${branch}${suffix}.zip"
+          s"attachment; filename=${repository.name}-${revision}${suffix}.zip"
         )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
         using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
-          archive(".zip", zip) { (path, size, mode) =>
+          archive(revision, ".zip", zip) { (path, size, mode) =>
             val entry = new ZipArchiveEntry(path)
             entry.setSize(size)
             entry.setUnixMode(mode)
@@ -1223,10 +1197,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         }
         ()
-      case tarRe(branch, compressor) =>
+      case tarRe(revision, compressor) =>
         response.setHeader(
           "Content-Disposition",
-          s"attachment; filename=${repository.name}-${branch}${suffix}.tar.${compressor}"
+          s"attachment; filename=${repository.name}-${revision}${suffix}.tar.${compressor}"
         )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
@@ -1239,7 +1213,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             tar.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR)
             tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU)
             tar.setAddPaxHeadersForNonAsciiNames(true)
-            archive(".tar.gz", tar) { (path, size, mode) =>
+            archive(revision, ".tar.gz", tar) { (path, size, mode) =>
               val entry = new TarArchiveEntry(path)
               entry.setSize(size)
               entry.setMode(mode)
@@ -1249,7 +1223,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
         ()
       case _ =>
-        BadRequest()
+        NotFound()
     }
   }
 
