@@ -11,9 +11,13 @@ object PluginRepository {
   }
 
   def getPlugins(): Seq[PluginMetadata] = {
-    val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
-    val str = IOUtils.toString(url, "UTF-8")
-    parsePluginJson(str)
+    try {
+      val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
+      val str = IOUtils.toString(url, "UTF-8")
+      parsePluginJson(str)
+    } catch {
+      case _: Throwable => Nil
+    }
   }
 
 }
