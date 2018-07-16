@@ -2,8 +2,10 @@ package gitbucket.core.plugin
 
 import org.json4s._
 import org.apache.commons.io.IOUtils
+import org.slf4j.LoggerFactory
 
 object PluginRepository {
+  private val logger = LoggerFactory.getLogger(getClass)
   implicit val formats = DefaultFormats
 
   def parsePluginJson(json: String): Seq[PluginMetadata] = {
@@ -16,7 +18,9 @@ object PluginRepository {
       val str = IOUtils.toString(url, "UTF-8")
       parsePluginJson(str)
     } catch {
-      case _: Throwable => Nil
+      case t: Throwable =>
+        logger.warn("Failed to access to the plugin repository: " + t.toString)
+        Nil
     }
   }
 
