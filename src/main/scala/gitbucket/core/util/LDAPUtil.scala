@@ -5,8 +5,11 @@ import SyntaxSugars._
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.Ldap
 import com.novell.ldap._
-import java.security.Security
+import java.security.{Provider, Security}
+import java.util.concurrent.atomic.AtomicReference
+
 import org.slf4j.LoggerFactory
+
 import scala.annotation.tailrec
 
 /**
@@ -15,9 +18,10 @@ import scala.annotation.tailrec
 object LDAPUtil {
 
   private val LDAP_VERSION: Int = LDAPConnection.LDAP_V3
-  private val logger = LoggerFactory.getLogger(getClass().getName())
-
   private val LDAP_DUMMY_MAL = "@ldap-devnull"
+
+  private val logger = LoggerFactory.getLogger(getClass().getName())
+  private val provider = new AtomicReference[Provider](null)
 
   /**
    * Returns true if mail address ends with "@ldap-devnull"
@@ -120,6 +124,17 @@ object LDAPUtil {
     }).replaceAll("[^a-zA-Z0-9\\-_.]", "").replaceAll("^[_\\-]", "")
   }
 
+  private def getSslProvider(): Provider = {
+    val cachedInstance = provider.get()
+    if(cachedInstance == null){
+      val newInstance = Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance().asInstanceOf[Provider]
+      provider.compareAndSet(null, newInstance)
+      newInstance
+    } else {
+      cachedInstance
+    }
+  }
+
   private def bind[A](
     host: String,
     port: Int,
@@ -132,7 +147,7 @@ object LDAPUtil {
   )(f: LDAPConnection => Either[String, A]): Either[String, A] = {
     if (tls) {
       // Dynamically set Sun as the security provider
-      Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider())
+      Security.addProvider(getSslProvider())
 
       if (keystore.compareTo("") != 0) {
         // Dynamically set the property that JSSE uses to identify
