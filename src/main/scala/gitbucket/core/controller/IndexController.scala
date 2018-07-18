@@ -237,9 +237,19 @@ trait IndexControllerBase extends ControllerBase {
         }
 
         target.toLowerCase match {
-          case "issue" =>
+          case "issues" =>
             gitbucket.core.search.html.issues(
-              if (query.nonEmpty) searchIssues(repository.owner, repository.name, query) else Nil,
+              if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, false) else Nil,
+              false,
+              query,
+              page,
+              repository
+            )
+
+          case "pulls" =>
+            gitbucket.core.search.html.issues(
+              if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, true) else Nil,
+              true,
               query,
               page,
               repository

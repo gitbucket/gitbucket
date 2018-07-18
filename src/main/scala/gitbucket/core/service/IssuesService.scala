@@ -630,7 +630,7 @@ trait IssuesService {
    * @param query the keywords separated by whitespace.
    * @return issues with comment count and matched content of issue or comment
    */
-  def searchIssuesByKeyword(owner: String, repository: String, query: String)(
+  def searchIssuesByKeyword(owner: String, repository: String, query: String, pullRequest: Boolean)(
     implicit s: Session
   ): List[(Issue, Int, String)] = {
     //import slick.driver.JdbcDriver.likeEncode
@@ -638,7 +638,9 @@ trait IssuesService {
 
     // Search Issue
     val issues = Issues
-      .filter(_.byRepository(owner, repository))
+      .filter { t =>
+        t.byRepository(owner, repository) && t.pullRequest === pullRequest.bind
+      }
       .join(IssueOutline)
       .on {
         case (t1, t2) =>
