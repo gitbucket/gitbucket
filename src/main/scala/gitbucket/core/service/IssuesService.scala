@@ -675,11 +675,12 @@ trait IssuesService {
       }
       .filter {
         case ((t1, t2), t3) =>
-          keywords
-            .map { query =>
-              t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
-            }
-            .reduceLeft(_ && _)
+          t2.pullRequest === pullRequest.bind &&
+            keywords
+              .map { query =>
+                t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+              }
+              .reduceLeft(_ && _)
       }
       .map {
         case ((t1, t2), t3) =>
@@ -690,7 +691,7 @@ trait IssuesService {
       .union(comments)
       .sortBy {
         case (issue, commentId, _, _) =>
-          issue.issueId -> commentId
+          issue.issueId.desc -> commentId
       }
       .list
       .splitWith {
