@@ -54,6 +54,9 @@ trait CommitCommentComponent extends TemplateComponent { self: Profile =>
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
     val issueId = column[Option[Int]]("ISSUE_ID")
+    val originalCommitId = column[String]("ORIGINAL_COMMIT_ID")
+    val originalOldLine = column[Option[Int]]("ORIGINAL_OLD_LINE")
+    val originalNewLine = column[Option[Int]]("ORIGINAL_NEW_LINE")
     def * =
       (
         userName,
@@ -67,7 +70,10 @@ trait CommitCommentComponent extends TemplateComponent { self: Profile =>
         newLine,
         registeredDate,
         updatedDate,
-        issueId
+        issueId,
+        originalCommitId,
+        originalOldLine,
+        originalNewLine
       ) <> (CommitComment.tupled, CommitComment.unapply)
 
     def byPrimaryKey(commentId: Int) = this.commentId === commentId.bind
@@ -86,7 +92,10 @@ case class CommitComment(
   newLine: Option[Int],
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
-  issueId: Option[Int]
+  issueId: Option[Int],
+  originalCommitId: String,
+  originalOldLine: Option[Int],
+  originalNewLine: Option[Int]
 ) extends Comment
 
 case class CommitComments(
