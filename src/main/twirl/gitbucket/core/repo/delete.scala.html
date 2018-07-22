@@ -32,8 +32,8 @@
         <tr>
           <td>
             <div id="diffText"></div>
-            <textarea id="newText" style="display: none;" data-file-name="@fileName"></textarea>
-            <textarea id="oldText" style="display: none;" data-file-name="@fileName">@content.content</textarea>
+            <input type="hidden" id="newText" data-file-name="@fileName" value="">
+            <input type="hidden" id="oldText" data-file-name="@fileName" value="@content.content">
           </td>
         </tr>
       </table>
@@ -46,7 +46,7 @@
             <input type="text" name="message" class="form-control"/>
           </div>
           <div style="text-align: right;">
-            <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default">Cancel</a>
+            <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList ::: List(fileName)).mkString("/"))" class="btn btn-default">Cancel</a>
             <input type="submit" id="commitButton" class="btn btn-success" value="Commit changes"/>
           </div>
         </div>

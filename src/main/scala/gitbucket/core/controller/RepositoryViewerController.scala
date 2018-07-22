@@ -427,8 +427,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       commit = form.commit
     )
 
+    println(form.path)
+
     redirect(
-      s"/${repository.owner}/${repository.name}/tree/${form.branch}${if (form.path.length == 0) "" else form.path}"
+      s"/${repository.owner}/${repository.name}/tree/${form.branch}${if (form.path.length == 0) "" else "/" + form.path}"
     )
   })
 
