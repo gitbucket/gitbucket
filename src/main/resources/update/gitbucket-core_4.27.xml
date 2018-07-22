@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <addColumn tableName="COMMIT_COMMENT">
+    <column name="ORIGINAL_COMMIT_ID" type="varchar(100)" nullable="true"/>
+    <column name="ORIGINAL_OLD_LINE" type="int" nullable="true"/>
+    <column name="ORIGINAL_NEW_LINE" type="int" nullable="true"/>
+  </addColumn>
+  <update tableName="COMMIT_COMMENT">
+    <column name="ORIGINAL_COMMIT_ID" valueComputed="COMMIT_ID"/>
+    <column name="ORIGINAL_OLD_LINE" valueComputed="OLD_LINE_NUMBER"/>
+    <column name="ORIGINAL_NEW_LINE" valueComputed="NEW_LINE_NUMBER"/>
+  </update>
+  <addNotNullConstraint columnName="ORIGINAL_COMMIT_ID" tableName="COMMIT_COMMENT" columnDataType="varchar(100)"/>
+</changeSet>
