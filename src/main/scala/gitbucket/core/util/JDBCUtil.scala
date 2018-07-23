@@ -202,8 +202,7 @@ object JDBCUtil {
 
     private def allTablesOrderByDependencies(meta: DatabaseMetaData): Seq[String] = {
       val tables = allTableNames.map { tableName =>
-        val result = TableDependency(tableName, childTables(meta, tableName))
-        result
+        TableDependency(tableName, childTables(meta, tableName))
       }
 
       val edges = tables.flatMap { table =>
@@ -212,7 +211,10 @@ object JDBCUtil {
         }
       }
 
-      tsort(edges).toSeq
+      val ordered = tsort(edges).toSeq
+      val orphans = tables.collect { case x if !ordered.contains(x.tableName) => x.tableName }
+
+      ordered ++ orphans
     }
 
     def tsort[A](edges: Traversable[(A, A)]): Iterable[A] = {
