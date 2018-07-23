@@ -117,6 +117,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     diff: Option[String]
   )
 
+  case class TagForm(
+    commitId: String,
+    tagName: String,
+    message: Option[String]
+  )
+
   val uploadForm = mapping(
     "branch" -> trim(label("Branch", text(required))),
     "path" -> trim(label("Path", text())),
@@ -152,6 +158,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "issueId" -> trim(label("Issue Id", optional(number()))),
     "diff" -> optional(text())
   )(CommentForm.apply)
+
+  val tagForm = mapping(
+    "commitId" -> trim(label("Commit id", text(required))),
+    "tagName" -> trim(label("Tag name", text(required))),
+    "message" -> trim(label("Message", optional(text())))
+  )(TagForm.apply)
 
   /**
    * Returns converted HTML from Markdown for preview.
@@ -542,7 +554,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 repository,
                 diffs,
                 oldCommitId,
-                hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+                hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
+                flash.get("info"),
+                flash.get("error")
               )
           }
       }
@@ -789,6 +803,29 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       .reverse
 
     html.branches(branches, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
+  })
+
+  /**
+   * Displays the create tag dialog.
+   */
+  get("/:owner/:repository/tag/:id")(writableUsersOnly { repository =>
+    html.tag(params("id"), repository)
+  })
+
+  /**
+   * Creates a tag.
+   */
+  post("/:owner/:repository/tag", tagForm)(writableUsersOnly { (form, repository) =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      JGitUtil.createTag(git, form.tagName, form.message, form.commitId)
+    } match {
+      case Right(message) =>
+        flash += "info" -> message
+        redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
+      case Left(message) =>
+        flash += "error" -> message
+        redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
+    }
   })
 
   /**
