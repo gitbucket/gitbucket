@@ -831,15 +831,16 @@ object JGitUtil {
       .find(_._1 != null)
   }
 
-  def createTag(git: Git, name: String, message: String, commitId: String) = {
+  def createTag(git: Git, name: String, message: Option[String], commitId: String) = {
     try {
       val objectId: ObjectId = git.getRepository.resolve(commitId)
-      val walk: RevWalk = new RevWalk(git.getRepository)
-      val tagCommand = git.tag().setName(name).setObjectId(walk.parseCommit(objectId))
-      if (!message.isEmpty) {
-        tagCommand.setMessage(message)
+      using(new RevWalk(git.getRepository)) { walk =>
+        val tagCommand = git.tag().setName(name).setObjectId(walk.parseCommit(objectId))
+        message.foreach { message =>
+          tagCommand.setMessage(message)
+        }
+        tagCommand.call()
       }
-      tagCommand.call()
       Right("Tag added.")
     } catch {
       case e: GitAPIException              => Left("Sorry, some Git operation error occurs.")
