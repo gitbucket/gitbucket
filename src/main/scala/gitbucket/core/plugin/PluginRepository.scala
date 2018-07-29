@@ -1,14 +1,12 @@
 package gitbucket.core.plugin
 
-import java.net.{InetSocketAddress, PasswordAuthentication}
-import java.net.{Proxy => JProxy}
-
 import gitbucket.core.controller.Context
 import gitbucket.core.util.SyntaxSugars.using
+import gitbucket.core.util.HttpClientUtil._
 import org.json4s._
 import org.apache.commons.io.IOUtils
 
-import java.net.Authenticator
+import org.apache.http.client.methods.HttpGet
 import org.slf4j.LoggerFactory
 
 object PluginRepository {
@@ -22,23 +20,18 @@ object PluginRepository {
   def getPlugins()(implicit context: Context): Seq[PluginMetadata] = {
     try {
       val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
-      using(context.settings.proxy match {
-        case Some(proxy) =>
-          (proxy.user, proxy.password) match {
-            case (Some(user), Some(password)) =>
-              Authenticator.setDefault(new Authenticator() {
-                override def getPasswordAuthentication = new PasswordAuthentication(user, password.toCharArray)
-              })
-            case _ =>
-              Authenticator.setDefault(null)
+
+      withHttpClient(context.settings.proxy) { httpClient =>
+        val httpGet = new HttpGet(url.toString)
+        try {
+          val response = httpClient.execute(httpGet)
+          using(response.getEntity.getContent) { in =>
+            val str = IOUtils.toString(in, "UTF-8")
+            parsePluginJson(str)
           }
-          url
-            .openConnection(new JProxy(JProxy.Type.HTTP, new InetSocketAddress(proxy.host, proxy.port)))
-            .getInputStream
-        case None => url.openStream()
-      }) { in =>
-        val str = IOUtils.toString(in, "UTF-8")
-        parsePluginJson(str)
+        } finally {
+          httpGet.releaseConnection()
+        }
       }
     } catch {
       case t: Throwable =>

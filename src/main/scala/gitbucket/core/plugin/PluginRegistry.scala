@@ -6,8 +6,8 @@ import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
-import javax.servlet.ServletContext
 
+import javax.servlet.ServletContext
 import com.github.zafarkhaja.semver.Version
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
@@ -18,10 +18,12 @@ import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
+import gitbucket.core.util.HttpClientUtil._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
+import org.apache.http.client.methods.HttpGet
 import org.apache.sshd.server.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
@@ -253,8 +255,17 @@ object PluginRegistry {
         })
         .foreach(_.delete())
 
-      val in = url.openStream()
-      FileUtils.copyToFile(in, new File(PluginHome, new File(url.getFile).getName))
+      withHttpClient(settings.proxy) { httpClient =>
+        val httpGet = new HttpGet(url.toString)
+        try {
+          val response = httpClient.execute(httpGet)
+          val in = response.getEntity.getContent
+          FileUtils.copyToFile(in, new File(PluginHome, new File(url.getFile).getName))
+        } finally {
+          httpGet.releaseConnection()
+        }
+      }
+
       instance = new PluginRegistry()
       initialize(context, settings, conn)
     }
