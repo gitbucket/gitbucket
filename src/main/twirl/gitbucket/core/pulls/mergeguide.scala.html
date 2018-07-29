@@ -10,7 +10,7 @@
       @if(!status.statuses.isEmpty){
         <div class="build-statuses">
           @defining(status.commitStateSummary){ case (summaryState, summary) =>
-            <a class="pull-right" id="toggle-all-checks"></a>
+            <a class="pull-right" id="toggle-all-checks" href="javascript:void(0);"></a>
             <span class="build-status-icon text-@{summaryState.name}">@helpers.commitStateIcon(summaryState)</span>
             <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, pullreq.commitIdTo)</strong>
             <span class="text-@{summaryState.name}">— @summary checks</span>

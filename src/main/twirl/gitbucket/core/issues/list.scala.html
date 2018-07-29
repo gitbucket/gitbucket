@@ -25,7 +25,7 @@
     <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right" autocomplete="off">
       <div class="input-group">
         <input type="text" class="form-control" name="q" placeholder="Search..."/>
-        <input type="hidden" name="type" value="issue"/>
+        <input type="hidden" name="type" value="@target"/>
         <span class="input-group-btn">
           <button type="submit" id="search-btn" class="btn btn-default"><i class="fa fa-search"></i></button>
         </span>

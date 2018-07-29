@@ -1,0 +1,26 @@
+@(commitId: String,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<h2 class="facebox-header">
+  Add tag
+</h2>
+<form action="@helpers.url(repository)/tag" id="tag" method="post" validate="true">
+  <fieldset style="margin-top: 20px;">
+    <div class="form-group">
+      <label class="control-label" for="tagName">Tag name</label>
+      <input type="text" id="tagName" name="tagName" class="form-control">
+      <span class="error" id="error-tagName"></span>
+    </div>
+  </fieldset>
+  <fieldset>
+    <div class="form-group">
+      <label class="control-label" for="message">Message</label>
+      <input type="text" id="message" name="message" class="form-control">
+      <span class="error" id="error-message"></span>
+    </div>
+  </fieldset>
+  <div class="text-right">
+    <input type="hidden" name="commitId" value="@commitId">
+    <input type="submit" class="btn btn-success" value="Add tag">
+  </div>
+</form>

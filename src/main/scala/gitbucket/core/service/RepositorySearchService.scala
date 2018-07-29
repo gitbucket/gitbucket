@@ -14,18 +14,21 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._
 
-  def countIssues(owner: String, repository: String, query: String)(implicit session: Session): Int =
-    searchIssuesByKeyword(owner, repository, query).length
+  def countIssues(owner: String, repository: String, query: String, pullRequest: Boolean)(
+    implicit session: Session
+  ): Int =
+    searchIssuesByKeyword(owner, repository, query, pullRequest).length
 
-  def searchIssues(owner: String, repository: String, query: String)(
+  def searchIssues(owner: String, repository: String, query: String, pullRequest: Boolean)(
     implicit session: Session
   ): List[IssueSearchResult] =
-    searchIssuesByKeyword(owner, repository, query).map {
+    searchIssuesByKeyword(owner, repository, query, pullRequest).map {
       case (issue, commentCount, content) =>
         IssueSearchResult(
           issue.issueId,
           issue.isPullRequest,
           issue.title,
+          issue.closed,
           issue.openedUserName,
           issue.registeredDate,
           commentCount,
@@ -142,6 +145,7 @@ object RepositorySearchService {
     issueId: Int,
     isPullRequest: Boolean,
     title: String,
+    isClosed: Boolean,
     openedUserName: String,
     registeredDate: java.util.Date,
     commentCount: Int,

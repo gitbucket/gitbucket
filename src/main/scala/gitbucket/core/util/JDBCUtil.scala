@@ -143,6 +143,7 @@ object JDBCUtil {
                       case Types.BOOLEAN | Types.BIT                                   => rs.getBoolean(columnName)
                       case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => rs.getString(columnName)
                       case Types.INTEGER                                               => rs.getInt(columnName)
+                      case Types.BIGINT                                                => rs.getLong(columnName)
                       case Types.TIMESTAMP                                             => rs.getTimestamp(columnName)
                     }
                   }
@@ -202,8 +203,7 @@ object JDBCUtil {
 
     private def allTablesOrderByDependencies(meta: DatabaseMetaData): Seq[String] = {
       val tables = allTableNames.map { tableName =>
-        val result = TableDependency(tableName, childTables(meta, tableName))
-        result
+        TableDependency(tableName, childTables(meta, tableName))
       }
 
       val edges = tables.flatMap { table =>
@@ -212,7 +212,10 @@ object JDBCUtil {
         }
       }
 
-      tsort(edges).toSeq
+      val ordered = tsort(edges).toSeq
+      val orphans = tables.collect { case x if !ordered.contains(x.tableName) => x.tableName }
+
+      ordered ++ orphans
     }
 
     def tsort[A](edges: Traversable[(A, A)]): Iterable[A] = {
