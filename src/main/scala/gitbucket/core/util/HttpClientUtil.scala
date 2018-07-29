@@ -11,8 +11,9 @@ object HttpClientUtil {
     val builder = HttpClientBuilder.create.useSystemProperties
 
     proxy.foreach { proxy =>
+      builder.setProxy(new HttpHost(proxy.host, proxy.port))
+
       for (user <- proxy.user; password <- proxy.password) {
-        builder.setProxy(new HttpHost(proxy.host, proxy.port))
         val credential = new BasicCredentialsProvider()
         credential.setCredentials(
           new AuthScope(proxy.host, proxy.port),
