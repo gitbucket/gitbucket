@@ -21,7 +21,7 @@ object PluginRepository {
     try {
       val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
 
-      withHttpClient(context.settings.proxy) { httpClient =>
+      withHttpClient(context.settings.pluginProxy) { httpClient =>
         val httpGet = new HttpGet(url.toString)
         try {
           val response = httpClient.execute(httpGet)

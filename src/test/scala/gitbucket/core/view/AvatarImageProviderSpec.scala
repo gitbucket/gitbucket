@@ -139,7 +139,7 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       skinName = "skin-blue",
       showMailAddress = false,
       pluginNetworkInstall = false,
-      proxy = None
+      pluginProxy = None
     )
 
   /**

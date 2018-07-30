@@ -255,7 +255,7 @@ object PluginRegistry {
         })
         .foreach(_.delete())
 
-      withHttpClient(settings.proxy) { httpClient =>
+      withHttpClient(settings.pluginProxy) { httpClient =>
         val httpGet = new HttpGet(url.toString)
         try {
           val response = httpClient.execute(httpGet)

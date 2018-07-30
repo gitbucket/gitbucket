@@ -70,14 +70,14 @@ trait SystemSettingsService {
       props.setProperty(SkinName, settings.skinName.toString)
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
       props.setProperty(PluginNetworkInstall, settings.pluginNetworkInstall.toString)
-      settings.proxy.foreach { proxy =>
-        props.setProperty(ProxyHost, proxy.host)
-        props.setProperty(ProxyPort, proxy.port.toString)
+      settings.pluginProxy.foreach { proxy =>
+        props.setProperty(PluginProxyHost, proxy.host)
+        props.setProperty(PluginProxyPort, proxy.port.toString)
         proxy.user.foreach { user =>
-          props.setProperty(ProxyUser, user)
+          props.setProperty(PluginProxyUser, user)
         }
         proxy.password.foreach { password =>
-          props.setProperty(ProxyPassword, password)
+          props.setProperty(PluginProxyPassword, password)
         }
       }
 
@@ -158,13 +158,13 @@ trait SystemSettingsService {
         getValue(props, SkinName, "skin-blue"),
         getValue(props, ShowMailAddress, false),
         getValue(props, PluginNetworkInstall, false),
-        if (getValue(props, ProxyHost, "").nonEmpty) {
+        if (getValue(props, PluginProxyHost, "").nonEmpty) {
           Some(
             Proxy(
-              getValue(props, ProxyHost, ""),
-              getValue(props, ProxyPort, 8080),
-              getOptionValue(props, ProxyUser, None),
-              getOptionValue(props, ProxyPassword, None)
+              getValue(props, PluginProxyHost, ""),
+              getValue(props, PluginProxyPort, 8080),
+              getOptionValue(props, PluginProxyUser, None),
+              getOptionValue(props, PluginProxyPassword, None)
             )
           )
         } else None
@@ -198,7 +198,7 @@ object SystemSettingsService {
     skinName: String,
     showMailAddress: Boolean,
     pluginNetworkInstall: Boolean,
-    proxy: Option[Proxy]
+    pluginProxy: Option[Proxy]
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
@@ -322,10 +322,10 @@ object SystemSettingsService {
   private val SkinName = "skinName"
   private val ShowMailAddress = "showMailAddress"
   private val PluginNetworkInstall = "plugin.networkInstall"
-  private val ProxyHost = "proxy.host"
-  private val ProxyPort = "proxy.port"
-  private val ProxyUser = "proxy.user"
-  private val ProxyPassword = "proxy.password"
+  private val PluginProxyHost = "plugin.proxy.host"
+  private val PluginProxyPort = "plugin.proxy.port"
+  private val PluginProxyUser = "plugin.proxy.user"
+  private val PluginProxyPassword = "plugin.proxy.password"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {
