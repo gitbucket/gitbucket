@@ -3,12 +3,12 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.25.0"
-val ScalatraVersion = "2.6.1"
-val JettyVersion = "9.4.7.v20170914"
+val GitBucketVersion = "4.27.0"
+val ScalatraVersion = "2.6.3"
+val JettyVersion = "9.4.11.v20180605"
 
 lazy val root = (project in file("."))
-  .enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
+  .enablePlugins(SbtTwirl, ScalatraPlugin)
   .settings(
     )
 
@@ -30,8 +30,8 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "4.11.0.201803080745-r",
-  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "4.11.0.201803080745-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % "5.0.1.201806211838-r",
+  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % "5.0.1.201806211838-r",
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
@@ -47,8 +47,8 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.196",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.4",
-  "org.postgresql"                  % "postgresql"                   % "42.1.4",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.2.6",
+  "org.postgresql"                  % "postgresql"                   % "42.2.4",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "2.7.4",
   "com.typesafe"                    % "config"                       % "1.3.2",
@@ -68,7 +68,8 @@ libraryDependencies ++= Seq(
   "com.wix"                         % "wix-embedded-mysql"           % "3.0.0" % "test",
   "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.6" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.2.0",
-  "is.tagomor.woothee"              % "woothee-java"                 % "1.7.0"
+  "is.tagomor.woothee"              % "woothee-java"                 % "1.7.0",
+  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.1"
 )
 
 // Compiler settings
@@ -94,21 +95,6 @@ assemblyMergeStrategy in assembly := {
       case _                      => MergeStrategy.discard
     }
   case x => MergeStrategy.first
-}
-
-// JRebel
-//Seq(jrebelSettings: _*)
-
-//jrebel.webLinks += (target in webappPrepare).value
-//jrebel.enabled := System.getenv().get("JREBEL") != null
-javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { path =>
-  if (path.endsWith(".jar")) {
-    // Legacy JRebel agent
-    Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
-  } else {
-    // New JRebel agent
-    Seq(s"-agentpath:${path}")
-  }
 }
 
 // Exclude a war file from published artifacts
@@ -170,12 +156,17 @@ executableKey := {
   // include plugins
   val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
   IO createDirectory (pluginsDir)
-  IO copyFile (Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
 
-  val json = IO read (Keys.baseDirectory.value / "plugins.json")
-  PluginsJson.getUrls(json).foreach { url =>
-    log info s"Download: ${url}"
-    IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+  val plugins = IO readLines (Keys.baseDirectory.value / "src" / "main" / "resources" / "bundle-plugins.txt")
+  plugins.foreach { plugin =>
+    plugin.trim.split(":") match {
+      case Array(pluginId, pluginVersion) =>
+        val url = "https://plugins.gitbucket-community.org/releases/" +
+          s"gitbucket-${pluginId}-plugin/gitbucket-${pluginId}-plugin-gitbucket_${version.value}-${pluginVersion}.jar"
+        log info s"Download: ${url}"
+        IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+      case _ => ()
+    }
   }
 
   // zip it up

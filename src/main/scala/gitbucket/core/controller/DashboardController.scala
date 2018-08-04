@@ -21,6 +21,11 @@ class DashboardController
 trait DashboardControllerBase extends ControllerBase {
   self: IssuesService with PullRequestService with RepositoryService with AccountService with UsersAuthenticator =>
 
+  get("/dashboard/repos")(usersOnly {
+    val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
+    html.repos(getGroupNames(context.loginAccount.get.userName), repos, repos)
+  })
+
   get("/dashboard/issues")(usersOnly {
     searchIssues("created_by")
   })
@@ -83,8 +88,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      Nil,
-      getUserRepositories(userName, withoutPhysicalInfo = true)
+      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
     )
   }
 
@@ -109,8 +113,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      Nil,
-      getUserRepositories(userName, withoutPhysicalInfo = true)
+      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
     )
   }
 

@@ -1,21 +1,27 @@
 @(issues: List[gitbucket.core.service.RepositorySearchService.IssueSearchResult],
+  pullRequest: Boolean,
   query: String,
   page: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.RepositorySearchService
 @gitbucket.core.html.main("Search Results", Some(repository)){
-  @gitbucket.core.search.html.menu("issues", query, repository){
+  @gitbucket.core.search.html.menu(if(pullRequest) "pulls" else "issues", query, repository){
     @if(query.nonEmpty) {
       @if(issues.isEmpty) {
-        <h4>We couldn't find any code matching '@query'</h4>
+        <h4>We couldn't find any @{if(pullRequest) "pull requests" else "issues"} matching '@query'</h4>
       } else {
-        <h4>We've found @issues.size @helpers.plural(issues.size, "issue")</h4>
+        <h4>We've found @issues.size @helpers.plural(issues.size, if(pullRequest) "pull request" else "issue")</h4>
       }
     }
     @issues.drop((page - 1) * RepositorySearchService.IssueLimit).take(RepositorySearchService.IssueLimit).map { issue =>
       <div class="block">
-        <div class="pull-right muted">#@issue.issueId</div>
+        <div class="pull-right muted">
+          @if(issue.isClosed){
+            <span class="label label-danger">Closed</span>
+          }
+          #@issue.issueId
+        </div>
         <h4 style="margin-top: 0px;"><a href="@helpers.url(repository)/@if(issue.isPullRequest){pull} else {issues}/@issue.issueId">@issue.title</a></h4>
         @if(issue.highlightText.nonEmpty){
           <pre>@Html(issue.highlightText)</pre>
@@ -31,6 +37,6 @@
       </div>
     }
     @gitbucket.core.helper.html.paginator(page, issues.size, RepositorySearchService.IssueLimit, 10,
-      s"${helpers.url(repository)}/search?q=${helpers.urlEncode(query)}&type=issue")
+      s"${helpers.url(repository)}/search?q=${helpers.urlEncode(query)}&type=${if(pullRequest) "pulls" else "issues"}")
   }
 }

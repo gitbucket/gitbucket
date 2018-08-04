@@ -1,10 +1,9 @@
 @(query: String,
   repositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("GitBucket"){
-  @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories){
     <form action="@context.path/search" method="GET" class="form-inline">
       <input type="text" name="query" value="@query" class="form-control" style="width: 250px; margin-bottom: 0px;"/>
       <input type="submit" value="Search" class="btn btn-default"/>

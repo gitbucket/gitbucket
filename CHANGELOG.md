@@ -1,6 +1,20 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.27.0 - 29 Jul 2018
+- Create new tag on the browser
+- EditorConfig support
+- Improve issues / pull requests search
+- Some improvements and bug fixes for plugin installation via internet and pull request commenting
+
+### 4.26.0 - 30 Jun 2018
+- Installing plugins from the central registry
+- Repositories tab in the dashboard
+- Fork dialog enhancement
+- Adjust pull request creation suggestor
+- Keep showing incompleted task list
+- New notification hooks
+
 ### 4.25.0 - 29 May 2018
 - Security improvements
 - Show mail address at the profile page

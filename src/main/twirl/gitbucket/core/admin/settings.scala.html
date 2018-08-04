@@ -8,6 +8,7 @@
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
         <li><a href="#system">System settings</a></li>
         <li><a href="#authentication">Authentication</a></li>
+        <li><a href="#plugins">Plugins</a></li>
       </ul>
       <div class="tab-content fill-width" style="padding-top: 20px;">
         <div class="tab-pane" id="system">
@@ -15,6 +16,9 @@
         </div>
         <div class="tab-pane" id="authentication">
           @settings_authentication(info)
+        </div>
+        <div class="tab-pane" id="plugins">
+          @settings_plugins(info)
         </div>
       </div>
       <hr>
@@ -30,6 +34,9 @@ $(function(){
   if(location.hash == '#authentication'){
     $('li:has(a[href="#authentication"])').addClass('active');
     $('div#authentication').addClass('active');
+  } else if(location.hash == '#plugins'){
+    $('li:has(a[href="#plugins"])').addClass('active');
+    $('div#plugins').addClass('active');
   } else {
     $('li:has(a[href="#system"])').addClass('active');
     $('div#system').addClass('active');

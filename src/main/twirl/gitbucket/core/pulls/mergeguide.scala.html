@@ -10,7 +10,7 @@
       @if(!status.statuses.isEmpty){
         <div class="build-statuses">
           @defining(status.commitStateSummary){ case (summaryState, summary) =>
-            <a class="pull-right" id="toggle-all-checks"></a>
+            <a class="pull-right" id="toggle-all-checks" href="javascript:void(0);"></a>
             <span class="build-status-icon text-@{summaryState.name}">@helpers.commitStateIcon(summaryState)</span>
             <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, pullreq.commitIdTo)</strong>
             <span class="text-@{summaryState.name}">— @summary checks</span>
@@ -106,7 +106,7 @@
             @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", forkedRepository.httpUrl){
               <div class="input-group-btn" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active" id="repository-url-http"><input type="radio" checked>HTTP</label>
-                @if(context.settings.ssh && context.loginAccount.isDefined){
+                @if(context.settings.ssh.enabled && context.loginAccount.isDefined){
                   <label class="btn btn-sm btn-default" id="repository-url-ssh"><input type="radio">SSH</label>
                 }
               </div>

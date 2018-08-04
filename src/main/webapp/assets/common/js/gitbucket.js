@@ -76,17 +76,22 @@ function displayErrors(data, elem){
  * @param ignoreSpace {Number} 0: include, 1: ignore
  */
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
-  var old = $('#'+oldTextId), head = $('#'+newTextId);
+  var old = $('#'+oldTextId), head = $('#' + newTextId);
   var render = new JsDiffRender({
-    oldText: old.attr('data-val'),
+    oldText: old.val(),
     oldTextName: old.attr('data-file-name'),
-    newText: head.attr('data-val'),
+    newText: head.val(),
     newTextName: head.attr('data-file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
   });
-  var diff = render[viewType==1 ? "unified" : "split"]();
-  diff.appendTo($('#'+outputId).html(""));
+  var diff = render[viewType == 1 ? "unified" : "split"]();
+  if(viewType == 1){
+    diff.find('tr:last').after($('<tr><td></td><td></td><td></td></tr>'));
+  } else {
+    diff.find('tr:last').after($('<tr><td></td><td></td><td></td><td></td></tr>'));
+  }
+  diff.appendTo($('#' + outputId).html(""));
 }
 
 

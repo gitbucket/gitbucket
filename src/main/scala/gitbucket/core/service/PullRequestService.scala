@@ -181,9 +181,9 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         // Collect comment positions
         val positions = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
           .collect {
-            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _) =>
+            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _, _, _, _) =>
               (file, commentId, Right(newLine))
-            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _) =>
+            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _, _, _, _) =>
               (file, commentId, Left(oldLine))
           }
           .groupBy { case (file, _, _) => file }
@@ -348,7 +348,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
       .groupBy {
         case x: IssueComment                        => (Some(x.commentId), None, None, None)
         case x: CommitComment if x.fileName.isEmpty => (Some(x.commentId), None, None, None)
-        case x: CommitComment                       => (None, x.fileName, x.oldLine, x.newLine)
+        case x: CommitComment                       => (None, x.fileName, x.originalOldLine, x.originalNewLine)
         case x                                      => throw new MatchError(x)
       }
       .toSeq
@@ -366,7 +366,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
             diff = loadCommitCommentDiff(
               userName,
               repositoryName,
-              comments.head.asInstanceOf[CommitComment].commitId,
+              comments.head.asInstanceOf[CommitComment].originalCommitId,
               fileName,
               oldLine,
               newLine

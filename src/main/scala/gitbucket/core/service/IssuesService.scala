@@ -6,20 +6,21 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{
+  Account,
+  CommitState,
   Issue,
-  PullRequest,
   IssueComment,
   IssueLabel,
   Label,
-  Account,
+  PullRequest,
   Repository,
-  CommitState,
   Role
 }
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.plugin.PluginRegistry
 
 trait IssuesService {
   self: AccountService with RepositoryService with LabelsService with PrioritiesService with MilestonesService =>
@@ -511,19 +512,23 @@ trait IssuesService {
     assignedUserName: Option[String],
     insertComment: Boolean = false
   )(implicit context: Context, s: Session): Int = {
+    val oldAssigned = getIssue(owner, repository, s"${issueId}").get.assignedUserName
+    val assigned = assignedUserName
+    val assigner = context.loginAccount.map(_.userName)
     if (insertComment) {
-      val oldAssigned = getIssue(owner, repository, s"${issueId}").get.assignedUserName.getOrElse("Not assigned")
-      val assigned = assignedUserName.getOrElse("Not assigned")
       IssueComments insert IssueComment(
         userName = owner,
         repositoryName = repository,
         issueId = issueId,
         action = "assign",
-        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
-        content = s"${oldAssigned}:${assigned}",
+        commentedUserName = assigner.getOrElse("Unknown user"),
+        content = s"""${oldAssigned.getOrElse("Not assigned")}:${assigned.getOrElse("Not assigned")}""",
         registeredDate = currentDate,
         updatedDate = currentDate
       )
+    }
+    for (issue <- getIssue(owner, repository, issueId.toString); repo <- getRepository(owner, repository)) {
+      PluginRegistry().getIssueHooks.foreach(_.assigned(issue, repo, assigner, assigned, oldAssigned))
     }
     Issues
       .filter(_.byPrimaryKey(owner, repository, issueId))
@@ -625,7 +630,7 @@ trait IssuesService {
    * @param query the keywords separated by whitespace.
    * @return issues with comment count and matched content of issue or comment
    */
-  def searchIssuesByKeyword(owner: String, repository: String, query: String)(
+  def searchIssuesByKeyword(owner: String, repository: String, query: String, pullRequest: Boolean)(
     implicit s: Session
   ): List[(Issue, Int, String)] = {
     //import slick.driver.JdbcDriver.likeEncode
@@ -633,7 +638,9 @@ trait IssuesService {
 
     // Search Issue
     val issues = Issues
-      .filter(_.byRepository(owner, repository))
+      .filter { t =>
+        t.byRepository(owner, repository) && t.pullRequest === pullRequest.bind
+      }
       .join(IssueOutline)
       .on {
         case (t1, t2) =>
@@ -668,11 +675,12 @@ trait IssuesService {
       }
       .filter {
         case ((t1, t2), t3) =>
-          keywords
-            .map { query =>
-              t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
-            }
-            .reduceLeft(_ && _)
+          t2.pullRequest === pullRequest.bind &&
+            keywords
+              .map { query =>
+                t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+              }
+              .reduceLeft(_ && _)
       }
       .map {
         case ((t1, t2), t3) =>
@@ -683,7 +691,7 @@ trait IssuesService {
       .union(comments)
       .sortBy {
         case (issue, commentId, _, _) =>
-          issue.issueId -> commentId
+          issue.issueId.desc -> commentId
       }
       .list
       .splitWith {

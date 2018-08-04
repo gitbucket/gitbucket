@@ -45,9 +45,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "gravatar" -> trim(label("Gravatar", boolean())),
     "notification" -> trim(label("Notification", boolean())),
     "activityLogLimit" -> trim(label("Limit of activity logs", optional(number()))),
-    "ssh" -> trim(label("SSH access", boolean())),
-    "sshHost" -> trim(label("SSH host", optional(text()))),
-    "sshPort" -> trim(label("SSH port", optional(number()))),
+    "ssh" -> mapping(
+      "enabled" -> trim(label("SSH access", boolean())),
+      "host" -> trim(label("SSH host", optional(text()))),
+      "port" -> trim(label("SSH port", optional(number()))),
+    )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
       "useSMTP",
@@ -91,13 +93,23 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
-    "showMailAddress" -> trim(label("Show mail address", boolean()))
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
+    "pluginNetworkInstall" -> trim(label("Network plugin installation", boolean())),
+    "proxy" -> optionalIfNotChecked(
+      "useProxy",
+      mapping(
+        "host" -> trim(label("Proxy host", text(required))),
+        "port" -> trim(label("Proxy port", number())),
+        "user" -> trim(label("Keystore", optional(text()))),
+        "password" -> trim(label("Keystore", optional(text())))
+      )(Proxy.apply)
+    )
   )(SystemSettings.apply).verifying { settings =>
     Vector(
-      if (settings.ssh && settings.baseUrl.isEmpty) {
+      if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
         Some("baseUrl" -> "Base URL is required if SSH access is enabled.")
       } else None,
-      if (settings.ssh && settings.sshHost.isEmpty) {
+      if (settings.ssh.enabled && settings.ssh.sshHost.isEmpty) {
         Some("sshHost" -> "SSH host is required if SSH access is enabled.")
       } else None
     ).flatten
@@ -315,42 +327,61 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     } catch {
       case e: EmailException => s"[Error] ${e.getCause}"
-      case e: Exception      => "[Error] " + e.toString
+      case e: Exception      => s"[Error] ${e.toString}"
     }
   })
 
   get("/admin/plugins")(adminOnly {
     // Installed plugins
     val enabledPlugins = PluginRegistry().getPlugins()
+    val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+    val gitbucketSemver = Semver.valueOf(gitbucketVersion)
 
-    val gitbucketVersion = Semver.valueOf(GitBucketCoreModule.getVersions.asScala.last.getVersion)
-
-    // Plugins in the local repository
-    val repositoryPlugins = PluginRepository
-      .getPlugins()
-      .filterNot { meta =>
-        enabledPlugins.exists { plugin =>
-          plugin.pluginId == meta.id &&
-          Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(Semver.valueOf(meta.latestVersion.version))
+    // Plugins in the remote repository
+    val repositoryPlugins = if (context.settings.pluginNetworkInstall) {
+      PluginRepository
+        .getPlugins()
+        .map {
+          meta =>
+            (meta, meta.versions.reverse.find {
+              version =>
+                val semver = Semver.valueOf(version.version)
+                gitbucketVersion == version.gitbucketVersion && !enabledPlugins.exists { plugin =>
+                  if (plugin.pluginId == meta.id) {
+                    Semver.valueOf(plugin.pluginVersion) match {
+                      case x if x.greaterThan(semver) => true
+                      case x if x.equals(semver) =>
+                        plugin.gitbucketVersion match {
+                          case None    => true
+                          case Some(x) => Semver.valueOf(x).greaterThanOrEqualTo(gitbucketSemver)
+                        }
+                      case _ => false
+                    }
+                  } else false
+                }
+            })
         }
-      }
-      .map { meta =>
-        (meta, meta.versions.reverse.find { version =>
-          gitbucketVersion.satisfies(version.range)
-        })
-      }
-      .collect {
-        case (meta, Some(version)) =>
-          new PluginInfoBase(
-            pluginId = meta.id,
-            pluginName = meta.name,
-            pluginVersion = version.version,
-            description = meta.description
-          )
-      }
+        .collect {
+          case (meta, Some(version)) =>
+            new PluginInfoBase(
+              pluginId = meta.id,
+              pluginName = meta.name,
+              pluginVersion = version.version,
+              gitbucketVersion = Some(version.gitbucketVersion),
+              description = meta.description
+            )
+        }
+    } else Nil
 
     // Merge
-    val plugins = enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false))
+    val plugins = (enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false)))
+      .groupBy(_._1.pluginId)
+      .map {
+        case (pluginId, plugins) =>
+          val (plugin, enabled) = plugins.head
+          (plugin, enabled, if (plugins.length > 1) plugins.last._1.pluginVersion else "")
+      }
+      .toList
 
     html.plugins(plugins, flash.get("info"))
   })
@@ -361,40 +392,45 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/plugins")
   })
 
-  post("/admin/plugins/:pluginId/:version/_uninstall")(adminOnly {
+  post("/admin/plugins/:pluginId/_uninstall")(adminOnly {
     val pluginId = params("pluginId")
-    val version = params("version")
-    PluginRegistry()
-      .getPlugins()
-      .collect { case plugin if (plugin.pluginId == pluginId && plugin.pluginVersion == version) => plugin }
-      .foreach { _ =>
-        PluginRegistry
-          .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-        flash += "info" -> s"${pluginId} was uninstalled."
-      }
+
+    if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
+      PluginRegistry
+        .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+      flash += "info" -> s"${pluginId} was uninstalled."
+    }
+
     redirect("/admin/plugins")
   })
 
   post("/admin/plugins/:pluginId/:version/_install")(adminOnly {
-    val pluginId = params("pluginId")
-    val version = params("version")
-    /// TODO!!!!
-    PluginRepository
-      .getPlugins()
-      .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version)) }
-      .foreach {
-        case (meta, version) =>
-          version.foreach { version =>
-            // TODO Install version!
-            PluginRegistry.install(
-              new java.io.File(PluginHome, s".repository/${version.file}"),
-              request.getServletContext,
-              loadSystemSettings(),
-              request2Session(request).conn
-            )
-            flash += "info" -> s"${pluginId} was installed."
-          }
-      }
+    if (context.settings.pluginNetworkInstall) {
+      val pluginId = params("pluginId")
+      val version = params("version")
+      val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+
+      PluginRepository
+        .getPlugins()
+        .collectFirst {
+          case meta if meta.id == pluginId =>
+            (meta, meta.versions.find(x => x.gitbucketVersion == gitbucketVersion && x.version == version))
+        }
+        .foreach {
+          case (meta, version) =>
+            version.foreach { version =>
+              PluginRegistry.install(
+                pluginId,
+                new java.net.URL(version.url),
+                request.getServletContext,
+                loadSystemSettings(),
+                request2Session(request).conn
+              )
+              flash += "info" -> s"${pluginId}:${version.version} was installed."
+            }
+        }
+    }
+
     redirect("/admin/plugins")
   })
 

@@ -1,0 +1,71 @@
+@(groups: List[String],
+  visibleRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Repositories"){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories){
+    @gitbucket.core.dashboard.html.tab("repos")
+    <div class="container">
+      <div class="btn-group" id="owner-dropdown">
+        <button id="test" class="dropdown-toggle btn btn-default" data-toggle="dropdown" aria-expanded="false">
+          <span class="strong">All</span>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a></li>
+          @visibleRepositories.map(_.owner).distinct.map { userName =>
+            <li><a href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a></li>
+          }
+        </ul>
+      </div>
+      @if(visibleRepositories.isEmpty){
+        No repositories
+      } else {
+        @visibleRepositories.map { repository =>
+          <div class="block" data-owner="@repository.owner">
+            <div class="repository-icon">
+              @gitbucket.core.helper.html.repositoryicon(repository, true)
+            </div>
+            <div class="repository-content">
+              <div class="block-header">
+                <a href="@helpers.url(repository)">@repository.owner/@repository.name</a>
+                @if(repository.repository.isPrivate){
+                  <i class="octicon octicon-lock"></i>
+                }
+              </div>
+              @if(repository.repository.originUserName.isDefined){
+                <div class="small muted">forked from <a href="@context.path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
+              }
+              @if(repository.repository.description.isDefined){
+                <div>@repository.repository.description</div>
+              }
+              <div><span class="muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+}
+<script>
+$('#owner-dropdown a').click(function(){
+  var userName = $(this).data('name');
+
+  $('#owner-dropdown i').attr('class', 'octicon');
+  $(this).find('i').attr('class', 'octicon octicon-check');
+
+  $('#owner-dropdown span.strong').html($(this).find('span').html());
+
+  $('div.block').each(function(i, e){
+    if(userName == ''){
+      $(e).show();
+    } else {
+      if($(e).data('owner') == userName){
+        $(e).show();
+      } else {
+        $(e).hide();
+      }
+    }
+  });
+});
+</script>

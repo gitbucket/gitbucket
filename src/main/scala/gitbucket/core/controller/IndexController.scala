@@ -64,8 +64,7 @@ trait IndexControllerBase extends ControllerBase {
         val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
         gitbucket.core.html.index(
           getRecentActivitiesByOwners(visibleOwnerSet),
-          Nil,
-          getUserRepositories(account.userName, withoutPhysicalInfo = true),
+          getVisibleRepositories(Some(account), withoutPhysicalInfo = true),
           showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
             account.userName
           )
@@ -75,7 +74,6 @@ trait IndexControllerBase extends ControllerBase {
         gitbucket.core.html.index(
           getRecentActivities(),
           getVisibleRepositories(None, withoutPhysicalInfo = true),
-          Nil,
           showBannerToCreatePersonalAccessToken = false
         )
       }
@@ -239,9 +237,19 @@ trait IndexControllerBase extends ControllerBase {
         }
 
         target.toLowerCase match {
-          case "issue" =>
+          case "issues" =>
             gitbucket.core.search.html.issues(
-              if (query.nonEmpty) searchIssues(repository.owner, repository.name, query) else Nil,
+              if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, false) else Nil,
+              false,
+              query,
+              page,
+              repository
+            )
+
+          case "pulls" =>
+            gitbucket.core.search.html.issues(
+              if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, true) else Nil,
+              true,
               query,
               page,
               repository
@@ -273,18 +281,7 @@ trait IndexControllerBase extends ControllerBase {
     val repositories = visibleRepositories.filter { repository =>
       repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
     }
-    context.loginAccount
-      .map { account =>
-        gitbucket.core.search.html.repositories(
-          query,
-          repositories,
-          Nil,
-          getUserRepositories(account.userName, withoutPhysicalInfo = true)
-        )
-      }
-      .getOrElse {
-        gitbucket.core.search.html.repositories(query, repositories, visibleRepositories, Nil)
-      }
+    gitbucket.core.search.html.repositories(query, repositories, visibleRepositories)
   }
 
 }

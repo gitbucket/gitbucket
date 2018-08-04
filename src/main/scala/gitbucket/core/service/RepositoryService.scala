@@ -67,7 +67,7 @@ trait RepositoryService { self: AccountService =>
     getAccountByUserName(newUserName).foreach { account =>
       (Repositories filter { t =>
         t.byRepository(oldUserName, oldRepositoryName)
-      } firstOption).map { repository =>
+      } firstOption).foreach { repository =>
         Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
         val webHooks = RepositoryWebHooks.filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -371,6 +371,10 @@ trait RepositoryService { self: AccountService =>
       .list
   }
 
+  /**
+   * Returns the list of repositories which are owned by the specified user.
+   * This list includes group repositories if the specified user is a member of the group.
+   */
   def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)(
     implicit s: Session
   ): List[RepositoryInfo] = {
@@ -388,29 +392,7 @@ trait RepositoryService { self: AccountService =>
       }
       .sortBy(_.lastActivityDate desc)
       .list
-      .map { repository =>
-        new RepositoryInfo(
-          if (withoutPhysicalInfo) {
-            new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
-          } else {
-            JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
-          },
-          repository,
-          if (withoutPhysicalInfo) {
-            -1
-          } else {
-            getForkedCount(
-              repository.originUserName.getOrElse(repository.userName),
-              repository.originRepositoryName.getOrElse(repository.repositoryName)
-            )
-          },
-          if (withoutPhysicalInfo) {
-            Nil
-          } else {
-            getRepositoryManagers(repository.userName, repository.repositoryName)
-          }
-        )
-      }
+      .map(createRepositoryInfo(_, withoutPhysicalInfo))
   }
 
   /**
@@ -466,40 +448,45 @@ trait RepositoryService { self: AccountService =>
       }
       .sortBy(_.lastActivityDate desc)
       .list
-      .map { repository =>
-        new RepositoryInfo(
-          if (withoutPhysicalInfo) {
-            new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
-          } else {
-            JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
-          },
-          repository,
-          if (withoutPhysicalInfo) {
-            -1
-          } else {
-            getForkedCount(
-              repository.originUserName.getOrElse(repository.userName),
-              repository.originRepositoryName.getOrElse(repository.repositoryName)
-            )
-          },
-          if (withoutPhysicalInfo) {
-            Nil
-          } else {
-            getRepositoryManagers(repository.userName, repository.repositoryName)
-          }
+      .map(createRepositoryInfo(_, withoutPhysicalInfo))
+  }
+
+  private def createRepositoryInfo(repository: Repository, withoutPhysicalInfo: Boolean = false)(
+    implicit s: Session
+  ): RepositoryInfo = {
+    new RepositoryInfo(
+      if (withoutPhysicalInfo) {
+        new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
+      } else {
+        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
+      },
+      repository,
+      if (withoutPhysicalInfo) {
+        -1
+      } else {
+        getForkedCount(
+          repository.originUserName.getOrElse(repository.userName),
+          repository.originRepositoryName.getOrElse(repository.repositoryName)
         )
+      },
+      if (withoutPhysicalInfo) {
+        Nil
+      } else {
+        getRepositoryManagers(repository.userName, repository.repositoryName)
       }
+    )
   }
 
   /**
    * TODO It seems to be able to improve performance. For example, RequestCache can be used for getAccountByUserName call.
    */
-  private def getRepositoryManagers(userName: String, repositoryName: String)(implicit s: Session): Seq[String] =
-    if (getAccountByUserName(userName).exists(_.isGroupAccount)) {
-      getGroupMembers(userName).collect { case x if (x.isManager) => x.userName }
-    } else {
-      Seq(userName)
-    } ++ getCollaboratorUserNames(userName, repositoryName, Seq(Role.ADMIN))
+  private def getRepositoryManagers(userName: String, repositoryName: String)(implicit s: Session): Seq[String] = {
+    (if (getAccountByUserName(userName).exists(_.isGroupAccount)) {
+       getGroupMembers(userName).collect { case x if (x.isManager) => x.userName }
+     } else {
+       Seq(userName)
+     }) ++ getCollaboratorUserNames(userName, repositoryName, Seq(Role.ADMIN))
+  }
 
   /**
    * Updates the last activity date of the repository.
@@ -772,7 +759,7 @@ object RepositoryService {
   def httpUrl(owner: String, name: String)(implicit context: Context): String =
     s"${context.baseUrl}/git/${owner}/${name}.git"
   def sshUrl(owner: String, name: String)(implicit context: Context): Option[String] =
-    if (context.settings.ssh) {
+    if (context.settings.ssh.enabled) {
       context.settings.sshAddress.map { x =>
         s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git"
       }

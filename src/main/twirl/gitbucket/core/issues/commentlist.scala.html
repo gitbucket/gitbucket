@@ -3,7 +3,8 @@
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pullreq: Option[gitbucket.core.model.PullRequest] = None,
-  commitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
+  commitId: Option[String] = None,
+  renderScript: Boolean = true)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
 @showFormattedComment(comment: gitbucket.core.model.IssueComment)={
@@ -279,6 +280,7 @@
     </div>
   }
 }
+@if(renderScript){
 <script>
 $(function(){
 @if(issue.isDefined){
@@ -415,3 +417,4 @@ $(function(){
 
 });
 </script>
+}

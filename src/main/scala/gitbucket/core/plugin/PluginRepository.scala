@@ -1,25 +1,44 @@
 package gitbucket.core.plugin
 
+import gitbucket.core.controller.Context
+import gitbucket.core.util.SyntaxSugars.using
+import gitbucket.core.util.HttpClientUtil._
 import org.json4s._
-import gitbucket.core.util.Directory._
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
+
+import org.apache.http.client.methods.HttpGet
+import org.slf4j.LoggerFactory
 
 object PluginRepository {
+  private val logger = LoggerFactory.getLogger(getClass)
   implicit val formats = DefaultFormats
 
   def parsePluginJson(json: String): Seq[PluginMetadata] = {
     org.json4s.jackson.JsonMethods.parse(json).extract[Seq[PluginMetadata]]
   }
 
-  lazy val LocalRepositoryDir = new java.io.File(PluginHome, ".repository")
-  lazy val LocalRepositoryIndexFile = new java.io.File(LocalRepositoryDir, "plugins.json")
+  def getPlugins()(implicit context: Context): Seq[PluginMetadata] = {
+    try {
+      val url = new java.net.URL("https://plugins.gitbucket-community.org/releases/plugins.json")
 
-  def getPlugins(): Seq[PluginMetadata] = {
-    if (LocalRepositoryIndexFile.exists) {
-      parsePluginJson(FileUtils.readFileToString(LocalRepositoryIndexFile, "UTF-8"))
-    } else Nil
+      withHttpClient(context.settings.pluginProxy) { httpClient =>
+        val httpGet = new HttpGet(url.toString)
+        try {
+          val response = httpClient.execute(httpGet)
+          using(response.getEntity.getContent) { in =>
+            val str = IOUtils.toString(in, "UTF-8")
+            parsePluginJson(str)
+          }
+        } finally {
+          httpGet.releaseConnection()
+        }
+      }
+    } catch {
+      case t: Throwable =>
+        logger.warn("Failed to access to the plugin repository: " + t.toString)
+        Nil
+    }
   }
-
 }
 
 // Mapped from plugins.json
@@ -36,7 +55,5 @@ case class PluginMetadata(
 case class VersionDef(
   version: String,
   url: String,
-  range: String
-) {
-  lazy val file = url.substring(url.lastIndexOf("/") + 1)
-}
+  gitbucketVersion: String
+)

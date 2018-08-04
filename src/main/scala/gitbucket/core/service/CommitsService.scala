@@ -49,7 +49,10 @@ trait CommitsService {
       newLine = newLine,
       registeredDate = currentDate,
       updatedDate = currentDate,
-      issueId = issueId
+      issueId = issueId,
+      originalCommitId = commitId,
+      originalOldLine = oldLine,
+      originalNewLine = newLine
     )
 
   def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(
