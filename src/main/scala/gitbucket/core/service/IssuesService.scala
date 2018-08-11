@@ -351,9 +351,11 @@ trait IssuesService {
     implicit s: Session
   ) =
     Issues filter { t1 =>
-      repos
-        .map { case (owner, repository) => t1.byRepository(owner, repository) }
-        .foldLeft[Rep[Boolean]](false)(_ || _) &&
+      if (repos.size == 1) {
+        ((t1.userName === repos.head._1) && (t1.repositoryName === repos.head._2))
+      } else {
+        ((t1.userName ++ "/" ++ t1.repositoryName) inSetBind (repos.map { case (owner, repo) => s"$owner/$repo" }))
+      } &&
       (t1.closed === (condition.state == "closed").bind) &&
       (t1.milestoneId.? isEmpty, condition.milestone == Some(None)) &&
       (t1.priorityId.? isEmpty, condition.priority == Some(None)) &&
