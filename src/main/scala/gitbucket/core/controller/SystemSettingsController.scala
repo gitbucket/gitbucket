@@ -94,9 +94,16 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
     "showMailAddress" -> trim(label("Show mail address", boolean())),
-    "pluginNetworkInstall" -> new SingleValueType[Boolean] {
-      override def convert(value: String, messages: Messages): Boolean = context.settings.pluginNetworkInstall
-    }
+    "pluginNetworkInstall" -> trim(label("Network plugin installation", boolean())),
+    "proxy" -> optionalIfNotChecked(
+      "useProxy",
+      mapping(
+        "host" -> trim(label("Proxy host", text(required))),
+        "port" -> trim(label("Proxy port", number())),
+        "user" -> trim(label("Keystore", optional(text()))),
+        "password" -> trim(label("Keystore", optional(text())))
+      )(Proxy.apply)
+    )
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
@@ -380,11 +387,6 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/plugins/_reload")(adminOnly {
-    // Update configuration
-    val pluginNetworkInstall = params.get("pluginNetworkInstall").map(_.toBoolean).getOrElse(false)
-    saveSystemSettings(context.settings.copy(pluginNetworkInstall = pluginNetworkInstall))
-
-    // Reload plugins
     PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
     flash += "info" -> "All plugins were reloaded."
     redirect("/admin/plugins")
