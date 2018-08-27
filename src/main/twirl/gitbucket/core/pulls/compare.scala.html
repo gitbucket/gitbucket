@@ -1,7 +1,7 @@
 @(title: String,
   commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
-  members: List[(String, String)],
+  members: List[(String, String, String)],
   comments: List[gitbucket.core.model.Comment],
   originId: String,
   forkedId: String,
@@ -22,8 +22,8 @@
     <div class="pullreq-info">
       <div id="compare-edit">
         @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
-          @members.map { case (owner, name) =>
-            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
+          @members.map { case (owner, name, defaultBranch) =>
+            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
           }
         }
         @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
@@ -33,8 +33,8 @@
         }
         ...
         @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
-          @members.map { case (owner, name) =>
-            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
+          @members.map { case (owner, name, defaultBranch) =>
+            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
           }
         }
         @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
@@ -170,25 +170,46 @@
 }
 <script>
 $(function(){
-  $('a.origin-owner, a.forked-owner, a.origin-branch, a.forked-branch').click(function(){
-    var e = $(this);
+  function updateSelector(e){
     e.parents('ul').find('i').attr('class', 'octicon');
     e.find('i').addClass('octicon-check');
     e.parents('div.btn-group').find('button span.strong').text(e.text());
+  }
 
-    @if(members.isEmpty){
-      location.href = '@helpers.url(repository)/compare/' +
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
-    } else {
-      location.href = '@context.path/' +
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
-        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
-    }
+  $('a.origin-owner').click(function(){
+    updateSelector($(this));
+
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('default-branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
+  });
+
+  $('a.forked-owner').click(function(){
+    updateSelector($(this));
+
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('default-branch'));
+  });
+
+  $('a.origin-branch, a.forked-branch').click(function(){
+    updateSelector($(this));
+
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
   });
 
   $('#show-form').click(function(){
@@ -206,19 +227,12 @@ $(function(){
         function(data){ $('.check-conflict').html(data); });
     }
 
-    @if(members.isEmpty){
-      checkConflict(
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
-      );
-    } else {
-      checkConflict(
-        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
-      );
-    }
+    checkConflict(
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
+    );
   }
 });
 </script>

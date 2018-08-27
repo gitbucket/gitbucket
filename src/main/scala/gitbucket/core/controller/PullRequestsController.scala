@@ -642,7 +642,7 @@ trait PullRequestsControllerBase extends ControllerBase {
                   case _ =>
                     forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
                 }).map { repository =>
-                  (repository.userName, repository.repositoryName)
+                  (repository.userName, repository.repositoryName, repository.defaultBranch)
                 },
                 commits.flatten
                   .map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false))
