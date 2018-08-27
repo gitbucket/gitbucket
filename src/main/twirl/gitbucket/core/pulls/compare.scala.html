@@ -170,11 +170,14 @@
 }
 <script>
 $(function(){
-  $('a.origin-owner').click(function(){
-    var e = $(this);
+  function updateSelector(e){
     e.parents('ul').find('i').attr('class', 'octicon');
     e.find('i').addClass('octicon-check');
     e.parents('div.btn-group').find('button span.strong').text(e.text());
+  }
+
+  $('a.origin-owner').click(function(){
+    updateSelector($(this));
 
     location.href = '@context.path/' +
       $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
@@ -186,10 +189,7 @@ $(function(){
   });
 
   $('a.forked-owner').click(function(){
-    var e = $(this);
-    e.parents('ul').find('i').attr('class', 'octicon');
-    e.find('i').addClass('octicon-check');
-    e.parents('div.btn-group').find('button span.strong').text(e.text());
+    updateSelector($(this));
 
     location.href = '@context.path/' +
       $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
@@ -201,24 +201,15 @@ $(function(){
   });
 
   $('a.origin-branch, a.forked-branch').click(function(){
-    var e = $(this);
-    e.parents('ul').find('i').attr('class', 'octicon');
-    e.find('i').addClass('octicon-check');
-    e.parents('div.btn-group').find('button span.strong').text(e.text());
+    updateSelector($(this));
 
-    @if(members.isEmpty){
-      location.href = '@helpers.url(repository)/compare/' +
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
-    } else {
-      location.href = '@context.path/' +
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
-        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
-    }
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
   });
 
   $('#show-form').click(function(){
@@ -236,19 +227,12 @@ $(function(){
         function(data){ $('.check-conflict').html(data); });
     }
 
-    @if(members.isEmpty){
-      checkConflict(
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
-      );
-    } else {
-      checkConflict(
-        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
-        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
-        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
-        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
-      );
-    }
+    checkConflict(
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
+    );
   }
 });
 </script>
