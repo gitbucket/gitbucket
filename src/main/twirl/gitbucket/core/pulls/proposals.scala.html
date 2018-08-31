@@ -7,7 +7,7 @@
     <div class="box-content" style="line-height: 20pt; margin-bottom: 6px; padding: 10px 6px 10px 10px; background-color: #fff9ea">
       <strong><i class="menu-icon octicon octicon-git-branch"></i><span class="muted">@branch</span></strong>
       <a class="pull-right btn btn-success" style="position: relative; top: -4px;"
-         href="@helpers.url(repository)/compare/@{parent.owner}:@{parent.repository.defaultBranch}...@{repository.owner}:@{branch}">Compare & pull request</a>
+         href="@helpers.url(repository)/compare/@{parent.owner}:@{helpers.urlEncode(parent.repository.defaultBranch)}...@{repository.owner}:@{helpers.urlEncode(branch)}">Compare & pull request</a>
     </div>
   }
 }
