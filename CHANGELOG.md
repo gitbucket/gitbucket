@@ -1,6 +1,10 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.28.0 - 1 Sep 2018
+- Proxy support for plugin installation
+- Fix some bugs around pull requests
+
 ### 4.27.0 - 29 Jul 2018
 - Create new tag on the browser
 - EditorConfig support

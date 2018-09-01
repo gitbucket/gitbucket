@@ -70,10 +70,9 @@ Support
 
 What's New in 4.27.x
 -------------
-### 4.27.0 - 29 Jul 2018
-- Create new tag on the browser
-- EditorConfig support
-- Improve issues / pull requests search
-- Some improvements and bug fixes for plugin installation via internet and pull request commenting
+### 4.28.0 - 1 Sep 2018
+- Proxy support for plugin installation
+- Fix some bugs around pull requests
+
 
 See the [change log](CHANGELOG.md) for all of the updates.
