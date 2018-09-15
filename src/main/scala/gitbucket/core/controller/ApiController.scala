@@ -352,7 +352,9 @@ trait ApiControllerBase extends ControllerBase {
             data.auto_init
           )
           Await.result(f, Duration.Inf)
-          val repository = getRepository(groupName, data.name).get
+          val repository = Database() withTransaction { session =>
+            getRepository(groupName, data.name).get
+          }
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
         } else {
           ApiError(
