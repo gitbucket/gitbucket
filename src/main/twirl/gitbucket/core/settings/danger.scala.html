@@ -50,5 +50,15 @@ $(function(){
   $('#delete-form').submit(function(){
     return confirm('Once you delete a repository, there is no going back.\nAre you sure?');
   });
+  $('#transfer-form').submit(function(){
+    if($('#transfer-form').data('validated') === true){
+      return confirm('Transfer to the repository owner you entered.\nAre you sure?');
+    } else {
+      return true;
+    }
+  });
+  $('#gc-form').submit(function(){
+    return confirm('The garbage collection may take a long time.\nDo you want to execute it?');
+  });
 });
 </script>
