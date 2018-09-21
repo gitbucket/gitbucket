@@ -256,9 +256,9 @@ trait ApiControllerBase extends ControllerBase {
       } else {
         val refs = git
           .getRepository()
-          .getAllRefs()
+          .getRefDatabase()
+          .getRefsByPrefix("refs/")
           .asScala
-          .collect { case (str, ref) if str.startsWith("refs/" + revstr) => ref }
 
         JsonFormat(refs.map { ref =>
           val sha = ref.getObjectId().name()
