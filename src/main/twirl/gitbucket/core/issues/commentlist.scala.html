@@ -112,7 +112,7 @@
           </div>
           <div style="discussion-item-content">
             @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
-              <strong>@helpers.issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
+              @helpers.issueLink(repository, issueId.toInt, rest.mkString(":"))
             }
           </div>
         </div>

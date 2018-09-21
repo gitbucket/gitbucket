@@ -3,23 +3,23 @@ package gitbucket.core.view
 import gitbucket.core.controller.Context
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.Implicits.RichString
+import gitbucket.core.util.StringUtil
 
 trait LinkConverter { self: RequestCache =>
 
   /**
    * Creates a link to the issue or the pull request from the issue id.
    */
-  protected def createIssueLink(repository: RepositoryService.RepositoryInfo, issueId: Int)(
+  protected def createIssueLink(repository: RepositoryService.RepositoryInfo, issueId: Int, title: String)(
     implicit context: Context
   ): String = {
     val userName = repository.repository.userName
     val repositoryName = repository.repository.repositoryName
 
     getIssue(userName, repositoryName, issueId.toString) match {
-      case Some(issue) if (issue.isPullRequest) =>
-        s"""<a href="${context.path}/${userName}/${repositoryName}/pull/${issueId}">Pull #${issueId}</a>"""
-      case Some(_) =>
-        s"""<a href="${context.path}/${userName}/${repositoryName}/issues/${issueId}">Issue #${issueId}</a>"""
+      case Some(issue) =>
+        s"""<a href="${context.path}/${userName}/${repositoryName}/${if (issue.isPullRequest) "pull" else "issues"}/${issueId}"><strong>${StringUtil
+          .escapeHtml(title)}</strong> #${issueId}</a>"""
       case None =>
         s"Unknown #${issueId}"
     }
