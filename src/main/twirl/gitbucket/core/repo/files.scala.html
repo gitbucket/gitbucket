@@ -196,11 +196,19 @@
         </tr>
       }
     </table>
-    @readme.map { case(filePath, content) =>
-      <div id="readme" class="panel panel-default">
-        <div class="panel-heading strong">@filePath.last</div>
-        <div class="panel-body markdown-body" style="padding-left: 20px; padding-right: 20px;">@helpers.renderMarkup(filePath, content, branch, repository, false, false, true)</div>
+    @readme.map { case (filePath, content) =>
+      <div id="readme" class="box-header">
+        <div class="strong" style="line-height: 28px;">
+          <i class="octicon octicon-file"></i>
+          @filePath.last
+          @if(hasWritePermission){
+            <div class="btn-group pull-right">
+              <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil"></i></a>
+            </div>
+          }
+        </div>
       </div>
+      <div class="box-content-bottom markdown-body" style="padding-left: 20px; padding-right: 20px;">@helpers.renderMarkup(filePath, content, branch, repository, false, false, true)</div>
     }
   }
 }
