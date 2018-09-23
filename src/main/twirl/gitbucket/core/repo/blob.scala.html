@@ -62,17 +62,17 @@
       <span class="label label-default">@helpers.readableSize(content.size)</span>
       <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
-        @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-default" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))">Edit</a>
-        }
         <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">Raw</a>
         @if(content.viewType == "text"){
           <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))"
             data-url="@helpers.url(repository)/get-blame/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-repository="@helpers.url(repository)">Blame</a>
         }
         <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">History</a>
+        @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
+          <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-pencil"></i></a>
+        }
         @if(hasWritePermission && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-danger" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))">Delete</a>
+          <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-trashcan"></i></a>
         }
       </div>
     </div>
