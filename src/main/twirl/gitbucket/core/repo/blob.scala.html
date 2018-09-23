@@ -55,8 +55,8 @@
         <span class="label label-info">LFS</span>
       }
     </div>
-    <div class="box-header">
-      @helpers.avatarLink(latestCommit, 28)
+    <div class="box-header" style="line-height: 28px;">
+      @helpers.avatarLink(latestCommit, 20)
       @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
       <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
       <span class="label label-default">@helpers.readableSize(content.size)</span>
