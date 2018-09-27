@@ -2,6 +2,7 @@ language: scala
 sudo: true
 jdk: 
   - oraclejdk8
+  - oraclejdk11
 script:
   - sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
 before_script:
