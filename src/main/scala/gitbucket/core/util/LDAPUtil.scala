@@ -127,7 +127,11 @@ object LDAPUtil {
   private def getSslProvider(): Provider = {
     val cachedInstance = provider.get()
     if (cachedInstance == null) {
-      val newInstance = Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance().asInstanceOf[Provider]
+      val newInstance = Class
+        .forName("com.sun.net.ssl.internal.ssl.Provider")
+        .getDeclaredConstructor()
+        .newInstance()
+        .asInstanceOf[Provider]
       provider.compareAndSet(null, newInstance)
       newInstance
     } else {
