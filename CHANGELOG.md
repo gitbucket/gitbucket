@@ -1,6 +1,13 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.29.0 - 29 Sep 2018
+- Official Docker image has been available
+- Enhance file edit and delete buttons of the repository viewer
+- Fix Patch button to generate patches for all files in the commit
+- Display confirmation dialog for Transfer Ownership and Garbage collection
+- Fix wrong url encoding in "Compare & pull request"
+
 ### 4.28.0 - 1 Sep 2018
 - Proxy support for plugin installation
 - Fix some bugs around pull requests

@@ -68,11 +68,13 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.27.x
+What's New in 4.29.x
 -------------
-### 4.28.0 - 1 Sep 2018
-- Proxy support for plugin installation
-- Fix some bugs around pull requests
-
+### 4.29.0 - 29 Sep 2018
+- Official Docker image has been available
+- Enhance file edit and delete buttons of the repository viewer
+- Fix Patch button to generate patches for all files in the commit
+- Display confirmation dialog for Transfer Ownership and Garbage collection
+- Fix wrong url encoding in "Compare & pull request"
 
 See the [change log](CHANGELOG.md) for all of the updates.
