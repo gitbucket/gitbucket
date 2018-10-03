@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"             % "markedj"                      % "1.0.15",
   "org.apache.commons"              % "commons-compress"             % "1.18",
   "org.apache.commons"              % "commons-email"                % "1.5",
-  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.4",
+  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.6",
   "org.apache.sshd"                 % "apache-sshd"                  % "1.6.0" exclude ("org.slf4j", "slf4j-jdk14"),
   "org.apache.tika"                 % "tika-core"                    % "1.19",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
