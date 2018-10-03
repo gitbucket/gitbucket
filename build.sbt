@@ -49,7 +49,7 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.196",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.3.0",
-  "org.postgresql"                  % "postgresql"                   % "42.2.4",
+  "org.postgresql"                  % "postgresql"                   % "42.2.5",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "2.7.4",
   "com.typesafe"                    % "config"                       % "1.3.2",
