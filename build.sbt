@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   "commons-io"                      % "commons-io"                   % "2.6",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.2",
   "io.github.gitbucket"             % "markedj"                      % "1.0.15",
-  "org.apache.commons"              % "commons-compress"             % "1.15",
+  "org.apache.commons"              % "commons-compress"             % "1.18",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.4",
   "org.apache.sshd"                 % "apache-sshd"                  % "1.6.0" exclude ("org.slf4j", "slf4j-jdk14"),
