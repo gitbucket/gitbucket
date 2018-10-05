@@ -6,7 +6,7 @@ import gitbucket.core.service.{AccountService, DeployKeyService, RepositoryServi
 import gitbucket.core.servlet.{CommitLogHook, Database}
 import gitbucket.core.util.{SyntaxSugars, Directory}
 import org.apache.sshd.server.{Environment, ExitCallback, SessionAware}
-import org.apache.sshd.server.{Command, CommandFactory}
+import org.apache.sshd.server.command.{Command, CommandFactory}
 import org.apache.sshd.server.session.ServerSession
 import org.slf4j.LoggerFactory
 import java.io.{File, InputStream, OutputStream}
