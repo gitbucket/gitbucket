@@ -16,7 +16,7 @@ import org.eclipse.jgit.api.Git
 import Directory._
 import gitbucket.core.ssh.PublicKeyAuthenticator.AuthType
 import org.eclipse.jgit.transport.{ReceivePack, UploadPack}
-import org.apache.sshd.server.scp.UnknownCommand
+import org.apache.sshd.server.shell.UnknownCommand
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 
 object GitCommand {
