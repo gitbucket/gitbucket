@@ -42,4 +42,5 @@ trait ApiUserControllerBase extends ControllerBase {
  * v. Get all users
  * https://developer.github.com/v3/users/#get-all-users
  */
+
 }

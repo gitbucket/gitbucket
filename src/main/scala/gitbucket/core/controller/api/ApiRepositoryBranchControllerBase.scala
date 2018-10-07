@@ -61,13 +61,11 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
   /*
    * iii. Get branch protection
    * https://developer.github.com/v3/repos/branches/#get-branch-protection
-   * Not Implemented.
    */
 
   /*
    * iv. Update branch protection
    * https://developer.github.com/v3/repos/branches/#update-branch-protection
-   * Not implemented
    */
 
   /*

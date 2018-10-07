@@ -15,12 +15,11 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
   self: AccountService with CommitsService with ReferrerAuthenticator =>
   /*
    * i. List commits on a repository
+   * https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository
    */
 
   /*
    * ii. Get a single commit
-   */
-  /**
    * https://developer.github.com/v3/repos/commits/#get-a-single-commit
    */
   get("/api/v3/repos/:owner/:repository/commits/:sha")(referrersOnly { repository =>
@@ -71,13 +70,16 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
 
   /*
    * iii. Get the SHA-1 of a commit reference
+   * https://developer.github.com/v3/repos/commits/#get-the-sha-1-of-a-commit-reference
    */
 
   /*
    * iv. Compare two commits
+   * https://developer.github.com/v3/repos/commits/#compare-two-commits
    */
 
   /*
  * v. Commit signature verification
+ * https://developer.github.com/v3/repos/commits/#commit-signature-verification
  */
 }
