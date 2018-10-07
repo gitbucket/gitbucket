@@ -299,7 +299,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                     getAccountByUserName(pusher).foreach { pusherAccount =>
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
                         getIssue(owner, repository, issueId.toString).foreach { issue =>
-                          callIssuesWebHook("closed", repositoryInfo, issue, baseUrl, pusherAccount)
+                          callIssuesWebHook("closed", repositoryInfo, issue, pusherAccount)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repositoryInfo, commit.fullMessage, pusherAccount))
                         }
@@ -319,7 +319,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   }.isDefined) {
                 markMergeAndClosePullRequest(pusher, owner, repository, pull)
                 getAccountByUserName(pusher).foreach { pusherAccount =>
-                  callPullRequestWebHook("closed", repositoryInfo, pull.issueId, baseUrl, pusherAccount)
+                  callPullRequestWebHook("closed", repositoryInfo, pull.issueId, pusherAccount)
                 }
               }
             }
@@ -352,7 +352,6 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                       "synchronize",
                       repositoryInfo,
                       branchName,
-                      baseUrl,
                       pusherAccount
                     )
                   }

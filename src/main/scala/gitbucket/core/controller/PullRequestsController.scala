@@ -345,7 +345,6 @@ trait PullRequestsControllerBase extends ControllerBase {
                     "synchronize",
                     repository,
                     pullreq.requestBranch,
-                    baseUrl,
                     loginAccount
                   )
                   callWebHookOf(owner, name, WebHook.Push) {
@@ -444,7 +443,7 @@ trait PullRequestsControllerBase extends ControllerBase {
                         closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
                           issueId =>
                             getIssue(owner, name, issueId.toString).foreach { issue =>
-                              callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                              callIssuesWebHook("closed", repository, issue, loginAccount)
                               PluginRegistry().getIssueHooks
                                 .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
                             }
@@ -458,14 +457,14 @@ trait PullRequestsControllerBase extends ControllerBase {
                         name
                       ).foreach { issueId =>
                         getIssue(owner, name, issueId.toString).foreach { issue =>
-                          callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                          callIssuesWebHook("closed", repository, issue, loginAccount)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                         }
                       }
                       closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach { issueId =>
                         getIssue(owner, name, issueId.toString).foreach { issue =>
-                          callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
+                          callIssuesWebHook("closed", repository, issue, loginAccount)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                         }
@@ -475,7 +474,7 @@ trait PullRequestsControllerBase extends ControllerBase {
                     updatePullRequests(owner, name, pullreq.branch)
 
                     // call web hook
-                    callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
+                    callPullRequestWebHook("closed", repository, issueId, context.loginAccount.get)
 
                     // call hooks
                     PluginRegistry().getPullRequestHooks.foreach { h =>
@@ -734,7 +733,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
 
         // call web hook
-        callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
+        callPullRequestWebHook("opened", repository, issueId, context.loginAccount.get)
 
         getIssue(owner, name, issueId.toString) foreach { issue =>
           // extract references and create refer comment

@@ -195,7 +195,7 @@ trait MergeService {
               closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, localUserName, localRepositoryName)
                 .foreach { issueId =>
                   getIssue(localRepository.owner, localRepository.name, issueId.toString).foreach { issue =>
-                    callIssuesWebHook("closed", localRepository, issue, "baseUrl for dummy", loginAccount)
+                    callIssuesWebHook("closed", localRepository, issue, loginAccount)
                     PluginRegistry().getIssueHooks
                       .foreach(
                         _.closedByCommitComment(issue, localRepository, commit.fullMessage, loginAccount)

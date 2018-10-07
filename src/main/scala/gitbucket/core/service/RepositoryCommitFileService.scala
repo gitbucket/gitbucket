@@ -149,7 +149,7 @@ trait RepositoryCommitFileService {
               closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name).foreach {
                 issueId =>
                   getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                    callIssuesWebHook("closed", repository, issue, "dummy baseUrl", loginAccount)
+                    callIssuesWebHook("closed", repository, issue, loginAccount)
                     PluginRegistry().getIssueHooks
                       .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
                   }
@@ -162,7 +162,7 @@ trait RepositoryCommitFileService {
             }
 
             //call web hook
-            callPullRequestWebHookByRequestBranch("synchronize", repository, branch, "dummy base url", loginAccount)
+            callPullRequestWebHookByRequestBranch("synchronize", repository, branch, loginAccount)
             val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
             callWebHookOf(repository.owner, repository.name, WebHook.Push) {
               getAccountByUserName(repository.owner).map { ownerAccount =>

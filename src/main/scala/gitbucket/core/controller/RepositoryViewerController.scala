@@ -728,7 +728,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               repository,
               issue,
               pullRequest,
-              context.baseUrl,
               context.loginAccount.get
             )
         }
