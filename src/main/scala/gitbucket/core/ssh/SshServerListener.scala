@@ -17,7 +17,9 @@ object SshServer {
 
   private def configure(sshAddress: SshAddress, baseUrl: String) = {
     server.setPort(sshAddress.port)
-    val provider = new SimpleGeneratorHostKeyProvider(new File(s"${Directory.GitBucketHome}/gitbucket.ser"))
+    val provider = new SimpleGeneratorHostKeyProvider(
+      java.nio.file.Paths.get(s"${Directory.GitBucketHome}/gitbucket.ser")
+    )
     provider.setAlgorithm("RSA")
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
