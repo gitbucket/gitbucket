@@ -13,13 +13,11 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import org.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.WebHookContentType
-import gitbucket.core.plugin.PluginRegistry
 
 class RepositorySettingsController
     extends RepositorySettingsControllerBase
@@ -369,10 +367,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
     // Change repository owner
     if (repository.owner != form.newOwner) {
-      LockUtil.lock(s"${repository.owner}/${repository.name}") {
-        // Update database
-        renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-      }
+      renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
     }
     redirect(s"/${form.newOwner}/${repository.name}")
   })
@@ -381,19 +376,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      // Delete the repository and related files
-      deleteRepository(repository.owner, repository.name)
-
-      FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getRepositoryFilesDir(repository.owner, repository.name))
-
-      // Call hooks
-      PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.owner, repository.name))
-    }
-
+    // Delete the repository and related files
+    deleteRepository(repository.repository)
     redirect(s"/${repository.owner}")
   })
 
