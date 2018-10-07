@@ -45,6 +45,18 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/*") {
     NotFound()
   }
+  post("/api/v3/*") {
+    NotFound()
+  }
+  put("/api/v3/*") {
+    NotFound()
+  }
+  delete("/api/v3/*") {
+    NotFound()
+  }
+  patch("/api/v3/*") {
+    NotFound()
+  }
 
   /**
    * https://developer.github.com/v3/#root-endpoint
