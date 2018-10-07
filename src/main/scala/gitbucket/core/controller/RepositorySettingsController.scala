@@ -148,29 +148,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     if (repository.name != form.repositoryName) {
       // Update database
       renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-      // Move git repository
-      defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
-        if (dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Move wiki repository
-      defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
-        if (dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Move files directory
-      defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
-        if (dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Delete parent directory
-      FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
-
-      // Call hooks
-      PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
     }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
@@ -395,27 +372,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       LockUtil.lock(s"${repository.owner}/${repository.name}") {
         // Update database
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-        // Move git repository
-        defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
-          if (dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
-          }
-        }
-        // Move wiki repository
-        defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
-          if (dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
-          }
-        }
-        // Move files directory
-        defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
-          if (dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getRepositoryFilesDir(form.newOwner, repository.name))
-          }
-        }
-
-        // Call hooks
-        PluginRegistry().getRepositoryHooks.foreach(_.transferred(repository.owner, form.newOwner, repository.name))
       }
     }
     redirect(s"/${form.newOwner}/${repository.name}")

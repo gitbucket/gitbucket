@@ -3,11 +3,14 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role, ReleaseTag}
+import gitbucket.core.model.{Account, Collaborator, ReleaseTag, Repository, RepositoryOptions, Role}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.util.Directory.{getRepositoryDir, getRepositoryFilesDir, getWikiRepositoryDir}
 import gitbucket.core.util.JGitUtil.FileInfo
+import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 
 trait RepositoryService { self: AccountService =>
@@ -238,6 +241,29 @@ trait RepositoryService { self: AccountService =>
                     )
                 )
           }
+        // Move git repository
+        defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
+          if (dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
+          }
+        }
+        // Move wiki repository
+        defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
+          if (dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
+          }
+        }
+        // Move files directory
+        defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
+          if (dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
+          }
+        }
+        // Delete parent directory
+        FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
+
+        // Call hooks
+        PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
       }
     }
   }
