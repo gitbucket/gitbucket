@@ -164,7 +164,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
    */
-  def updatePullRequests(owner: String, repository: String, branch: String)(implicit s: Session): Unit =
+  def updatePullRequests(owner: String, repository: String, branch: String)(implicit s: Session): Unit = {
     getPullRequestsByRequest(owner, repository, branch, Some(false)).foreach { pullreq =>
       if (Repositories.filter(_.byRepository(pullreq.userName, pullreq.repositoryName)).exists.run) {
         // Update the git repository
@@ -206,6 +206,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
       }
     }
+  }
 
   def getPullRequestByRequestCommit(
     userName: String,

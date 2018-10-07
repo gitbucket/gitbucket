@@ -1,19 +1,25 @@
 package gitbucket.core.service
 
+import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.{Account, Collaborator, ReleaseTag, Repository, RepositoryOptions, Role}
+import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.WebHookService.WebHookPushPayload
 import gitbucket.core.util.Directory.{getRepositoryDir, getRepositoryFilesDir, getTemporaryDir, getWikiRepositoryDir}
-import gitbucket.core.util.JGitUtil.FileInfo
+import gitbucket.core.util.JGitUtil.{CommitInfo, FileInfo}
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
+import org.eclipse.jgit.lib.{Repository => _, _}
+import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
-trait RepositoryService { self: AccountService =>
+trait RepositoryService {
+  self: AccountService =>
   import RepositoryService._
 
   /**
@@ -95,16 +101,20 @@ trait RepositoryService { self: AccountService =>
           val releaseAssets = ReleaseAssets.filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
           Repositories
-            .filter { t => (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
+            .filter { t =>
+              (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
             }
-            .map { t => t.originUserName -> t.originRepositoryName
+            .map { t =>
+              t.originUserName -> t.originRepositoryName
             }
             .update(newUserName, newRepositoryName)
 
           Repositories
-            .filter { t => (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
+            .filter { t =>
+              (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
             }
-            .map { t => t.parentUserName -> t.parentRepositoryName
+            .map { t =>
+              t.parentUserName -> t.parentRepositoryName
             }
             .update(newUserName, newRepositoryName)
 
@@ -139,12 +149,17 @@ trait RepositoryService { self: AccountService =>
                 newMilestones.find(_.title == milestones.find(_.milestoneId == id).get.title).get.milestoneId
               },
               priorityId = x.priorityId.map { id =>
-                newPriorities.find(_.priorityName == priorities.find(_.priorityId == id).get.priorityName).get.priorityId
+                newPriorities
+                  .find(_.priorityName == priorities.find(_.priorityId == id).get.priorityName)
+                  .get
+                  .priorityId
               }
             )
           }: _*)
 
-          PullRequests.insertAll(pullRequests.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*)
+          PullRequests.insertAll(
+            pullRequests.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+          )
           IssueComments.insertAll(
             issueComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
           )
@@ -169,9 +184,11 @@ trait RepositoryService { self: AccountService =>
 
           // Update source repository of pull requests
           PullRequests
-            .filter { t => (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
+            .filter { t =>
+              (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
             }
-            .map { t => t.requestUserName -> t.requestRepositoryName
+            .map { t =>
+              t.requestUserName -> t.requestRepositoryName
             }
             .update(newUserName, newRepositoryName)
 
@@ -199,10 +216,11 @@ trait RepositoryService { self: AccountService =>
           Activities
             .filter { t =>
               (t.message like s"%:${oldUserName}/${oldRepositoryName}]%") ||
-                (t.message like s"%:${oldUserName}/${oldRepositoryName}#%") ||
-                (t.message like s"%:${oldUserName}/${oldRepositoryName}@%")
+              (t.message like s"%:${oldUserName}/${oldRepositoryName}#%") ||
+              (t.message like s"%:${oldUserName}/${oldRepositoryName}@%")
             }
-            .map { t => t.activityId -> t.message
+            .map { t =>
+              t.activityId -> t.message
             }
             .list
             .foreach {
@@ -220,7 +238,10 @@ trait RepositoryService { self: AccountService =>
                         s"[branch:${oldUserName}/${oldRepositoryName}#",
                         s"[branch:${newUserName}/${newRepositoryName}#"
                       )
-                      .replace(s"[tag:${oldUserName}/${oldRepositoryName}#", s"[tag:${newUserName}/${newRepositoryName}#")
+                      .replace(
+                        s"[tag:${oldUserName}/${oldRepositoryName}#",
+                        s"[tag:${newUserName}/${newRepositoryName}#"
+                      )
                       .replace(
                         s"[pullreq:${oldUserName}/${oldRepositoryName}#",
                         s"[pullreq:${newUserName}/${newRepositoryName}#"
@@ -749,7 +770,6 @@ trait RepositoryService { self: AccountService =>
 }
 
 object RepositoryService {
-
   case class RepositoryInfo(
     owner: String,
     name: String,

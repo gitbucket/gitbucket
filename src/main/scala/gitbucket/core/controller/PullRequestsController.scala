@@ -294,11 +294,12 @@ trait PullRequestsControllerBase extends ControllerBase {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
       (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      repository <- getRepository(pullreq.requestUserName, pullreq.requestRepositoryName)
+      remoteRepository <- getRepository(pullreq.userName, pullreq.repositoryName)
       owner = pullreq.requestUserName
       name = pullreq.requestRepositoryName
       if hasDeveloperRole(owner, name, context.loginAccount)
     } yield {
-      val repository = getRepository(owner, name).get
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
       if (branchProtection.needStatusCheck(loginAccount.userName)) {
         flash += "error" -> s"branch ${pullreq.requestBranch} is protected need status check."
@@ -314,11 +315,9 @@ trait PullRequestsControllerBase extends ControllerBase {
             JGitUtil.getAllCommitIds(git)
           }.toSet
           pullRemote(
-            owner,
-            name,
+            repository,
             pullreq.requestBranch,
-            pullreq.userName,
-            pullreq.repositoryName,
+            remoteRepository,
             pullreq.branch,
             loginAccount,
             s"Merge branch '${alias}' into ${pullreq.requestBranch}"
@@ -340,31 +339,6 @@ trait PullRequestsControllerBase extends ControllerBase {
                     .asScala
                     .map(c => new JGitUtil.CommitInfo(c))
                     .toList
-
-                  commits.foreach { commit =>
-                    if (!existIds.contains(commit.id)) {
-                      createIssueComment(owner, name, commit)
-                    }
-                  }
-
-                  // record activity
-                  recordPushActivity(owner, name, loginAccount.userName, pullreq.branch, commits)
-
-                  // close issue by commit message
-                  if (pullreq.requestBranch == repository.repository.defaultBranch) {
-                    commits.foreach { commit =>
-                      closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
-                        issueId =>
-                          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                            callIssuesWebHook("closed", repository, issue, baseUrl, loginAccount)
-                            PluginRegistry().getIssueHooks
-                              .foreach(
-                                _.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount)
-                              )
-                          }
-                      }
-                    }
-                  }
 
                   // call web hook
                   callPullRequestWebHookByRequestBranch(

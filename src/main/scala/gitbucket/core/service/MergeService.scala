@@ -1,8 +1,15 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.Account
+import gitbucket.core.api.JsonFormat
+import gitbucket.core.model.{Account, WebHook}
+import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
+import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
@@ -13,6 +20,8 @@ import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 import scala.collection.JavaConverters._
 
 trait MergeService {
+  self: AccountService with ActivityService with IssuesService with RepositoryService with WebHookPullRequestService =>
+
   import MergeService._
 
   /**
@@ -136,27 +145,69 @@ trait MergeService {
     tryMergeRemote(userName, repositoryName, branch, requestUserName, requestRepositoryName, requestBranch).left.toOption
 
   def pullRemote(
-    localUserName: String,
-    localRepositoryName: String,
+    localRepository: RepositoryInfo,
     localBranch: String,
-    remoteUserName: String,
-    remoteRepositoryName: String,
+    remoteRepository: RepositoryInfo,
     remoteBranch: String,
     loginAccount: Account,
     message: String
-  ): Option[ObjectId] = {
+  )(implicit s: Session, c: JsonFormat.Context): Option[ObjectId] = {
+    val localUserName = localRepository.owner
+    val localRepositoryName = localRepository.name
+    val remoteUserName = remoteRepository.owner
+    val remoteRepositoryName = remoteRepository.name
     tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch).map {
       case (newTreeId, oldBaseId, oldHeadId) =>
         using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+          val existIds = JGitUtil.getAllCommitIds(git).toSet
+
           val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
           val newCommit =
             Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
           Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
+
+          val commits = git.log
+            .addRange(oldBaseId, newCommit)
+            .call
+            .iterator
+            .asScala
+            .map(c => new JGitUtil.CommitInfo(c))
+            .toList
+
+          commits.foreach { commit =>
+            if (!existIds.contains(commit.id)) {
+              createIssueComment(localUserName, localRepositoryName, commit)
+            }
+          }
+
+          // record activity
+          recordPushActivity(
+            localUserName,
+            localRepositoryName,
+            loginAccount.userName,
+            localBranch,
+            commits
+          )
+
+          // close issue by commit message
+          if (localBranch == localRepository.repository.defaultBranch) {
+            commits.foreach { commit =>
+              closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, localUserName, localRepositoryName)
+                .foreach { issueId =>
+                  getIssue(localRepository.owner, localRepository.name, issueId.toString).foreach { issue =>
+                    callIssuesWebHook("closed", localRepository, issue, "baseUrl for dummy", loginAccount)
+                    PluginRegistry().getIssueHooks
+                      .foreach(
+                        _.closedByCommitComment(issue, localRepository, commit.fullMessage, loginAccount)
+                      )
+                  }
+                }
+            }
+          }
         }
         oldBaseId
     }.toOption
   }
-
 }
 
 object MergeService {
