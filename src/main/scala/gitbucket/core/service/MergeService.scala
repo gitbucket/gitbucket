@@ -58,7 +58,7 @@ trait MergeService {
   }
 
   /** merge the pull request with a merge commit */
-  private def mergePullRequest(
+  def mergePullRequest(
     git: Git,
     branch: String,
     issueId: Int,
@@ -69,7 +69,7 @@ trait MergeService {
   }
 
   /** rebase to the head of the pull request branch */
-  private def rebasePullRequest(
+  def rebasePullRequest(
     git: Git,
     branch: String,
     issueId: Int,
@@ -80,7 +80,7 @@ trait MergeService {
   }
 
   /** squash commits in the pull request and append it */
-  private def squashPullRequest(
+  def squashPullRequest(
     git: Git,
     branch: String,
     issueId: Int,
