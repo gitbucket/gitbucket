@@ -360,6 +360,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
+          suspendAccount(account)
           session.invalidate
           redirect("/")
         }

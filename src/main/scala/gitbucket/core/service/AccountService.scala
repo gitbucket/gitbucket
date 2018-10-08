@@ -181,6 +181,15 @@ trait AccountService {
       description = description
     )
 
+  def suspendAccount(account: Account)(implicit s: Session): Unit ={
+    // Remove from GROUP_MEMBER and COLLABORATOR
+    removeUserRelatedData(account.userName)
+    updateAccount(account.copy(isRemoved = true))
+
+    // call hooks
+    PluginRegistry().getAccountHooks.foreach(_.deleted(account.userName))
+  }
+
   def updateAccount(account: Account)(implicit s: Session): Unit =
     Accounts
       .filter { a =>
