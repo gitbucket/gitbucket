@@ -14,7 +14,7 @@ import java.io.File
 class MergeServiceSpec extends FunSpec {
   val service = new MergeService with AccountService with ActivityService with IssuesService with LabelsService
   with MilestonesService with RepositoryService with PrioritiesService with PullRequestService with CommitsService
-  with WebHookPullRequestService {}
+  with WebHookPullRequestService with WebHookPullRequestReviewCommentService {}
   val branch = "master"
   val issueId = 10
   def initRepository(owner: String, name: String): File = {

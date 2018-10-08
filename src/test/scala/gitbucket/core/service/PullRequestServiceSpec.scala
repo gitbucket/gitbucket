@@ -9,11 +9,15 @@ class PullRequestServiceSpec
     with PullRequestService
     with IssuesService
     with AccountService
+    with ActivityService
     with RepositoryService
     with CommitsService
     with LabelsService
     with MilestonesService
-    with PrioritiesService {
+    with PrioritiesService
+    with WebHookService
+    with WebHookPullRequestService
+    with WebHookPullRequestReviewCommentService {
 
   def swap(r: (Issue, PullRequest)) = (r._2 -> r._1)
 
