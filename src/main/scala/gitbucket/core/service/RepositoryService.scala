@@ -561,6 +561,14 @@ trait RepositoryService { self: AccountService =>
     Collaborators insert Collaborator(userName, repositoryName, collaboratorName, role)
 
   /**
+   * Remove specified collaborator from the repository.
+   */
+  def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String)(
+    implicit s: Session
+  ): Unit =
+    Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
+
+  /**
    * Remove all collaborators from the repository.
    */
   def removeCollaborators(userName: String, repositoryName: String)(implicit s: Session): Unit =

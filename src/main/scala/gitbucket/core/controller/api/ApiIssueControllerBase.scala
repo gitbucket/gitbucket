@@ -5,7 +5,7 @@ import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.{AccountService, IssueCreationService, IssuesService, MilestonesService}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.PullRequestService.PullRequestLimit
-import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, RepositoryName}
+import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, RepositoryName, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
 
 trait ApiIssueControllerBase extends ControllerBase {
@@ -18,6 +18,7 @@ trait ApiIssueControllerBase extends ControllerBase {
   /*
    * i. List issues
    * https://developer.github.com/v3/issues/#list-issues
+   * requested: 1743
    */
 
   /*

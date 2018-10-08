@@ -103,16 +103,19 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
   /*
    * iii. Create a file
    * https://developer.github.com/v3/repos/contents/#create-a-file
+   * requested #2112
    */
 
   /*
    * iv. Update a file
    * https://developer.github.com/v3/repos/contents/#update-a-file
+   * requested #2112
    */
 
   /*
    * v. Delete a file
    * https://developer.github.com/v3/repos/contents/#delete-a-file
+   * should be implemented
    */
 
   /*

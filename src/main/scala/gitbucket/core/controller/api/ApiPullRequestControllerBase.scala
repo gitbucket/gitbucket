@@ -100,6 +100,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
   /*
    * iv. Create a pull request
    * https://developer.github.com/v3/pulls/#create-a-pull-request
+   * requested #1843
    */
 
   /*
