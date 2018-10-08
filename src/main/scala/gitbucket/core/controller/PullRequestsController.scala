@@ -32,6 +32,7 @@ class PullRequestsController
     with CommitsService
     with ActivityService
     with WebHookPullRequestService
+    with WebHookPullRequestReviewCommentService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -320,50 +321,14 @@ trait PullRequestsControllerBase extends ControllerBase {
             remoteRepository,
             pullreq.branch,
             loginAccount,
-            s"Merge branch '${alias}' into ${pullreq.requestBranch}"
+            s"Merge branch '${alias}' into ${pullreq.requestBranch}",
+            Some(pullreq)
           ) match {
             case None => // conflict
               flash += "error" -> s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}."
             case Some(oldId) =>
               // update pull request
-              updatePullRequests(owner, name, pullreq.requestBranch)
-
-              using(Git.open(Directory.getRepositoryDir(owner, name))) {
-                git =>
-                  //  after update branch
-                  val newCommitId = git.getRepository.resolve(s"refs/heads/${pullreq.requestBranch}")
-                  val commits = git.log
-                    .addRange(oldId, newCommitId)
-                    .call
-                    .iterator
-                    .asScala
-                    .map(c => new JGitUtil.CommitInfo(c))
-                    .toList
-
-                  // call web hook
-                  callPullRequestWebHookByRequestBranch(
-                    "synchronize",
-                    repository,
-                    pullreq.requestBranch,
-                    loginAccount
-                  )
-                  callWebHookOf(owner, name, WebHook.Push) {
-                    for {
-                      ownerAccount <- getAccountByUserName(owner)
-                    } yield {
-                      WebHookService.WebHookPushPayload(
-                        git,
-                        loginAccount,
-                        pullreq.requestBranch,
-                        repository,
-                        commits,
-                        ownerAccount,
-                        oldId = oldId,
-                        newId = newCommitId
-                      )
-                    }
-                  }
-              }
+              updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize")
               flash += "info" -> s"Merge branch '${alias}' into ${pullreq.requestBranch}"
           }
         }
@@ -374,119 +339,14 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>
-    params("id").toIntOpt.flatMap {
-      issueId =>
-        val owner = repository.owner
-        val name = repository.name
-        if (repository.repository.options.mergeOptions.split(",").contains(form.strategy)) {
-          LockUtil.lock(s"${owner}/${name}") {
-            getPullRequest(owner, name, issueId).map {
-              case (issue, pullreq) =>
-                using(Git.open(getRepositoryDir(owner, name))) {
-                  git =>
-                    // mark issue as merged and close.
-                    val loginAccount = context.loginAccount.get
-                    val commentId = createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
-                    createComment(owner, name, loginAccount.userName, issueId, "Close", "close")
-                    updateClosed(owner, name, issueId, true)
+    params("id").toIntOpt.flatMap { issueId =>
+      val owner = repository.owner
+      val name = repository.name
 
-                    // record activity
-                    recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
-
-                    val (commits, _) = getRequestCompareInfo(
-                      owner,
-                      name,
-                      pullreq.commitIdFrom,
-                      pullreq.requestUserName,
-                      pullreq.requestRepositoryName,
-                      pullreq.commitIdTo
-                    )
-
-                    val revCommits = using(new RevWalk(git.getRepository)) { revWalk =>
-                      commits.flatten.map { commit =>
-                        revWalk.parseCommit(git.getRepository.resolve(commit.id))
-                      }
-                    }.reverse
-
-                    // merge git repository
-                    form.strategy match {
-                      case "merge-commit" =>
-                        mergePullRequest(
-                          git,
-                          pullreq.branch,
-                          issueId,
-                          s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
-                          new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-                        )
-                      case "rebase" =>
-                        rebasePullRequest(
-                          git,
-                          pullreq.branch,
-                          issueId,
-                          revCommits,
-                          new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-                        )
-                      case "squash" =>
-                        squashPullRequest(
-                          git,
-                          pullreq.branch,
-                          issueId,
-                          s"${issue.title} (#${issueId})\n\n" + form.message,
-                          new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-                        )
-                    }
-
-                    // close issue by content of pull request
-                    val defaultBranch = getRepository(owner, name).get.repository.defaultBranch
-                    if (pullreq.branch == defaultBranch) {
-                      commits.flatten.foreach { commit =>
-                        closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name).foreach {
-                          issueId =>
-                            getIssue(owner, name, issueId.toString).foreach { issue =>
-                              callIssuesWebHook("closed", repository, issue, loginAccount)
-                              PluginRegistry().getIssueHooks
-                                .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
-                            }
-                        }
-                      }
-                      val issueContent = issue.title + " " + issue.content.getOrElse("")
-                      closeIssuesFromMessage(
-                        issueContent,
-                        loginAccount.userName,
-                        owner,
-                        name
-                      ).foreach { issueId =>
-                        getIssue(owner, name, issueId.toString).foreach { issue =>
-                          callIssuesWebHook("closed", repository, issue, loginAccount)
-                          PluginRegistry().getIssueHooks
-                            .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
-                        }
-                      }
-                      closeIssuesFromMessage(form.message, loginAccount.userName, owner, name).foreach { issueId =>
-                        getIssue(owner, name, issueId.toString).foreach { issue =>
-                          callIssuesWebHook("closed", repository, issue, loginAccount)
-                          PluginRegistry().getIssueHooks
-                            .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
-                        }
-                      }
-                    }
-
-                    updatePullRequests(owner, name, pullreq.branch)
-
-                    // call web hook
-                    callPullRequestWebHook("closed", repository, issueId, context.loginAccount.get)
-
-                    // call hooks
-                    PluginRegistry().getPullRequestHooks.foreach { h =>
-                      h.addedComment(commentId, form.message, issue, repository)
-                      h.merged(issue, repository)
-                    }
-
-                    redirect(s"/${owner}/${name}/pull/${issueId}")
-                }
-            }
-          }
-        } else Some(BadRequest())
+      mergePullRequest(repository, issueId, context.loginAccount.get, form.message, form.strategy) match {
+        case Right(objectId) => redirect(s"/${owner}/${name}/pull/${issueId}")
+        case Left(message)   => Some(BadRequest())
+      }
     } getOrElse NotFound()
   })
 

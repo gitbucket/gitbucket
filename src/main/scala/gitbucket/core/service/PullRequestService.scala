@@ -4,6 +4,7 @@ import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import difflib.{Delta, DiffUtils}
+import gitbucket.core.api.JsonFormat
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -15,7 +16,8 @@ import org.eclipse.jgit.api.Git
 
 import scala.collection.JavaConverters._
 
-trait PullRequestService { self: IssuesService with CommitsService =>
+trait PullRequestService {
+  self: IssuesService with CommitsService with WebHookService with WebHookPullRequestService with RepositoryService =>
   import PullRequestService._
 
   def getPullRequest(owner: String, repository: String, issueId: Int)(
@@ -164,7 +166,10 @@ trait PullRequestService { self: IssuesService with CommitsService =>
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
    */
-  def updatePullRequests(owner: String, repository: String, branch: String)(implicit s: Session): Unit = {
+  def updatePullRequests(owner: String, repository: String, branch: String, loginAccount: Account, action: String)(
+    implicit s: Session,
+    c: JsonFormat.Context
+  ): Unit = {
     getPullRequestsByRequest(owner, repository, branch, Some(false)).foreach { pullreq =>
       if (Repositories.filter(_.byRepository(pullreq.userName, pullreq.repositoryName)).exists.run) {
         // Update the git repository
@@ -204,6 +209,14 @@ trait PullRequestService { self: IssuesService with CommitsService =>
 
         // Update commit id in the PULL_REQUEST table
         updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
+
+        // call web hook
+        callPullRequestWebHookByRequestBranch(
+          action,
+          getRepository(owner, repository).get,
+          pullreq.requestBranch,
+          loginAccount
+        )
       }
     }
   }

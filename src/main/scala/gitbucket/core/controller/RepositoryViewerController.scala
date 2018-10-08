@@ -13,7 +13,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.{Account, CommitState, CommitStatus, WebHook}
+import gitbucket.core.model.{Account, CommitState, CommitStatus}
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveOutputStream}
@@ -615,50 +615,17 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     createCommitComment(
-      repository.owner,
-      repository.name,
+      repository,
       id,
-      context.loginAccount.get.userName,
+      context.loginAccount.get,
       form.content,
       form.fileName,
       form.oldLineNumber,
       form.newLineNumber,
+      form.diff,
       form.issueId
     )
 
-    for {
-      fileName <- form.fileName
-      diff <- form.diff
-    } {
-      saveCommitCommentDiff(
-        repository.owner,
-        repository.name,
-        id,
-        fileName,
-        form.oldLineNumber,
-        form.newLineNumber,
-        diff
-      )
-    }
-
-    form.issueId match {
-      case Some(issueId) =>
-        recordCommentPullRequestActivity(
-          repository.owner,
-          repository.name,
-          context.loginAccount.get.userName,
-          issueId,
-          form.content
-        )
-      case None =>
-        recordCommentCommitActivity(
-          repository.owner,
-          repository.name,
-          context.loginAccount.get.userName,
-          id,
-          form.content
-        )
-    }
     redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
   })
 
@@ -683,63 +650,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     val commentId = createCommitComment(
-      repository.owner,
-      repository.name,
+      repository,
       id,
-      context.loginAccount.get.userName,
+      context.loginAccount.get,
       form.content,
       form.fileName,
       form.oldLineNumber,
       form.newLineNumber,
+      form.diff,
       form.issueId
     )
 
-    for {
-      fileName <- form.fileName
-      diff <- form.diff
-    } {
-      saveCommitCommentDiff(
-        repository.owner,
-        repository.name,
-        id,
-        fileName,
-        form.oldLineNumber,
-        form.newLineNumber,
-        diff
-      )
-    }
-
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
-    form.issueId match {
-      case Some(issueId) =>
-        getPullRequest(repository.owner, repository.name, issueId).foreach {
-          case (issue, pullRequest) =>
-            recordCommentPullRequestActivity(
-              repository.owner,
-              repository.name,
-              context.loginAccount.get.userName,
-              issueId,
-              form.content
-            )
-            PluginRegistry().getPullRequestHooks.foreach(_.addedComment(commentId, form.content, issue, repository))
-            callPullRequestReviewCommentWebHook(
-              "create",
-              comment,
-              repository,
-              issue,
-              pullRequest,
-              context.loginAccount.get
-            )
-        }
-      case None =>
-        recordCommentCommitActivity(
-          repository.owner,
-          repository.name,
-          context.loginAccount.get.userName,
-          id,
-          form.content
-        )
-    }
     helper.html
       .commitcomment(comment, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
   })

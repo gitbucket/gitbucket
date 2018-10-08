@@ -135,7 +135,7 @@ trait RepositoryCommitFileService {
             refUpdate.update()
 
             // update pull request
-            updatePullRequests(repository.owner, repository.name, branch)
+            updatePullRequests(repository.owner, repository.name, branch, loginAccount, "synchronize")
 
             // record activity
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
@@ -161,8 +161,6 @@ trait RepositoryCommitFileService {
               hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
             }
 
-            //call web hook
-            callPullRequestWebHookByRequestBranch("synchronize", repository, branch, loginAccount)
             val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
             callWebHookOf(repository.owner, repository.name, WebHook.Push) {
               getAccountByUserName(repository.owner).map { ownerAccount =>

@@ -221,6 +221,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     with PrioritiesService
     with MilestonesService
     with WebHookPullRequestService
+    with WebHookPullRequestReviewCommentService
     with CommitsService {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
@@ -346,14 +347,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               command.getType match {
                 case ReceiveCommand.Type.CREATE | ReceiveCommand.Type.UPDATE |
                     ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
-                  updatePullRequests(owner, repository, branchName)
                   getAccountByUserName(pusher).foreach { pusherAccount =>
-                    callPullRequestWebHookByRequestBranch(
-                      "synchronize",
-                      repositoryInfo,
-                      branchName,
-                      pusherAccount
-                    )
+                    updatePullRequests(owner, repository, branchName, pusherAccount, "synchronize")
                   }
                 case _ =>
               }
