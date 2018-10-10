@@ -181,7 +181,7 @@ trait AccountService {
       description = description
     )
 
-  def suspendAccount(account: Account)(implicit s: Session): Unit ={
+  def suspendAccount(account: Account)(implicit s: Session): Unit = {
     // Remove from GROUP_MEMBER and COLLABORATOR
     removeUserRelatedData(account.userName)
     updateAccount(account.copy(isRemoved = true))
