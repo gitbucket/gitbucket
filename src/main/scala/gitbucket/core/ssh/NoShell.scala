@@ -3,7 +3,7 @@ package gitbucket.core.ssh
 import gitbucket.core.service.SystemSettingsService.SshAddress
 import org.apache.sshd.common.Factory
 import org.apache.sshd.server.{Environment, ExitCallback}
-import org.apache.sshd.server.command.Command
+import org.apache.sshd.server.Command
 import java.io.{OutputStream, InputStream}
 import org.eclipse.jgit.lib.Constants
 
