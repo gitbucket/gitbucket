@@ -198,14 +198,14 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * viii. Get if a pull request has been merged
    * https://developer.github.com/v3/pulls/#get-if-a-pull-request-has-been-merged
    */
-  get("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly {repository =>
-    (for{
+  get("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
+    (for {
       issueId <- params("id").toIntOpt
       (issue, pullReq) <- getPullRequest(repository.owner, repository.name, issueId)
     } yield {
-      if(checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
+      if (checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
         NoContent
-      }else{
+      } else {
         NotFound
       }
     }).getOrElse(NotFound)
