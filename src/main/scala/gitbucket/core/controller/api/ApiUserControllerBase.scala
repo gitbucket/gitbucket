@@ -34,8 +34,8 @@ trait ApiUserControllerBase extends ControllerBase {
    * iii. Update the authenticated user
    * https://developer.github.com/v3/users/#update-the-authenticated-user
    */
-  patch("/api/v3/user")(usersOnly{
-    (for{
+  patch("/api/v3/user")(usersOnly {
+    (for {
       data <- extractFromJsonBody[UpdateAUser]
     } yield {
       val updatedAccount = context.loginAccount.get.copy(
@@ -85,7 +85,7 @@ trait ApiUserControllerBase extends ControllerBase {
    * ghe: vii. Suspend a user
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#suspend-a-user
    */
-  put("/api/v3/users/:userName/suspended")(adminOnly{
+  put("/api/v3/users/:userName/suspended")(adminOnly {
     val userName = params("userName")
     getAccountByUserName(userName) match {
       case Some(targetAccount) =>
@@ -101,7 +101,7 @@ trait ApiUserControllerBase extends ControllerBase {
    * ghe: vii. Unsuspend a user
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#unsuspend-a-user
    */
-  delete("/api/v3/users/:userName/suspended")(adminOnly{
+  delete("/api/v3/users/:userName/suspended")(adminOnly {
     val userName = params("userName")
     getAccountByUserName(userName) match {
       case Some(targetAccount) =>
