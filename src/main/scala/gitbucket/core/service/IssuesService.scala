@@ -526,6 +526,15 @@ trait IssuesService {
       .update(title, content, currentDate)
   }
 
+  def changeIssueToPullRequest(owner: String, repository: String, issueId: Int)(implicit s: Session) = {
+    Issues
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        t.pullRequest
+      }
+      .update(true)
+  }
+
   def updateAssignedUserName(
     owner: String,
     repository: String,

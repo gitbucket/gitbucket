@@ -4,6 +4,7 @@ import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import difflib.{Delta, DiffUtils}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -12,6 +13,7 @@ import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.ObjectId
 
 import scala.collection.JavaConverters._
 
@@ -384,6 +386,58 @@ trait PullRequestService { self: IssuesService with CommitsService =>
     updateClosed(owner, repository, pull.issueId, true)
   }
 
+  /**
+   * Parses branch identifier and extracts owner and branch name as tuple.
+   *
+   * - "owner:branch" to ("owner", "branch")
+   * - "branch" to ("defaultOwner", "branch")
+   */
+  def parseCompareIdentifier(value: String, defaultOwner: String): (String, String) =
+    if (value.contains(':')) {
+      val array = value.split(":")
+      (array(0), array(1))
+    } else {
+      (defaultOwner, value)
+    }
+
+  def getPullRequestCommitFromTo(
+    originRepository: RepositoryInfo,
+    forkedRepository: RepositoryInfo,
+    originId: String,
+    forkedId: String
+  ): (Option[ObjectId], Option[ObjectId]) = {
+    using(
+      Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
+      Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
+    ) {
+      case (oldGit, newGit) =>
+        if (originRepository.branchList.contains(originId)) {
+          val forkedId2 =
+            forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
+
+          val originId2 = JGitUtil.getForkedCommitId(
+            oldGit,
+            newGit,
+            originRepository.owner,
+            originRepository.name,
+            originId,
+            forkedRepository.owner,
+            forkedRepository.name,
+            forkedId2
+          )
+
+          (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
+
+        } else {
+          val originId2 =
+            originRepository.tags.collectFirst { case x if x.name == originId => x.id }.getOrElse(originId)
+          val forkedId2 =
+            forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
+
+          (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
+        }
+    }
+  }
 }
 
 object PullRequestService {
