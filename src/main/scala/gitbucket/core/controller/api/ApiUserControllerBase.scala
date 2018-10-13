@@ -38,9 +38,9 @@ trait ApiUserControllerBase extends ControllerBase {
     (for {
       data <- extractFromJsonBody[UpdateAUser]
     } yield {
-      val updatedAccount = context.loginAccount.get.copy(
-        mailAddress = data.email,
-        description = Some(data.bio)
+      val loginAccount = context.loginAccount.get
+      val updatedAccount = loginAccount.copy(
+        mailAddress = data.email.getOrElse(loginAccount.mailAddress)
       )
       updateAccount(updatedAccount)
       JsonFormat(ApiUser(updatedAccount))
