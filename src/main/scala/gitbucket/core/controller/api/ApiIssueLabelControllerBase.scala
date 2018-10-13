@@ -109,26 +109,84 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * vi. List labels on an issue
    * https://developer.github.com/v3/issues/labels/#list-labels-on-an-issue
    */
+  get("/api/v3/repos/:owner/:repository/issues/:id/labels")(referrersOnly { repository =>
+    JsonFormat(getIssueLabels(repository.owner, repository.name, params("id").toInt).map { l =>
+      ApiLabel(l, RepositoryName(repository.owner, repository.name))
+    })
+  })
 
   /*
    * vii. Add labels to an issue
    * https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
    */
+  post("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
+    JsonFormat(for {
+      data <- extractFromJsonBody[Seq[String]];
+      issueId <- params("id").toIntOpt
+    } yield {
+      data.map { labelName =>
+        val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
+          getLabel(
+            repository.owner,
+            repository.name,
+            createLabel(repository.owner, repository.name, labelName)
+          ).get
+        )
+        registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
+        ApiLabel(label, RepositoryName(repository.owner, repository.name))
+      }
+    })
+  })
 
   /*
    * viii. Remove a label from an issue
    * https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
    */
+  delete("/api/v3/repos/:owner/:repository/issues/:id/labels/:name")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    val labelName = params("name")
+    getLabel(repository.owner, repository.name, labelName) match {
+      case Some(label) =>
+        deleteIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
+        JsonFormat(Seq(label))
+      case None =>
+        NotFound()
+    }
+  })
 
   /*
    * ix. Replace all labels for an issue
    * https://developer.github.com/v3/issues/labels/#replace-all-labels-for-an-issue
    */
+  put("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
+    JsonFormat(for {
+      data <- extractFromJsonBody[Seq[String]];
+      issueId <- params("id").toIntOpt
+    } yield {
+      deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
+      data.map { labelName =>
+        val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
+          getLabel(
+            repository.owner,
+            repository.name,
+            createLabel(repository.owner, repository.name, labelName)
+          ).get
+        )
+        registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
+        ApiLabel(label, RepositoryName(repository.owner, repository.name))
+      }
+    })
+  })
 
   /*
    * x. Remove all labels from an issue
    * https://developer.github.com/v3/issues/labels/#remove-all-labels-from-an-issue
    */
+  delete("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
+    NoContent()
+  })
 
   /*
  * xi Get labels for every issue in a milestone

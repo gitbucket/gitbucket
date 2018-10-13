@@ -70,7 +70,7 @@ trait ApiUserControllerBase extends ControllerBase {
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#suspend-a-user
    */
   /*
-   * ghe: vii. Unsuspend a user
-   * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#unsuspend-a-user
-   */
+ * ghe: vii. Unsuspend a user
+ * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#unsuspend-a-user
+ */
 }

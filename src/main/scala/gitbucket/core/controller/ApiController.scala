@@ -1,7 +1,12 @@
 package gitbucket.core.controller
 
 import gitbucket.core.api._
-import gitbucket.core.controller.api.{ApiOrganizationControllerBase, ApiRepositoryControllerBase, ApiUserControllerBase}
+import gitbucket.core.controller.api.{
+  ApiIssueLabelControllerBase,
+  ApiOrganizationControllerBase,
+  ApiRepositoryControllerBase,
+  ApiUserControllerBase
+}
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
@@ -12,6 +17,7 @@ class ApiController
     with ApiOrganizationControllerBase
     with ApiRepositoryControllerBase
     with ApiUserControllerBase
+    with ApiIssueLabelControllerBase
     with RepositoryService
     with AccountService
     with ProtectedBranchService
@@ -30,6 +36,7 @@ class ApiController
     with WikiService
     with ActivityService
     with PrioritiesService
+    with AdminAuthenticator
     with OwnerAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator
