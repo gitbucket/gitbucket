@@ -26,6 +26,7 @@ class IssuesController
     with WritableUsersAuthenticator
     with PullRequestService
     with WebHookIssueCommentService
+    with WebHookPullRequestReviewCommentService
     with CommitsService
     with PrioritiesService
 

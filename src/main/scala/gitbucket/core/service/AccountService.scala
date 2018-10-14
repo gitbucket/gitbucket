@@ -7,6 +7,7 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.{LDAPUtil, StringUtil}
 import StringUtil._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 
 trait AccountService {
@@ -180,6 +181,15 @@ trait AccountService {
       description = description
     )
 
+  def suspendAccount(account: Account)(implicit s: Session): Unit = {
+    // Remove from GROUP_MEMBER and COLLABORATOR
+    removeUserRelatedData(account.userName)
+    updateAccount(account.copy(isRemoved = true))
+
+    // call hooks
+    PluginRegistry().getAccountHooks.foreach(_.deleted(account.userName))
+  }
+
   def updateAccount(account: Account)(implicit s: Session): Unit =
     Accounts
       .filter { a =>
@@ -276,6 +286,15 @@ trait AccountService {
   def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
     GroupMembers.filter(_.userName === userName.bind).delete
     Collaborators.filter(_.collaboratorName === userName.bind).delete
+  }
+
+  def removeUser(account: Account)(implicit s: Session): Unit = {
+    // Remove from GROUP_MEMBER and COLLABORATOR
+    removeUserRelatedData(account.userName)
+    updateAccount(account.copy(isRemoved = true))
+
+    // call hooks
+    PluginRegistry().getAccountHooks.foreach(_.deleted(account.userName))
   }
 
   def getGroupNames(userName: String)(implicit s: Session): List[String] = {

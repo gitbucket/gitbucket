@@ -87,9 +87,9 @@ trait HandleCommentService {
                 case "reopen" => "reopened"
               }
               if (issue.isPullRequest)
-                callPullRequestWebHook(webHookAction, repository, issue.issueId, context.baseUrl, loginAccount)
+                callPullRequestWebHook(webHookAction, repository, issue.issueId, loginAccount)
               else
-                callIssuesWebHook(webHookAction, repository, issue, context.baseUrl, loginAccount)
+                callIssuesWebHook(webHookAction, repository, issue, loginAccount)
           }
 
           // call hooks

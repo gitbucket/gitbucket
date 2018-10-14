@@ -2,15 +2,20 @@ package gitbucket.core.service
 
 import java.io.File
 
-import gitbucket.core.model.CommitComment
+import gitbucket.core.api.JsonFormat
+import gitbucket.core.controller.Context
+import gitbucket.core.model.{Account, CommitComment}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{FileUtil, StringUtil}
 import org.apache.commons.io.FileUtils
 
 trait CommitsService {
+  self: ActivityService with PullRequestService with WebHookPullRequestReviewCommentService =>
 
   def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(
     implicit s: Session
@@ -28,21 +33,21 @@ trait CommitsService {
       None
 
   def createCommitComment(
-    owner: String,
-    repository: String,
+    repository: RepositoryInfo,
     commitId: String,
-    loginUser: String,
+    loginAccount: Account,
     content: String,
     fileName: Option[String],
     oldLine: Option[Int],
     newLine: Option[Int],
+    diff: Option[String],
     issueId: Option[Int]
-  )(implicit s: Session): Int =
-    CommitComments returning CommitComments.map(_.commentId) insert CommitComment(
-      userName = owner,
-      repositoryName = repository,
+  )(implicit s: Session, c: JsonFormat.Context, context: Context): Int = {
+    val commentId = CommitComments returning CommitComments.map(_.commentId) insert CommitComment(
+      userName = repository.owner,
+      repositoryName = repository.name,
       commitId = commitId,
-      commentedUserName = loginUser,
+      commentedUserName = loginAccount.userName,
       content = content,
       fileName = fileName,
       oldLine = oldLine,
@@ -54,6 +59,56 @@ trait CommitsService {
       originalOldLine = oldLine,
       originalNewLine = newLine
     )
+
+    for {
+      fileName <- fileName
+      diff <- diff
+    } {
+      saveCommitCommentDiff(
+        repository.owner,
+        repository.name,
+        commitId,
+        fileName,
+        oldLine,
+        newLine,
+        diff
+      )
+    }
+
+    val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
+    issueId match {
+      case Some(issueId) =>
+        getPullRequest(repository.owner, repository.name, issueId).foreach {
+          case (issue, pullRequest) =>
+            recordCommentPullRequestActivity(
+              repository.owner,
+              repository.name,
+              loginAccount.userName,
+              issueId,
+              content
+            )
+            PluginRegistry().getPullRequestHooks.foreach(_.addedComment(commentId, content, issue, repository))
+            callPullRequestReviewCommentWebHook(
+              "create",
+              comment,
+              repository,
+              issue,
+              pullRequest,
+              loginAccount
+            )
+        }
+      case None =>
+        recordCommentCommitActivity(
+          repository.owner,
+          repository.name,
+          loginAccount.userName,
+          commitId,
+          content
+        )
+    }
+
+    commentId
+  }
 
   def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(
     implicit s: Session
