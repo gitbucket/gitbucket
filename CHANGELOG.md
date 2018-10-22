@@ -1,24 +1,24 @@
 # Changelog
 All changes to the project will be documented in this file.
 
-### 4.29.0 - 29 Sep 2018
+## 4.29.0 - 29 Sep 2018
 - Official Docker image has been available
 - Enhance file edit and delete buttons of the repository viewer
 - Fix Patch button to generate patches for all files in the commit
 - Display confirmation dialog for Transfer Ownership and Garbage collection
 - Fix wrong url encoding in "Compare & pull request"
 
-### 4.28.0 - 1 Sep 2018
+## 4.28.0 - 1 Sep 2018
 - Proxy support for plugin installation
 - Fix some bugs around pull requests
 
-### 4.27.0 - 29 Jul 2018
+## 4.27.0 - 29 Jul 2018
 - Create new tag on the browser
 - EditorConfig support
 - Improve issues / pull requests search
 - Some improvements and bug fixes for plugin installation via internet and pull request commenting
 
-### 4.26.0 - 30 Jun 2018
+## 4.26.0 - 30 Jun 2018
 - Installing plugins from the central registry
 - Repositories tab in the dashboard
 - Fork dialog enhancement
@@ -26,7 +26,7 @@ All changes to the project will be documented in this file.
 - Keep showing incompleted task list
 - New notification hooks
 
-### 4.25.0 - 29 May 2018
+## 4.25.0 - 29 May 2018
 - Security improvements
 - Show mail address at the profile page
 - Task list on commit comments
@@ -34,10 +34,10 @@ All changes to the project will be documented in this file.
 - Expose user public keys
 - Download repository improvements
 
-### 4.24.1 - 1 May 2018
+## 4.24.1 - 1 May 2018
 - Fix bug in Web API authentication
 
-### 4.24.0 - 30 Apr 2018
+## 4.24.0 - 30 Apr 2018
 - Diff for each review comment on pull requests
 - Extra mail addresses support
 - Show tags at the commit list
@@ -45,12 +45,12 @@ All changes to the project will be documented in this file.
 - Renew layout of gitbucket-gist-plugin
 - Web API of gitbucket-ci-plugin
 
-### 4.23.1 - 10 Apr 2018
+## 4.23.1 - 10 Apr 2018
 - Fix bug that the contents API doesn't work for the repository root
 - Fix shutdown problem in Tomcat deployment
 - Render by plugins at the blob view even if it's a binary file
 
-### 4.23.0 - 31 Mar 2018
+## 4.23.0 - 31 Mar 2018
 - Allow tail slash in URL
 - Display commit message of tags at the releases page
 - Add labels property to issues and pull requests API response
@@ -58,26 +58,26 @@ All changes to the project will be documented in this file.
 - Git authentication with personal access token
 - Max parallel builds and max stored history in CI plugin became configurable
 
-### 4.22.0 - 3 Mar 2018
+## 4.22.0 - 3 Mar 2018
 - Pull request merge strategy settings
 - Create repository with an empty commit
 - Improve database viewer
 - Update maven-repository-plugin
 
-### 4.21.2 - 27 Jan 2018
+## 4.21.2 - 27 Jan 2018
 - Bugfix
 
-### 4.21.1 - 27 Jan 2018
+## 4.21.1 - 27 Jan 2018
 - Bugfix
 
-### 4.21.0 - 27 Jan 2018
+## 4.21.0 - 27 Jan 2018
 - Release page
 - OpenID Connect support
 - New database viewer
 - Submodule links to web page
 - Clarify close/reopen button
 
-## 4.20.0 - 23 Dec 2017
+# 4.20.0 - 23 Dec 2017
 - Squash and rebase merge strategy for pull requests
 - Quick pull request creation
 - Download patch from the diff view
