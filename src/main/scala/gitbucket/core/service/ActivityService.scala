@@ -360,7 +360,7 @@ trait ActivityService {
       repositoryName,
       activityUserName,
       "release",
-      s"[user:${activityUserName}] released ${name} at [repo:${userName}/${repositoryName}]",
+      s"[user:${activityUserName}] released [release:${userName}/${repositoryName}/${name}] at [repo:${userName}/${repositoryName}]",
       None,
       currentDate
     )
