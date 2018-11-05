@@ -8,7 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.model.Version
-import org.apache.sshd.server.Command
+import org.apache.sshd.server.command.Command
 import play.twirl.api.Html
 
 /**
