@@ -43,7 +43,14 @@
           </div>
           <div>
             <hr>
-            @status.conflictMessage.map { message => @helpers.markdown(message, originRepository, false, true, false) }
+            @status.conflictMessage.map { message => @helpers.markdown(
+              markdown         = message,
+              repository       = originRepository,
+              branch           = originRepository.repository.defaultBranch,
+              enableWikiLink   = false,
+              enableRefsLink   = true,
+              enableLineBreaks = false
+            ) }
           </div>
         } else {
           @if(status.branchIsOutOfDate){
