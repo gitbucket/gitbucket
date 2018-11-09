@@ -176,13 +176,7 @@ object Markdown {
       } else if (!enableWikiLink) {
         if (context.currentPath.contains("/blob/")) {
           urlWithRawParam
-//        } else if (context.currentPath.contains("/tree/")) {
-//          val paths = context.currentPath.split("/")
-//          //val branch = if (paths.length > 3) paths.drop(4).mkString("/") else branch
-//          repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + urlWithRawParam
         } else {
-//          val paths = context.currentPath.split("/")
-          //val branch = if (paths.length > 3) paths.last else branch
           repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + urlWithRawParam
         }
       } else {
