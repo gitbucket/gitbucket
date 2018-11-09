@@ -34,6 +34,7 @@
           @helpers.markdown(
             markdown           = release.content getOrElse "No description provided.",
             repository         = repository,
+            branch             = repository.repository.defaultBranch,
             enableWikiLink     = false,
             enableRefsLink     = true,
             enableLineBreaks   = true,

@@ -59,7 +59,7 @@
           @if(isEditable){
             <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
-          @helpers.markdown(sidebarPage.content, repository, true, false, false, false, pages)
+          @helpers.markdown(sidebarPage.content, repository, "master", true, false, false, false, pages)
         </div>
       }.getOrElse{
         @if(isEditable){
@@ -85,6 +85,7 @@
         @helpers.markdown(
           markdown = page.content,
           repository = repository,
+          branch = "master",
           enableWikiLink = true,
           enableRefsLink = false,
           enableLineBreaks = false,
@@ -98,7 +99,16 @@
           @if(isEditable){
             <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
-          @helpers.markdown(footerPage.content, repository, true, false, false, false, pages)
+          @helpers.markdown(
+            markdown         = footerPage.content,
+            repository       = repository,
+            branch           = "master",
+            enableWikiLink   = true,
+            enableRefsLink   = false,
+            enableLineBreaks = false,
+            enableAnchor     = false,
+            pages            = pages
+          )
         </div>
       }.getOrElse{
         @if(isEditable){

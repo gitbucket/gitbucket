@@ -76,13 +76,14 @@
                   </div>
                 </div>
               </div>
-              @if(milestone.description.isDefined){
+              @milestone.description.map { description =>
                 <div class="milestone-description markdown-body">
                   @helpers.markdown(
-                    markdown = milestone.description.get,
-                    repository = repository,
-                    enableWikiLink = false,
-                    enableRefsLink = false,
+                    markdown         = description,
+                    repository       = repository,
+                    branch           = repository.repository.defaultBranch,
+                    enableWikiLink   = false,
+                    enableRefsLink   = false,
                     enableLineBreaks = true
                   )
                 </div>

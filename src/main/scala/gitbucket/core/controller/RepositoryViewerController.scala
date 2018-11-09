@@ -174,7 +174,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         helpers.renderMarkup(
           filePath = List(f),
           fileContent = params("content"),
-          branch = "master",
+          branch = repository.repository.defaultBranch,
           repository = repository,
           enableWikiLink = params("enableWikiLink").toBoolean,
           enableRefsLink = params("enableRefsLink").toBoolean,
@@ -184,6 +184,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         helpers.markdown(
           markdown = params("content"),
           repository = repository,
+          branch = repository.repository.defaultBranch,
           enableWikiLink = params("enableWikiLink").toBoolean,
           enableRefsLink = params("enableRefsLink").toBoolean,
           enableLineBreaks = params("enableLineBreaks").toBoolean,
@@ -679,6 +680,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 "content" -> view.Markdown.toHtml(
                   markdown = x.content,
                   repository = repository,
+                  branch = repository.repository.defaultBranch,
                   enableWikiLink = false,
                   enableRefsLink = true,
                   enableAnchor = true,
