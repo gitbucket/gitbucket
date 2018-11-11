@@ -65,7 +65,7 @@ object SyntaxSugars {
   implicit class HeadValueAccessibleMap(map: Map[String, Seq[String]]) {
     def value(key: String): String = map(key).head
     def optionValue(key: String): Option[String] = map.get(key).flatMap(_.headOption)
-    def values(key: String): Seq[String] = map.get(key).getOrElse(Seq.empty)
+    def values(key: String): Seq[String] = map.getOrElse(key, Seq.empty)
   }
 
 }

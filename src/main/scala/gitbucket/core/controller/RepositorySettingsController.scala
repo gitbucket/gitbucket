@@ -512,10 +512,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   private def mergeOptions = new ValueType[Seq[String]] {
     override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] = {
-      params.get("mergeOptions").getOrElse(Nil)
+      params.getOrElse("mergeOptions", Nil)
     }
     override def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = {
-      val mergeOptions = params.get("mergeOptions").getOrElse(Nil)
+      val mergeOptions = params.getOrElse("mergeOptions", Nil)
       if (mergeOptions.isEmpty) {
         Seq("mergeOptions" -> "At least one option must be enabled.")
       } else if (!mergeOptions.forall(x => Seq("merge-commit", "squash", "rebase").contains(x))) {
