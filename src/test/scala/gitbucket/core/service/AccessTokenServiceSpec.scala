@@ -3,7 +3,6 @@ package gitbucket.core.service
 import gitbucket.core.model._
 import org.scalatest.FunSuite
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 
 class AccessTokenServiceSpec extends FunSuite with ServiceSpecBase {
