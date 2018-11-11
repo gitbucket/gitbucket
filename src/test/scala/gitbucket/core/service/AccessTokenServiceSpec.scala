@@ -53,6 +53,7 @@ class AccessTokenServiceSpec extends FunSuite with ServiceSpecBase {
       val (id, token) = AccessTokenService.generateAccessToken("root", "note")
       assert(AccessTokenService.getAccountByAccessToken(token) match {
         case Some(user) => user.userName == "root"
+        case _          => fail()
       })
     }
   }
@@ -88,6 +89,7 @@ class AccessTokenServiceSpec extends FunSuite with ServiceSpecBase {
 
       assert(AccessTokenService.getAccountByAccessToken(token) match {
         case Some(user) => user.userName == "user3"
+        case _          => fail()
       })
     }
   }
