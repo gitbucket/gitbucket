@@ -53,7 +53,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "2.7.9",
   "com.typesafe"                    % "config"                       % "1.3.3",
-  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.17",
+  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.18",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.0.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.0.2.Final",
