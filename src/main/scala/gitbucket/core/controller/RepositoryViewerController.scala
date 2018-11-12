@@ -945,12 +945,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     path: String
   ) = {
     def archive(revision: String, archiveFormat: String, archive: ArchiveOutputStream)(
-      entryCreator: (String, Long, Long, Int) => ArchiveEntry
+      entryCreator: (String, Long, java.util.Date, Int) => ArchiveEntry
     ): Unit = {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val oid = git.getRepository.resolve(revision)
         val commit = JGitUtil.getRevCommitFromId(git, oid)
-        val time = commit.getCommitterIdent.getWhen.getTime
+        val date = commit.getCommitterIdent.getWhen
         val sha1 = oid.getName()
         val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
         val pathSuffix = if (path.isEmpty) "" else '-' + path.replace('/', '-')
@@ -969,7 +969,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 else path.split("/").last + treeWalk.getPathString.substring(path.length)
               val size = JGitUtil.getFileSize(git, repository, treeWalk)
               val mode = treeWalk.getFileMode.getBits
-              val entry: ArchiveEntry = entryCreator(entryPath, size, time, mode)
+              val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
               JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
                 archive.putArchiveEntry(entry)
                 IOUtils.copy(in, archive)
@@ -995,11 +995,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
         using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
-          archive(revision, ".zip", zip) { (path, size, time, mode) =>
+          archive(revision, ".zip", zip) { (path, size, date, mode) =>
             val entry = new ZipArchiveEntry(path)
             entry.setSize(size)
             entry.setUnixMode(mode)
-            entry.setTime(time)
+            entry.setTime(date.getTime)
             entry
           }
         }
@@ -1020,10 +1020,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             tar.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR)
             tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU)
             tar.setAddPaxHeadersForNonAsciiNames(true)
-            archive(revision, ".tar.gz", tar) { (path, size, time, mode) =>
+            archive(revision, ".tar.gz", tar) { (path, size, date, mode) =>
               val entry = new TarArchiveEntry(path)
               entry.setSize(size)
-              entry.setModTime(time)
+              entry.setModTime(date)
               entry.setMode(mode)
               entry
             }
