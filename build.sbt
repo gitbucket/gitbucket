@@ -51,12 +51,12 @@ libraryDependencies ++= Seq(
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.3.0",
   "org.postgresql"                  % "postgresql"                   % "42.2.5",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
-  "com.zaxxer"                      % "HikariCP"                     % "2.7.9",
+  "com.zaxxer"                      % "HikariCP"                     % "3.2.0",
   "com.typesafe"                    % "config"                       % "1.3.3",
   "com.typesafe.akka"               %% "akka-actor"                  % "2.5.18",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.0.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
-  "org.cache2k"                     % "cache2k-all"                  % "1.0.2.Final",
+  "org.cache2k"                     % "cache2k-all"                  % "1.2.0.Final",
   "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.7.0-akka-2.5.x" exclude ("c3p0", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
   "net.coobird"                     % "thumbnailator"                % "0.4.8",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
@@ -70,7 +70,7 @@ libraryDependencies ++= Seq(
   "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.9" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.8.0",
-  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.1"
+  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.2"
 )
 
 // Compiler settings
