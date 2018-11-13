@@ -30,6 +30,7 @@ trait PreProcessControllerBase extends ControllerBase {
    */
   get(!context.settings.allowAnonymousAccess, context.loginAccount.isEmpty) {
     if (!context.currentPath.startsWith("/assets") && !context.currentPath.startsWith("/signin") &&
+        !context.currentPath.startsWith("/maven") && !context.currentPath.startsWith("/npm") &&
         !context.currentPath.startsWith("/register") && !context.currentPath.endsWith("/info/refs")) {
       Unauthorized()
     } else {
