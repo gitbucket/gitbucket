@@ -70,22 +70,9 @@ class PluginRegistry {
     images.put(id, encoded)
   }
 
-  @deprecated("Use addImage(id: String, bytes: Array[Byte]) instead", "3.4.0")
-  def addImage(id: String, in: InputStream): Unit = {
-    val bytes = using(in) { in =>
-      val bytes = new Array[Byte](in.available)
-      in.read(bytes)
-      bytes
-    }
-    addImage(id, bytes)
-  }
-
   def getImage(id: String): String = images.get(id)
 
   def addController(path: String, controller: ControllerBase): Unit = controllers.add((controller, path))
-
-  @deprecated("Use addController(path: String, controller: ControllerBase) instead", "3.4.0")
-  def addController(controller: ControllerBase, path: String): Unit = addController(path, controller)
 
   def getControllers(): Seq[(ControllerBase, String)] = controllers.asScala.toSeq
 
