@@ -347,6 +347,10 @@ abstract class Plugin {
       case (path, controller) =>
         registry.addController(path, controller)
     }
+    (anonymousAccessiblePaths ++ anonymousAccessiblePaths(registry, context, settings)).foreach {
+      case (path) =>
+        registry.addAnonymousAccessiblePath(path)
+    }
     (javaScripts ++ javaScripts(registry, context, settings)).foreach {
       case (path, script) =>
         registry.addJavaScript(path, script)
