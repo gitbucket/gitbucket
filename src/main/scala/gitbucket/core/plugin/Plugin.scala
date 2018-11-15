@@ -48,6 +48,20 @@ abstract class Plugin {
   ): Seq[(String, ControllerBase)] = Nil
 
   /**
+   * Override to declare this plug-in provides anonymous accessible paths.
+   */
+  val anonymousAccessiblePaths: Seq[String] = Nil
+
+  /**
+   * Override to declare this plug-in provides anonymous accessible paths.
+   */
+  def anonymousAccessiblePaths(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[String] = Nil
+
+  /**
    * Override to declare this plug-in provides JavaScript.
    */
   val javaScripts: Seq[(String, String)] = Nil

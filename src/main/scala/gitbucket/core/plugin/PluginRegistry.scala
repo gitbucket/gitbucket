@@ -1,6 +1,6 @@
 package gitbucket.core.plugin
 
-import java.io.{File, FilenameFilter, InputStream}
+import java.io.{File, FilenameFilter}
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
@@ -15,7 +15,6 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.HttpClientUtil._
@@ -35,6 +34,7 @@ class PluginRegistry {
   private val plugins = new ConcurrentLinkedQueue[PluginInfo]
   private val javaScripts = new ConcurrentLinkedQueue[(String, String)]
   private val controllers = new ConcurrentLinkedQueue[(ControllerBase, String)]
+  private val anonymousAccessiblePaths = new ConcurrentLinkedQueue[String]
   private val images = new ConcurrentHashMap[String, String]
   private val renderers = new ConcurrentHashMap[String, Renderer]
   renderers.put("md", MarkdownRenderer)
@@ -75,6 +75,10 @@ class PluginRegistry {
   def addController(path: String, controller: ControllerBase): Unit = controllers.add((controller, path))
 
   def getControllers(): Seq[(ControllerBase, String)] = controllers.asScala.toSeq
+
+  def addAnonymousAccessiblePath(path: String): Unit = anonymousAccessiblePaths.add(path)
+
+  def getAnonymousAccessiblePaths(): Seq[String] = anonymousAccessiblePaths.asScala.toSeq
 
   def addJavaScript(path: String, script: String): Unit =
     javaScripts.add((path, script)) //javaScripts += ((path, script))
