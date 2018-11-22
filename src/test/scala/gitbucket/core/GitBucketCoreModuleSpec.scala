@@ -33,7 +33,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
       .withPort(3306)
       .withUser("sa", "sa")
       .withCharset(Charset.UTF8)
-      .withServerVariable("log_syslog", 0)
+      // .withServerVariable("log_syslog", 0)
       .withServerVariable("bind-address", "127.0.0.1")
       .build()
 
