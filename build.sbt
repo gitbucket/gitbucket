@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.30.0-SNAPSHOT"
 val ScalatraVersion = "2.6.3"
-val JettyVersion = "9.4.11.v20180605"
+val JettyVersion = "9.4.14.v20181114"
 val JgitVersion = "5.1.3.201810200350-r"
 
 lazy val root = (project in file("."))
@@ -36,9 +36,9 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "3.5.4",
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.2",
   "commons-io"                      % "commons-io"                   % "2.6",
-  "io.github.gitbucket"             % "solidbase"                    % "1.0.2",
+  "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.15",
   "org.apache.commons"              % "commons-compress"             % "1.18",
   "org.apache.commons"              % "commons-email"                % "1.5",
@@ -65,12 +65,12 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.12" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "2.23.0" % "test",
-  "com.wix"                         % "wix-embedded-mysql"           % "3.0.0" % "test",
-  "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.9" % "test",
+  "org.mockito"                     % "mockito-core"                 % "2.23.4" % "test",
+  "com.wix"                         % "wix-embedded-mysql"           % "4.2.0" % "test",
+  "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.10" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.8.0",
-  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.2"
+  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3"
 )
 
 // Compiler settings
