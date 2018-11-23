@@ -8,7 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.model.Version
-import org.apache.sshd.server.Command
+import org.apache.sshd.server.command.Command
 import play.twirl.api.Html
 
 /**
@@ -46,6 +46,20 @@ abstract class Plugin {
     context: ServletContext,
     settings: SystemSettings
   ): Seq[(String, ControllerBase)] = Nil
+
+  /**
+   * Override to declare this plug-in provides anonymous accessible paths.
+   */
+  val anonymousAccessiblePaths: Seq[String] = Nil
+
+  /**
+   * Override to declare this plug-in provides anonymous accessible paths.
+   */
+  def anonymousAccessiblePaths(
+    registry: PluginRegistry,
+    context: ServletContext,
+    settings: SystemSettings
+  ): Seq[String] = Nil
 
   /**
    * Override to declare this plug-in provides JavaScript.
@@ -332,6 +346,10 @@ abstract class Plugin {
     (controllers ++ controllers(registry, context, settings)).foreach {
       case (path, controller) =>
         registry.addController(path, controller)
+    }
+    (anonymousAccessiblePaths ++ anonymousAccessiblePaths(registry, context, settings)).foreach {
+      case (path) =>
+        registry.addAnonymousAccessiblePath(path)
     }
     (javaScripts ++ javaScripts(registry, context, settings)).foreach {
       case (path, script) =>

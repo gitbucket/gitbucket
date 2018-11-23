@@ -22,12 +22,13 @@
       </div>
       <div class="commit-commentContent-@comment.commentId">
         @helpers.markdown(
-          markdown = comment.content,
-          repository = repository,
-          enableWikiLink = false,
-          enableRefsLink = true,
-          enableLineBreaks = true,
-          enableTaskList = true,
+          markdown           = comment.content,
+          repository         = repository,
+          branch             = repository.repository.defaultBranch,
+          enableWikiLink     = false,
+          enableRefsLink     = true,
+          enableLineBreaks   = true,
+          enableTaskList     = true,
           hasWritePermission = hasWritePermission
         )
       </div>

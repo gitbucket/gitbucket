@@ -102,6 +102,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def markdown(
     markdown: String,
     repository: RepositoryService.RepositoryInfo,
+    branch: String,
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
     enableLineBreaks: Boolean,
@@ -114,6 +115,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       Markdown.toHtml(
         markdown = markdown,
         repository = repository,
+        branch = branch,
         enableWikiLink = enableWikiLink,
         enableRefsLink = enableRefsLink,
         enableAnchor = enableAnchor,

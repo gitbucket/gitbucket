@@ -32,12 +32,13 @@
   </div>
   <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
     @helpers.markdown(
-      markdown = comment.content,
-      repository = repository,
-      enableWikiLink = false,
-      enableRefsLink = true,
-      enableLineBreaks = true,
-      enableTaskList = true,
+      markdown           = comment.content,
+      repository         = repository,
+      branch             = repository.repository.defaultBranch,
+      enableWikiLink     = false,
+      enableRefsLink     = true,
+      enableLineBreaks   = true,
+      enableTaskList     = true,
       hasWritePermission = isManageable
     )
   </div>
@@ -57,12 +58,13 @@
     </div>
     <div class="panel-body markdown-body" id="issueContent">
       @helpers.markdown(
-        markdown = issue.get.content getOrElse "No description provided.",
-        repository = repository,
-        enableWikiLink = false,
-        enableRefsLink = true,
-        enableLineBreaks = true,
-        enableTaskList = true,
+        markdown           = issue.get.content getOrElse "No description provided.",
+        repository         = repository,
+        branch             = repository.repository.defaultBranch,
+        enableWikiLink     = false,
+        enableRefsLink     = true,
+        enableLineBreaks   = true,
+        enableTaskList     = true,
         hasWritePermission = isManageable
       )
     </div>
@@ -268,12 +270,13 @@
       </div>
       <div class="panel-body markdown-body commit-commentContent-@comment.commentId">
         @helpers.markdown(
-          markdown = comment.content,
-          repository = repository,
-          enableWikiLink = false,
-          enableRefsLink = true,
-          enableLineBreaks = true,
-          enableTaskList = true,
+          markdown           = comment.content,
+          repository         = repository,
+          branch             = repository.repository.defaultBranch,
+          enableWikiLink     = false,
+          enableRefsLink     = true,
+          enableLineBreaks   = true,
+          enableTaskList     = true,
           hasWritePermission = isManageable
         )
       </div>

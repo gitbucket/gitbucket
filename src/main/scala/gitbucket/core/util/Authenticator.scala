@@ -161,6 +161,8 @@ trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
 
   private def authenticate(action: => Any) = {
     context.loginAccount match {
+      case Some(x) if x.isAdmin                      => action
+      case Some(x) if x.userName == request.paths(0) => action
       case Some(x) if (getGroupMembers(request.paths(0)).exists { member =>
             member.userName == x.userName && member.isManager
           }) =>

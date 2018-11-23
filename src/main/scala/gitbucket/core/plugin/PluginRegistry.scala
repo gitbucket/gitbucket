@@ -1,6 +1,6 @@
 package gitbucket.core.plugin
 
-import java.io.{File, FilenameFilter, InputStream}
+import java.io.{File, FilenameFilter}
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
@@ -15,7 +15,6 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.HttpClientUtil._
@@ -24,7 +23,7 @@ import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
 import org.apache.http.client.methods.HttpGet
-import org.apache.sshd.server.Command
+import org.apache.sshd.server.command.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
 
@@ -35,6 +34,7 @@ class PluginRegistry {
   private val plugins = new ConcurrentLinkedQueue[PluginInfo]
   private val javaScripts = new ConcurrentLinkedQueue[(String, String)]
   private val controllers = new ConcurrentLinkedQueue[(ControllerBase, String)]
+  private val anonymousAccessiblePaths = new ConcurrentLinkedQueue[String]
   private val images = new ConcurrentHashMap[String, String]
   private val renderers = new ConcurrentHashMap[String, Renderer]
   renderers.put("md", MarkdownRenderer)
@@ -70,24 +70,15 @@ class PluginRegistry {
     images.put(id, encoded)
   }
 
-  @deprecated("Use addImage(id: String, bytes: Array[Byte]) instead", "3.4.0")
-  def addImage(id: String, in: InputStream): Unit = {
-    val bytes = using(in) { in =>
-      val bytes = new Array[Byte](in.available)
-      in.read(bytes)
-      bytes
-    }
-    addImage(id, bytes)
-  }
-
   def getImage(id: String): String = images.get(id)
 
   def addController(path: String, controller: ControllerBase): Unit = controllers.add((controller, path))
 
-  @deprecated("Use addController(path: String, controller: ControllerBase) instead", "3.4.0")
-  def addController(controller: ControllerBase, path: String): Unit = addController(path, controller)
-
   def getControllers(): Seq[(ControllerBase, String)] = controllers.asScala.toSeq
+
+  def addAnonymousAccessiblePath(path: String): Unit = anonymousAccessiblePaths.add(path)
+
+  def getAnonymousAccessiblePaths(): Seq[String] = anonymousAccessiblePaths.asScala.toSeq
 
   def addJavaScript(path: String, script: String): Unit =
     javaScripts.add((path, script)) //javaScripts += ((path, script))

@@ -1,5 +1,6 @@
 package gitbucket.core.controller
 
+import gitbucket.core.plugin.PluginRegistry
 import org.scalatra.MovedPermanently
 
 class PreProcessController extends PreProcessControllerBase
@@ -30,7 +31,10 @@ trait PreProcessControllerBase extends ControllerBase {
    */
   get(!context.settings.allowAnonymousAccess, context.loginAccount.isEmpty) {
     if (!context.currentPath.startsWith("/assets") && !context.currentPath.startsWith("/signin") &&
-        !context.currentPath.startsWith("/register") && !context.currentPath.endsWith("/info/refs")) {
+        !context.currentPath.startsWith("/register") && !context.currentPath.endsWith("/info/refs") &&
+        !PluginRegistry().getAnonymousAccessiblePaths().exists { path =>
+          context.currentPath.startsWith(path)
+        }) {
       Unauthorized()
     } else {
       pass()
