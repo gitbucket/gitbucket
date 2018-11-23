@@ -12,9 +12,13 @@ class DashboardController
     with PullRequestService
     with RepositoryService
     with AccountService
+    with ActivityService
     with CommitsService
     with LabelsService
     with PrioritiesService
+    with WebHookService
+    with WebHookPullRequestService
+    with WebHookPullRequestReviewCommentService
     with MilestonesService
     with UsersAuthenticator
 

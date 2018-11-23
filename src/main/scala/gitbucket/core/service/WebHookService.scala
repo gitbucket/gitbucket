@@ -311,7 +311,6 @@ trait WebHookPullRequestService extends WebHookService {
     action: String,
     repository: RepositoryService.RepositoryInfo,
     issue: Issue,
-    baseUrl: String,
     sender: Account
   )(implicit s: Session, context: JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, WebHook.Issues) {
@@ -341,7 +340,6 @@ trait WebHookPullRequestService extends WebHookService {
     action: String,
     repository: RepositoryService.RepositoryInfo,
     issueId: Int,
-    baseUrl: String,
     sender: Account
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
@@ -404,7 +402,6 @@ trait WebHookPullRequestService extends WebHookService {
     action: String,
     requestRepository: RepositoryService.RepositoryInfo,
     requestBranch: String,
-    baseUrl: String,
     sender: Account
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
@@ -450,7 +447,6 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
     repository: RepositoryService.RepositoryInfo,
     issue: Issue,
     pullRequest: PullRequest,
-    baseUrl: String,
     sender: Account
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._

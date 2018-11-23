@@ -13,13 +13,11 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import org.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.WebHookContentType
-import gitbucket.core.plugin.PluginRegistry
 
 class RepositorySettingsController
     extends RepositorySettingsControllerBase
@@ -148,29 +146,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     if (repository.name != form.repositoryName) {
       // Update database
       renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-      // Move git repository
-      defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
-        if (dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Move wiki repository
-      defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
-        if (dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Move files directory
-      defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
-        if (dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Delete parent directory
-      FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
-
-      // Call hooks
-      PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
     }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
@@ -392,31 +367,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
     // Change repository owner
     if (repository.owner != form.newOwner) {
-      LockUtil.lock(s"${repository.owner}/${repository.name}") {
-        // Update database
-        renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-        // Move git repository
-        defining(getRepositoryDir(repository.owner, repository.name)) { dir =>
-          if (dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
-          }
-        }
-        // Move wiki repository
-        defining(getWikiRepositoryDir(repository.owner, repository.name)) { dir =>
-          if (dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
-          }
-        }
-        // Move files directory
-        defining(getRepositoryFilesDir(repository.owner, repository.name)) { dir =>
-          if (dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getRepositoryFilesDir(form.newOwner, repository.name))
-          }
-        }
-
-        // Call hooks
-        PluginRegistry().getRepositoryHooks.foreach(_.transferred(repository.owner, form.newOwner, repository.name))
-      }
+      renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
     }
     redirect(s"/${form.newOwner}/${repository.name}")
   })
@@ -425,19 +376,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      // Delete the repository and related files
-      deleteRepository(repository.owner, repository.name)
-
-      FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getRepositoryFilesDir(repository.owner, repository.name))
-
-      // Call hooks
-      PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.owner, repository.name))
-    }
-
+    // Delete the repository and related files
+    deleteRepository(repository.repository)
     redirect(s"/${repository.owner}")
   })
 

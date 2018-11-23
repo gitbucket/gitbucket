@@ -6,7 +6,7 @@ val Name = "gitbucket"
 val GitBucketVersion = "4.30.0-SNAPSHOT"
 val ScalatraVersion = "2.6.3"
 val JettyVersion = "9.4.11.v20180605"
-val JgitVersion = "5.1.2.201810061102-r"
+val JgitVersion = "5.1.3.201810200350-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -36,40 +36,40 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "3.5.3",
+  "org.json4s"                      %% "json4s-jackson"              % "3.5.4",
   "commons-io"                      % "commons-io"                   % "2.6",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.2",
   "io.github.gitbucket"             % "markedj"                      % "1.0.15",
   "org.apache.commons"              % "commons-compress"             % "1.18",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.6",
-  "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14"),
+  "org.apache.sshd"                 % "apache-sshd"                  % "1.7.0" exclude ("org.slf4j", "slf4j-jdk14"),
   "org.apache.tika"                 % "tika-core"                    % "1.19.1",
-  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
+  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.11",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
-  "com.h2database"                  % "h2"                           % "1.4.196",
+  "com.h2database"                  % "h2"                           % "1.4.197",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.3.0",
   "org.postgresql"                  % "postgresql"                   % "42.2.5",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
-  "com.zaxxer"                      % "HikariCP"                     % "2.7.4",
-  "com.typesafe"                    % "config"                       % "1.3.2",
-  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.8",
+  "com.zaxxer"                      % "HikariCP"                     % "2.7.9",
+  "com.typesafe"                    % "config"                       % "1.3.3",
+  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.17",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.0.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
-  "org.cache2k"                     % "cache2k-all"                  % "1.0.1.Final",
-  "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.6.1-akka-2.5.x" exclude ("c3p0", "c3p0"),
+  "org.cache2k"                     % "cache2k-all"                  % "1.0.2.Final",
+  "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.7.0-akka-2.5.x" exclude ("c3p0", "c3p0"),
   "net.coobird"                     % "thumbnailator"                % "0.4.8",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.45",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.12" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "2.19.1" % "test",
+  "org.mockito"                     % "mockito-core"                 % "2.23.0" % "test",
   "com.wix"                         % "wix-embedded-mysql"           % "3.0.0" % "test",
-  "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.6" % "test",
-  "net.i2p.crypto"                  % "eddsa"                        % "0.2.0",
-  "is.tagomor.woothee"              % "woothee-java"                 % "1.7.0",
+  "ru.yandex.qatools.embed"         % "postgresql-embedded"          % "2.9" % "test",
+  "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
+  "is.tagomor.woothee"              % "woothee-java"                 % "1.8.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.0.1"
 )
 

@@ -24,7 +24,7 @@ import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
 import org.apache.http.client.methods.HttpGet
-import org.apache.sshd.server.command.Command
+import org.apache.sshd.server.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
 

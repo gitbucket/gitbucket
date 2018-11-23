@@ -36,6 +36,7 @@ class ApiController
     with WebHookService
     with WebHookPullRequestService
     with WebHookIssueCommentService
+    with WebHookPullRequestReviewCommentService
     with WikiService
     with ActivityService
     with PrioritiesService
