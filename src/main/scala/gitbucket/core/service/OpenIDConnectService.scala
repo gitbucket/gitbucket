@@ -13,6 +13,7 @@ import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import com.nimbusds.openid.connect.sdk.validators.IDTokenValidator
 import com.nimbusds.openid.connect.sdk.{AuthenticationErrorResponse, _}
+import net.minidev.json.JSONArray
 import gitbucket.core.model.Account
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.slf4j.LoggerFactory
@@ -52,6 +53,78 @@ trait OpenIDConnectService {
     )
   }
 
+  def syncOIDCremoveGroups(
+    userName: String,
+    groups: JSONArray,
+    trygrp: String
+  )(implicit s: Session) : Unit = {
+    var isManager = AccountService.isUserGroupMember(trygrp,userName)
+    //~ logger.info(s"user: ${userName} grp: ${trygrp} isManage: ${isManager} ${isManager.getClass.getName}")
+    if (isManager.size == 0) {
+      return
+    }
+    var oidc_grp = if (isManager(0)) {
+      s"${trygrp}-admin"
+    } else {
+      s"${trygrp}-user"
+    }
+    //~ logger.info(s"trygrp=${trygrp} oidc_grp=${oidc_grp}")
+    if (!groups.contains(oidc_grp)) {
+      logger.info(s"Removing ${userName} from ${trygrp} group")
+      AccountService.removeUserFromGroup(trygrp,userName)
+    }
+  }
+  def syncOIDCaddGroups(
+    userName: String,
+    groupName:  String
+  )(implicit s: Session) : Unit = {
+    //~ logger.info(s"GROUP(${groupName}): ${userName}")
+    var gbGrpName = ""
+    var gbIsManager = false
+    if (groupName.endsWith("-user")) {
+      gbGrpName = groupName.substring(0,groupName.length()-5)
+      gbIsManager = false
+    } else if (groupName.endsWith("-admin")) {
+      gbGrpName = groupName.substring(0,groupName.length()-6)
+      gbIsManager = true
+    } else {
+      /* Do nothing! */
+      return
+    }
+    //~ logger.info(s"gbGrpName: ${gbGrpName} admin: ${gbIsManager}")
+    if (!AccountService.isGroupAccount(gbGrpName)) {
+      return
+    }
+    var isMember = AccountService.isUserGroupMember(gbGrpName,userName)
+    if (isMember.size != 0) {
+      /* Already member... */
+      return
+    }
+    logger.info(s"Adding ${userName} to ${gbGrpName} (Manager: ${gbIsManager}")
+    AccountService.addUserToGroup(gbGrpName,userName,gbIsManager)
+  }
+  /**
+   * If "groups" claim is found, we synchronize groups.
+   * 
+   * @param userName User being synchronized
+   * @param groups   List of groups being claimed
+   */
+  def syncOIDCgroups(
+    userName: String,
+    groups: JSONArray
+  )(implicit s: Session) : Unit = {
+    /* First process member removals... */
+    var cgrps = AccountService.getGroupsByUserName(userName)
+    for (i <- 0 until cgrps.length) {
+      //~ logger.info(s"i=${i} grp: ${cgrps(i)}")
+      syncOIDCremoveGroups(userName, groups, cgrps(i))
+    }
+    /* Now process member additions... */
+    for (i <- 0 until groups.size) {
+      syncOIDCaddGroups(userName, groups.get(i).asInstanceOf[String])
+    }
+  }
+
   /**
    * Proceed the OpenID Connect authentication.
    *
@@ -73,13 +146,18 @@ trait OpenIDConnectService {
       obtainOIDCToken(authenticationResponse.getAuthorizationCode, nonce, redirectURI, oidc) flatMap { claims =>
         Seq("email", "preferred_username", "name").map(k => Option(claims.getStringClaim(k))) match {
           case Seq(Some(email), preferredUsername, name) =>
-            getOrCreateFederatedUser(
+            val res = getOrCreateFederatedUser(
               claims.getIssuer.getValue,
               claims.getSubject.getValue,
               email,
               preferredUsername,
               name
             )
+            if (claims.getClaim("groups") != null) {
+	      logger.info(s"Sync groups for ${res.get.userName}: ${claims.getClaim("groups")}")
+	      syncOIDCgroups(res.get.userName, claims.getClaim("groups").asInstanceOf[JSONArray])
+	    }
+            return res
           case _ =>
             logger.info(s"OIDC ID token must have an email claim: claims=${claims.toJSONObject}")
             None

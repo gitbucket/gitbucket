@@ -282,7 +282,49 @@ trait AccountService {
     List(userName) ++
       Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list.distinct
   }
-
+  def isUserGroupMember(
+    groupName: String,
+    userName: String
+  )(implicit s: Session) : List[Boolean] = {
+    GroupMembers
+      .filter(_.userName === userName.bind)
+      .filter(_.groupName === groupName.bind)
+      .map(_.isManager)
+      .list
+  }
+  def removeUserFromGroup(
+    groupName: String,
+    userName: String
+  )(implicit s: Session) : Unit = {
+    GroupMembers
+      .filter(_.userName === userName.bind)
+      .filter(_.groupName === groupName.bind)
+      .delete
+  }
+  def addUserToGroup(
+    groupName: String,
+    userName: String,
+    isManager: Boolean
+  )(implicit s: Session): Unit = {
+    GroupMembers
+      .filter(_.userName === userName.bind)
+      .filter(_.groupName === groupName.bind)
+      .delete
+    GroupMembers insert GroupMember(groupName, userName, isManager)
+  }
+  def isGroupAccount(groupName: String)(implicit s: Session): Boolean = {
+    getAccountByUserName(groupName).collect {
+      case account if !account.isGroupAccount =>
+	//~ logger.info(s"Account: is ${account}) (UserAcct)")
+	false
+      case account if account.isGroupAccount =>
+	//~ logger.info(s"Account: is ${account} (groupAcct)")
+	return true
+      case _ => false
+    }
+    //~ logger.info(s"Not found! ${groupName}")
+    return false
+  }
 }
 
 object AccountService extends AccountService
