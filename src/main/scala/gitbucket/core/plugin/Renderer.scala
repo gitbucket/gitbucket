@@ -29,7 +29,9 @@ object MarkdownRenderer extends Renderer {
         enableWikiLink = enableWikiLink,
         enableRefsLink = enableRefsLink,
         enableAnchor = enableAnchor,
-        enableLineBreaks = false
+        enableLineBreaks = false,
+        enableTaskList = true,
+        hasWritePermission = false
       )(context)
     )
   }
