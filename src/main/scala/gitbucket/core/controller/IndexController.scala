@@ -88,7 +88,7 @@ trait IndexControllerBase extends ControllerBase {
   }
 
   post("/signin", signinForm) { form =>
-    authenticate(context.settings, form.userName, form.password) match {
+    authenticate(context.settings, form.userName.toLowerCase, form.password) match {
       case Some(account) =>
         flash.get(Keys.Flash.Redirect) match {
           case Some(redirectUrl: String) => signin(account, redirectUrl + form.hash.getOrElse(""))
