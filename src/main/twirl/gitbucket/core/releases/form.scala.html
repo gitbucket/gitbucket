@@ -1,5 +1,7 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   tag: gitbucket.core.util.JGitUtil.TagInfo,
+  tags: Seq[String],
+  content: String,
   release: Option[(gitbucket.core.model.ReleaseTag, Seq[gitbucket.core.model.ReleaseAsset])])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
@@ -14,9 +16,18 @@
           }
           <span id="error-name" class="error"></span>
           <input type="text" id="release-name" name="name" class="form-control" value="@release.map { case (release, _) => @release.name }.getOrElse(tag.name)" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
+          <div class="pull-right">
+            Previous tag: <select id="insert-changelog-tag">
+              @tags.map { tag =>
+                <option value="@tag">@tag</option>
+              }
+              <option value="">None</option>
+            </select>
+            <input id="insert-changelog-button" type="button" value="Insert ChangeLog"/>
+          </div>
           @gitbucket.core.helper.html.preview(
             repository         = repository,
-            content            = release.flatMap { case (release, _) => release.content }.getOrElse(tag.message),
+            content            = content,
             enableWikiLink     = false,
             enableRefsLink     = true,
             enableLineBreaks   = true,
@@ -73,6 +84,20 @@ $(function(){
       $('#assets-list').append(attach);
       $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
     }
+  });
+
+  $('#insert-changelog-button').click(function(){
+    var previousTag = $('#insert-changelog-tag option:selected').val();
+    $.get('@context.path/@repository.owner/@repository.name/changelog/' + encodeURIComponent(previousTag) + '...@helpers.urlEncode(tag.name)', function(data){
+      console.log(data);
+      var content = $('textarea[name=content]').val();
+      if(content == ''){
+        content = data;
+      } else {
+        content = content.trimRight() + '\n\n' + data;
+      }
+      $('textarea[name=content]').val(content);
+    });
   });
 });
 </script>
