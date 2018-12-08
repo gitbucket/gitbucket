@@ -33,6 +33,7 @@ class ApiController
     with RepositoryCreationService
     with IssueCreationService
     with HandleCommentService
+    with MergeService
     with WebHookService
     with WebHookPullRequestService
     with WebHookIssueCommentService
