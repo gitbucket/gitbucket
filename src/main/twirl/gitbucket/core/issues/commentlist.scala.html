@@ -6,6 +6,7 @@
   commitId: Option[String] = None,
   renderScript: Boolean = true)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
+@import gitbucket.core.util.StringUtil._
 @issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
 @showFormattedComment(comment: gitbucket.core.model.IssueComment)={
 <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
@@ -237,7 +238,7 @@
             <span class="discussion-item-icon"><i class="octicon octicon-pencil"></i></span>
             @helpers.avatar(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
-            change title from <code>@comment.content.split("\r\n")(0)</code> to <code>@comment.content.split("\r\n")(1)</code>
+            change title from <code>@convertLineSeparator(comment.content, "LF").split("\n")(0)</code> to <code>@convertLineSeparator(comment.content, "LF").split("\n")(1)</code>
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </div>
         </div>

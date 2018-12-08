@@ -10,6 +10,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil
+import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -269,8 +270,8 @@ trait PullRequestService {
           .map { diff =>
             (diff.oldContent, diff.newContent) match {
               case (Some(oldContent), Some(newContent)) => {
-                val oldLines = oldContent.replace("\r\n", "\n").split("\n")
-                val newLines = newContent.replace("\r\n", "\n").split("\n")
+                val oldLines = convertLineSeparator(oldContent, "LF").split("\n")
+                val newLines = convertLineSeparator(newContent, "LF").split("\n")
                 file -> Option(DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava))
               }
               case _ =>
