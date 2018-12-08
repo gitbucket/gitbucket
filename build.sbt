@@ -3,10 +3,10 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.29.0"
+val GitBucketVersion = "4.30.0-SNAPSHOT"
 val ScalatraVersion = "2.6.3"
 val JettyVersion = "9.4.11.v20180605"
-val JgitVersion = "5.1.1.201809181055-r"
+val JgitVersion = "5.1.2.201810061102-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              % "commons-email"                % "1.5",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.6",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14"),
-  "org.apache.tika"                 % "tika-core"                    % "1.19",
+  "org.apache.tika"                 % "tika-core"                    % "1.19.1",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.10",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.196",
