@@ -2,12 +2,12 @@
 All changes to the project will be documented in this file.
 
 ## 4.30.0 - xx Dec 2018
-- Automatic ChangeLog generation for the Releases
-- A lot of GitHub compatible Web APIs
-- Show checkboxes in Markdown files in Git repository
-- New extension point for plugins: anonymousAccessiblePaths
-- Group support in Gist plugin
-- Allow to redirect to the Release from the activity timeline
+- Automatic ChangeLog Summary generation for new Releases
+- Allot of GitBucket Web API updates to increase compatibility with the GitHub API.
+- Display of checkboxes in Markdown files in Git repositories
+- A new extension point for plugins: anonymousAccessiblePaths
+- Group support in the Gist Plugin
+- Allow redirection to the Release Page from the Activity Timeline Page
 
 ## 4.29.0 - 29 Sep 2018
 - Official Docker image has been available
