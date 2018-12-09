@@ -3,7 +3,7 @@ All changes to the project will be documented in this file.
 
 ## 4.30.0 - xx Dec 2018
 - Automatic ChangeLog Summary generation for new Releases
-- Allot of GitBucket Web API updates to increase compatibility with the GitHub API.
+- A lot of GitBucket Web API updates to increase compatibility with the GitHub API.
 - Display of checkboxes in Markdown files in Git repositories
 - A new extension point for plugins: anonymousAccessiblePaths
 - Group support in the Gist Plugin
