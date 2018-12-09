@@ -15,7 +15,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.lib.{ObjectId, PersonIdent}
 import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.BadRequest
 
@@ -412,97 +412,68 @@ trait PullRequestsControllerBase extends ControllerBase {
               .map(_.repository.repositoryName)
           };
           originRepository <- getRepository(originOwner, originRepositoryName)) yield {
-      using(
-        Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
-        Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
-      ) {
-        case (oldGit, newGit) =>
-          val (oldId, newId) =
-            if (originRepository.branchList.contains(originId)) {
-              val forkedId2 =
-                forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
+      val (oldId, newId) =
+        getPullRequestCommitFromTo(originRepository, forkedRepository, originId, forkedId)
 
-              val originId2 = JGitUtil.getForkedCommitId(
-                oldGit,
-                newGit,
-                originRepository.owner,
-                originRepository.name,
-                originId,
-                forkedRepository.owner,
-                forkedRepository.name,
-                forkedId2
-              )
+      (oldId, newId) match {
+        case (Some(oldId), Some(newId)) => {
+          val (commits, diffs) = getRequestCompareInfo(
+            originRepository.owner,
+            originRepository.name,
+            oldId.getName,
+            forkedRepository.owner,
+            forkedRepository.name,
+            newId.getName
+          )
 
-              (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
-
-            } else {
-              val originId2 =
-                originRepository.tags.collectFirst { case x if x.name == originId => x.id }.getOrElse(originId)
-              val forkedId2 =
-                forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
-
-              (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
-            }
-
-          (oldId, newId) match {
-            case (Some(oldId), Some(newId)) => {
-              val (commits, diffs) = getRequestCompareInfo(
-                originRepository.owner,
-                originRepository.name,
-                oldId.getName,
-                forkedRepository.owner,
-                forkedRepository.name,
-                newId.getName
-              )
-
-              val title = if (commits.flatten.length == 1) {
-                commits.flatten.head.shortMessage
-              } else {
-                val text = forkedId.replaceAll("[\\-_]", " ")
-                text.substring(0, 1).toUpperCase + text.substring(1)
-              }
-
-              html.compare(
-                title,
-                commits,
-                diffs,
-                ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-                  case (Some(userName), Some(repositoryName)) =>
-                    getRepository(userName, repositoryName) match {
-                      case Some(x) => x.repository :: getForkedRepositories(userName, repositoryName)
-                      case None    => getForkedRepositories(userName, repositoryName)
-                    }
-                  case _ =>
-                    forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-                }).map { repository =>
-                  (repository.userName, repository.repositoryName, repository.defaultBranch)
-                },
-                commits.flatten
-                  .map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false))
-                  .flatten
-                  .toList,
-                originId,
-                forkedId,
-                oldId.getName,
-                newId.getName,
-                getContentTemplate(originRepository, "PULL_REQUEST_TEMPLATE"),
-                forkedRepository,
-                originRepository,
-                forkedRepository,
-                hasDeveloperRole(originRepository.owner, originRepository.name, context.loginAccount),
-                getAssignableUserNames(originRepository.owner, originRepository.name),
-                getMilestones(originRepository.owner, originRepository.name),
-                getPriorities(originRepository.owner, originRepository.name),
-                getLabels(originRepository.owner, originRepository.name)
-              )
-            }
-            case (oldId, newId) =>
-              redirect(
-                s"/${forkedRepository.owner}/${forkedRepository.name}/compare/" +
-                  s"${originOwner}:${oldId.map(_ => originId).getOrElse(originRepository.repository.defaultBranch)}..." +
-                  s"${forkedOwner}:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}"
-              )
+          val title = if (commits.flatten.length == 1) {
+            commits.flatten.head.shortMessage
+          } else {
+            val text = forkedId.replaceAll("[\\-_]", " ")
+            text.substring(0, 1).toUpperCase + text.substring(1)
           }
+
+          html.compare(
+            title,
+            commits,
+            diffs,
+            ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+              case (Some(userName), Some(repositoryName)) =>
+                getRepository(userName, repositoryName) match {
+                  case Some(x) => x.repository :: getForkedRepositories(userName, repositoryName)
+                  case None    => getForkedRepositories(userName, repositoryName)
+                }
+              case _ =>
+                forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+            }).map { repository =>
+              (repository.userName, repository.repositoryName, repository.defaultBranch)
+            },
+            commits.flatten
+              .map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false))
+              .flatten
+              .toList,
+            originId,
+            forkedId,
+            oldId.getName,
+            newId.getName,
+            getContentTemplate(originRepository, "PULL_REQUEST_TEMPLATE"),
+            forkedRepository,
+            originRepository,
+            forkedRepository,
+            hasDeveloperRole(originRepository.owner, originRepository.name, context.loginAccount),
+            getAssignableUserNames(originRepository.owner, originRepository.name),
+            getMilestones(originRepository.owner, originRepository.name),
+            getPriorities(originRepository.owner, originRepository.name),
+            getLabels(originRepository.owner, originRepository.name)
+          )
+        }
+        case (oldId, newId) =>
+          redirect(
+            s"/${forkedRepository.owner}/${forkedRepository.name}/compare/" +
+              s"${originOwner}:${oldId.map(_ => originId).getOrElse(originRepository.repository.defaultBranch)}..." +
+              s"${forkedOwner}:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}"
+          )
+
       }
     }) getOrElse NotFound()
   })
@@ -652,20 +623,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
     html.proposals(proposedBranches, targetRepository, repository)
   })
-
-  /**
-   * Parses branch identifier and extracts owner and branch name as tuple.
-   *
-   * - "owner:branch" to ("owner", "branch")
-   * - "branch" to ("defaultOwner", "branch")
-   */
-  private def parseCompareIdentifier(value: String, defaultOwner: String): (String, String) =
-    if (value.contains(':')) {
-      val array = value.split(":")
-      (array(0), array(1))
-    } else {
-      (defaultOwner, value)
-    }
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name) {

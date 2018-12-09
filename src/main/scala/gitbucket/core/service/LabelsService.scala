@@ -3,6 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.model.Label
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.util.StringUtil
 
 trait LabelsService {
 
@@ -22,6 +23,11 @@ trait LabelsService {
       labelName = labelName,
       color = color
     )
+  }
+
+  def createLabel(owner: String, repository: String, labelName: String)(implicit s: Session): Int = {
+    val color = StringUtil.md5(labelName).substring(0, 6)
+    createLabel(owner, repository, labelName, color)
   }
 
   def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String)(

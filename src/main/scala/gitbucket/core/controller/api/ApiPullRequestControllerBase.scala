@@ -2,19 +2,28 @@ package gitbucket.core.controller.api
 import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.model.{Account, Issue, PullRequest, Repository}
-import gitbucket.core.service.{AccountService, IssuesService, PullRequestService, RepositoryService}
+import gitbucket.core.service._
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.PullRequestService.PullRequestLimit
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.SyntaxSugars.using
-import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName}
+import gitbucket.core.util._
 import org.eclipse.jgit.api.Git
+import org.scalatra.NoContent
+
 import scala.collection.JavaConverters._
 
 trait ApiPullRequestControllerBase extends ControllerBase {
-  self: AccountService with IssuesService with PullRequestService with RepositoryService with ReferrerAuthenticator =>
+  self: AccountService
+    with IssuesService
+    with PullRequestService
+    with RepositoryService
+    with MergeService
+    with ReferrerAuthenticator
+    with ReadableUsersAuthenticator
+    with WritableUsersAuthenticator =>
 
   /*
    * i. Link Relations
@@ -23,9 +32,6 @@ trait ApiPullRequestControllerBase extends ControllerBase {
 
   /*
    * ii. List pull requests
-   * https://developer.github.com/v3/pulls/#list-pull-requests
-   */
-  /**
    * https://developer.github.com/v3/pulls/#list-pull-requests
    */
   get("/api/v3/repos/:owner/:repository/pulls")(referrersOnly { repository =>
@@ -62,45 +68,92 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * iii. Get a single pull request
    * https://developer.github.com/v3/pulls/#get-a-single-pull-request
    */
-  /**
-   * https://developer.github.com/v3/pulls/#get-a-single-pull-request
-   */
   get("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
     (for {
       issueId <- params("id").toIntOpt
-      (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-      users = getAccountsByUserNames(
-        Set(repository.owner, pullRequest.requestUserName, issue.openedUserName),
-        Set.empty
-      )
-      baseOwner <- users.get(repository.owner)
-      headOwner <- users.get(pullRequest.requestUserName)
-      issueUser <- users.get(issue.openedUserName)
-      assignee = issue.assignedUserName.flatMap { userName =>
-        getAccountByUserName(userName, false)
-      }
-      headRepo <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
-      JsonFormat(
-        ApiPullRequest(
-          issue = issue,
-          pullRequest = pullRequest,
-          headRepo = ApiRepository(headRepo, ApiUser(headOwner)),
-          baseRepo = ApiRepository(repository, ApiUser(baseOwner)),
-          user = ApiUser(issueUser),
-          labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
-            .map(ApiLabel(_, RepositoryName(repository))),
-          assignee = assignee.map(ApiUser.apply),
-          mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
-        )
-      )
+      JsonFormat(getApiPullRequest(repository, issueId))
     }) getOrElse NotFound()
   })
 
   /*
    * iv. Create a pull request
    * https://developer.github.com/v3/pulls/#create-a-pull-request
+   * requested #1843
    */
+  post("/api/v3/repos/:owner/:repository/pulls")(readableUsersOnly { repository =>
+    (for {
+      data <- extractFromJsonBody[Either[CreateAPullRequest, CreateAPullRequestAlt]]
+    } yield {
+      data match {
+        case Left(createPullReq) =>
+          val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReq.head, repository.owner)
+          getRepository(reqOwner, repository.name)
+            .flatMap {
+              forkedRepository =>
+                getPullRequestCommitFromTo(repository, forkedRepository, createPullReq.base, reqBranch) match {
+                  case (Some(commitIdFrom), Some(commitIdTo)) =>
+                    val issueId = insertIssue(
+                      owner = repository.owner,
+                      repository = repository.name,
+                      loginUser = context.loginAccount.get.userName,
+                      title = createPullReq.title,
+                      content = createPullReq.body,
+                      assignedUserName = None,
+                      milestoneId = None,
+                      priorityId = None,
+                      isPullRequest = true
+                    )
+
+                    createPullRequest(
+                      originUserName = repository.owner,
+                      originRepositoryName = repository.name,
+                      issueId = issueId,
+                      originBranch = createPullReq.base,
+                      requestUserName = reqOwner,
+                      requestRepositoryName = repository.name,
+                      requestBranch = reqBranch,
+                      commitIdFrom = commitIdFrom.getName,
+                      commitIdTo = commitIdTo.getName
+                    )
+                    getApiPullRequest(repository, issueId).map(JsonFormat(_))
+                  case _ =>
+                    None
+                }
+            }
+            .getOrElse {
+              NotFound()
+            }
+        case Right(createPullReqAlt) =>
+          val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReqAlt.head, repository.owner)
+          getRepository(reqOwner, repository.name)
+            .flatMap {
+              forkedRepository =>
+                getPullRequestCommitFromTo(repository, forkedRepository, createPullReqAlt.base, reqBranch) match {
+                  case (Some(commitIdFrom), Some(commitIdTo)) =>
+                    changeIssueToPullRequest(repository.owner, repository.name, createPullReqAlt.issue)
+                    createPullRequest(
+                      originUserName = repository.owner,
+                      originRepositoryName = repository.name,
+                      issueId = createPullReqAlt.issue,
+                      originBranch = createPullReqAlt.base,
+                      requestUserName = reqOwner,
+                      requestRepositoryName = repository.name,
+                      requestBranch = reqBranch,
+                      commitIdFrom = commitIdFrom.getName,
+                      commitIdTo = commitIdTo.getName
+                    )
+                    getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
+                  case _ =>
+                    None
+                }
+            }
+            .getOrElse {
+              NotFound()
+            }
+      }
+    })
+  })
 
   /*
    * v. Update a pull request
@@ -109,9 +162,6 @@ trait ApiPullRequestControllerBase extends ControllerBase {
 
   /*
    * vi. List commits on a pull request
-   * https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
-   */
-  /**
    * https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
    */
   get("/api/v3/repos/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
@@ -148,6 +198,18 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * viii. Get if a pull request has been merged
    * https://developer.github.com/v3/pulls/#get-if-a-pull-request-has-been-merged
    */
+  get("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      (issue, pullReq) <- getPullRequest(repository.owner, repository.name, issueId)
+    } yield {
+      if (checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
+        NoContent
+      } else {
+        NotFound
+      }
+    }).getOrElse(NotFound)
+  })
 
   /*
    * ix. Merge a pull request (Merge Button)
@@ -155,7 +217,36 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    */
 
   /*
- * x. Labels, assignees, and milestones
- * https://developer.github.com/v3/pulls/#labels-assignees-and-milestones
- */
+   * x. Labels, assignees, and milestones
+   * https://developer.github.com/v3/pulls/#labels-assignees-and-milestones
+   */
+
+  private def getApiPullRequest(repository: RepositoryService.RepositoryInfo, issueId: Int): Option[ApiPullRequest] = {
+    for {
+      (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
+      users = getAccountsByUserNames(
+        Set(repository.owner, pullRequest.requestUserName, issue.openedUserName),
+        Set.empty
+      )
+      baseOwner <- users.get(repository.owner)
+      headOwner <- users.get(pullRequest.requestUserName)
+      issueUser <- users.get(issue.openedUserName)
+      assignee = issue.assignedUserName.flatMap { userName =>
+        getAccountByUserName(userName, false)
+      }
+      headRepo <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
+    } yield {
+      ApiPullRequest(
+        issue = issue,
+        pullRequest = pullRequest,
+        headRepo = ApiRepository(headRepo, ApiUser(headOwner)),
+        baseRepo = ApiRepository(repository, ApiUser(baseOwner)),
+        user = ApiUser(issueUser),
+        labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
+          .map(ApiLabel(_, RepositoryName(repository))),
+        assignee = assignee.map(ApiUser.apply),
+        mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
+      )
+    }
+  }
 }

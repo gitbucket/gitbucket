@@ -164,8 +164,8 @@ trait AccountService {
     isAdmin: Boolean,
     description: Option[String],
     url: Option[String]
-  )(implicit s: Session): Unit =
-    Accounts insert Account(
+  )(implicit s: Session): Account = {
+    val account = Account(
       userName = userName,
       password = password,
       fullName = fullName,
@@ -180,6 +180,9 @@ trait AccountService {
       isRemoved = false,
       description = description
     )
+    Accounts insert account
+    account
+  }
 
   def suspendAccount(account: Account)(implicit s: Session): Unit = {
     // Remove from GROUP_MEMBER and COLLABORATOR

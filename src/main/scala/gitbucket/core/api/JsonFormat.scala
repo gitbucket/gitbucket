@@ -24,6 +24,7 @@ object JsonFormat {
         }, { case x: Date => JString(OffsetDateTime.ofInstant(x.toInstant, ZoneId.of("UTC")).format(parserISO)) }
     )
   ) + FieldSerializer[ApiUser]() +
+    FieldSerializer[ApiGroup]() +
     FieldSerializer[ApiPullRequest]() +
     FieldSerializer[ApiRepository]() +
     FieldSerializer[ApiCommitListItem.Parent]() +

@@ -33,6 +33,7 @@ class ApiController
     with RepositoryCreationService
     with IssueCreationService
     with HandleCommentService
+    with MergeService
     with WebHookService
     with WebHookPullRequestService
     with WebHookIssueCommentService
@@ -40,6 +41,7 @@ class ApiController
     with WikiService
     with ActivityService
     with PrioritiesService
+    with AdminAuthenticator
     with OwnerAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator

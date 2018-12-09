@@ -475,6 +475,25 @@ trait IssuesService {
     IssueLabels filter (_.byPrimaryKey(owner, repository, issueId, labelId)) delete
   }
 
+  def deleteAllIssueLabels(owner: String, repository: String, issueId: Int, insertComment: Boolean = false)(
+    implicit context: Context,
+    s: Session
+  ): Int = {
+    if (insertComment) {
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "delete_label",
+        commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+        content = "All labels",
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
+    IssueLabels filter (_.byIssue(owner, repository, issueId)) delete
+  }
+
   def createComment(
     owner: String,
     repository: String,
@@ -505,6 +524,15 @@ trait IssuesService {
         (t.title, t.content.?, t.updatedDate)
       }
       .update(title, content, currentDate)
+  }
+
+  def changeIssueToPullRequest(owner: String, repository: String, issueId: Int)(implicit s: Session) = {
+    Issues
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        t.pullRequest
+      }
+      .update(true)
   }
 
   def updateAssignedUserName(
