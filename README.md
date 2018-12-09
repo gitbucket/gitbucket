@@ -68,13 +68,14 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.29.x
+What's New in 4.30.x
 -------------
-### 4.29.0 - 29 Sep 2018
-- Official Docker image has been available
-- Enhance file edit and delete buttons of the repository viewer
-- Fix Patch button to generate patches for all files in the commit
-- Display confirmation dialog for Transfer Ownership and Garbage collection
-- Fix wrong url encoding in "Compare & pull request"
+### 4.30.0 - xx Dec 2018
+- Automatic ChangeLog generation for the Releases
+- A lot of GitHub compatible Web APIs
+- Show checkboxes in Markdown files in Git repository
+- New extension point for plugins: anonymousAccessiblePaths
+- Group support in Gist plugin
+- Allow to redirect to the Release from the activity timeline
 
 See the [change log](CHANGELOG.md) for all of the updates.
