@@ -37,7 +37,7 @@
                 }.getOrElse {
                   @if(hasWritePermission){
                     <div class="pull-right">
-                      <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.encodeRefName(tag.name)}/create" id="edit">Create release</a>
+                      <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.urlEncode(tag.name)}/create" id="edit">Create release</a>
                     </div>
                   }
                   <div>@tag.message<br><br></div>
@@ -46,7 +46,7 @@
                   @release.map { case (release, assets) =>
                     @assets.map { asset =>
                       <li>
-                        <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName">@asset.label</a>
+                        <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@helpers.urlEncode(release.tag)/assets/@asset.fileName">@asset.label</a>
                         <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
                       </li>
                     }

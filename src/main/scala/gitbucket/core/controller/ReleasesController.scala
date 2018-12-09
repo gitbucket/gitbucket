@@ -3,13 +3,14 @@ package gitbucket.core.controller
 import java.io.File
 
 import gitbucket.core.service.{AccountService, ActivityService, ReleaseService, RepositoryService}
-import gitbucket.core.util.{FileUtil, ReadableUsersAuthenticator, ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import org.scalatra.forms._
 import gitbucket.core.releases.html
+import gitbucket.core.util.SyntaxSugars.using
 import org.apache.commons.io.FileUtils
-import scala.collection.JavaConverters._
+import org.eclipse.jgit.api.Git
 
 class ReleaseController
     extends ReleaseControllerBase
@@ -87,10 +88,12 @@ trait ReleaseControllerBase extends ControllerBase {
 
   get("/:owner/:repository/releases/:tag/create")(writableUsersOnly { repository =>
     val tagName = params("tag")
+    val previousTags = repository.tags.takeWhile(_.name != tagName).reverse
+
     repository.tags
       .find(_.name == tagName)
       .map { tag =>
-        html.form(repository, tag, None)
+        html.form(repository, tag, previousTags.map(_.name), tag.message, None)
       }
       .getOrElse(NotFound())
   })
@@ -123,14 +126,37 @@ trait ReleaseControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${repository.name}/releases/${tagName}")
   })
 
+  get("/:owner/:repository/changelog/*...*")(writableUsersOnly { repository =>
+    val Seq(previousTag, currentTag) = multiParams("splat")
+    val previousTagId = repository.tags.collectFirst { case x if x.name == previousTag => x.id }.getOrElse("")
+
+    val commitLog = using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val commits = JGitUtil.getCommitLog(git, previousTagId, currentTag).reverse
+      commits
+        .map { commit =>
+          s"- ${commit.shortMessage} ${commit.id}"
+        }
+        .mkString("\n")
+    }
+
+    commitLog
+  })
+
   get("/:owner/:repository/releases/:tag/edit")(writableUsersOnly { repository =>
     val tagName = params("tag")
+    val previousTags = repository.tags.takeWhile(_.name != tagName).reverse
 
     (for {
       release <- getRelease(repository.owner, repository.name, tagName)
       tag <- repository.tags.find(_.name == tagName)
     } yield {
-      html.form(repository, tag, Some(release, getReleaseAssets(repository.owner, repository.name, tagName)))
+      html.form(
+        repository,
+        tag,
+        previousTags.map(_.name),
+        release.content.getOrElse(""),
+        Some(release, getReleaseAssets(repository.owner, repository.name, tagName))
+      )
     }).getOrElse(NotFound())
   })
 
