@@ -72,7 +72,7 @@ What's New in 4.30.x
 -------------
 ### 4.30.0 - xx Dec 2018
 - Automatic ChangeLog Summary generation for new Releases
-- Allot of GitBucket Web API updates to increase compatibility with the GitHub API.
+- A lot of GitBucket Web API updates to increase compatibility with the GitHub API.
 - Display of checkboxes in Markdown files in Git repositories
 - A new extension point for plugins: anonymousAccessiblePaths
 - Group support in the Gist Plugin
