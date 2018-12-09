@@ -71,11 +71,11 @@ Support
 What's New in 4.30.x
 -------------
 ### 4.30.0 - xx Dec 2018
-- Automatic ChangeLog generation for the Releases
-- A lot of GitHub compatible Web APIs
-- Show checkboxes in Markdown files in Git repository
-- New extension point for plugins: anonymousAccessiblePaths
-- Group support in Gist plugin
-- Allow to redirect to the Release from the activity timeline
+- Automatic ChangeLog Summary generation for new Releases
+- Allot of GitBucket Web API updates to increase compatibility with the GitHub API.
+- Display of checkboxes in Markdown files in Git repositories
+- A new extension point for plugins: anonymousAccessiblePaths
+- Group support in the Gist Plugin
+- Allow redirection to the Release Page from the Activity Timeline Page
 
 See the [change log](CHANGELOG.md) for all of the updates.
