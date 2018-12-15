@@ -1,7 +1,7 @@
 # Changelog
 All changes to the project will be documented in this file.
 
-## 4.30.0 - xx Dec 2018
+## 4.30.0 - 15 Dec 2018
 - Automatic ChangeLog Summary generation for new Releases
 - A lot of GitBucket Web API updates to increase compatibility with the GitHub API.
 - Display of checkboxes in Markdown files in Git repositories

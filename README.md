@@ -70,7 +70,7 @@ Support
 
 What's New in 4.30.x
 -------------
-### 4.30.0 - xx Dec 2018
+### 4.30.0 - 15 Dec 2018
 - Automatic ChangeLog Summary generation for new Releases
 - A lot of GitBucket Web API updates to increase compatibility with the GitHub API.
 - Display of checkboxes in Markdown files in Git repositories
