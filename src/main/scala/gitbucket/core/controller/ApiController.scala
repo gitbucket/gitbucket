@@ -18,6 +18,7 @@ class ApiController
     with ApiRepositoryBranchControllerBase
     with ApiRepositoryCollaboratorControllerBase
     with ApiRepositoryCommitControllerBase
+    with ApiRepositoryContentsControllerBase
     with ApiRepositoryControllerBase
     with ApiRepositoryStatusControllerBase
     with ApiUserControllerBase
