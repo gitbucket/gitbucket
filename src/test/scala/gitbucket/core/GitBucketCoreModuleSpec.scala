@@ -1,17 +1,13 @@
 package gitbucket.core
 
 import java.sql.DriverManager
-import java.time.Duration
-import java.time.temporal.ChronoUnit.SECONDS
 
-import com.dimafeng.testcontainers.GenericContainer
+import com.dimafeng.testcontainers.{MySQLContainer, PostgreSQLContainer}
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
 import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.junit.runner.Description
 import org.scalatest.{FunSuite, Tag}
-import org.testcontainers.containers.ContainerLaunchException
-import org.testcontainers.containers.wait.strategy.{HostPortWaitStrategy, Wait}
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
@@ -28,104 +24,44 @@ class GitBucketCoreModuleSpec extends FunSuite {
 
   implicit private val suiteDescription = Description.createSuiteDescription(getClass)
 
-  test("Migration MySQL 5.7", ExternalDBTest) {
-    val container = GenericContainer(
-      "mysql:5.7",
-      env = Map("MYSQL_ROOT_PASSWORD" -> "my-secret-pw", "MYSQL_DATABASE" -> "gitbucket"),
-      waitStrategy = new HostPortWaitStrategy {
-        override def waitUntilReady(): Unit = {
-          super.waitUntilReady()
-
-          def readyForConnections(retry: Int = 0): Boolean = {
-            var con: java.sql.Connection = null
-            try {
-              con = DriverManager.getConnection(
-                s"jdbc:mysql://${waitStrategyTarget.getContainerIpAddress}:${waitStrategyTarget.getMappedPort(3306)}/gitbucket?useSSL=false",
-                "root",
-                "my-secret-pw"
-              )
-              con.createStatement().execute("SELECT 1")
-            } catch {
-              case _: Exception if retry < 3 =>
-                Thread.sleep(10000)
-                readyForConnections(retry + 1)
-              case _: Exception => false
-            } finally {
-              Option(con).foreach(_.close())
-            }
-          }
-
-          if (!readyForConnections()) throw new ContainerLaunchException("Timed out")
+  Seq("8.0", "5.7").foreach { tag =>
+    test(s"Migration MySQL $tag", ExternalDBTest) {
+      val container = new MySQLContainer() {
+        override val container = new org.testcontainers.containers.MySQLContainer(s"mysql:$tag") {
+          override def getDriverClassName = "org.mariadb.jdbc.Driver"
         }
+        // TODO https://github.com/testcontainers/testcontainers-java/issues/736
+        container.withCommand("mysqld --default-authentication-plugin=mysql_native_password")
       }
-    )
-
-    container.starting()
-    try {
-      new Solidbase().migrate(
-        DriverManager.getConnection(
-          s"jdbc:mysql://${container.containerIpAddress}:${container.mappedPort(3306)}/gitbucket?useSSL=false",
-          "root",
-          "my-secret-pw"
-        ),
-        Thread.currentThread().getContextClassLoader(),
-        new MySQLDatabase(),
-        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-      )
-    } finally {
-      container.finished()
+      container.starting()
+      try {
+        new Solidbase().migrate(
+          DriverManager.getConnection(s"${container.jdbcUrl}?useSSL=false", container.username, container.password),
+          Thread.currentThread().getContextClassLoader(),
+          new MySQLDatabase(),
+          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
+        )
+      } finally {
+        container.finished()
+      }
     }
   }
 
-  test("Migration PostgreSQL 11", ExternalDBTest) {
-    val container = GenericContainer(
-      "postgres:11",
-      env = Map("POSTGRES_PASSWORD" -> "mysecretpassword", "POSTGRES_DB" -> "gitbucket"),
-      waitStrategy = Wait
-        .forLogMessage(".*database system is ready to accept connections.*\\s", 2)
-        .withStartupTimeout(Duration.of(60, SECONDS))
-    )
+  Seq("11", "10").foreach { tag =>
+    test(s"Migration PostgreSQL $tag", ExternalDBTest) {
+      val container = PostgreSQLContainer(s"postgres:$tag")
 
-    container.starting()
-    try {
-      new Solidbase().migrate(
-        DriverManager.getConnection(
-          s"jdbc:postgresql://${container.containerIpAddress}:${container.mappedPort(5432)}/gitbucket",
-          "postgres",
-          "mysecretpassword"
-        ),
-        Thread.currentThread().getContextClassLoader(),
-        new PostgresDatabase(),
-        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-      )
-    } finally {
-      container.finished()
-    }
-  }
-
-  test("Migration PostgreSQL 10", ExternalDBTest) {
-    val container = GenericContainer(
-      "postgres:10",
-      env = Map("POSTGRES_PASSWORD" -> "mysecretpassword", "POSTGRES_DB" -> "gitbucket"),
-      waitStrategy = Wait
-        .forLogMessage(".*database system is ready to accept connections.*\\s", 2)
-        .withStartupTimeout(Duration.of(60, SECONDS))
-    )
-
-    container.starting()
-    try {
-      new Solidbase().migrate(
-        DriverManager.getConnection(
-          s"jdbc:postgresql://${container.containerIpAddress}:${container.mappedPort(5432)}/gitbucket",
-          "postgres",
-          "mysecretpassword"
-        ),
-        Thread.currentThread().getContextClassLoader(),
-        new PostgresDatabase(),
-        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-      )
-    } finally {
-      container.finished()
+      container.starting()
+      try {
+        new Solidbase().migrate(
+          DriverManager.getConnection(container.jdbcUrl, container.username, container.password),
+          Thread.currentThread().getContextClassLoader(),
+          new PostgresDatabase(),
+          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
+        )
+      } finally {
+        container.finished()
+      }
     }
   }
 
