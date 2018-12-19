@@ -206,7 +206,7 @@
     <column name="PULL_REQUEST" type="boolean" nullable="false"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_ISSUE_PK" tableName="ISSUE" columnNames="ISSUE_ID, USER_NAME, REPOSITORY_NAME"/>
+  <addPrimaryKey constraintName="IDX_ISSUE_PK" tableName="ISSUE" columnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
   <addForeignKeyConstraint constraintName="IDX_ISSUE_FK0" baseTableName="ISSUE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
   <addForeignKeyConstraint constraintName="IDX_ISSUE_FK2" baseTableName="ISSUE" baseColumnNames="MILESTONE_ID" referencedTableName="MILESTONE" referencedColumnNames="MILESTONE_ID"/>
   <addForeignKeyConstraint constraintName="IDX_ISSUE_FK1" baseTableName="ISSUE" baseColumnNames="OPENED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
