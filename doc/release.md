@@ -34,6 +34,20 @@ object GitBucketCoreModule extends Module("gitbucket-core",
 Generate release files
 --------
 
+### Deploy assembly jar file
+
+For plug-in development, we have to publish the GitBucket jar file to the Maven central repository before release GitBucket itself.
+ 
+First, hit following command to publish artifacts to the sonatype OSS repository:
+
+```bash
+$ sbt publishSigned
+```
+
+Then logged-in to https://oss.sonatype.org/, close and release the repository.
+
+You need to wait up to a day until [gitbucket-notification-plugin](https://plugins.gitbucket-community.org/) which is default bundled plugin is built for new version of GitBucket.
+
 ### Make release war file
 
 Run `sbt executable`. The release war file and fingerprint are generated into `target/executable/gitbucket.war`.
@@ -42,20 +56,4 @@ Run `sbt executable`. The release war file and fingerprint are generated into `t
 $ sbt executable
 ```
 
-### Deploy assembly jar file
-
-For plug-in development, we have to publish the GitBucket jar file to the Maven central repository as well. At first, hit following command to publish artifacts to the sonatype OSS repository:
-
-```bash
-$ sbt publishSigned
-```
-
-Then logged-in https://oss.sonatype.org/ and delete following files from the staging repository:
-
-- gitbucket_2.12-x.x.x.war
-- gitbucket_2.12-x.x.x.war.asc
-- gitbucket_2.12-x.x.x.war.asc.md5
-- gitbucket_2.12-x.x.x.war.asc.sha1
-- gitbucket_2.12-x.x.x.war.md5
-
-At last, close and release the repository.
+Create new release from the corresponded tag on GitHub, then upload generated jar file and fingerprints to the release.
