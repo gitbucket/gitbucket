@@ -70,6 +70,9 @@ Support
 
 What's New in 4.30.x
 -------------
+### 4.30.1 - 22 Dec 2018
+- Bug fix for several WebHooks and Web API
+
 ### 4.30.0 - 15 Dec 2018
 - Automatic ChangeLog Summary generation for new Releases
 - A lot of GitBucket Web API updates to increase compatibility with the GitHub API.
