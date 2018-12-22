@@ -2,18 +2,12 @@ package gitbucket.core
 
 import java.sql.DriverManager
 
+import com.dimafeng.testcontainers.{MySQLContainer, PostgreSQLContainer}
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
 import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
+import org.junit.runner.Description
 import org.scalatest.{FunSuite, Tag}
-import com.wix.mysql.EmbeddedMysql._
-import com.wix.mysql.config.Charset
-import com.wix.mysql.config.MysqldConfig._
-import com.wix.mysql.distribution.Version._
-import ru.yandex.qatools.embed.postgresql.PostgresStarter
-import ru.yandex.qatools.embed.postgresql.config.AbstractPostgresConfig.{Credentials, Net, Storage, Timeout}
-import ru.yandex.qatools.embed.postgresql.config.PostgresConfig
-import ru.yandex.qatools.embed.postgresql.distribution.Version.Main.PRODUCTION
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
@@ -28,52 +22,46 @@ class GitBucketCoreModuleSpec extends FunSuite {
     )
   }
 
-  test("Migration MySQL", ExternalDBTest) {
-    val config = aMysqldConfig(v5_7_latest)
-      .withPort(3306)
-      .withUser("sa", "sa")
-      .withCharset(Charset.UTF8)
-      .withServerVariable("bind-address", "127.0.0.1")
-      .build()
+  implicit private val suiteDescription = Description.createSuiteDescription(getClass)
 
-    val mysqld = anEmbeddedMysql(config)
-      .addSchema("gitbucket")
-      .start()
-
-    try {
-      new Solidbase().migrate(
-        DriverManager.getConnection("jdbc:mysql://localhost:3306/gitbucket?useSSL=false", "sa", "sa"),
-        Thread.currentThread().getContextClassLoader(),
-        new MySQLDatabase(),
-        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-      )
-    } finally {
-      mysqld.stop()
+  Seq("8.0", "5.7").foreach { tag =>
+    test(s"Migration MySQL $tag", ExternalDBTest) {
+      val container = new MySQLContainer() {
+        override val container = new org.testcontainers.containers.MySQLContainer(s"mysql:$tag") {
+          override def getDriverClassName = "org.mariadb.jdbc.Driver"
+        }
+        // TODO https://github.com/testcontainers/testcontainers-java/issues/736
+        container.withCommand("mysqld --default-authentication-plugin=mysql_native_password")
+      }
+      container.starting()
+      try {
+        new Solidbase().migrate(
+          DriverManager.getConnection(s"${container.jdbcUrl}?useSSL=false", container.username, container.password),
+          Thread.currentThread().getContextClassLoader(),
+          new MySQLDatabase(),
+          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
+        )
+      } finally {
+        container.finished()
+      }
     }
   }
 
-  test("Migration PostgreSQL", ExternalDBTest) {
-    val runtime = PostgresStarter.getDefaultInstance()
-    val config = new PostgresConfig(
-      PRODUCTION,
-      new Net("localhost", 5432),
-      new Storage("gitbucket"),
-      new Timeout(),
-      new Credentials("sa", "sa")
-    )
+  Seq("11", "10").foreach { tag =>
+    test(s"Migration PostgreSQL $tag", ExternalDBTest) {
+      val container = PostgreSQLContainer(s"postgres:$tag")
 
-    val exec = runtime.prepare(config)
-    val process = exec.start()
-
-    try {
-      new Solidbase().migrate(
-        DriverManager.getConnection("jdbc:postgresql://localhost:5432/gitbucket", "sa", "sa"),
-        Thread.currentThread().getContextClassLoader(),
-        new PostgresDatabase(),
-        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-      )
-    } finally {
-      process.stop()
+      container.starting()
+      try {
+        new Solidbase().migrate(
+          DriverManager.getConnection(container.jdbcUrl, container.username, container.password),
+          Thread.currentThread().getContextClassLoader(),
+          new PostgresDatabase(),
+          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
+        )
+      } finally {
+        container.finished()
+      }
     }
   }
 
