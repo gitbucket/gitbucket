@@ -589,23 +589,26 @@ trait PullRequestsControllerBase extends ControllerBase {
     val mailAddresses =
       context.loginAccount.map(x => Seq(x.mailAddress) ++ getAccountExtraMailAddresses(x.userName)).getOrElse(Nil)
 
-    val branches = JGitUtil
-      .getBranches(
-        owner = repository.owner,
-        name = repository.name,
-        defaultBranch = repository.repository.defaultBranch,
-        origin = repository.repository.originUserName.isEmpty
-      )
-      .filter { x =>
-        x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0 &&
-        x.commitTime.getTime > thresholdTime &&
-        mailAddresses.contains(x.committerEmailAddress)
+    val branches =
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+        git =>
+          JGitUtil
+            .getBranches(
+              git = git,
+              defaultBranch = repository.repository.defaultBranch,
+              origin = repository.repository.originUserName.isEmpty
+            )
+            .filter { x =>
+              x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0 &&
+              x.commitTime.getTime > thresholdTime &&
+              mailAddresses.contains(x.committerEmailAddress)
+            }
+            .sortBy { br =>
+              (br.mergeInfo.isEmpty, br.commitTime)
+            }
+            .map(_.name)
+            .reverse
       }
-      .sortBy { br =>
-        (br.mergeInfo.isEmpty, br.commitTime)
-      }
-      .map(_.name)
-      .reverse
 
     val targetRepository = (for {
       parentUserName <- repository.repository.parentUserName

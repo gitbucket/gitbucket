@@ -723,29 +723,31 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/branches")(referrersOnly { repository =>
     val protectedBranches = getProtectedBranchList(repository.owner, repository.name).toSet
-    val branches = JGitUtil
-      .getBranches(
-        owner = repository.owner,
-        name = repository.name,
-        defaultBranch = repository.repository.defaultBranch,
-        origin = repository.repository.originUserName.isEmpty
-      )
-      .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
-      .map(
-        br =>
-          (
-            br,
-            getPullRequestByRequestCommit(
-              repository.owner,
-              repository.name,
-              repository.repository.defaultBranch,
-              br.name,
-              br.commitId
-            ),
-            protectedBranches.contains(br.name)
-        )
-      )
-      .reverse
+    val branches = using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+      git =>
+        JGitUtil
+          .getBranches(
+            git = git,
+            defaultBranch = repository.repository.defaultBranch,
+            origin = repository.repository.originUserName.isEmpty
+          )
+          .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+          .map(
+            br =>
+              (
+                br,
+                getPullRequestByRequestCommit(
+                  repository.owner,
+                  repository.name,
+                  repository.repository.defaultBranch,
+                  br.name,
+                  br.commitId
+                ),
+                protectedBranches.contains(br.name)
+            )
+          )
+          .reverse
+    }
 
     html.branches(branches, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
   })
@@ -920,7 +922,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 repository,
                 if (path == ".") Nil else path.split("/").toList, // current path
                 new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
-                JGitUtil.getCommitCount(repository.owner, repository.name, lastModifiedCommit.getName),
+                JGitUtil.getCommitCount(git, lastModifiedCommit.getName),
                 files,
                 readme,
                 hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
@@ -967,7 +969,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               val entryPath =
                 if (path.isEmpty) baseName + "/" + treeWalk.getPathString
                 else path.split("/").last + treeWalk.getPathString.substring(path.length)
-              val size = JGitUtil.getFileSize(git, repository, treeWalk)
+              val size = JGitUtil.getContentSize(git.getRepository.open(treeWalk.getObjectId(0)))
               val mode = treeWalk.getFileMode.getBits
               val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
               JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
