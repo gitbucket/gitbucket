@@ -21,6 +21,8 @@ scalaVersion := "2.12.8"
 
 scalafmtOnCompile := true
 
+coverageExcludedPackages := ".*\\.html\\..*"
+
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
