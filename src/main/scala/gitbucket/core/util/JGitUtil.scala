@@ -240,18 +240,16 @@ object JGitUtil {
    * Returns the number of commits in the specified branch or commit.
    * If the specified branch has over 10000 commits, this method returns 100001.
    */
-  def getCommitCount(owner: String, repository: String, branch: String): Int = {
-    val dir = getRepositoryDir(owner, repository)
+  def getCommitCount(git: Git, branch: String, max: Int = 10001): Int = {
+    val dir = git.getRepository.getDirectory
     val key = dir.getAbsolutePath + "@" + branch
     val entry = cache.getEntry(key)
 
     if (entry == null) {
-      using(Git.open(dir)) { git =>
-        val commitId = git.getRepository.resolve(branch)
-        val commitCount = git.log.add(commitId).call.iterator.asScala.take(10001).size
-        cache.put(key, commitCount)
-        commitCount
-      }
+      val commitId = git.getRepository.resolve(branch)
+      val commitCount = git.log.add(commitId).call.iterator.asScala.take(max).size
+      cache.put(key, commitCount)
+      commitCount
     } else {
       entry.getValue
     }
@@ -1110,6 +1108,7 @@ object JGitUtil {
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and return (commitIdTo, commitIdFrom)
    */
+  // TODO should take Git instead of owner and username for testability
   def updatePullRequest(
     userName: String,
     repositoryName: String,
@@ -1154,42 +1153,40 @@ object JGitUtil {
     git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
   }
 
-  def getBranches(owner: String, name: String, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {
-    using(Git.open(getRepositoryDir(owner, name))) { git =>
-      val repo = git.getRepository
-      val defaultObject = repo.resolve(defaultBranch)
+  def getBranches(git: Git, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {
+    val repo = git.getRepository
+    val defaultObject = repo.resolve(defaultBranch)
 
-      git.branchList.call.asScala.map { ref =>
-        val walk = new RevWalk(repo)
-        try {
-          val defaultCommit = walk.parseCommit(defaultObject)
-          val branchName = ref.getName.stripPrefix("refs/heads/")
-          val branchCommit = walk.parseCommit(ref.getObjectId)
-          val when = branchCommit.getCommitterIdent.getWhen
-          val committer = branchCommit.getCommitterIdent.getName
-          val committerEmail = branchCommit.getCommitterIdent.getEmailAddress
-          val mergeInfo = if (origin && branchName == defaultBranch) {
-            None
-          } else {
-            walk.reset()
-            walk.setRevFilter(RevFilter.MERGE_BASE)
-            walk.markStart(branchCommit)
-            walk.markStart(defaultCommit)
-            val mergeBase = walk.next()
-            walk.reset()
-            walk.setRevFilter(RevFilter.ALL)
-            Some(
-              BranchMergeInfo(
-                ahead = RevWalkUtils.count(walk, branchCommit, mergeBase),
-                behind = RevWalkUtils.count(walk, defaultCommit, mergeBase),
-                isMerged = walk.isMergedInto(branchCommit, defaultCommit)
-              )
+    git.branchList.call.asScala.map { ref =>
+      val walk = new RevWalk(repo)
+      try {
+        val defaultCommit = walk.parseCommit(defaultObject)
+        val branchName = ref.getName.stripPrefix("refs/heads/")
+        val branchCommit = walk.parseCommit(ref.getObjectId)
+        val when = branchCommit.getCommitterIdent.getWhen
+        val committer = branchCommit.getCommitterIdent.getName
+        val committerEmail = branchCommit.getCommitterIdent.getEmailAddress
+        val mergeInfo = if (origin && branchName == defaultBranch) {
+          None
+        } else {
+          walk.reset()
+          walk.setRevFilter(RevFilter.MERGE_BASE)
+          walk.markStart(branchCommit)
+          walk.markStart(defaultCommit)
+          val mergeBase = walk.next()
+          walk.reset()
+          walk.setRevFilter(RevFilter.ALL)
+          Some(
+            BranchMergeInfo(
+              ahead = RevWalkUtils.count(walk, branchCommit, mergeBase),
+              behind = RevWalkUtils.count(walk, defaultCommit, mergeBase),
+              isMerged = walk.isMergedInto(branchCommit, defaultCommit)
             )
-          }
-          BranchInfo(branchName, committer, when, committerEmail, mergeInfo, ref.getObjectId.name)
-        } finally {
-          walk.dispose()
+          )
         }
+        BranchInfo(branchName, committer, when, committerEmail, mergeInfo, ref.getObjectId.name)
+      } finally {
+        walk.dispose()
       }
     }
   }
@@ -1203,7 +1200,7 @@ object JGitUtil {
         val blame = blamer.call()
         var blameMap = Map[String, JGitUtil.BlameInfo]()
         var idLine = List[(String, Int)]()
-        val commits = 0.to(blame.getResultContents().size() - 1).map { i =>
+        0.to(blame.getResultContents().size() - 1).map { i =>
           val c = blame.getSourceCommit(i)
           if (!blameMap.contains(c.name)) {
             blameMap += c.name -> JGitUtil.BlameInfo(
@@ -1243,24 +1240,7 @@ object JGitUtil {
     }
   }
 
-  def getFileSize(git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk): Long = {
-    val attrs = treeWalk.getAttributes
-    val loader = git.getRepository.open(treeWalk.getObjectId(0))
-    if (attrs.containsKey("filter") && attrs.get("filter").getValue == "lfs") {
-      val lfsAttrs = getLfsAttributes(loader)
-      lfsAttrs.get("size").map(_.toLong).get
-    } else {
-      loader.getSize
-    }
-  }
-
-  def getFileSize(git: Git, repository: RepositoryService.RepositoryInfo, tree: RevTree, path: String): Long = {
-    using(TreeWalk.forPath(git.getRepository, path, tree)) { treeWalk =>
-      getFileSize(git, repository, treeWalk)
-    }
-  }
-
-  def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk)(
+  private def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk)(
     f: InputStream => T
   ): T = {
     val attrs = treeWalk.getAttributes
@@ -1270,7 +1250,6 @@ object JGitUtil {
       if (lfsAttrs.nonEmpty) {
         val oid = lfsAttrs("oid").split(":")(1)
 
-        val file = new File(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))
         using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))) { in =>
           f(in)
         }

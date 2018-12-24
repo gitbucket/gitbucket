@@ -15,6 +15,7 @@ import java.nio.file._
 import java.io.File
 
 object GitSpecUtil {
+
   def withTestFolder[U](f: File => U): U = {
     val folder = new File(System.getProperty("java.io.tmpdir"), "test-" + System.nanoTime)
     if (!folder.mkdirs()) {
@@ -26,7 +27,9 @@ object GitSpecUtil {
       FileUtils.deleteQuietly(folder)
     }
   }
+
   def withTestRepository[U](f: Git => U): U = withTestFolder(folder => using(Git.open(createTestRepository(folder)))(f))
+
   def createTestRepository(dir: File): File = {
     RepositoryCache.clear()
     FileUtils.deleteQuietly(dir)
@@ -34,13 +37,14 @@ object GitSpecUtil {
     JGitUtil.initRepository(dir)
     dir
   }
+
   def createFile(
     git: Git,
     branch: String,
     name: String,
     content: String,
-    autorName: String = "dummy",
-    autorEmail: String = "dummy@example.com",
+    authorName: String = "dummy",
+    authorEmail: String = "dummy@example.com",
     message: String = "test commit"
   ): Unit = {
     val builder = DirCache.newInCore.builder()
@@ -67,13 +71,14 @@ object GitSpecUtil {
       headId,
       builder.getDirCache.writeTree(inserter),
       branch,
-      autorName,
-      autorEmail,
+      authorName,
+      authorEmail,
       message
     )
     inserter.flush()
     inserter.close()
   }
+
   def getFile(git: Git, branch: String, path: String) = {
     val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
     val objectId = using(new TreeWalk(git.getRepository)) { walk =>
@@ -89,6 +94,7 @@ object GitSpecUtil {
     }
     JGitUtil.getContentInfo(git, path, objectId)
   }
+
   def mergeAndCommit(git: Git, into: String, branch: String, message: String = null): Unit = {
     val repository = git.getRepository
     val merger = MergeStrategy.RECURSIVE.newMerger(repository, true)
