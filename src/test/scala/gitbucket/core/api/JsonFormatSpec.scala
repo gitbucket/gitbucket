@@ -255,7 +255,113 @@ class JsonFormatSpec extends FunSuite {
         "continuous-integration/travis-ci"
       ]
     }
-}"""
+  }"""
+
+  val apiBranchJson = s"""{
+    "name": "master",
+    "commit": {"sha": "468cab6982b37db5eb167568210ec188673fb653"},
+    "protection": $apiBranchProtectionJson,
+    "_links": {
+      "self": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master",
+      "html": "http://gitbucket.exmple.com/octocat/Hello-World/tree/master"
+    }
+  }"""
+
+  val apiBranchForListJson = """{"name": "master", "commit": {"sha": "468cab6982b37db5eb167568210ec188673fb653"}}"""
+
+  val apiPluginJson = """{
+   "id": "gist",
+    "name": "Gist Plugin",
+    "version": "4.16.0",
+    "description": "Provides Gist feature on GitBucket.",
+    "jarFileName": "gitbucket-gist-plugin-gitbucket_4.30.0-SNAPSHOT-4.17.0.jar"
+  }"""
+
+  val apiPusherJson = """{"name":"octocat","email":"octocat@example.com"}"""
+
+  val apiEndPointJson = """{"rate_limit_url":"http://gitbucket.exmple.com/api/v3/rate_limit"}"""
+
+  val apiErrorJson = """{
+    "message": "A repository with this name already exists on this account",
+    "documentation_url": "https://developer.github.com/v3/repos/#create"
+  }"""
+
+  val apiGroupJson = """{
+    "login": "octocats",
+    "description": "Admin group",
+    "created_at": "2011-04-14T16:00:49Z",
+    "id": 0,
+    "url": "http://gitbucket.exmple.com/api/v3/orgs/octocats",
+    "html_url": "http://gitbucket.exmple.com/octocats",
+    "avatar_url": "http://gitbucket.exmple.com/octocats/_avatar"
+  }""".stripMargin
+
+  val apiRefJson = """{
+    "ref": "refs/heads/featureA",
+    "object": {"sha":"aa218f56b14c9653891f9e74264a383fa43fefbd"}
+  }""".stripMargin
+
+  val apiContentsJson =
+    """{
+    "type": "file",
+    "name": "README.md",
+    "path": "README.md",
+    "sha": "3d21ec53a331a6f037a91c368710b99387d012c1",
+    "content": "UkVBRE1F",
+    "encoding": "base64",
+    "download_url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/raw/3d21ec53a331a6f037a91c368710b99387d012c1/README.md"
+  }"""
+
+  val apiCommitsJson = s"""{
+    "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/3d21ec53a331a6f037a91c368710b99387d012c1",
+    "sha": "3d21ec53a331a6f037a91c368710b99387d012c1",
+    "html_url": "http://gitbucket.exmple.comoctocat/Hello-World/commit/3d21ec53a331a6f037a91c368710b99387d012c1",
+    "comment_url": "http://gitbucket.exmple.com",
+    "commit": {
+      "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/3d21ec53a331a6f037a91c368710b99387d012c1",
+      "author": {
+        "name": "octocat",
+        "email": "octocat@example.com",
+        "date": "2011-04-14T16:00:49Z"
+      },
+      "committer": {
+        "name": "octocat",
+        "email": "octocat@example.com",
+        "date": "2011-04-14T16:00:49Z"
+      },
+      "message": "short message",
+      "comment_count": 1,
+      "tree": {
+        "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/tree/3d21ec53a331a6f037a91c368710b99387d012c1",
+        "sha": "3d21ec53a331a6f037a91c368710b99387d012c1"
+      }
+    },
+    "author": $apiUserJson,
+    "committer": $apiUserJson,
+    "parents": [
+      {
+        "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/tree/1da452aa92d7db1bc093d266c80a69857718c406",
+        "sha": "1da452aa92d7db1bc093d266c80a69857718c406"
+      }
+    ],
+    "stats": {
+      "additions": 2,
+      "deletions": 1,
+      "total": 3
+    },
+    "files": [
+      {
+        "filename": "README.md",
+        "additions": 2,
+        "deletions": 1,
+        "changes": 3,
+        "status": "modified",
+        "raw_url": "http://gitbucket.exmple.com/octocat/Hello-World/raw/3d21ec53a331a6f037a91c368710b99387d012c1/README.md",
+        "blob_url": "http://gitbucket.exmple.com/octocat/Hello-World/blob/3d21ec53a331a6f037a91c368710b99387d012c1/README.md",
+        "patch": "@@ -1 +1,2 @@\\n-body1\\n\\\\ No newline at end of file\\n+body1\\n+body2\\n\\\\ No newline at end of file"
+      }
+    ]
+  }"""
 
   def assertJson(resultJson: String, expectJson: String) = {
     import java.util.regex.Pattern
@@ -310,5 +416,33 @@ class JsonFormatSpec extends FunSuite {
   }
   test("apiBranchProtection") {
     assertJson(JsonFormat(apiBranchProtection), apiBranchProtectionJson)
+  }
+  test("apiBranch") {
+    assertJson(JsonFormat(apiBranch), apiBranchJson)
+    assertJson(JsonFormat(apiBranchForList), apiBranchForListJson)
+  }
+  test("apiCommits") {
+    assertJson(JsonFormat(apiCommits), apiCommitsJson)
+  }
+  test("apiContents") {
+    assertJson(JsonFormat(apiContents), apiContentsJson)
+  }
+  test("apiEndPoint") {
+    assertJson(JsonFormat(apiEndPoint), apiEndPointJson)
+  }
+  test("apiError") {
+    assertJson(JsonFormat(apiError), apiErrorJson)
+  }
+  test("apiGroup") {
+    assertJson(JsonFormat(apiGroup), apiGroupJson)
+  }
+  test("apiPlugin") {
+    assertJson(JsonFormat(apiPlugin), apiPluginJson)
+  }
+  test("apiPusher") {
+    assertJson(JsonFormat(apiPusher), apiPusherJson)
+  }
+  test("apiRef") {
+    assertJson(JsonFormat(apiRef), apiRefJson)
   }
 }

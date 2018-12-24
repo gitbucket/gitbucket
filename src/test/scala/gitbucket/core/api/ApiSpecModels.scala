@@ -1,8 +1,11 @@
 package gitbucket.core.api
 
-import java.util.{Calendar, TimeZone, Date}
+import java.util.{Base64, Calendar, Date, TimeZone}
 
+import gitbucket.core.model.Account
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
 import gitbucket.core.util.RepositoryName
+import org.eclipse.jgit.diff.DiffEntry.ChangeType
 
 object ApiSpecModels {
 
@@ -20,16 +23,26 @@ object ApiSpecModels {
     f.parse(date)
   }
 
+  val account = Account(
+    userName = "octocat",
+    fullName = "octocat",
+    mailAddress = "octocat@example.com",
+    password = "1234",
+    isAdmin = false,
+    url = None,
+    registeredDate = date1,
+    updatedDate = date1,
+    lastLoginDate = Some(date1),
+    image = None,
+    isGroupAccount = false,
+    isRemoved = false,
+    description = None
+  )
+
   val sha1 = "6dcb09b5b57875f334f61aebed695e2e4193db5e"
   val repo1Name = RepositoryName("octocat/Hello-World")
 
-  val apiUser = ApiUser(
-    login = "octocat",
-    email = "octocat@example.com",
-    `type` = "User",
-    site_admin = false,
-    created_at = date1
-  )
+  val apiUser = ApiUser(account)
 
   val repository = ApiRepository(
     name = repo1Name.name,
@@ -167,4 +180,90 @@ object ApiSpecModels {
     Some(ApiBranchProtection.Status(ApiBranchProtection.Everyone, Seq("continuous-integration/travis-ci")))
   )
 
+  val apiBranch = ApiBranch(
+    name = "master",
+    commit = ApiBranchCommit("468cab6982b37db5eb167568210ec188673fb653"),
+    protection = apiBranchProtection
+  )(
+    repositoryName = repo1Name
+  )
+
+  val apiBranchForList = ApiBranchForList("master", ApiBranchCommit("468cab6982b37db5eb167568210ec188673fb653"))
+
+  val apiPusher = ApiPusher(account)
+
+  val apiEndPoint = ApiEndPoint()
+
+  // TODO use factory method defined in companion object?
+  val apiPlugin = ApiPlugin(
+    id = "gist",
+    name = "Gist Plugin",
+    version = "4.16.0",
+    description = "Provides Gist feature on GitBucket.",
+    jarFileName = "gitbucket-gist-plugin-gitbucket_4.30.0-SNAPSHOT-4.17.0.jar"
+  )
+
+  val apiError = ApiError(
+    message = "A repository with this name already exists on this account",
+    documentation_url = Some("https://developer.github.com/v3/repos/#create")
+  )
+
+  // TODO use factory method defined in companion object?
+  val apiGroup = ApiGroup("octocats", Some("Admin group"), date1)
+
+  val apiRef = ApiRef(
+    ref = "refs/heads/featureA",
+    `object` = ApiObject("aa218f56b14c9653891f9e74264a383fa43fefbd")
+  )
+
+  // TODO use factory method defined in companion object?
+  val apiContents = ApiContents(
+    `type` = "file",
+    name = "README.md",
+    path = "README.md",
+    sha = "3d21ec53a331a6f037a91c368710b99387d012c1",
+    content = Some(Base64.getEncoder.encodeToString("README".getBytes("UTF-8"))),
+    encoding = Some("base64")
+  )(repo1Name)
+
+  val apiCommits = ApiCommits(
+    repositoryName = repo1Name,
+    commitInfo = CommitInfo(
+      id = "3d21ec53a331a6f037a91c368710b99387d012c1",
+      shortMessage = "short message",
+      fullMessage = "full message",
+      parents = List("1da452aa92d7db1bc093d266c80a69857718c406"),
+      authorTime = date1,
+      authorName = "octocat",
+      authorEmailAddress = "octocat@example.com",
+      commitTime = date1,
+      committerName = "octocat",
+      committerEmailAddress = "octocat@example.com"
+    ),
+    diffs = Seq(
+      DiffInfo(
+        changeType = ChangeType.MODIFY,
+        oldPath = "README.md",
+        newPath = "README.md",
+        oldContent = None,
+        newContent = None,
+        oldIsImage = false,
+        newIsImage = false,
+        oldObjectId = None,
+        newObjectId = Some("6dcb09b5b57875f334f61aebed695e2e4193db5e"),
+        oldMode = "old_mode",
+        newMode = "new_mode",
+        tooLarge = false,
+        patch = Some("""@@ -1 +1,2 @@
+          |-body1
+          |\ No newline at end of file
+          |+body1
+          |+body2
+          |\ No newline at end of file""".stripMargin)
+      )
+    ),
+    author = account,
+    committer = account,
+    commentCount = 1
+  )
 }
