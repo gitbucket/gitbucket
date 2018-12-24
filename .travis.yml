@@ -1,6 +1,6 @@
 language: scala
 sudo: true
-jdk: 
+jdk:
   - oraclejdk8
   - oraclejdk11
   - openjdk8
@@ -17,5 +17,3 @@ cache:
     - $HOME/.sbt/boot
     - $HOME/.sbt/launchers
     - $HOME/.coursier
-    - $HOME/.embedmysql
-    - $HOME/.embedpostgresql
