@@ -2,8 +2,9 @@ package gitbucket.core.api
 
 import java.util.{Base64, Calendar, Date, TimeZone}
 
-import gitbucket.core.model.Account
-import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
+import gitbucket.core.model.{Account, Repository, RepositoryOptions}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, TagInfo}
 import gitbucket.core.util.RepositoryName
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 
@@ -42,18 +43,56 @@ object ApiSpecModels {
   val sha1 = "6dcb09b5b57875f334f61aebed695e2e4193db5e"
   val repo1Name = RepositoryName("octocat/Hello-World")
 
+  val repository = Repository(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    isPrivate = false,
+    description = Some("This your first repo!"),
+    defaultBranch = "master",
+    registeredDate = date1,
+    updatedDate = date1,
+    lastActivityDate = date1,
+    originUserName = Some("octopus plus cat"),
+    originRepositoryName = Some("Hello World"),
+    parentUserName = Some("github"),
+    parentRepositoryName = Some("Hello-World"),
+    options = RepositoryOptions(
+      issuesOption = "PUBLIC",
+      externalIssuesUrl = Some("https://external.com/gitbucket"),
+      wikiOption = "PUBLIC",
+      externalWikiUrl = Some("https://external.com/gitbucket"),
+      allowFork = true,
+      mergeOptions = "merge-commit,squash,rebase",
+      defaultMergeOption = "merge-commit"
+    )
+  )
+
+  val repositoryInfo = RepositoryInfo(
+    owner = repo1Name.owner,
+    name = repo1Name.name,
+    repository = repository,
+    issueCount = 1,
+    pullCount = 1,
+    forkedCount = 1,
+    branchList = Seq("master", "develop"),
+    tags = Seq(
+      TagInfo(name = "v1.0", time = date("2015-05-05T23:40:27Z"), id = "id1", message = "1.0 released"),
+      TagInfo(name = "v2.0", time = date("2016-05-05T23:40:27Z"), id = "id2", message = "2.0 released")
+    ),
+    managers = Seq("myboss")
+  )
+
   val apiUser = ApiUser(account)
 
-  val repository = ApiRepository(
-    name = repo1Name.name,
-    full_name = repo1Name.fullName,
-    description = "This your first repo!",
+  val apiRepository = ApiRepository(
+    repository = repository,
+    owner = apiUser,
+    forkedCount = repositoryInfo.forkedCount,
     watchers = 0,
-    forks = 0,
-    `private` = false,
-    default_branch = "master",
-    owner = apiUser
-  )(urlIsHtmlUrl = false)
+    urlIsHtmlUrl = false
+  )
+
+// TODO ------------
 
   val apiCommitStatus = ApiCommitStatus(
     created_at = date1,
@@ -112,7 +151,7 @@ object ApiSpecModels {
     sha = sha1,
     total_count = 2,
     statuses = List(apiCommitStatus),
-    repository = repository
+    repository = apiRepository
   )
 
   val apiLabel = ApiLabel(
@@ -147,8 +186,8 @@ object ApiSpecModels {
     state = "open",
     updated_at = date1,
     created_at = date1,
-    head = ApiPullRequest.Commit(sha = sha1, ref = "new-topic", repo = repository)("octocat"),
-    base = ApiPullRequest.Commit(sha = sha1, ref = "master", repo = repository)("octocat"),
+    head = ApiPullRequest.Commit(sha = sha1, ref = "new-topic", repo = apiRepository)("octocat"),
+    base = ApiPullRequest.Commit(sha = sha1, ref = "master", repo = apiRepository)("octocat"),
     mergeable = None,
     merged = false,
     merged_at = Some(date1),
