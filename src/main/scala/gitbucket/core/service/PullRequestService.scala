@@ -6,6 +6,8 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import difflib.{Delta, DiffUtils}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
+import gitbucket.core.controller.Context
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -20,7 +22,13 @@ import org.eclipse.jgit.lib.ObjectId
 import scala.collection.JavaConverters._
 
 trait PullRequestService {
-  self: IssuesService with CommitsService with WebHookService with WebHookPullRequestService with RepositoryService =>
+  self: IssuesService
+    with CommitsService
+    with WebHookService
+    with WebHookPullRequestService
+    with RepositoryService
+    with MergeService
+    with ActivityService =>
   import PullRequestService._
 
   def getPullRequest(owner: String, repository: String, issueId: Int)(
@@ -81,27 +89,66 @@ trait PullRequestService {
 //      .map { x => PullRequestCount(x._1, x._2) }
 
   def createPullRequest(
-    originUserName: String,
-    originRepositoryName: String,
+    originRepository: RepositoryInfo,
     issueId: Int,
     originBranch: String,
     requestUserName: String,
     requestRepositoryName: String,
     requestBranch: String,
     commitIdFrom: String,
-    commitIdTo: String
-  )(implicit s: Session): Unit =
-    PullRequests insert PullRequest(
-      originUserName,
-      originRepositoryName,
-      issueId,
-      originBranch,
-      requestUserName,
-      requestRepositoryName,
-      requestBranch,
-      commitIdFrom,
-      commitIdTo
-    )
+    commitIdTo: String,
+    loginAccount: Account
+  )(implicit s: Session, context: Context): Unit = {
+    getIssue(originRepository.owner, originRepository.name, issueId.toString).foreach { baseIssue =>
+      PullRequests insert PullRequest(
+        originRepository.owner,
+        originRepository.name,
+        issueId,
+        originBranch,
+        requestUserName,
+        requestRepositoryName,
+        requestBranch,
+        commitIdFrom,
+        commitIdTo
+      )
+
+      // fetch requested branch
+      fetchAsPullRequest(
+        originRepository.owner,
+        originRepository.name,
+        requestUserName,
+        requestRepositoryName,
+        requestBranch,
+        issueId
+      )
+
+      // record activity
+      recordPullRequestActivity(
+        originRepository.owner,
+        originRepository.name,
+        loginAccount.userName,
+        issueId,
+        baseIssue.title
+      )
+
+      // call web hook
+      callPullRequestWebHook("opened", originRepository, issueId, loginAccount)
+
+      getIssue(originRepository.owner, originRepository.name, issueId.toString) foreach { issue =>
+        // extract references and create refer comment
+        createReferComment(
+          originRepository.owner,
+          originRepository.name,
+          issue,
+          baseIssue.title + " " + baseIssue.content,
+          loginAccount
+        )
+
+        // call hooks
+        PluginRegistry().getPullRequestHooks.foreach(_.created(issue, originRepository))
+      }
+    }
+  }
 
   def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Option[Boolean])(
     implicit s: Session

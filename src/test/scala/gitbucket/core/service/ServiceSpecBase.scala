@@ -10,11 +10,11 @@ import gitbucket.core.model._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-
 import org.apache.commons.io.FileUtils
-
 import java.sql.DriverManager
 import java.io.File
+
+import gitbucket.core.controller.Context
 
 import scala.util.Random
 
@@ -44,8 +44,8 @@ trait ServiceSpecBase {
   def user(name: String)(implicit s: Session): Account = AccountService.getAccountByUserName(name).get
 
   lazy val dummyService = new RepositoryService with AccountService with ActivityService with IssuesService
-  with PullRequestService with CommitsService with CommitStatusService with LabelsService with MilestonesService
-  with PrioritiesService with WebHookService with WebHookPullRequestService
+  with MergeService with PullRequestService with CommitsService with CommitStatusService with LabelsService
+  with MilestonesService with PrioritiesService with WebHookService with WebHookPullRequestService
   with WebHookPullRequestReviewCommentService {}
 
   def generateNewUserWithDBRepository(userName: String, repositoryName: String)(implicit s: Session): Account = {
@@ -76,16 +76,18 @@ trait ServiceSpecBase {
     val Array(baseUserName, baseRepositoryName, baesBranch) = base.split("/")
     val Array(requestUserName, requestRepositoryName, requestBranch) = request.split("/")
     val issueId = generateNewIssue(baseUserName, baseRepositoryName, Option(loginUser).getOrElse(requestUserName))
+    val baseRepository = dummyService.getRepository(baseUserName, baseRepositoryName)
+    val loginAccount = dummyService.getAccountByUserName(loginUser)
     dummyService.createPullRequest(
-      originUserName = baseUserName,
-      originRepositoryName = baseRepositoryName,
+      originRepository = baseRepository.get,
       issueId = issueId,
       originBranch = baesBranch,
       requestUserName = requestUserName,
       requestRepositoryName = requestRepositoryName,
       requestBranch = requestBranch,
       commitIdFrom = baesBranch,
-      commitIdTo = requestBranch
+      commitIdTo = requestBranch,
+      loginAccount = loginAccount.get
     )
     dummyService.getPullRequest(baseUserName, baseRepositoryName, issueId).get
   }

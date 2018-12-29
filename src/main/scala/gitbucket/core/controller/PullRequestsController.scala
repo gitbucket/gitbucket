@@ -534,15 +534,15 @@ trait PullRequestsControllerBase extends ControllerBase {
         )
 
         createPullRequest(
-          originUserName = repository.owner,
-          originRepositoryName = repository.name,
+          originRepository = repository,
           issueId = issueId,
           originBranch = form.targetBranch,
           requestUserName = form.requestUserName,
           requestRepositoryName = form.requestRepositoryName,
           requestBranch = form.requestBranch,
           commitIdFrom = form.commitIdFrom,
-          commitIdTo = form.commitIdTo
+          commitIdTo = form.commitIdTo,
+          loginAccount = context.loginAccount.get
         )
 
         // insert labels
@@ -555,29 +555,6 @@ trait PullRequestsControllerBase extends ControllerBase {
               }
             }
           }
-        }
-
-        // fetch requested branch
-        fetchAsPullRequest(owner, name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
-
-        // record activity
-        recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
-
-        // call web hook
-        callPullRequestWebHook("opened", repository, issueId, context.loginAccount.get)
-
-        getIssue(owner, name, issueId.toString) foreach { issue =>
-          // extract references and create refer comment
-          createReferComment(
-            owner,
-            name,
-            issue,
-            form.title + " " + form.content.getOrElse(""),
-            context.loginAccount.get
-          )
-
-          // call hooks
-          PluginRegistry().getPullRequestHooks.foreach(_.created(issue, repository))
         }
 
         redirect(s"/${owner}/${name}/pull/${issueId}")

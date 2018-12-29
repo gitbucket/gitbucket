@@ -6,6 +6,7 @@ import org.scalatest.FunSpec
 class PullRequestServiceSpec
     extends FunSpec
     with ServiceSpecBase
+    with MergeService
     with PullRequestService
     with IssuesService
     with AccountService

@@ -215,6 +215,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     with AccountService
     with IssuesService
     with ActivityService
+    with MergeService
     with PullRequestService
     with WebHookService
     with LabelsService

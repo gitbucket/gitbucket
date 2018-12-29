@@ -9,6 +9,7 @@ import gitbucket.core.service.IssuesService._
 class DashboardController
     extends DashboardControllerBase
     with IssuesService
+    with MergeService
     with PullRequestService
     with RepositoryService
     with AccountService
