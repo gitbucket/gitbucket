@@ -360,6 +360,8 @@ trait MergeService {
                         }
                     }
 
+                    callPullRequestWebHook("closed", repository, issueId, context.loginAccount.get)
+
                     updatePullRequests(repository.owner, repository.name, pullreq.branch, loginAccount, "closed")
 
                     // call hooks
