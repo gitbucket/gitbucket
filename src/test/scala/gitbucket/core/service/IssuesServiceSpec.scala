@@ -33,7 +33,7 @@ class IssuesServiceSpec extends FunSuite with ServiceSpecBase {
 
       assert(getCommitStatues(1) == None)
 
-      val (is2, pr2) = generateNewPullRequest("user1/repo1/master", "user1/repo1/feature1")
+      val (is2, pr2) = generateNewPullRequest("user1/repo1/master", "user1/repo1/feature1", loginUser = "root")
       assert(pr2.issueId == 2)
 
       // if there are no statuses, state is none
@@ -79,7 +79,7 @@ class IssuesServiceSpec extends FunSuite with ServiceSpecBase {
       assert(getCommitStatues(2) == Some(CommitStatusInfo(2, 1, None, None, None, None)))
 
       // get only statuses in query issues
-      val (is3, pr3) = generateNewPullRequest("user1/repo1/master", "user1/repo1/feature3")
+      val (is3, pr3) = generateNewPullRequest("user1/repo1/master", "user1/repo1/feature3", loginUser = "root")
       val cs4 = dummyService.createCommitStatus(
         "user1",
         "repo1",

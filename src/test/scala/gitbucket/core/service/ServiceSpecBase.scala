@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.GitBucketCoreModule
-import gitbucket.core.util.{DatabaseConfig, FileUtil}
+import gitbucket.core.util.{DatabaseConfig, Directory, FileUtil, JGitUtil}
 import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
@@ -15,10 +15,48 @@ import java.sql.DriverManager
 import java.io.File
 
 import gitbucket.core.controller.Context
+import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
+import javax.servlet.http.{HttpServletRequest, HttpSession}
+import org.scalatest.mockito.MockitoSugar
+import org.mockito.Mockito._
 
 import scala.util.Random
 
-trait ServiceSpecBase {
+trait ServiceSpecBase extends MockitoSugar {
+
+  val request = mock[HttpServletRequest]
+  val session = mock[HttpSession]
+  when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
+  when(request.getRequestURI).thenReturn("/path.html")
+  when(request.getContextPath).thenReturn("")
+  when(request.getSession).thenReturn(session)
+
+  private def createSystemSettings() =
+    SystemSettings(
+      baseUrl = None,
+      information = None,
+      allowAccountRegistration = false,
+      allowAnonymousAccess = true,
+      isCreateRepoOptionPublic = true,
+      gravatar = false,
+      notification = false,
+      activityLogLimit = None,
+      ssh = Ssh(
+        enabled = false,
+        sshHost = None,
+        sshPort = None
+      ),
+      useSMTP = false,
+      smtp = None,
+      ldapAuthentication = false,
+      ldap = None,
+      oidcAuthentication = false,
+      oidc = None,
+      skinName = "skin-blue",
+      showMailAddress = false,
+      pluginNetworkInstall = false,
+      pluginProxy = None
+    )
 
   def withTestDB[A](action: (Session) => A): A = {
     FileUtil.withTmpDir(new File(FileUtils.getTempDirectory(), Random.alphanumeric.take(10).mkString)) { dir =>
@@ -46,10 +84,24 @@ trait ServiceSpecBase {
   lazy val dummyService = new RepositoryService with AccountService with ActivityService with IssuesService
   with MergeService with PullRequestService with CommitsService with CommitStatusService with LabelsService
   with MilestonesService with PrioritiesService with WebHookService with WebHookPullRequestService
-  with WebHookPullRequestReviewCommentService {}
+  with WebHookPullRequestReviewCommentService {
+    override def fetchAsPullRequest(
+      userName: String,
+      repositoryName: String,
+      requestUserName: String,
+      requestRepositoryName: String,
+      requestBranch: String,
+      issueId: Int
+    ): Unit = {}
+  }
 
   def generateNewUserWithDBRepository(userName: String, repositoryName: String)(implicit s: Session): Account = {
     val ac = AccountService.getAccountByUserName(userName).getOrElse(generateNewAccount(userName))
+    val dir = Directory.getRepositoryDir(userName, repositoryName)
+    if (dir.exists()) {
+      FileUtils.deleteQuietly(dir)
+    }
+    JGitUtil.initRepository(dir)
     dummyService.insertRepository(repositoryName, userName, None, false)
     ac
   }
@@ -70,9 +122,10 @@ trait ServiceSpecBase {
     )
   }
 
-  def generateNewPullRequest(base: String, request: String, loginUser: String = null)(
+  def generateNewPullRequest(base: String, request: String, loginUser: String)(
     implicit s: Session
   ): (Issue, PullRequest) = {
+    implicit val context = Context(createSystemSettings(), None, this.request)
     val Array(baseUserName, baseRepositoryName, baesBranch) = base.split("/")
     val Array(requestUserName, requestRepositoryName, requestBranch) = request.split("/")
     val issueId = generateNewIssue(baseUserName, baseRepositoryName, Option(loginUser).getOrElse(requestUserName))

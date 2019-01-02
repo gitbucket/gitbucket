@@ -19,7 +19,7 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
       val (issue3, pullreq3) = generateNewPullRequest("user3/repo3/master3", "user2/repo2/master2", loginUser = "root")
       val (issue32, pullreq32) =
         generateNewPullRequest("user3/repo3/master32", "user2/repo2/master2", loginUser = "root")
-      generateNewPullRequest("user2/repo2/master2", "user1/repo1/master2")
+      generateNewPullRequest("user2/repo2/master2", "user1/repo1/master2", loginUser = "root")
       service.addWebHook("user1", "repo1", "webhook1-1", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
       service.addWebHook("user1", "repo1", "webhook1-2", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
       service.addWebHook("user2", "repo2", "webhook2-1", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
