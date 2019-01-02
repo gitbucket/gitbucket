@@ -233,7 +233,7 @@ trait WebHookService {
             val httpClient = HttpClientBuilder.create.useSystemProperties.addInterceptorLast(itcp).build
             logger.debug(s"start web hook invocation for ${webHook.url}")
             val httpPost = new HttpPost(webHook.url)
-            logger.info(s"Content-Type: ${webHook.ctype.ctype}")
+            logger.debug(s"Content-Type: ${webHook.ctype.ctype}")
             httpPost.addHeader("Content-Type", webHook.ctype.ctype)
             httpPost.addHeader("X-Github-Event", event.name)
             httpPost.addHeader("X-Github-Delivery", java.util.UUID.randomUUID().toString)
