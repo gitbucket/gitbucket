@@ -46,7 +46,7 @@
                   @release.map { case (release, assets) =>
                     @assets.map { asset =>
                       <li>
-                        <a href="@helpers.url(repository)/releases/@helpers.urlEncode(release.tag)/assets/@asset.fileName"><i class="octicon octicon-file" data-filename="@asset.label"></i>@asset.label</a>
+                        <a href="@helpers.url(repository)/releases/@helpers.urlEncode(release.tag)/assets/@helpers.urlEncode(asset.fileName)"><i class="octicon octicon-file" data-filename="@asset.label"></i>@asset.label</a>
                         <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
                       </li>
                     }
