@@ -44,7 +44,7 @@
           <ul style="list-style: none; padding-left: 8px;" id="attachedFiles">
             @assets.map{ asset =>
               <li>
-                <i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName">@asset.label</a>
+                <a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName"><i class="octicon octicon-file" data-filename="@helpers.urlEncode(asset.label)"></i>@asset.label</a>
                 <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
               </li>
             }
