@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.plugin.PluginRegistry
 
-class PluginControllerFilter extends Filter {
+class PluginControllerFilter extends ControllerFilter {
 
   private var filterConfig: FilterConfig = null
 
@@ -21,16 +21,13 @@ class PluginControllerFilter extends Filter {
     }
   }
 
-  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
-    val contextPath = request.getServletContext.getContextPath
-    val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
-
+  override def process(request: ServletRequest, response: ServletResponse, checkPath: String): Boolean = {
     PluginRegistry()
       .getControllers()
       .filter {
         case (_, path) =>
           val start = path.replaceFirst("/\\*$", "/")
-          (requestUri + "/").startsWith(start)
+          checkPath.startsWith(start)
       }
       .foreach {
         case (controller, _) =>
@@ -42,11 +39,11 @@ class PluginControllerFilter extends Filter {
           controller.doFilter(request, response, mockChain)
 
           if (mockChain.continue == false) {
-            return ()
+            return false
           }
       }
 
-    chain.doFilter(request, response)
+    true
   }
 
 }

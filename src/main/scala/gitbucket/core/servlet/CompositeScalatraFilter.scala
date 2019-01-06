@@ -7,7 +7,32 @@ import org.scalatra.ScalatraFilter
 
 import scala.collection.mutable.ListBuffer
 
-class CompositeScalatraFilter extends Filter {
+abstract class ControllerFilter extends Filter {
+
+  def process(request: ServletRequest, response: ServletResponse, checkPath: String): Boolean
+
+  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
+    val contextPath = request.getServletContext.getContextPath
+    val requestPath = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
+    val checkPath = if (requestPath.endsWith("/")) {
+      requestPath
+    } else {
+      requestPath + "/"
+    }
+
+    if (!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
+        !checkPath.startsWith("/assets/") && !checkPath.startsWith("/plugin-assets/")) {
+      val continue = process(request, response, checkPath)
+      if (!continue) {
+        return ()
+      }
+    }
+
+    chain.doFilter(request, response)
+  }
+}
+
+class CompositeScalatraFilter extends ControllerFilter {
 
   private val filters = new ListBuffer[(ScalatraFilter, String)]()
 
@@ -29,34 +54,23 @@ class CompositeScalatraFilter extends Filter {
     }
   }
 
-  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
-    val contextPath = request.getServletContext.getContextPath
-    val requestPath = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
-    val checkPath = if (requestPath.endsWith("/")) {
-      requestPath
-    } else {
-      requestPath + "/"
-    }
+  override def process(request: ServletRequest, response: ServletResponse, checkPath: String): Boolean = {
+    filters
+      .filter {
+        case (_, path) =>
+          val start = path.replaceFirst("/\\*$", "/")
+          checkPath.startsWith(start)
+      }
+      .foreach {
+        case (filter, _) =>
+          val mockChain = new MockFilterChain()
+          filter.doFilter(request, response, mockChain)
+          if (mockChain.continue == false) {
+            return false
+          }
+      }
 
-    if (!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
-        !checkPath.startsWith("/plugin-assets/")) {
-      filters
-        .filter {
-          case (_, path) =>
-            val start = path.replaceFirst("/\\*$", "/")
-            checkPath.startsWith(start)
-        }
-        .foreach {
-          case (filter, _) =>
-            val mockChain = new MockFilterChain()
-            filter.doFilter(request, response, mockChain)
-            if (mockChain.continue == false) {
-              return ()
-            }
-        }
-    }
-
-    chain.doFilter(request, response)
+    true
   }
 
 }
