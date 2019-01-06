@@ -9,16 +9,17 @@ This directory has following structure:
   * /repositories 
     * /USER_NAME
       * /REPO_NAME.git (substance of repository. GitServlet sees this directory)
+      * /REPO_NAME.wiki.git (wiki repository)
       * /REPO_NAME
         * /issues (files which are attached to issue)
-      * /REPO_NAME.wiki.git (wiki repository)
+        * /lfs (LFS managed files)
   * /data
     * /USER_NAME
       * /files
         * avatar.xxx (image file of user avatar)
   * /plugins
-    * /PLUGIN_NAME
-      * plugin.js
+    * plugin.jar
+    * /.installed (copied available plugins from the parent directory automatically)
   * /tmp
     * /_upload
       * /SESSION_ID (removed at session timeout)

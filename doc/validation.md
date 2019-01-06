@@ -1,11 +1,11 @@
 Mapping and Validation
 ========
-GitBucket uses [scalatra-forms](https://github.com/takezoe/scalatra-forms) to validate request parameters and map them to the scala object. This is inspired by Play2 form mapping / validation.
+GitBucket uses [scalatra-forms](http://scalatra.org/guides/2.6/formats/forms.html) to validate request parameters and map them to the scala object. This is inspired by Play2 form mapping / validation.
 
 At first, define the mapping as following:
 
 ```scala
-import jp.sf.amateras.scalatra.forms._
+import org.scalatra.forms._
 
 case class RegisterForm(name: String, description: String)
 
@@ -15,17 +15,17 @@ val form = mapping(
 )(RegisterForm.apply)
 ```
 
-The servlet have to mixed in ```jp.sf.amateras.scalatra.forms.ClientSideValidationFormSupport``` to validate request parameters and take mapped object. It validates request parameters before action. If any errors are detected, it throws an exception.
+The servlet have to mixed in `gitbucket.core.controller.ValidationFormSupport` to validate request parameters and take mapped object. It validates request parameters before action. If any errors are detected, it throws an exception.
 
 ```scala
-class RegisterServlet extends ScalatraServlet with ClientSideValidationFormSupport {
+class RegisterServlet extends ScalatraServlet with ValidationFormSupport {
   post("/register", form) { form: RegisterForm =>
     ...
   }
 }
 ```
 
-In the view template, you can add client-side validation by adding ```validate="true"``` to your form. Error messages are set to ```span#error-<fieldname>```.
+In the view template, you can add client-side validation by adding `validate="true"` to your form. Error messages are set to `span#error-<fieldname>`.
 
 ```html
 <form method="POST" action="/register" validate="true">
@@ -39,9 +39,9 @@ In the view template, you can add client-side validation by adding ```validate="
 </form>
 ```
 
-Client-side validation calls ```<form-action>/validate``` to validate form contents. It returns a validation result as JSON. In this case, form action is ```/register```, so ```/register/validate``` is called before submitting a form. ```ClientSideValidationFormSupport``` adds this JSON API automatically.
+Client-side validation calls `<form-action>/validate` to validate form contents. It returns a validation result as JSON. In this case, form action is `/register`, so `/register/validate` is called before submitting a form. `ValidationFormSupport` adds this JSON API automatically.
 
-For Ajax request, you have to use '''ajaxGet''' or '''ajaxPost''' to define action. It almost same as '''get''' or '''post'''. You can implement actions which handle Ajax request as same as normal actions.
+For Ajax request, you have to use `ajaxGet` or `ajaxPost` to define action. It almost same as '''get''' or '''post'''. You can implement actions which handle Ajax request as same as normal actions.
 Small difference is they return validation errors as JSON.
 
 ```scala
