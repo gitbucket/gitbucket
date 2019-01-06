@@ -31,7 +31,6 @@ class PluginAssetsServlet extends HttpServlet {
                     val bytes = IOUtils.toByteArray(in)
                     resp.setContentLength(bytes.length)
                     resp.setContentType(FileUtil.getMimeType(path, bytes))
-                    //resp.setDateHeader("Last-Modified", lastModified)
                     resp.setHeader("ETag", etag)
                     resp.getOutputStream.write(bytes)
                   } finally {
