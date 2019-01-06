@@ -1,6 +1,6 @@
 Developer's Guide
 ========
- * [How to run from source tree](how_to_run.md)
+ * [Build from source tree](build.md)
  * [Directory Structure](directory.md)
  * [Mapping and Validation](validation.md)
  * [Authentication in Controller](authenticator.md)
