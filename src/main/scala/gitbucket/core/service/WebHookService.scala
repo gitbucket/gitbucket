@@ -540,11 +540,8 @@ object WebHookService {
   object WebHookCreatePayload {
 
     def apply(
-      git: Git,
       sender: Account,
-      refName: String,
       repositoryInfo: RepositoryInfo,
-      commits: List[CommitInfo],
       repositoryOwner: Account,
       ref: String,
       refType: String
@@ -555,7 +552,7 @@ object WebHookService {
         ref_type = refType,
         description = repositoryInfo.repository.description.getOrElse(""),
         master_branch = repositoryInfo.repository.defaultBranch,
-        repository = ApiRepository.forWebhookPayload(repositoryInfo, owner = ApiUser(repositoryOwner))
+        repository = ApiRepository(repositoryInfo, repositoryOwner)
       )
   }
 
@@ -599,7 +596,7 @@ object WebHookService {
         commits = commits.map { commit =>
           ApiCommit.forWebhookPayload(git, RepositoryName(repositoryInfo), commit)
         },
-        repository = ApiRepository.forWebhookPayload(repositoryInfo, owner = ApiUser(repositoryOwner))
+        repository = ApiRepository(repositoryInfo, repositoryOwner)
       )
 
     def createDummyPayload(sender: Account): WebHookPushPayload =

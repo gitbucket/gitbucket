@@ -2,7 +2,7 @@ package gitbucket.core.api
 
 import java.util.{Base64, Calendar, Date, TimeZone}
 
-import gitbucket.core.model.{Account, Repository, RepositoryOptions}
+import gitbucket.core.model._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, TagInfo}
 import gitbucket.core.util.RepositoryName
@@ -82,6 +82,79 @@ object ApiSpecModels {
     managers = Seq("myboss")
   )
 
+  val label = Label(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    labelId = 10,
+    labelName = "bug",
+    color = "f29513"
+  )
+
+  val issue = Issue(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    issueId = 1347,
+    openedUserName = "bear",
+    milestoneId = None,
+    priorityId = None,
+    assignedUserName = None,
+    title = "Found a bug",
+    content = Some("I'm having a problem with this."),
+    closed = false,
+    registeredDate = date1,
+    updatedDate = date1,
+    isPullRequest = false
+  )
+
+  val issuePR = issue.copy(
+    title = "new-feature",
+    content = Some("Please pull these awesome changes"),
+    closed = true,
+    isPullRequest = true
+  )
+
+  val issueComment = IssueComment(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    issueId = issue.issueId,
+    commentId = 1,
+    action = "comment",
+    commentedUserName = "bear",
+    content = "Me too",
+    registeredDate = date1,
+    updatedDate = date1
+  )
+
+  val pullRequest = PullRequest(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    issueId = issuePR.issueId,
+    branch = "master",
+    requestUserName = "bear",
+    requestRepositoryName = repo1Name.name,
+    requestBranch = "new-topic",
+    commitIdFrom = sha1,
+    commitIdTo = sha1
+  )
+
+  val commitComment = CommitComment(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    commitId = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    commentId = 29724692,
+    commentedUserName = "bear",
+    content = "Maybe you should use more emoji on this line.",
+    fileName = Some("README.md"),
+    oldLine = Some(1),
+    newLine = Some(1),
+    registeredDate = date("2015-05-05T23:40:27Z"),
+    updatedDate = date("2015-05-05T23:40:27Z"),
+    issueId = Some(issuePR.issueId),
+    originalCommitId = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    originalOldLine = None,
+    originalNewLine = None
+  )
+
   val apiUser = ApiUser(account)
 
   val apiRepository = ApiRepository(
@@ -90,6 +163,60 @@ object ApiSpecModels {
     forkedCount = repositoryInfo.forkedCount,
     watchers = 0,
     urlIsHtmlUrl = false
+  )
+
+  val apiLabel = ApiLabel(
+    label = label,
+    repositoryName = repo1Name
+  )
+
+  val apiIssue = ApiIssue(
+    issue = issue,
+    repositoryName = repo1Name,
+    user = apiUser,
+    labels = List(apiLabel)
+  )
+
+  val apiIssuePR = ApiIssue(
+    issue = issuePR,
+    repositoryName = repo1Name,
+    user = apiUser,
+    labels = List(apiLabel)
+  )
+
+  val apiComment = ApiComment(
+    comment = issueComment,
+    repositoryName = repo1Name,
+    issueId = issueComment.issueId,
+    user = apiUser,
+    isPullRequest = false
+  )
+
+  val apiCommentPR = ApiComment(
+    comment = issueComment,
+    repositoryName = repo1Name,
+    issueId = issueComment.issueId,
+    user = apiUser,
+    isPullRequest = true
+  )
+
+  val apiPullRequest = ApiPullRequest(
+    issue = issuePR,
+    pullRequest = pullRequest,
+    headRepo = apiRepository,
+    baseRepo = apiRepository,
+    user = apiUser,
+    labels = List(apiLabel),
+    assignee = Some(apiUser),
+    mergedComment = Some((issueComment, account))
+  )
+
+  // https://developer.github.com/v3/activity/events/types/#pullrequestreviewcommentevent
+  val apiPullRequestReviewComment = ApiPullRequestReviewComment(
+    comment = commitComment,
+    commentedUser = apiUser,
+    repositoryName = repo1Name,
+    issueId = commitComment.issueId.get
   )
 
 // TODO ------------
@@ -116,22 +243,6 @@ object ApiSpecModels {
     committer = ApiPersonIdent("baxterthehacker", "baxterthehacker@users.noreply.github.com", date1)
   )(RepositoryName("baxterthehacker", "public-repo"), true)
 
-  val apiComment = ApiComment(
-    id = 1,
-    user = apiUser,
-    body = "Me too",
-    created_at = date1,
-    updated_at = date1
-  )(RepositoryName("octocat", "Hello-World"), 100, false)
-
-  val apiCommentPR = ApiComment(
-    id = 1,
-    user = apiUser,
-    body = "Me too",
-    created_at = date1,
-    updated_at = date1
-  )(RepositoryName("octocat", "Hello-World"), 100, true)
-
   val apiPersonIdent = ApiPersonIdent("Monalisa Octocat", "support@example.com", date1)
 
   val apiCommitListItem = ApiCommitListItem(
@@ -153,66 +264,6 @@ object ApiSpecModels {
     statuses = List(apiCommitStatus),
     repository = apiRepository
   )
-
-  val apiLabel = ApiLabel(
-    name = "bug",
-    color = "f29513"
-  )(RepositoryName("octocat", "Hello-World"))
-
-  val apiIssue = ApiIssue(
-    number = 1347,
-    title = "Found a bug",
-    user = apiUser,
-    labels = List(apiLabel),
-    state = "open",
-    body = "I'm having a problem with this.",
-    created_at = date1,
-    updated_at = date1
-  )(RepositoryName("octocat", "Hello-World"), false)
-
-  val apiIssuePR = ApiIssue(
-    number = 1347,
-    title = "Found a bug",
-    user = apiUser,
-    labels = List(apiLabel),
-    state = "open",
-    body = "I'm having a problem with this.",
-    created_at = date1,
-    updated_at = date1
-  )(RepositoryName("octocat", "Hello-World"), true)
-
-  val apiPullRequest = ApiPullRequest(
-    number = 1347,
-    state = "open",
-    updated_at = date1,
-    created_at = date1,
-    head = ApiPullRequest.Commit(sha = sha1, ref = "new-topic", repo = apiRepository)("octocat"),
-    base = ApiPullRequest.Commit(sha = sha1, ref = "master", repo = apiRepository)("octocat"),
-    mergeable = None,
-    merged = false,
-    merged_at = Some(date1),
-    merged_by = Some(apiUser),
-    title = "new-feature",
-    body = "Please pull these awesome changes",
-    user = apiUser,
-    labels = List(apiLabel),
-    assignee = Some(apiUser)
-  )
-
-  // https://developer.github.com/v3/activity/events/types/#pullrequestreviewcommentevent
-  val apiPullRequestReviewComment = ApiPullRequestReviewComment(
-    id = 29724692,
-    // "diff_hunk": "@@ -1 +1 @@\n-# public-repo",
-    path = "README.md",
-    // "position": 1,
-    // "original_position": 1,
-    commit_id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
-    // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
-    user = apiUser,
-    body = "Maybe you should use more emoji on this line.",
-    created_at = date("2015-05-05T23:40:27Z"),
-    updated_at = date("2015-05-05T23:40:27Z")
-  )(RepositoryName("baxterthehacker/public-repo"), 1)
 
   val apiBranchProtection = ApiBranchProtection(
     true,
