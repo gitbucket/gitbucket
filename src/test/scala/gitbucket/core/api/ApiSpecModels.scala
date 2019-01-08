@@ -3,6 +3,7 @@ package gitbucket.core.api
 import java.util.{Base64, Calendar, Date, TimeZone}
 
 import gitbucket.core.model._
+import gitbucket.core.service.ProtectedBranchService.ProtectedBranchInfo
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, TagInfo}
 import gitbucket.core.util.RepositoryName
@@ -23,6 +24,8 @@ object ApiSpecModels {
     f.setTimeZone(TimeZone.getTimeZone("UTC"))
     f.parse(date)
   }
+
+  // Models
 
   val account = Account(
     userName = "octocat",
@@ -155,6 +158,8 @@ object ApiSpecModels {
     originalNewLine = None
   )
 
+  // APIs
+
   val apiUser = ApiUser(account)
 
   val apiRepository = ApiRepository(
@@ -219,6 +224,207 @@ object ApiSpecModels {
     issueId = commitComment.issueId.get
   )
 
+  val commitInfo = (id: String) =>
+    CommitInfo(
+      id = id,
+      shortMessage = "short message",
+      fullMessage = "full message",
+      parents = List("1da452aa92d7db1bc093d266c80a69857718c406"),
+      authorTime = date1,
+      authorName = account.userName,
+      authorEmailAddress = account.mailAddress,
+      commitTime = date1,
+      committerName = account.userName,
+      committerEmailAddress = account.mailAddress
+  )
+
+  val apiCommitListItem = ApiCommitListItem(
+    commit = commitInfo(sha1),
+    repositoryName = repo1Name
+  )
+
+  val apiBranchProtection = ApiBranchProtection(
+    info = ProtectedBranchInfo(
+      owner = repo1Name.owner,
+      repository = repo1Name.name,
+      enabled = true,
+      contexts = Seq("continuous-integration/travis-ci"),
+      includeAdministrators = true
+    )
+  )
+
+  val apiBranch = ApiBranch(
+    name = "master",
+    commit = ApiBranchCommit(sha1),
+    protection = apiBranchProtection
+  )(
+    repositoryName = repo1Name
+  )
+
+  val apiBranchForList = ApiBranchForList(
+    name = "master",
+    commit = ApiBranchCommit(sha1)
+  )
+
+  // JSON String for APIs
+
+  val jsonUser = """{
+       |"login":"octocat",
+       |"email":"octocat@example.com",
+       |"type":"User",
+       |"site_admin":false,
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"id":0,
+       |"url":"http://gitbucket.exmple.com/api/v3/users/octocat",
+       |"html_url":"http://gitbucket.exmple.com/octocat",
+       |"avatar_url":"http://gitbucket.exmple.com/octocat/_avatar"
+       |}""".stripMargin
+
+  val jsonRepository = s"""{
+       |"name":"Hello-World",
+       |"full_name":"octocat/Hello-World",
+       |"description":"This your first repo!",
+       |"watchers":0,
+       |"forks":1,
+       |"private":false,
+       |"default_branch":"master",
+       |"owner":$jsonUser,
+       |"id":0,
+       |"forks_count":1,
+       |"watchers_count":0,
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World",
+       |"http_url":"http://gitbucket.exmple.com/git/octocat/Hello-World.git",
+       |"clone_url":"http://gitbucket.exmple.com/git/octocat/Hello-World.git",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World"
+       |}""".stripMargin
+
+  val jsonLabel =
+    """{"name":"bug","color":"f29513","url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/labels/bug"}"""
+
+  val jsonIssue = s"""{
+       |"number":1347,
+       |"title":"Found a bug",
+       |"user":$jsonUser,
+       |"labels":[$jsonLabel],
+       |"state":"open",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"body":"I'm having a problem with this.",
+       |"id":0,
+       |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
+       |}""".stripMargin
+
+  // TODO comments_url is correct?
+  val jsonIssuePR = s"""{
+       |"number":1347,
+       |"title":"new-feature",
+       |"user":$jsonUser,
+       |"labels":[$jsonLabel],
+       |"state":"closed",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"body":"Please pull these awesome changes",
+       |"id":0,
+       |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347",
+       |"pull_request":{
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",
+         |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347"}
+       |}""".stripMargin
+
+  // TODO comments_url is correct?
+  val jsonPullRequest = s"""{
+       |"number":1347,
+       |"state":"closed",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"head":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e","ref":"new-topic","repo":$jsonRepository,"label":"new-topic","user":$jsonUser},
+       |"base":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e","ref":"master","repo":$jsonRepository,"label":"master","user":$jsonUser},
+       |"merged":true,
+       |"merged_at":"2011-04-14T16:00:49Z",
+       |"merged_by":$jsonUser,
+       |"title":"new-feature",
+       |"body":"Please pull these awesome changes",
+       |"user":$jsonUser,
+       |"labels":[$jsonLabel],
+       |"assignee":$jsonUser,
+       |"id":0,
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347",
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",
+       |"commits_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347/commits",
+       |"review_comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347/comments",
+       |"review_comment_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/comments/{number}",
+       |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+       |"statuses_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/statuses/6dcb09b5b57875f334f61aebed695e2e4193db5e"
+       |}""".stripMargin
+
+  val jsonPullRequestReviewComment = s"""{
+       |"id":29724692,
+       |"path":"README.md",
+       |"commit_id":"0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+       |"user":$jsonUser,
+       |"body":"Maybe you should use more emoji on this line.",
+       |"created_at":"2015-05-05T23:40:27Z",
+       |"updated_at":"2015-05-05T23:40:27Z",
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/comments/29724692",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347#discussion_r29724692",
+       |"pull_request_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",
+       |"_links":{
+         |"self":{"href":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/comments/29724692"},
+         |"html":{"href":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347#discussion_r29724692"},
+         |"pull_request":{"href":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347"}}
+       |}""".stripMargin
+
+  val jsonComment = s"""{
+       |"id":1,
+       |"user":$jsonUser,
+       |"body":"Me too",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347#comment-1"
+       |}""".stripMargin
+
+  val jsonCommentPR = s"""{
+       |"id":1,
+       |"user":$jsonUser,
+       |"body":"Me too",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347#comment-1"
+       |}""".stripMargin
+
+  val jsonCommitListItem = s"""{
+       |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"commit":{
+         |"message":"full message",
+         |"author":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
+         |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/git/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e"
+       |},
+       |"parents":[{
+         |"sha":"1da452aa92d7db1bc093d266c80a69857718c406",
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/1da452aa92d7db1bc093d266c80a69857718c406"}],
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e"
+       |}""".stripMargin
+
+  val jsonBranchProtection =
+    """{
+       |"enabled":true,
+       |"required_status_checks":{"enforcement_level":"everyone","contexts":["continuous-integration/travis-ci"]}
+       |}""".stripMargin
+
+  val jsonBranch = s"""{
+       |"name":"master",
+       |"commit":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"},
+       |"protection":$jsonBranchProtection,
+       |"_links":{
+         |"self":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master",
+         |"html":"http://gitbucket.exmple.com/octocat/Hello-World/tree/master"}
+       |}""".stripMargin
+
+  val jsonBranchForList = """{"name":"master","commit":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
+
 // TODO ------------
 
   val apiCommitStatus = ApiCommitStatus(
@@ -245,18 +451,6 @@ object ApiSpecModels {
 
   val apiPersonIdent = ApiPersonIdent("Monalisa Octocat", "support@example.com", date1)
 
-  val apiCommitListItem = ApiCommitListItem(
-    sha = sha1,
-    commit = ApiCommitListItem.Commit(
-      message = "Fix all the bugs",
-      author = apiPersonIdent,
-      committer = apiPersonIdent
-    )(sha1, repo1Name),
-    author = Some(apiUser),
-    committer = Some(apiUser),
-    parents = Seq(ApiCommitListItem.Parent("6dcb09b5b57875f334f61aebed695e2e4193db5e")(repo1Name))
-  )(repo1Name)
-
   val apiCombinedCommitStatus = ApiCombinedCommitStatus(
     state = "success",
     sha = sha1,
@@ -265,26 +459,10 @@ object ApiSpecModels {
     repository = apiRepository
   )
 
-  val apiBranchProtection = ApiBranchProtection(
-    true,
-    Some(ApiBranchProtection.Status(ApiBranchProtection.Everyone, Seq("continuous-integration/travis-ci")))
-  )
-
-  val apiBranch = ApiBranch(
-    name = "master",
-    commit = ApiBranchCommit("468cab6982b37db5eb167568210ec188673fb653"),
-    protection = apiBranchProtection
-  )(
-    repositoryName = repo1Name
-  )
-
-  val apiBranchForList = ApiBranchForList("master", ApiBranchCommit("468cab6982b37db5eb167568210ec188673fb653"))
-
   val apiPusher = ApiPusher(account)
 
   val apiEndPoint = ApiEndPoint()
 
-  // TODO use factory method defined in companion object?
   val apiPlugin = ApiPlugin(
     id = "gist",
     name = "Gist Plugin",
@@ -298,7 +476,6 @@ object ApiSpecModels {
     documentation_url = Some("https://developer.github.com/v3/repos/#create")
   )
 
-  // TODO use factory method defined in companion object?
   val apiGroup = ApiGroup("octocats", Some("Admin group"), date1)
 
   val apiRef = ApiRef(
@@ -306,7 +483,6 @@ object ApiSpecModels {
     `object` = ApiObject("aa218f56b14c9653891f9e74264a383fa43fefbd")
   )
 
-  // TODO use factory method defined in companion object?
   val apiContents = ApiContents(
     `type` = "file",
     name = "README.md",
