@@ -52,36 +52,16 @@ class WebHookJsonFormatSpec extends FunSuite {
         newId = ObjectId.fromString(sha1),
         oldId = ObjectId.fromString(sha1)
       )
-      // TODO url is correct?
       val expected = s"""{
           |"pusher":{"name":"octocat","email":"octocat@example.com"},
           |"sender":$jsonUser,
           |"ref":"refs/heads/master",
           |"before":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
           |"after":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
-          |"commits":[{
-            |"id":"${branchId.name}",
-            |"message":"full message",
-            |"timestamp":"2011-04-14T16:00:49Z",
-            |"added":[],
-            |"removed":[],
-            |"modified":["README.md"],
-            |"author":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
-            |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
-            |"url":"http://gitbucket.exmple.com/octocat/Hello-World/commit/${branchId.name}"
-          |}],
+          |"commits":[${jsonCommit(branchId.name)}],
           |"repository":$jsonRepository,
           |"compare":"http://gitbucket.exmple.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
-          |"head_commit":{
-            |"id":"${branchId.name}",
-            |"message":"full message",
-            |"timestamp":"2011-04-14T16:00:49Z",
-            |"added":[],
-            |"removed":[],
-            |"modified":["README.md"],
-            |"author":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
-            |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
-            |"url":"http://gitbucket.exmple.com/octocat/Hello-World/commit/${branchId.name}"}
+          |"head_commit":${jsonCommit(branchId.name)}
           |}""".stripMargin
       assert(payload, expected)
     }

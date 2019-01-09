@@ -1,13 +1,15 @@
 package gitbucket.core.api
 
-import java.util.{Base64, Calendar, Date, TimeZone}
+import java.util.{Calendar, Date, TimeZone}
 
 import gitbucket.core.model._
+import gitbucket.core.plugin.PluginInfo
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchInfo
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, TagInfo}
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, FileInfo, TagInfo}
 import gitbucket.core.util.RepositoryName
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
+import org.eclipse.jgit.lib.ObjectId
 
 object ApiSpecModels {
 
@@ -143,7 +145,7 @@ object ApiSpecModels {
   val commitComment = CommitComment(
     userName = repo1Name.owner,
     repositoryName = repo1Name.name,
-    commitId = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    commitId = sha1,
     commentId = 29724692,
     commentedUserName = "bear",
     content = "Maybe you should use more emoji on this line.",
@@ -153,9 +155,23 @@ object ApiSpecModels {
     registeredDate = date("2015-05-05T23:40:27Z"),
     updatedDate = date("2015-05-05T23:40:27Z"),
     issueId = Some(issuePR.issueId),
-    originalCommitId = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    originalCommitId = sha1,
     originalOldLine = None,
     originalNewLine = None
+  )
+
+  val commitStatus = CommitStatus(
+    commitStatusId = 1,
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    commitId = sha1,
+    context = "Default",
+    state = CommitState.SUCCESS,
+    targetUrl = Some("https://ci.example.com/1000/output"),
+    description = Some("Build has completed successfully"),
+    creator = account.userName,
+    registeredDate = date1,
+    updatedDate = date1
   )
 
   // APIs
@@ -243,6 +259,61 @@ object ApiSpecModels {
     repositoryName = repo1Name
   )
 
+  val apiCommit = {
+    val commit = commitInfo(sha1)
+    ApiCommit(
+      id = commit.id,
+      message = commit.fullMessage,
+      timestamp = commit.commitTime,
+      added = Nil,
+      removed = Nil,
+      modified = List("README.md"),
+      author = ApiPersonIdent.author(commit),
+      committer = ApiPersonIdent.committer(commit)
+    )(repo1Name, true)
+  }
+
+  val apiCommits = ApiCommits(
+    repositoryName = repo1Name,
+    commitInfo = commitInfo(sha1),
+    diffs = Seq(
+      DiffInfo(
+        changeType = ChangeType.MODIFY,
+        oldPath = "doc/README.md",
+        newPath = "doc/README.md",
+        oldContent = None,
+        newContent = None,
+        oldIsImage = false,
+        newIsImage = false,
+        oldObjectId = None,
+        newObjectId = Some(sha1),
+        oldMode = "old_mode",
+        newMode = "new_mode",
+        tooLarge = false,
+        patch = Some("""@@ -1 +1,2 @@
+                       |-body1
+                       |\ No newline at end of file
+                       |+body1
+                       |+body2
+                       |\ No newline at end of file""".stripMargin)
+      )
+    ),
+    author = account,
+    committer = account,
+    commentCount = 2
+  )
+
+  val apiCommitStatus = ApiCommitStatus(
+    status = commitStatus,
+    creator = apiUser
+  )
+
+  val apiCombinedCommitStatus = ApiCombinedCommitStatus(
+    sha = sha1,
+    statuses = Iterable((commitStatus, account)),
+    repository = apiRepository
+  )
+
   val apiBranchProtection = ApiBranchProtection(
     info = ProtectedBranchInfo(
       owner = repo1Name.owner,
@@ -264,6 +335,58 @@ object ApiSpecModels {
   val apiBranchForList = ApiBranchForList(
     name = "master",
     commit = ApiBranchCommit(sha1)
+  )
+
+  val apiContents = ApiContents(
+    fileInfo = FileInfo(
+      id = ObjectId.fromString(sha1),
+      isDirectory = false,
+      name = "README.md",
+      path = "doc/README.md",
+      message = "message",
+      commitId = sha1,
+      time = date1,
+      author = account.userName,
+      mailAddress = account.mailAddress,
+      linkUrl = None
+    ),
+    repositoryName = repo1Name,
+    content = Some("README".getBytes("UTF-8"))
+  )
+
+  val apiEndPoint = ApiEndPoint()
+
+  val apiError = ApiError(
+    message = "A repository with this name already exists on this account",
+    documentation_url = Some("https://developer.github.com/v3/repos/#create")
+  )
+
+  val apiGroup = ApiGroup(
+    account.copy(
+      isAdmin = true,
+      isGroupAccount = true,
+      description = Some("Admin group")
+    )
+  )
+
+  val apiPlugin = ApiPlugin(
+    plugin = PluginInfo(
+      pluginId = "gist",
+      pluginName = "Gist Plugin",
+      pluginVersion = "4.16.0",
+      gitbucketVersion = Some("4.30.1"),
+      description = "Provides Gist feature on GitBucket.",
+      pluginClass = null,
+      pluginJar = new java.io.File("gitbucket-gist-plugin-gitbucket_4.30.0-SNAPSHOT-4.17.0.jar"),
+      classLoader = null
+    )
+  )
+
+  val apiPusher = ApiPusher(account)
+
+  val apiRef = ApiRef(
+    ref = "refs/heads/featureA",
+    `object` = ApiObject(sha1)
   )
 
   // JSON String for APIs
@@ -362,7 +485,7 @@ object ApiSpecModels {
   val jsonPullRequestReviewComment = s"""{
        |"id":29724692,
        |"path":"README.md",
-       |"commit_id":"0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+       |"commit_id":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
        |"user":$jsonUser,
        |"body":"Maybe you should use more emoji on this line.",
        |"created_at":"2015-05-05T23:40:27Z",
@@ -408,6 +531,71 @@ object ApiSpecModels {
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e"
        |}""".stripMargin
 
+  // TODO url is correct?
+  val jsonCommit = (id: String) => s"""{
+       |"id":"$id",
+       |"message":"full message",
+       |"timestamp":"2011-04-14T16:00:49Z",
+       |"added":[],
+       |"removed":[],
+       |"modified":["README.md"],
+       |"author":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
+       |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
+       |"url":"http://gitbucket.exmple.com/octocat/Hello-World/commit/$id"
+       |}""".stripMargin
+
+  // TODO comment_url
+  val jsonCommits = s"""{
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"html_url":"http://gitbucket.exmple.comoctocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"comment_url":"http://gitbucket.exmple.com",
+       |"commit":{
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+         |"author":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
+         |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
+         |"message":"short message",
+         |"comment_count":2,
+         |"tree":{"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/tree/6dcb09b5b57875f334f61aebed695e2e4193db5e","sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}
+       |},
+       |"author":$jsonUser,
+       |"committer":$jsonUser,
+       |"parents":[{
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/tree/1da452aa92d7db1bc093d266c80a69857718c406",
+         |"sha":"1da452aa92d7db1bc093d266c80a69857718c406"}],
+       |"stats":{"additions":2,"deletions":1,"total":3},
+       |"files":[{
+         |"filename":"doc/README.md",
+         |"additions":2,
+         |"deletions":1,
+         |"changes":3,
+         |"status":"modified",
+         |"raw_url":"http://gitbucket.exmple.com/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md",
+         |"blob_url":"http://gitbucket.exmple.com/octocat/Hello-World/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md",
+         |"patch":"@@ -1 +1,2 @@\\n-body1\\n\\\\ No newline at end of file\\n+body1\\n+body2\\n\\\\ No newline at end of file"}]
+       |}""".stripMargin
+
+  val jsonCommitStatus = s"""{
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"state":"success",
+       |"target_url":"https://ci.example.com/1000/output",
+       |"description":"Build has completed successfully",
+       |"id":1,
+       |"context":"Default",
+       |"creator":$jsonUser,
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e/statuses"
+       |}""".stripMargin
+
+  val jsonCombinedCommitStatus = s"""{
+       |"state":"success",
+       |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"total_count":1,
+       |"statuses":[$jsonCommitStatus],
+       |"repository":$jsonRepository,
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e/status"
+       |}""".stripMargin
+
   val jsonBranchProtection =
     """{
        |"enabled":true,
@@ -425,111 +613,44 @@ object ApiSpecModels {
 
   val jsonBranchForList = """{"name":"master","commit":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
 
-// TODO ------------
+  val jsonContents =
+    """{
+       |"type":"file",
+       |"name":"README.md",
+       |"path":"doc/README.md",
+       |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"content":"UkVBRE1F",
+       |"encoding":"base64",
+       |"download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md"
+       |}""".stripMargin
 
-  val apiCommitStatus = ApiCommitStatus(
-    created_at = date1,
-    updated_at = date1,
-    state = "success",
-    target_url = Some("https://ci.example.com/1000/output"),
-    description = Some("Build has completed successfully"),
-    id = 1,
-    context = "Default",
-    creator = apiUser
-  )(sha1, repo1Name)
+  val jsonEndPoint = """{"rate_limit_url":"http://gitbucket.exmple.com/api/v3/rate_limit"}"""
 
-  val apiCommit = ApiCommit(
-    id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
-    message = "Update README.md",
-    timestamp = date1,
-    added = Nil,
-    removed = Nil,
-    modified = List("README.md"),
-    author = ApiPersonIdent("baxterthehacker", "baxterthehacker@users.noreply.github.com", date1),
-    committer = ApiPersonIdent("baxterthehacker", "baxterthehacker@users.noreply.github.com", date1)
-  )(RepositoryName("baxterthehacker", "public-repo"), true)
+  val jsonError = """{
+       |"message":"A repository with this name already exists on this account",
+       |"documentation_url":"https://developer.github.com/v3/repos/#create"
+       |}""".stripMargin
 
-  val apiPersonIdent = ApiPersonIdent("Monalisa Octocat", "support@example.com", date1)
+  val jsonGroup = """{
+       |"login":"octocat",
+       |"description":"Admin group",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"id":0,
+       |"url":"http://gitbucket.exmple.com/api/v3/orgs/octocat",
+       |"html_url":"http://gitbucket.exmple.com/octocat",
+       |"avatar_url":"http://gitbucket.exmple.com/octocat/_avatar"
+       |}""".stripMargin
 
-  val apiCombinedCommitStatus = ApiCombinedCommitStatus(
-    state = "success",
-    sha = sha1,
-    total_count = 2,
-    statuses = List(apiCommitStatus),
-    repository = apiRepository
-  )
+  val jsonPlugin = """{
+       |"id":"gist",
+       |"name":"Gist Plugin",
+       |"version":"4.16.0",
+       |"description":"Provides Gist feature on GitBucket.",
+       |"jarFileName":"gitbucket-gist-plugin-gitbucket_4.30.0-SNAPSHOT-4.17.0.jar"
+       |}""".stripMargin
 
-  val apiPusher = ApiPusher(account)
+  val jsonPusher = """{"name":"octocat","email":"octocat@example.com"}"""
 
-  val apiEndPoint = ApiEndPoint()
+  val jsonRef = """{"ref":"refs/heads/featureA","object":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
 
-  val apiPlugin = ApiPlugin(
-    id = "gist",
-    name = "Gist Plugin",
-    version = "4.16.0",
-    description = "Provides Gist feature on GitBucket.",
-    jarFileName = "gitbucket-gist-plugin-gitbucket_4.30.0-SNAPSHOT-4.17.0.jar"
-  )
-
-  val apiError = ApiError(
-    message = "A repository with this name already exists on this account",
-    documentation_url = Some("https://developer.github.com/v3/repos/#create")
-  )
-
-  val apiGroup = ApiGroup("octocats", Some("Admin group"), date1)
-
-  val apiRef = ApiRef(
-    ref = "refs/heads/featureA",
-    `object` = ApiObject("aa218f56b14c9653891f9e74264a383fa43fefbd")
-  )
-
-  val apiContents = ApiContents(
-    `type` = "file",
-    name = "README.md",
-    path = "README.md",
-    sha = "3d21ec53a331a6f037a91c368710b99387d012c1",
-    content = Some(Base64.getEncoder.encodeToString("README".getBytes("UTF-8"))),
-    encoding = Some("base64")
-  )(repo1Name)
-
-  val apiCommits = ApiCommits(
-    repositoryName = repo1Name,
-    commitInfo = CommitInfo(
-      id = "3d21ec53a331a6f037a91c368710b99387d012c1",
-      shortMessage = "short message",
-      fullMessage = "full message",
-      parents = List("1da452aa92d7db1bc093d266c80a69857718c406"),
-      authorTime = date1,
-      authorName = "octocat",
-      authorEmailAddress = "octocat@example.com",
-      commitTime = date1,
-      committerName = "octocat",
-      committerEmailAddress = "octocat@example.com"
-    ),
-    diffs = Seq(
-      DiffInfo(
-        changeType = ChangeType.MODIFY,
-        oldPath = "README.md",
-        newPath = "README.md",
-        oldContent = None,
-        newContent = None,
-        oldIsImage = false,
-        newIsImage = false,
-        oldObjectId = None,
-        newObjectId = Some("6dcb09b5b57875f334f61aebed695e2e4193db5e"),
-        oldMode = "old_mode",
-        newMode = "new_mode",
-        tooLarge = false,
-        patch = Some("""@@ -1 +1,2 @@
-          |-body1
-          |\ No newline at end of file
-          |+body1
-          |+body2
-          |\ No newline at end of file""".stripMargin)
-      )
-    ),
-    author = account,
-    committer = account,
-    commentCount = 1
-  )
 }
