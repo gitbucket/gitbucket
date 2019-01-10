@@ -106,15 +106,15 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                     )
 
                     createPullRequest(
-                      originUserName = repository.owner,
-                      originRepositoryName = repository.name,
+                      originRepository = repository,
                       issueId = issueId,
                       originBranch = createPullReq.base,
                       requestUserName = reqOwner,
                       requestRepositoryName = repository.name,
                       requestBranch = reqBranch,
                       commitIdFrom = commitIdFrom.getName,
-                      commitIdTo = commitIdTo.getName
+                      commitIdTo = commitIdTo.getName,
+                      loginAccount = context.loginAccount.get
                     )
                     getApiPullRequest(repository, issueId).map(JsonFormat(_))
                   case _ =>
@@ -133,15 +133,15 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                   case (Some(commitIdFrom), Some(commitIdTo)) =>
                     changeIssueToPullRequest(repository.owner, repository.name, createPullReqAlt.issue)
                     createPullRequest(
-                      originUserName = repository.owner,
-                      originRepositoryName = repository.name,
+                      originRepository = repository,
                       issueId = createPullReqAlt.issue,
                       originBranch = createPullReqAlt.base,
                       requestUserName = reqOwner,
                       requestRepositoryName = repository.name,
                       requestBranch = reqBranch,
                       commitIdFrom = commitIdFrom.getName,
-                      commitIdTo = commitIdTo.getName
+                      commitIdTo = commitIdTo.getName,
+                      loginAccount = context.loginAccount.get
                     )
                     getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
                   case _ =>

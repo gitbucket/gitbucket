@@ -50,6 +50,7 @@ class RepositoryViewerController
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with MergeService
     with PullRequestService
     with CommitStatusService
     with WebHookPullRequestService

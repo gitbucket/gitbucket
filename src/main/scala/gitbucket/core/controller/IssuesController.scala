@@ -24,6 +24,7 @@ class IssuesController
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with MergeService
     with PullRequestService
     with WebHookIssueCommentService
     with WebHookPullRequestReviewCommentService

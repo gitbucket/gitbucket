@@ -6,6 +6,7 @@ import org.scalatest.FunSpec
 class PullRequestServiceSpec
     extends FunSpec
     with ServiceSpecBase
+    with MergeService
     with PullRequestService
     with IssuesService
     with AccountService
@@ -30,13 +31,13 @@ class PullRequestServiceSpec
         generateNewUserWithDBRepository("user1", "repo1")
         generateNewUserWithDBRepository("user1", "repo2")
         generateNewUserWithDBRepository("user2", "repo1")
-        generateNewPullRequest("user1/repo1/master", "user1/repo1/head2") // not target branch
-        generateNewPullRequest("user1/repo1/head1", "user1/repo1/master") // not target branch ( swap from, to )
-        generateNewPullRequest("user1/repo1/master", "user2/repo1/head1") // other user
-        generateNewPullRequest("user1/repo1/master", "user1/repo2/head1") // other repository
-        val r1 = swap(generateNewPullRequest("user1/repo1/master2", "user1/repo1/head1"))
-        val r2 = swap(generateNewPullRequest("user1/repo1/master", "user1/repo1/head1"))
-        val r3 = swap(generateNewPullRequest("user1/repo1/master4", "user1/repo1/head1"))
+        generateNewPullRequest("user1/repo1/master", "user1/repo1/head2", loginUser = "root") // not target branch
+        generateNewPullRequest("user1/repo1/head1", "user1/repo1/master", loginUser = "root") // not target branch ( swap from, to )
+        generateNewPullRequest("user1/repo1/master", "user2/repo1/head1", loginUser = "root") // other user
+        generateNewPullRequest("user1/repo1/master", "user1/repo2/head1", loginUser = "root") // other repository
+        val r1 = swap(generateNewPullRequest("user1/repo1/master2", "user1/repo1/head1", loginUser = "root"))
+        val r2 = swap(generateNewPullRequest("user1/repo1/master", "user1/repo1/head1", loginUser = "root"))
+        val r3 = swap(generateNewPullRequest("user1/repo1/master4", "user1/repo1/head1", loginUser = "root"))
         assert(getPullRequestFromBranch("user1", "repo1", "head1", "master") == Some(r2))
         updateClosed("user1", "repo1", r2._1.issueId, true)
         assert(Seq(r1, r2).contains(getPullRequestFromBranch("user1", "repo1", "head1", "master").get))
