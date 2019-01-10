@@ -331,6 +331,7 @@ object PluginRegistry {
         instance.getPlugins().find(_.pluginId == pluginId) match {
           case Some(x) => {
             logger.warn(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
+            classLoader.close()
           }
           case None => {
             // Migration
@@ -370,7 +371,9 @@ object PluginRegistry {
           }
         }
       } catch {
-        case e: Throwable => logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
+        case e: Throwable =>
+          logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
+          classLoader.close()
       }
     }
 
