@@ -380,11 +380,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                 } yield {
                   val refType = if (refName(1) == "tags") "tag" else "branch"
                   WebHookCreatePayload(
-                    git,
                     pusherAccount,
-                    command.getRefName,
                     repositoryInfo,
-                    newCommits,
                     ownerAccount,
                     ref = branchName,
                     refType = refType
