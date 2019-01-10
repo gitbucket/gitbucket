@@ -412,6 +412,13 @@ object PluginRegistry {
     }
   }
 
+  def getPluginInfoFromClassLoader(classLoader: ClassLoader): Option[PluginInfo] = {
+    instance
+      .getPlugins()
+      .find { info =>
+        info.classLoader.equals(classLoader)
+      }
+  }
 }
 
 case class Link(

@@ -1,7 +1,6 @@
 package gitbucket.core.servlet
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.util.FileUtil
 import org.apache.commons.io.IOUtils
@@ -17,24 +16,32 @@ class PluginAssetsServlet extends HttpServlet {
 
     assetsMappings
       .find { case (prefix, _, _) => path.startsWith("/plugin-assets" + prefix) }
-      .flatMap {
+      .foreach {
         case (prefix, resourcePath, classLoader) =>
-          val resourceName = path.substring(("/plugin-assets" + prefix).length)
-          Option(classLoader.getResourceAsStream(resourcePath.stripPrefix("/") + resourceName))
-      }
-      .map { in =>
-        try {
-          val bytes = IOUtils.toByteArray(in)
-          resp.setContentLength(bytes.length)
-          resp.setContentType(FileUtil.getMimeType(path, bytes))
-          resp.setHeader("Cache-Control", "max-age=3600")
-          resp.getOutputStream.write(bytes)
-        } finally {
-          in.close()
-        }
-      }
-      .getOrElse {
-        resp.setStatus(404)
+          val ifNoneMatch = req.getHeader("If-None-Match")
+          PluginRegistry.getPluginInfoFromClassLoader(classLoader).map { info =>
+            val etag = s""""${info.pluginJar.lastModified}"""" // ETag must wrapped with double quote
+            if (ifNoneMatch == etag) {
+              resp.setStatus(304)
+            } else {
+              val resourceName = path.substring(("/plugin-assets" + prefix).length)
+              Option(classLoader.getResourceAsStream(resourcePath.stripPrefix("/") + resourceName))
+                .map { in =>
+                  try {
+                    val bytes = IOUtils.toByteArray(in)
+                    resp.setContentLength(bytes.length)
+                    resp.setContentType(FileUtil.getMimeType(path, bytes))
+                    resp.setHeader("ETag", etag)
+                    resp.getOutputStream.write(bytes)
+                  } finally {
+                    in.close()
+                  }
+                }
+                .getOrElse {
+                  resp.setStatus(404)
+                }
+            }
+          }
       }
   }
 
