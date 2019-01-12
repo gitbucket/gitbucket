@@ -182,8 +182,7 @@ object ApiSpecModels {
     repository = repository,
     owner = apiUser,
     forkedCount = repositoryInfo.forkedCount,
-    watchers = 0,
-    urlIsHtmlUrl = false
+    watchers = 0
   )
 
   val apiLabel = ApiLabel(
@@ -270,7 +269,7 @@ object ApiSpecModels {
       modified = List("README.md"),
       author = ApiPersonIdent.author(commit),
       committer = ApiPersonIdent.committer(commit)
-    )(repo1Name, true)
+    )(repo1Name)
   }
 
   val apiCommits = ApiCommits(
@@ -438,7 +437,6 @@ object ApiSpecModels {
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
        |}""".stripMargin
 
-  // TODO comments_url is correct?
   val jsonIssuePR = s"""{
        |"number":1347,
        |"title":"new-feature",
@@ -456,7 +454,6 @@ object ApiSpecModels {
          |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347"}
        |}""".stripMargin
 
-  // TODO comments_url is correct?
   val jsonPullRequest = s"""{
        |"number":1347,
        |"state":"closed",
@@ -531,7 +528,6 @@ object ApiSpecModels {
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e"
        |}""".stripMargin
 
-  // TODO url is correct?
   val jsonCommit = (id: String) => s"""{
        |"id":"$id",
        |"message":"full message",
@@ -541,10 +537,10 @@ object ApiSpecModels {
        |"modified":["README.md"],
        |"author":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
        |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
-       |"url":"http://gitbucket.exmple.com/octocat/Hello-World/commit/$id"
+       |"url":"http://gitbucket.exmple.com/api/v3/octocat/Hello-World/commits/$id",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/commit/$id"
        |}""".stripMargin
 
-  // TODO comment_url
   val jsonCommits = s"""{
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
        |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",

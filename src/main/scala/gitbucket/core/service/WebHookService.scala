@@ -594,7 +594,7 @@ object WebHookService {
         before = ObjectId.toString(oldId),
         after = ObjectId.toString(newId),
         commits = commits.map { commit =>
-          ApiCommit.forWebhookPayload(git, RepositoryName(repositoryInfo), commit)
+          ApiCommit(git, RepositoryName(repositoryInfo), commit)
         },
         repository = ApiRepository(repositoryInfo, repositoryOwner)
       )

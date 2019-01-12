@@ -98,7 +98,7 @@ object ApiCommits {
       url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/commits/${commitInfo.id}"),
       sha = commitInfo.id,
       html_url = ApiPath(s"${repositoryName.fullName}/commit/${commitInfo.id}"),
-      comment_url = ApiPath(""),
+      comment_url = ApiPath(""), // TODO no API for commit comment
       commit = Commit(
         url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/commits/${commitInfo.id}"),
         author = ApiPersonIdent.author(commitInfo),
