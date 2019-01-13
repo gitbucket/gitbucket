@@ -1,8 +1,12 @@
 package gitbucket.core.view
 
+import gitbucket.core.controller.Context
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.scalatest.FunSpec
+import org.scalatest.mockito.MockitoSugar
+import org.mockito.Mockito._
 
-class MarkdownSpec extends FunSpec {
+class MarkdownSpec extends FunSpec with MockitoSugar {
 
   import Markdown._
 
@@ -87,6 +91,71 @@ tasks
       val before = "  -[ ]   aaaa"
       val after = escapeTaskList(before)
       assert(after == "  -[ ]   aaaa")
+    }
+  }
+
+  describe("toHtml") {
+    it("should fix url at the repository root") {
+      val repository = mock[RepositoryInfo]
+      val context = mock[Context]
+      when(context.currentPath).thenReturn("/user/repo")
+      when(repository.httpUrl(context)).thenReturn("http://localhost:8080/git/user/repo.git")
+
+      val html = Markdown.toHtml(
+        markdown = "[ChangeLog](CHANGELOG.md)",
+        repository = repository,
+        branch = "master",
+        enableWikiLink = false,
+        enableRefsLink = true,
+        enableAnchor = true,
+        enableLineBreaks = true
+      )(context)
+
+      assert(
+        html == """<p><a href="http://localhost:8080/user/repo/blob/master/CHANGELOG.md">ChangeLog</a></p>"""
+      )
+    }
+
+    it("should fix sub directory url at the file list") {
+      val repository = mock[RepositoryInfo]
+      val context = mock[Context]
+      when(context.currentPath).thenReturn("/user/repo/tree/master/sub/dir")
+      when(repository.httpUrl(context)).thenReturn("http://localhost:8080/git/user/repo.git")
+
+      val html = Markdown.toHtml(
+        markdown = "[ChangeLog](CHANGELOG.md)",
+        repository = repository,
+        branch = "master",
+        enableWikiLink = false,
+        enableRefsLink = true,
+        enableAnchor = true,
+        enableLineBreaks = true
+      )(context)
+
+      assert(
+        html == """<p><a href="http://localhost:8080/user/repo/blob/master/sub/dir/CHANGELOG.md">ChangeLog</a></p>"""
+      )
+    }
+
+    it("should fix sub directory url at the blob view") {
+      val repository = mock[RepositoryInfo]
+      val context = mock[Context]
+      when(context.currentPath).thenReturn("/user/repo/blob/master/sub/dir/README.md")
+      when(repository.httpUrl(context)).thenReturn("http://localhost:8080/git/user/repo.git")
+
+      val html = Markdown.toHtml(
+        markdown = "[ChangeLog](CHANGELOG.md)",
+        repository = repository,
+        branch = "master",
+        enableWikiLink = false,
+        enableRefsLink = true,
+        enableAnchor = true,
+        enableLineBreaks = true
+      )(context)
+
+      assert(
+        html == """<p><a href="CHANGELOG.md">ChangeLog</a></p>"""
+      )
     }
   }
 }
