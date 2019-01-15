@@ -53,3 +53,9 @@ To run the full series of tests, run the following command:
 ```shell
 $ sbt test
 ```
+
+If you don't have docker, you can skip docker tests which require docker as follows:
+
+```shell
+$ sbt "testOnly * -- -l ExternalDBTest"
+```
