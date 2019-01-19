@@ -55,11 +55,24 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
       res.sendRedirect(baseUrl(req) + "/" + paths.dropRight(1).last + "/" + paths.last)
 
     } else if (req.getMethod.toUpperCase == "POST" && req.getRequestURI.endsWith("/info/lfs/objects/batch")) {
-      serviceGitLfsBatchAPI(req, res)
-
+      withLockRepository(req) {
+        serviceGitLfsBatchAPI(req, res)
+      }
     } else {
       // response for git client
-      super.service(req, res)
+      withLockRepository(req) {
+        super.service(req, res)
+      }
+    }
+  }
+
+  private def withLockRepository[T](req: HttpServletRequest)(f: => T): T = {
+    if (req.hasAttribute(Keys.Request.RepositoryLockKey)) {
+      LockUtil.lock(req.getAttribute(Keys.Request.RepositoryLockKey).asInstanceOf[String]) {
+        f
+      }
+    } else {
+      f
     }
   }
 

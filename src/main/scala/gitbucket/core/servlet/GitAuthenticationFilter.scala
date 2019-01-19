@@ -106,6 +106,7 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
                   if (isUpdating) {
                     if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
                       request.setAttribute(Keys.Request.UserName, account.userName)
+                      request.setAttribute(Keys.Request.RepositoryLockKey, s"${repository.owner}/${repository.name}")
                       true
                     } else false
                   } else if (repository.repository.isPrivate) {
