@@ -22,8 +22,8 @@ import org.eclipse.jgit.transport.resolver._
 import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
+import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.json4s.jackson.Serialization._
 
 /**
@@ -41,7 +41,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
     setReceivePackFactory(new GitBucketReceivePackFactory())
 
     val root: File = new File(Directory.RepositoryHome)
-    setRepositoryResolver(new GitBucketRepositoryResolver(new FileResolver[HttpServletRequest](root, true)))
+    setRepositoryResolver(new GitBucketRepositoryResolver)
 
     super.init(config)
   }
@@ -138,10 +138,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   }
 }
 
-class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest])
-    extends RepositoryResolver[HttpServletRequest] {
-
-  private val resolver = new FileResolver[HttpServletRequest](new File(Directory.GitBucketHome), true)
+class GitBucketRepositoryResolver extends RepositoryResolver[HttpServletRequest] {
 
   override def open(req: HttpServletRequest, name: String): Repository = {
     // Rewrite repository path if routing is marched
@@ -150,10 +147,10 @@ class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest])
       .map {
         case GitRepositoryRouting(urlPattern, localPath, _) =>
           val path = urlPattern.r.replaceFirstIn(name, localPath)
-          resolver.open(req, path)
+          new FileRepository(new File(Directory.GitBucketHome, path))
       }
       .getOrElse {
-        parent.open(req, name)
+        new FileRepository(new File(Directory.RepositoryHome, name))
       }
   }
 
