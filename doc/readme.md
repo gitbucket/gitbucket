@@ -1,6 +1,7 @@
 Developer's Guide
 ========
  * [Build from source tree](build.md)
+ * [Debug on IntelliJ](debug.md)
  * [Directory Structure](directory.md)
  * [Mapping and Validation](validation.md)
  * [Authentication in Controller](authenticator.md)
