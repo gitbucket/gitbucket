@@ -250,7 +250,9 @@ object ApiSpecModels {
       authorEmailAddress = account.mailAddress,
       commitTime = date1,
       committerName = account.userName,
-      committerEmailAddress = account.mailAddress
+      committerEmailAddress = account.mailAddress,
+      None,
+      None
   )
 
   val apiCommitListItem = ApiCommitListItem(
