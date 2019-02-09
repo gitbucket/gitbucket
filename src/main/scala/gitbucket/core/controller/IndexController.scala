@@ -10,6 +10,7 @@ import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util._
+import gitbucket.core.view.helpers._
 import org.scalatra.Ok
 import org.scalatra.forms._
 
@@ -206,7 +207,8 @@ trait IndexControllerBase extends ControllerBase {
             }
             .map { t =>
               Map(
-                "label" -> s"<b>@${StringUtil.escapeHtml(t.userName)}</b> ${StringUtil.escapeHtml(t.fullName)}",
+                "label" -> s"${avatar(t.userName, 16)}<b>@${StringUtil.escapeHtml(t.userName)}</b> ${StringUtil
+                  .escapeHtml(t.fullName)}",
                 "value" -> t.userName
               )
             }
