@@ -32,6 +32,7 @@ class ApiController
     with CommitsService
     with CommitStatusService
     with RepositoryCreationService
+    with RepositoryCommitFileService
     with IssueCreationService
     with HandleCommentService
     with MergeService

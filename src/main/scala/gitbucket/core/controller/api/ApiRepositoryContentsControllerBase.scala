@@ -1,7 +1,7 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiContents, JsonFormat}
+import gitbucket.core.api.{ApiContents, ApiError, CreateAFile, JsonFormat}
 import gitbucket.core.controller.ControllerBase
-import gitbucket.core.service.{AccountService, ProtectedBranchService, RepositoryService}
+import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.JGitUtil.{FileInfo, getContentFromId, getFileList}
 import gitbucket.core.util._
@@ -11,7 +11,7 @@ import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator =>
+  self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
 
   /*
    * i. Get the README
@@ -101,16 +101,48 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     }
   }
   /*
-   * iii. Create a file
+   * iii. Create a file or iv. Update a file
    * https://developer.github.com/v3/repos/contents/#create-a-file
+   * https://developer.github.com/v3/repos/contents/#update-a-file
+   * if sha is presented, update a file else create a file.
    * requested #2112
    */
 
-  /*
-   * iv. Update a file
-   * https://developer.github.com/v3/repos/contents/#update-a-file
-   * requested #2112
-   */
+  put("/api/v3/repos/:owner/:repository/contents/*")(writableUsersOnly { repository =>
+    JsonFormat(for {
+      data <- extractFromJsonBody[CreateAFile]
+    } yield {
+      val branch = data.branch.getOrElse(repository.repository.defaultBranch)
+      val commit = using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+        revCommit.name
+      }
+      val paths = multiParams("splat").head.split("/")
+      val path = paths.take(paths.size - 1).toList.mkString("/")
+      if (data.sha.isDefined && data.sha.get != commit) {
+        ApiError("The blob SHA is not matched.", Some("https://developer.github.com/v3/repos/contents/#update-a-file"))
+      } else {
+        val objectId = commitFile(
+          repository,
+          branch,
+          path,
+          Some(paths.last),
+          if (data.sha.isDefined) {
+            Some(paths.last)
+          } else {
+            None
+          },
+          StringUtil.base64Decode(data.content),
+          data.message,
+          commit,
+          context.loginAccount.get,
+          data.committer.map(_.name).getOrElse(context.loginAccount.get.fullName),
+          data.committer.map(_.email).getOrElse(context.loginAccount.get.mailAddress)
+        )
+        ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
+      }
+    })
+  })
 
   /*
    * v. Delete a file
