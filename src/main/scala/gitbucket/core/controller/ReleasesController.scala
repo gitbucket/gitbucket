@@ -121,7 +121,7 @@ trait ReleaseControllerBase extends ControllerBase {
         createReleaseAsset(repository.owner, repository.name, tagName, fileId, fileName, size, loginAccount)
     }
 
-    recordReleaseActivity(repository.owner, repository.name, loginAccount.userName, form.name)
+    recordReleaseActivity(repository.owner, repository.name, loginAccount.userName, form.name, tagName)
 
     redirect(s"/${repository.owner}/${repository.name}/releases/${tagName}")
   })
