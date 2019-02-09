@@ -16,15 +16,11 @@ trait GpgKeyService {
     GpgKeys.filter(_.userName === userName.bind).sortBy(_.gpgKeyId).list
 
   def addGpgPublicKey(userName: String, title: String, publicKey: String)(implicit s: Session): Unit = {
-    println(publicKey)
     val pubKeyOf = new BcPGPObjectFactory(new ArmoredInputStream(new ByteArrayInputStream(publicKey.getBytes)))
-    println(pubKeyOf)
-    pubKeyOf.iterator().asScala.foreach { o =>
-      o match {
-        case keyRing: PGPPublicKeyRing =>
-          val key = keyRing.getPublicKey()
-          GpgKeys.insert(GpgKey(userName = userName, gpgKeyId = key.getKeyID, title = title, publicKey = publicKey))
-      }
+    pubKeyOf.iterator().asScala.foreach {
+      case keyRing: PGPPublicKeyRing =>
+        val key = keyRing.getPublicKey()
+        GpgKeys.insert(GpgKey(userName = userName, gpgKeyId = key.getKeyID, title = title, publicKey = publicKey))
     }
   }
 

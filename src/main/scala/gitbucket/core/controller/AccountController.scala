@@ -803,7 +803,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   private def validGpgPublicKey: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-    // TODO: validate GPG public key format.
+      // TODO: validate GPG public key format.
       None
   }
 

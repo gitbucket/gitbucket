@@ -40,6 +40,13 @@
           @if(i != 0){ <tr> }
           <td>
             <div class="pull-right text-right">
+              @if(commit.commitSign.isDefined){
+                @commit.verified.map{ v =>
+                  <span class="gpg-verified">Verified signed by @v.signedUser (@v.signedKeyId)</span>
+                }.getOrElse{
+                  <span class="gpg-unverified">Unverified</span>
+                }
+              }
               @defining(getTags(commit.id)) { tags =>
                 @if(tags.nonEmpty){
                   <span class="muted">

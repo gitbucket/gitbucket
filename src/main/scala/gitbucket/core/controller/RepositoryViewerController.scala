@@ -14,6 +14,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.{Account, CommitState, CommitStatus}
+import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveOutputStream}
@@ -271,9 +272,30 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               if (path.isEmpty) Nil else path.split("/").toList,
               branchName,
               repository,
-              logs.splitWith { (commit1, commit2) =>
-                view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
-              },
+              logs
+                .map {
+                  c =>
+                    CommitInfo(
+                      id = c.id,
+                      shortMessage = c.shortMessage,
+                      fullMessage = c.fullMessage,
+                      parents = c.parents,
+                      authorTime = c.authorTime,
+                      authorName = c.authorName,
+                      authorEmailAddress = c.authorEmailAddress,
+                      commitTime = c.commitTime,
+                      committerName = c.committerName,
+                      committerEmailAddress = c.committerEmailAddress,
+                      commitSign = c.commitSign,
+                      verified = c.commitSign
+                        .flatMap { s =>
+                          GpgUtil.verifySign(s)
+                        }
+                    )
+                }
+                .splitWith { (commit1, commit2) =>
+                  view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
+                },
               page,
               hasNext,
               hasDeveloperRole(repository.owner, repository.name, context.loginAccount),

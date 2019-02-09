@@ -15,6 +15,8 @@ trait GpgKeyComponent { self: Profile =>
 
     def byPrimaryKey(userName: String, keyId: Int) =
       (this.userName === userName.bind) && (this.keyId === keyId.bind)
+    def byGpgKeyId(gpgKeyId: Long) =
+      this.gpgKeyId === gpgKeyId.bind
   }
 }
 
