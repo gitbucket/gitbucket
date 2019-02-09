@@ -26,6 +26,7 @@ class AccountController
     with WikiService
     with LabelsService
     with SshKeyService
+    with GpgKeyService
     with OneselfAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator
@@ -42,6 +43,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     with WikiService
     with LabelsService
     with SshKeyService
+    with GpgKeyService
     with OneselfAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator
@@ -75,6 +77,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   case class SshKeyForm(title: String, publicKey: String)
 
+  case class GpgKeyForm(title: String, publicKey: String)
+
   case class PersonalTokenForm(note: String)
 
   val newForm = mapping(
@@ -107,6 +111,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "title" -> trim(label("Title", text(required, maxlength(100)))),
     "publicKey" -> trim2(label("Key", text(required, validPublicKey)))
   )(SshKeyForm.apply)
+
+  val gpgKeyForm = mapping(
+    "title" -> trim(label("Title", text(required, maxlength(100)))),
+    "publicKey" -> label("Key", text(required, validGpgPublicKey))
+  )(GpgKeyForm.apply)
 
   val personalTokenForm = mapping(
     "note" -> trim(label("Token", text(required, maxlength(100))))
@@ -385,6 +394,27 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val sshKeyId = params("id").toInt
     deletePublicKey(userName, sshKeyId)
     redirect(s"/${userName}/_ssh")
+  })
+
+  get("/:userName/_gpg")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).map { x =>
+      //html.ssh(x, getPublicKeys(x.userName))
+      html.gpg(x, getGpgPublicKeys(x.userName))
+    } getOrElse NotFound()
+  })
+
+  post("/:userName/_gpg", gpgKeyForm)(oneselfOnly { form =>
+    val userName = params("userName")
+    addGpgPublicKey(userName, form.title, form.publicKey)
+    redirect(s"/${userName}/_gpg")
+  })
+
+  get("/:userName/_gpg/delete/:id")(oneselfOnly {
+    val userName = params("userName")
+    val keyId = params("id").toInt
+    deleteGpgPublicKey(userName, keyId)
+    redirect(s"/${userName}/_gpg")
   })
 
   get("/:userName/_application")(oneselfOnly {
@@ -769,6 +799,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         case Some(_) if !getAllKeys().exists(_.publicKey == value) => None
         case _                                                     => Some("Key is invalid.")
       }
+  }
+
+  private def validGpgPublicKey: Constraint = new Constraint() {
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+    // TODO: validate GPG public key format.
+      None
   }
 
   private def validAccountName: Constraint = new Constraint() {
