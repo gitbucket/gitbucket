@@ -22,16 +22,8 @@ trait GpgKeyService {
     pubKeyOf.iterator().asScala.foreach { o =>
       o match {
         case keyRing: PGPPublicKeyRing =>
-          println("PGPPublicKeyRing!")
           val key = keyRing.getPublicKey()
-          println("[Key]")
-          println(key.getValidSeconds)
-          println(key.getKeyID.toHexString)
-          println(key.getUserIDs.next)
           GpgKeys.insert(GpgKey(userName = userName, gpgKeyId = key.getKeyID, title = title, publicKey = publicKey))
-        case x =>
-          println(x.getClass)
-          println(x)
       }
     }
   }
