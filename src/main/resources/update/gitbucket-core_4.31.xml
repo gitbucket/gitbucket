@@ -6,7 +6,7 @@
   <createTable tableName="GPG_KEY">
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="KEY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
-    <column name="GPG_KEY_ID" type="long" nullable="false"/>
+    <column name="GPG_KEY_ID" type="bigint" nullable="false"/>
     <column name="TITLE" type="varchar(100)" nullable="false"/>
     <column name="PUBLIC_KEY" type="text" nullable="false"/>
   </createTable>
