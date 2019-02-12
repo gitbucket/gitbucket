@@ -29,8 +29,10 @@ import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.treewalk.TreeWalk
+import org.eclipse.jgit.treewalk.{TreeWalk, WorkingTreeOptions}
+import org.eclipse.jgit.treewalk.TreeWalk.OperationType
 import org.eclipse.jgit.treewalk.filter.PathFilter
+import org.eclipse.jgit.util.io.EolStreamTypeUtil
 import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.i18n.Messages
@@ -975,7 +977,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
               JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
                 archive.putArchiveEntry(entry)
-                IOUtils.copy(in, archive)
+                IOUtils.copy(
+                  EolStreamTypeUtil.wrapInputStream(
+                    in,
+                    EolStreamTypeUtil
+                      .detectStreamType(
+                        OperationType.CHECKOUT_OP,
+                        git.getRepository.getConfig.get(WorkingTreeOptions.KEY),
+                        treeWalk.getAttributes
+                      )
+                  ),
+                  archive
+                )
                 archive.closeArchiveEntry()
               }
             }
@@ -1000,7 +1013,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         using(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
           archive(revision, ".zip", zip) { (path, size, date, mode) =>
             val entry = new ZipArchiveEntry(path)
-            entry.setSize(size)
             entry.setUnixMode(mode)
             entry.setTime(date.getTime)
             entry
@@ -1025,7 +1037,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             tar.setAddPaxHeadersForNonAsciiNames(true)
             archive(revision, ".tar.gz", tar) { (path, size, date, mode) =>
               val entry = new TarArchiveEntry(path)
-              entry.setSize(size)
               entry.setModTime(date)
               entry.setMode(mode)
               entry
