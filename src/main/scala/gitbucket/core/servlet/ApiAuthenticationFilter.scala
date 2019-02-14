@@ -28,8 +28,11 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
       .orElse {
         Option(request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]).map(Right(_))
       } match {
-      case Some(Right(account)) => request.setAttribute(Keys.Session.LoginAccount, account); chain.doFilter(req, res)
-      case None                 => chain.doFilter(req, res)
+      case Some(Right(account)) =>
+        request.setAttribute(Keys.Session.LoginAccount, account)
+        updateLastLoginDate(account.userName)
+        chain.doFilter(req, res)
+      case None => chain.doFilter(req, res)
       case Some(Left(_)) => {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
         response.setContentType("application/json; charset=utf-8")
