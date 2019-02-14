@@ -29,7 +29,7 @@ trait RepositoryCommitFileService {
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit
   )(implicit s: Session, c: JsonFormat.Context) = {
     // prepend path to the filename
-    _commitFile(repository, branch, message, loginAccount)(f)
+    _commitFile(repository, branch, message, loginAccount, loginAccount.fullName, loginAccount.mailAddress)(f)
   }
 
   def commitFile(
@@ -43,7 +43,35 @@ trait RepositoryCommitFileService {
     message: String,
     commit: String,
     loginAccount: Account
-  )(implicit s: Session, c: JsonFormat.Context) = {
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+    commitFile(
+      repository,
+      branch,
+      path,
+      newFileName,
+      oldFileName,
+      if (content.nonEmpty) { content.getBytes(charset) } else { Array.emptyByteArray },
+      message,
+      commit,
+      loginAccount,
+      loginAccount.fullName,
+      loginAccount.mailAddress
+    )
+  }
+
+  def commitFile(
+    repository: RepositoryService.RepositoryInfo,
+    branch: String,
+    path: String,
+    newFileName: Option[String],
+    oldFileName: Option[String],
+    content: Array[Byte],
+    message: String,
+    commit: String,
+    loginAccount: Account,
+    fullName: String,
+    mailAddress: String
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
 
     val newPath = newFileName.map { newFileName =>
       if (path.length == 0) newFileName else s"${path}/${newFileName}"
@@ -52,7 +80,7 @@ trait RepositoryCommitFileService {
       if (path.length == 0) oldFileName else s"${path}/${oldFileName}"
     }
 
-    _commitFile(repository, branch, message, loginAccount) {
+    _commitFile(repository, branch, message, loginAccount, fullName, mailAddress) {
       case (git, headTip, builder, inserter) =>
         if (headTip.getName == commit) {
           val permission = JGitUtil
@@ -70,7 +98,7 @@ trait RepositoryCommitFileService {
           newPath.foreach { newPath =>
             builder.add(JGitUtil.createDirCacheEntry(newPath, permission.map { bits =>
               FileMode.fromBits(bits)
-            } getOrElse FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
+            } getOrElse FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content)))
           }
           builder.finish()
         }
@@ -81,10 +109,12 @@ trait RepositoryCommitFileService {
     repository: RepositoryService.RepositoryInfo,
     branch: String,
     message: String,
-    loginAccount: Account
+    loginAccount: Account,
+    committerName: String,
+    committerMailAddress: String
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit
-  )(implicit s: Session, c: JsonFormat.Context) = {
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
@@ -101,8 +131,8 @@ trait RepositoryCommitFileService {
           headTip,
           builder.getDirCache.writeTree(inserter),
           headName,
-          loginAccount.fullName,
-          loginAccount.mailAddress,
+          committerName,
+          committerMailAddress,
           message
         )
 
@@ -114,7 +144,7 @@ trait RepositoryCommitFileService {
 
         // call post commit hook
         val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
-          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
+          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName)
         }.headOption
 
         error match {
@@ -131,7 +161,7 @@ trait RepositoryCommitFileService {
             val refUpdate = git.getRepository.updateRef(headName)
             refUpdate.setNewObjectId(commitId)
             refUpdate.setForceUpdate(false)
-            refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+            refUpdate.setRefLogIdent(new PersonIdent(committerName, committerMailAddress))
             refUpdate.update()
 
             // update pull request
@@ -139,26 +169,25 @@ trait RepositoryCommitFileService {
 
             // record activity
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+            recordPushActivity(repository.owner, repository.name, committerName, branch, List(commitInfo))
 
             // create issue comment by commit message
             createIssueComment(repository.owner, repository.name, commitInfo)
 
             // close issue by commit message
             if (branch == repository.repository.defaultBranch) {
-              closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name).foreach {
-                issueId =>
-                  getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                    callIssuesWebHook("closed", repository, issue, loginAccount)
-                    PluginRegistry().getIssueHooks
-                      .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
-                  }
+              closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
+                getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+                  callIssuesWebHook("closed", repository, issue, loginAccount)
+                  PluginRegistry().getIssueHooks
+                    .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
+                }
               }
             }
 
             // call post commit hook
             PluginRegistry().getReceiveHooks.foreach { hook =>
-              hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
+              hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName)
             }
 
             val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
@@ -177,6 +206,7 @@ trait RepositoryCommitFileService {
               }
             }
         }
+        commitId
       }
     }
   }
