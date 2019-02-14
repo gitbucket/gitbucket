@@ -2,12 +2,24 @@
 @import gitbucket.core.plugin.PluginRegistry
 @import gitbucket.core.view.helpers
 <!DOCTYPE html>
-<html>
+<html prefix="og: http://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>@title</title>
+    <meta property="og:title" content="@title" />
+    <meta property="og:type" content="object" />
+    <meta property="og:url" content="@context.request.getRequestURL" />
+    @if(repository.isEmpty){
+      <meta property="og:image" content="@context.baseUrl/assets/common/images/gitbucket_ogp.png" />
+    }
+    @repository.map{ r =>
+      <meta property="og:image" content="@context.baseUrl/@r.owner/_avatar" />
+      @r.repository.description.map{ desc =>
+        <meta property="og:description" content="@desc" />
+      }
+    }
     <link rel="icon" href="@helpers.assets("/common/images/gitbucket.png")" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="@helpers.assets("/vendors/google-fonts/css/source-sans-pro.css")" rel="stylesheet">
