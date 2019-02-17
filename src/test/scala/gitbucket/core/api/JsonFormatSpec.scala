@@ -73,4 +73,10 @@ class JsonFormatSpec extends FunSuite {
   test("apiRef") {
     assert(JsonFormat(apiRef) == expected(jsonRef))
   }
+  test("apiReleaseAsset") {
+    assert(JsonFormat(apiReleaseAsset) == expected(jsonReleaseAsset))
+  }
+  test("apiRelease") {
+    assert(JsonFormat(apiRelease) == expected(jsonRelease))
+  }
 }

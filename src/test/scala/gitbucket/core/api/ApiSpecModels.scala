@@ -388,6 +388,25 @@ object ApiSpecModels {
     `object` = ApiObject(sha1)
   )
 
+  val assetFileName = "010203040a0b0c0d"
+
+  val apiReleaseAsset = ApiReleaseAsset(
+    name = "release.zip",
+    size = 100
+  )(
+    tag = "tag1",
+    fileName = assetFileName,
+    repositoryName = repo1Name
+  )
+
+  val apiRelease = ApiRelease(
+    name = "release1",
+    tag_name = "tag1",
+    body = Some("content"),
+    author = apiUser,
+    assets = Seq(apiReleaseAsset)
+  )
+
   // JSON String for APIs
 
   val jsonUser = """{
@@ -649,4 +668,21 @@ object ApiSpecModels {
 
   val jsonRef = """{"ref":"refs/heads/featureA","object":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
 
+  val jsonReleaseAsset =
+    s"""{
+      |"name":"release.zip",
+      |"size":100,
+      |"label":"release.zip",
+      |"file_id":"${assetFileName}",
+      |"browser_download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/releases/tag1/assets/${assetFileName}"
+      |}""".stripMargin
+
+  val jsonRelease =
+    s"""{
+       |"name":"release1",
+       |"tag_name":"tag1",
+       |"body":"content",
+       |"author":${jsonUser},
+       |"assets":[${jsonReleaseAsset}]
+       |}""".stripMargin
 }
