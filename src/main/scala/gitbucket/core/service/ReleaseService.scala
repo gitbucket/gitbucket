@@ -73,7 +73,7 @@ trait ReleaseService {
   }
 
   def getReleases(owner: String, repository: String)(implicit s: Session): Seq[ReleaseTag] = {
-    ReleaseTags.filter(x => x.byRepository(owner, repository)).list
+    ReleaseTags.filter(x => x.byRepository(owner, repository)).sortBy(x => x.updatedDate).list
   }
 
   def getRelease(owner: String, repository: String, tag: String)(implicit s: Session): Option[ReleaseTag] = {
