@@ -240,8 +240,8 @@ trait AccountService {
   def updateLastLoginDate(userName: String)(implicit s: Session): Unit =
     Accounts.filter(_.userName === userName.bind).map(_.lastLoginDate).update(currentDate)
 
-  def createGroup(groupName: String, description: Option[String], url: Option[String])(implicit s: Session): Unit =
-    Accounts insert Account(
+  def createGroup(groupName: String, description: Option[String], url: Option[String])(implicit s: Session): Account = {
+    val group = Account(
       userName = groupName,
       password = "",
       fullName = groupName,
@@ -256,6 +256,9 @@ trait AccountService {
       isRemoved = false,
       description = description
     )
+    Accounts insert group
+    group
+  }
 
   def updateGroup(groupName: String, description: Option[String], url: Option[String], removed: Boolean)(
     implicit s: Session

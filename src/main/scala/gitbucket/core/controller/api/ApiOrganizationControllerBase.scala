@@ -1,12 +1,12 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiGroup, ApiRepository, ApiUser, JsonFormat}
+import gitbucket.core.api.{ApiGroup, CreateAGroup, ApiRepository, ApiUser, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.UsersAuthenticator
+import gitbucket.core.util.{AdminAuthenticator, UsersAuthenticator}
 
 trait ApiOrganizationControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with UsersAuthenticator =>
+  self: RepositoryService with AccountService with AdminAuthenticator with UsersAuthenticator =>
 
   /*
    * i. List your organizations
@@ -51,6 +51,19 @@ trait ApiOrganizationControllerBase extends ControllerBase {
    * ghe: i. Create an organization
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/orgs/#create-an-organization
    */
+  post("/api/v3/admin/organizations")(adminOnly {
+    for {
+      data <- extractFromJsonBody[CreateAGroup]
+    } yield {
+      val group = createGroup(
+        data.login,
+        data.profile_name,
+        data.url
+      )
+      updateGroupMembers(data.login, List(data.admin -> true))
+      JsonFormat(ApiGroup(group))
+    }
+  })
 
   /*
    * ghe: ii. Rename an organization
