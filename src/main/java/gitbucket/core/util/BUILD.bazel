@@ -1,0 +1,10 @@
+package(default_visibility = ["//visibility:public"])
+
+scala_library(
+    name = "util",
+    srcs = glob(["*.java"]) + glob(["*.scala"]),
+    runtime_deps = [
+    ],
+    deps = [
+    ],
+)
