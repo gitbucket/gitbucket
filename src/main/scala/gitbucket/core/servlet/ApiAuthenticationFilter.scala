@@ -26,6 +26,9 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
         case _                                 => Left(())
       }
       .orElse {
+        Option(req.getParameter("access_token")).map(AccessTokenService.getAccountByAccessToken(_).toRight(()))
+      }
+      .orElse {
         Option(request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]).map(Right(_))
       } match {
       case Some(Right(account)) =>
