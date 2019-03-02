@@ -142,6 +142,7 @@ div.content-wrapper {
   width: 24px;
   height: 24px;
   display: inline;
+  vertical-align: text-bottom;
 }
 
 /* ======================================================================== */
