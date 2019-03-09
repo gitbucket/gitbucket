@@ -74,6 +74,22 @@ trait WebHookService {
       .list
       .distinct
 
+  /** get WebHook by Id */
+  def getWebHookById(owner: String, repository: String, id: Int)(
+    implicit s: Session
+  ): Option[(RepositoryWebHook, Set[WebHook.Event])] =
+    RepositoryWebHooks
+      .filter(_.byId(owner, repository, id))
+      .join(RepositoryWebHookEvents)
+      .on { (w, t) =>
+        t.byRepositoryWebHook(w)
+      }
+      .map { case (w, t) => w -> t.event }
+      .list
+      .groupBy(_._1)
+      .mapValues(_.map(_._2).toSet)
+      .headOption
+
   /** get All WebHook information from repository to url */
   def getWebHook(owner: String, repository: String, url: String)(
     implicit s: Session
@@ -97,11 +113,14 @@ trait WebHookService {
     events: Set[WebHook.Event],
     ctype: WebHookContentType,
     token: Option[String]
-  )(implicit s: Session): Unit = {
-    RepositoryWebHooks insert RepositoryWebHook(owner, repository, url, ctype, token)
+  )(implicit s: Session): RepositoryWebHook = {
+    val hook = RepositoryWebHook(owner, repository, url, ctype, token)
+    RepositoryWebHooks insert hook
     events.map { event: WebHook.Event =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
-    }
+      event
+    }.toSet
+    hook
   }
 
   def updateWebHook(
@@ -124,6 +143,9 @@ trait WebHookService {
 
   def deleteWebHook(owner: String, repository: String, url: String)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
+
+  def deleteWebHook(owner: String, repository: String, id: Int)(implicit s: Session): Unit =
+    RepositoryWebHooks.filter(_.byId(owner, repository, id)).delete
 
   /** get All AccountWebHook informations of user */
   def getAccountWebHooks(owner: String)(implicit s: Session): List[(AccountWebHook, Set[WebHook.Event])] =
@@ -322,7 +344,7 @@ trait WebHookPullRequestService extends WebHookService {
         WebHookIssuesPayload(
           action = action,
           number = issue.issueId,
-          repository = ApiRepository(repository, ApiUser(repoOwner)),
+          repository = ApiRepository(repository, repoOwner),
           issue = ApiIssue(
             issue,
             RepositoryName(repository),

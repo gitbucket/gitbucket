@@ -22,6 +22,7 @@ class ApiController
     with ApiRepositoryContentsControllerBase
     with ApiRepositoryControllerBase
     with ApiRepositoryStatusControllerBase
+    with ApiRepositoryWebhookcontrollerBase
     with ApiUserControllerBase
     with RepositoryService
     with AccountService

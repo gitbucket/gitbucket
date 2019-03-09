@@ -728,6 +728,15 @@ trait RepositoryService {
     }
   }
 
+  def getPermission(owner: String, repository: String, loginAccount: Option[Account])(
+    implicit s: Session
+  ): RepositoryPermission =
+    RepositoryPermission(
+      hasOwnerRole(owner, repository, loginAccount),
+      hasDeveloperRole(owner, repository, loginAccount),
+      hasGuestRole(owner, repository, loginAccount)
+    )
+
   private def getForkedCount(userName: String, repositoryName: String)(implicit s: Session): Int =
     Query(Repositories.filter { t =>
       (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
@@ -778,6 +787,8 @@ trait RepositoryService {
 }
 
 object RepositoryService {
+  case class RepositoryPermission(isOwner: Boolean, isDeveloper: Boolean, isGuest: Boolean)
+
   case class RepositoryInfo(
     owner: String,
     name: String,

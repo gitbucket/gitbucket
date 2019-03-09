@@ -45,6 +45,9 @@ object JsonFormat {
     FieldSerializer[ApiCommits.File]() +
     FieldSerializer[ApiRelease]() +
     FieldSerializer[ApiReleaseAsset]() +
+    FieldSerializer[ApiPermission]() +
+    FieldSerializer[ApiWebhook]() +
+    FieldSerializer[ApiRepositoryWebhook]() +
     ApiBranchProtection.enforcementLevelSerializer
 
   def apiPathSerializer(c: Context) =
