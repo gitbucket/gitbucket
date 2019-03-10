@@ -12,7 +12,7 @@ trait RepositoryWebHookComponent extends TemplateComponent { self: Profile =>
     val url = column[String]("URL")
     val token = column[Option[String]]("TOKEN")
     val ctype = column[WebHookContentType]("CTYPE")
-    val webHookId = column[Int]("WEBHOOK_ID", O AutoInc)
+    val webHookId = column[Int]("WEB_HOOK_ID", O AutoInc)
     def * =
       (userName, repositoryName, url, ctype, token, webHookId) <> ((RepositoryWebHook.apply _).tupled, RepositoryWebHook.unapply)
 

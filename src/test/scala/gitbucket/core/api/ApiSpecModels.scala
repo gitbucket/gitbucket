@@ -182,7 +182,8 @@ object ApiSpecModels {
     repository = repository,
     owner = apiUser,
     forkedCount = repositoryInfo.forkedCount,
-    watchers = 0
+    watchers = 0,
+    permission = None
   )
 
   val apiLabel = ApiLabel(
@@ -427,12 +428,15 @@ object ApiSpecModels {
        |"name":"Hello-World",
        |"full_name":"octocat/Hello-World",
        |"description":"This your first repo!",
+       |"id":0,
        |"watchers":0,
        |"forks":1,
        |"private":false,
+       |"fork":true,
        |"default_branch":"master",
        |"owner":$jsonUser,
-       |"id":0,
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
        |"forks_count":1,
        |"watchers_count":0,
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World",
