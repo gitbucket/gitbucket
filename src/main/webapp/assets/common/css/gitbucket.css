@@ -1088,6 +1088,22 @@ div.author-info div.committer {
   font-size: 30px;
 }
 
+.gpg-verified {
+  color: #3c763d;
+  border: 1px solid #3c763d;
+  border-radius: 3px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.gpg-unverified {
+  color: #777;
+  border: 1px solid #777;
+  border-radius: 3px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 /****************************************************************************/
 /* Diff */
 /****************************************************************************/

@@ -42,7 +42,7 @@
             <div class="pull-right text-right">
               @if(commit.commitSign.isDefined){
                 @commit.verified.map{ v =>
-                  <span class="gpg-verified">Verified signed by @v.signedUser (@v.signedKeyId)</span>
+                  <span class="gpg-verified" data-toggle="tooltip" title="Signed by @v.signedUser (@v.signedKeyId)">Verified</span>
                 }.getOrElse{
                   <span class="gpg-unverified">Unverified</span>
                 }
@@ -128,6 +128,8 @@
     </nav>
     <script>
       $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+
         $('.toggle-check').click(function(){
           var div = $(this).next('div');
           if(div.is(':visible')){
