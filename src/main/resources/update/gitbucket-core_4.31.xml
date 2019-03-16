@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- SSH_KEY -->
+  <!--================================================================================================-->
+  <createTable tableName="GPG_KEY">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="KEY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="GPG_KEY_ID" type="bigint" nullable="false"/>
+    <column name="TITLE" type="varchar(100)" nullable="false"/>
+    <column name="PUBLIC_KEY" type="text" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_GPG_KEY_PK" tableName="GPG_KEY" columnNames="USER_NAME, GPG_KEY_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_GPG_KEY_FK0" baseTableName="GPG_KEY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+</changeSet>

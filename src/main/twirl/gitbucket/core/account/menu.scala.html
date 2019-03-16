@@ -26,6 +26,11 @@
             </a>
           </li>
         }
+        <li class="menu-item-hover @if(active=="gpg"){active}">
+          <a href="@context.path/@userName/_gpg">
+            <i class="menu-icon octicon octicon-key"></i> <span>GPG Keys</span>
+          </a>
+        </li>
         <li class="menu-item-hover @if(active=="application"){active}">
           <a href="@context.path/@userName/_application">
             <i class="menu-icon octicon octicon-rocket"></i> <span>Applications</span>

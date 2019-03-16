@@ -59,6 +59,7 @@ trait CoreProfile
     with PullRequestComponent
     with RepositoryComponent
     with SshKeyComponent
+    with GpgKeyComponent
     with RepositoryWebHookComponent
     with RepositoryWebHookEventComponent
     with AccountWebHookComponent

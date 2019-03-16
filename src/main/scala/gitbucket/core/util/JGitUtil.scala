@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
+import java.io._
 
 import gitbucket.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
@@ -76,6 +76,59 @@ object JGitUtil {
   )
 
   /**
+   * The gpg commit sign data.
+   * @param signArmored signature for commit
+   * @param target string for verification target
+   */
+  case class GpgSignInfo(signArmored: Array[Byte], target: Array[Byte])
+
+  /**
+   * The verified gpg sign data.
+   * @param signedUser
+   * @param signedKeyId
+   */
+  case class GpgVerifyInfo(signedUser: String, signedKeyId: String)
+
+  private def getSignTarget(rev: RevCommit): Array[Byte] = {
+    val ascii = "ASCII"
+    val os = new ByteArrayOutputStream()
+    val w = new OutputStreamWriter(os, rev.getEncoding)
+    os.write("tree ".getBytes(ascii))
+    rev.getTree.copyTo(os)
+    os.write('\n')
+
+    rev.getParents.foreach { p =>
+      os.write("parent ".getBytes(ascii))
+      p.copyTo(os)
+      os.write('\n')
+    }
+
+    os.write("author ".getBytes(ascii))
+    w.write(rev.getAuthorIdent.toExternalString)
+    w.flush()
+    os.write('\n')
+
+    os.write("committer ".getBytes(ascii))
+    w.write(rev.getCommitterIdent.toExternalString)
+    w.flush()
+    os.write('\n')
+
+    if (rev.getEncoding.name != "UTF-8") {
+      os.write("encoding ".getBytes(ascii))
+      os.write(Constants.encodeASCII(rev.getEncoding.name))
+      os.write('\n')
+    }
+
+    os.write('\n')
+
+    if (!rev.getFullMessage.isEmpty) {
+      w.write(rev.getFullMessage)
+      w.flush()
+    }
+    os.toByteArray
+  }
+
+  /**
    * The commit data.
    *
    * @param id the commit id
@@ -99,7 +152,9 @@ object JGitUtil {
     authorEmailAddress: String,
     commitTime: Date,
     committerName: String,
-    committerEmailAddress: String
+    committerEmailAddress: String,
+    commitSign: Option[GpgSignInfo],
+    verified: Option[GpgVerifyInfo]
   ) {
 
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) =
@@ -113,7 +168,11 @@ object JGitUtil {
         rev.getAuthorIdent.getEmailAddress,
         rev.getCommitterIdent.getWhen,
         rev.getCommitterIdent.getName,
-        rev.getCommitterIdent.getEmailAddress
+        rev.getCommitterIdent.getEmailAddress,
+        Option(rev.getRawGpgSignature).map { s =>
+          GpgSignInfo(s, getSignTarget(rev))
+        },
+        None
       )
 
     val summary = getSummaryMessage(fullMessage, shortMessage)
