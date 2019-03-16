@@ -10,6 +10,14 @@ import org.bouncycastle.openpgp.bc.BcPGPObjectFactory
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider
 
 object GpgUtil {
+  def str2GpgKeyId(keyStr: String): Option[Long] = {
+    val pubKeyOf = new BcPGPObjectFactory(new ArmoredInputStream(new ByteArrayInputStream(keyStr.getBytes)))
+    pubKeyOf.iterator().asScala.collectFirst {
+      case keyRing: PGPPublicKeyRing =>
+        keyRing.getPublicKey().getKeyID
+    }
+  }
+
   def getGpgKey(gpgKeyId: Long)(implicit s: Session): Option[PGPPublicKey] = {
     val pubKeyOpt = GpgKeys.filter(_.byGpgKeyId(gpgKeyId)).map { _.publicKey }.firstOption
     pubKeyOpt.flatMap { pubKeyStr =>

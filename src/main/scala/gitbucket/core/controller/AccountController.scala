@@ -802,9 +802,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   private def validGpgPublicKey: Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] =
-      // TODO: validate GPG public key format.
-      None
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
+      GpgUtil.str2GpgKeyId(value) match {
+        case Some(s) if GpgUtil.getGpgKey(s).isEmpty =>
+          None
+        case Some(_) =>
+          Some("GPG key is duplicated.")
+        case None =>
+          Some("GPG key is invalid.")
+      }
+    }
+
   }
 
   private def validAccountName: Constraint = new Constraint() {
