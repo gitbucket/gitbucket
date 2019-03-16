@@ -1,6 +1,9 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.31.1 - 17 Mar 2019
+- Bug fix
+
 ### 4.31.0 - 17 Mar 2019
 - Docker support in CI plugin
 - Verify GPG key signed commit
