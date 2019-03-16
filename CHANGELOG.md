@@ -1,6 +1,13 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.31.0 - 17 Mar 2019
+- Docker support in CI plugin
+- Verify GPG key signed commit
+- OAuth2 Token (sent as a parameter) authentication support and new APIs in Web API
+- OGP (Open Graph protocol) support
+- Username completion with avatars
+
 ### 4.30.1 - 22 Dec 2018
 - Bug fix for several WebHooks and Web API
 

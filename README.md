@@ -68,17 +68,13 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.30.x
+What's New in 4.31.x
 -------------
-### 4.30.1 - 22 Dec 2018
-- Bug fix for several WebHooks and Web API
-
-### 4.30.0 - 15 Dec 2018
-- Automatic ChangeLog Summary generation for new Releases
-- A lot of GitBucket Web API updates to increase compatibility with the GitHub API.
-- Display of checkboxes in Markdown files in Git repositories
-- A new extension point for plugins: anonymousAccessiblePaths
-- Group support in the Gist Plugin
-- Allow redirection to the Release Page from the Activity Timeline Page
+### 4.31.0 - 17 Mar 2019
+- Docker support in CI plugin
+- Verify GPG key signed commit
+- OAuth2 Token (sent as a parameter) authentication support and new APIs in Web API
+- OGP (Open Graph protocol) support
+- Username completion with avatars
 
 See the [change log](CHANGELOG.md) for all of the updates.
