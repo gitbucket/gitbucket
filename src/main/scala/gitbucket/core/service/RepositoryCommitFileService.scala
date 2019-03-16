@@ -169,7 +169,7 @@ trait RepositoryCommitFileService {
 
             // record activity
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            recordPushActivity(repository.owner, repository.name, committerName, branch, List(commitInfo))
+            recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
 
             // create issue comment by commit message
             createIssueComment(repository.owner, repository.name, commitInfo)
