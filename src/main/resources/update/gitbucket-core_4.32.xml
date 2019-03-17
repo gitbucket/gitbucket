@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!-- add ID column to REPOSITORY table -->
+
+  <!-- drop other table's foreign keys -->
+  <dropForeignKeyConstraint constraintName="IDX_ACTIVITY_FK0" baseTableName="ACTIVITY"/>
+  <dropForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK0" baseTableName="COLLABORATOR"/>
+  <dropForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT"/>
+  <dropForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS"/>
+  <dropForeignKeyConstraint constraintName="IDX_LABEL_FK0" baseTableName="LABEL"/>
+  <dropForeignKeyConstraint constraintName="IDX_MILESTONE_FK0" baseTableName="MILESTONE"/>
+  <dropForeignKeyConstraint constraintName="IDX_ISSUE_FK0" baseTableName="ISSUE"/>
+  <dropForeignKeyConstraint constraintName="IDX_ISSUE_ID_FK1" baseTableName="ISSUE_ID"/>
+  <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK"/>
+  <dropForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH"/>
+  <dropForeignKeyConstraint constraintName="IDX_DEPLOY_KEY_FK0" baseTableName="DEPLOY_KEY"/>
+  <dropForeignKeyConstraint constraintName="IDX_PRIORITY_FK0" baseTableName="PRIORITY"/>
+  <dropForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK0" baseTableName="RELEASE_TAG"/>
+
+  <!-- modify REPOSITORY table -->
+  <dropForeignKeyConstraint constraintName="IDX_REPOSITORY_FK0" baseTableName="REPOSITORY"/>
+  <dropPrimaryKey tableName="REPOSITORY" constraintName="IDX_REPOSITORY_PK"/>
+  <addColumn tableName="REPOSITORY">
+    <column name="REPOSITORY_ID" type="int" nullable="false" autoIncrement="false" unique="true"/>
+  </addColumn>
+  <addPrimaryKey constraintName="IDX_REPOSITORY_PK" tableName="REPOSITORY" columnNames="REPOSITORY_ID"/>
+  <addAutoIncrement tableName="REPOSITORY" columnName="REPOSITORY_ID" columnDataType="int"/>
+  <addUniqueConstraint constraintName="IDX_REPOSITORY_1" tableName="REPOSITORY" columnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_REPOSITORY_FK0" baseTableName="REPOSITORY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <!-- Repair other table's foreign keys -->
+  <addForeignKeyConstraint constraintName="IDX_ACTIVITY_FK0" baseTableName="ACTIVITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK0" baseTableName="COLLABORATOR" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_LABEL_FK0" baseTableName="LABEL" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_MILESTONE_FK0" baseTableName="MILESTONE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK0" baseTableName="ISSUE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ID_FK1" baseTableName="ISSUE_ID" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_DEPLOY_KEY_FK0" baseTableName="DEPLOY_KEY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_PRIORITY_FK0" baseTableName="PRIORITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK0" baseTableName="RELEASE_TAG" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!-- add ID column to WEB_HOOK table -->
+  <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT"/>
+  <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK"/>
+  <dropPrimaryKey tableName="WEB_HOOK" constraintName="IDX_WEB_HOOK_PK"/>
+  <addColumn tableName="WEB_HOOK">
+    <column name="WEB_HOOK_ID" type="int" nullable="false" autoIncrement="false" unique="true"/>
+  </addColumn>
+  <addPrimaryKey constraintName="IDX_WEB_HOOK_PK" tableName="WEB_HOOK" columnNames="WEB_HOOK_ID"/>
+  <addAutoIncrement tableName="WEB_HOOK" columnName="WEB_HOOK_ID" columnDataType="int"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addUniqueConstraint constraintName="IDX_WEB_HOOK_1" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
+</changeSet>
