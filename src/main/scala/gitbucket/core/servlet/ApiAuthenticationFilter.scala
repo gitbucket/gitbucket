@@ -7,6 +7,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{AccessTokenService, AccountService, SystemSettingsService}
 import gitbucket.core.util.{AuthUtil, Keys}
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 class ApiAuthenticationFilter extends Filter with AccessTokenService with AccountService with SystemSettingsService {
 
@@ -33,7 +34,9 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
       } match {
       case Some(Right(account)) =>
         request.setAttribute(Keys.Session.LoginAccount, account)
-        updateLastLoginDate(account.userName)
+        Database() withTransaction { implicit session =>
+          updateLastLoginDate(account.userName)
+        }
         chain.doFilter(req, res)
       case None => chain.doFilter(req, res)
       case Some(Left(_)) => {
