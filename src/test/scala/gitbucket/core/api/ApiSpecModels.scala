@@ -410,6 +410,8 @@ object ApiSpecModels {
     assets = Seq(apiReleaseAsset)
   )
 
+  val apiEmail = ApiEmail("root@localhost", true)
+
   // JSON String for APIs
 
   val jsonUser = """{
@@ -690,5 +692,13 @@ object ApiSpecModels {
        |"body":"content",
        |"author":${jsonUser},
        |"assets":[${jsonReleaseAsset}]
+       |}""".stripMargin
+
+  val jsonEmail =
+    s"""{
+       |"email":"root@localhost",
+       |"primary":true,
+       |"verified":true,
+       |"visibility":"public"
        |}""".stripMargin
 }
