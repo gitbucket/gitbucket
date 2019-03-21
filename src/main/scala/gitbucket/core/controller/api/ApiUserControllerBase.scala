@@ -113,9 +113,9 @@ trait ApiUserControllerBase extends ControllerBase {
   })
 
   /**
-    * Emails i. List email addresses for a user
-    * https://developer.github.com/v3/users/emails/#list-email-addresses-for-a-user
-    */
+   * Emails i. List email addresses for a user
+   * https://developer.github.com/v3/users/emails/#list-email-addresses-for-a-user
+   */
   get("/api/v3/user/emails")(usersOnly {
     JsonFormat(
       ApiEmail.fromMailAddresses(
@@ -141,7 +141,7 @@ trait ApiUserControllerBase extends ControllerBase {
    */
 
   /*
-   * v. Toggle primary email visibility
-   * https://developer.github.com/v3/users/emails/#toggle-primary-email-visibility
-   */
+ * v. Toggle primary email visibility
+ * https://developer.github.com/v3/users/emails/#toggle-primary-email-visibility
+ */
 }
