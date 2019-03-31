@@ -154,7 +154,7 @@ tasks
       )(context)
 
       assert(
-        html == """<p><a href="CHANGELOG.md">ChangeLog</a></p>"""
+        html == """<p><a href="http://localhost:8080/user/repo/blob/master/sub/dir/CHANGELOG.md">ChangeLog</a></p>"""
       )
     }
   }

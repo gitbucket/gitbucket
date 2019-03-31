@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
   "org.json4s"                      %% "json4s-jackson"              % "3.5.2",
   "commons-io"                      % "commons-io"                   % "2.6",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
-  "io.github.gitbucket"             % "markedj"                      % "1.0.15",
+  "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.18",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.6",
