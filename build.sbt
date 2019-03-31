@@ -56,7 +56,7 @@ libraryDependencies ++= Seq(
   "com.zaxxer"                      % "HikariCP"                     % "3.2.0",
   "com.typesafe"                    % "config"                       % "1.3.3",
   "com.typesafe.akka"               %% "akka-actor"                  % "2.5.18",
-  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.0.0",
+  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.0.Final",
   "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.7.0-akka-2.5.x" exclude ("c3p0", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
