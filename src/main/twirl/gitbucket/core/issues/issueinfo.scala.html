@@ -307,7 +307,7 @@ $(function(){
       $('#label-assigned').empty()
         .append($this.find('img.avatar-mini').clone(false)).append(' ')
         .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
-      $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').addClass('octicon-check');
+      $('a.assign[data-name=' + jqSelectorEscape(userName.toString()) + '] i').addClass('octicon-check');
     }
   }
 });
