@@ -464,6 +464,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             getAssignableUserNames(originRepository.owner, originRepository.name),
             getMilestones(originRepository.owner, originRepository.name),
             getPriorities(originRepository.owner, originRepository.name),
+            getDefaultPriority(originRepository.owner, originRepository.name),
             getLabels(originRepository.owner, originRepository.name)
           )
         }
