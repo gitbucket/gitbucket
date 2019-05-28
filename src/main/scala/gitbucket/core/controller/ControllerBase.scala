@@ -324,6 +324,8 @@ case class Context(
 trait AccountManagementControllerBase extends ControllerBase {
   self: AccountService =>
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit =
     if (clearImage) {
       getAccountByUserName(userName).flatMap(_.image).foreach { image =>
@@ -331,17 +333,21 @@ trait AccountManagementControllerBase extends ControllerBase {
         updateAvatarImage(userName, None)
       }
     } else {
-      fileId.foreach { fileId =>
-        val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
-        val uploadDir = getUserUploadDir(userName)
-        if (!uploadDir.exists) {
-          uploadDir.mkdirs()
+      try {
+        fileId.foreach { fileId =>
+          val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
+          val uploadDir = getUserUploadDir(userName)
+          if (!uploadDir.exists) {
+            uploadDir.mkdirs()
+          }
+          Thumbnails
+            .of(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)))
+            .size(324, 324)
+            .toFile(new File(uploadDir, FileUtil.checkFilename(filename)))
+          updateAvatarImage(userName, Some(filename))
         }
-        Thumbnails
-          .of(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)))
-          .size(324, 324)
-          .toFile(new File(uploadDir, FileUtil.checkFilename(filename)))
-        updateAvatarImage(userName, Some(filename))
+      } catch {
+        case e: Exception => logger.info("Error while updateImage" + e.getMessage)
       }
     }
 
