@@ -53,9 +53,7 @@ trait ServiceSpecBase extends MockitoSugar {
       oidcAuthentication = false,
       oidc = None,
       skinName = "skin-blue",
-      showMailAddress = false,
-      pluginNetworkInstall = false,
-      pluginProxy = None
+      showMailAddress = false
     )
 
   def withTestDB[A](action: (Session) => A): A = {

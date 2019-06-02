@@ -17,9 +17,6 @@
         <div class="tab-pane" id="authentication">
           @settings_authentication(info)
         </div>
-        <div class="tab-pane" id="plugins">
-          @settings_plugins(info)
-        </div>
       </div>
       <hr>
       <div class="align-right" style="margin-top: 20px;">
@@ -34,9 +31,6 @@ $(function(){
   if(location.hash == '#authentication'){
     $('li:has(a[href="#authentication"])').addClass('active');
     $('div#authentication').addClass('active');
-  } else if(location.hash == '#plugins'){
-    $('li:has(a[href="#plugins"])').addClass('active');
-    $('div#plugins').addClass('active');
   } else {
     $('li:has(a[href="#system"])').addClass('active');
     $('div#system').addClass('active');

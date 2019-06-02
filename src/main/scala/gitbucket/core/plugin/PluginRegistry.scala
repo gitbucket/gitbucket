@@ -227,40 +227,6 @@ object PluginRegistry {
       initialize(context, settings, conn)
     }
 
-  /**
-   * Install a plugin from a specified jar file.
-   */
-  def install(
-    pluginId: String,
-    url: java.net.URL,
-    context: ServletContext,
-    settings: SystemSettings,
-    conn: java.sql.Connection
-  ): Unit =
-    synchronized {
-      shutdown(context, settings)
-
-      new File(PluginHome)
-        .listFiles((_: File, name: String) => {
-          name.startsWith(s"gitbucket-${pluginId}-plugin") && name.endsWith(".jar")
-        })
-        .foreach(_.delete())
-
-      withHttpClient(settings.pluginProxy) { httpClient =>
-        val httpGet = new HttpGet(url.toString)
-        try {
-          val response = httpClient.execute(httpGet)
-          val in = response.getEntity.getContent
-          FileUtils.copyToFile(in, new File(PluginHome, new File(url.getFile).getName))
-        } finally {
-          httpGet.releaseConnection()
-        }
-      }
-
-      instance = new PluginRegistry()
-      initialize(context, settings, conn)
-    }
-
   private def listPluginJars(dir: File): Seq[File] = {
     dir
       .listFiles(new FilenameFilter {
