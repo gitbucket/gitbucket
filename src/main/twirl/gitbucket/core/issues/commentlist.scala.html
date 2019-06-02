@@ -114,9 +114,9 @@
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </div>
           <div style="discussion-item-content">
-            @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
+            @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) => {
               @helpers.issueLink(repository, issueId.toInt, rest.mkString(":"))
-            }
+            }}
           </div>
         </div>
       }

@@ -206,7 +206,7 @@
         </td>
       </tr>
     }
-    @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) =>
+    @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) => {
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
           @if(isManageable){
@@ -253,7 +253,7 @@
           </div>
         </td>
       </tr>
-    }
+    }}
   </tbody>
 </table>
 <div class="pull-right">
