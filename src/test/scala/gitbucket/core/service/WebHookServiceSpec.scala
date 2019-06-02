@@ -52,19 +52,27 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
       val formType = WebHookContentType.FORM
       val jsonType = WebHookContentType.JSON
       service.addWebHook("user1", "repo1", "http://example.com", Set(WebHook.PullRequest), formType, Some("key"))
+      val hookId = 1
+
       assert(
         service.getWebHooks("user1", "repo1") == List(
-          (RepositoryWebHook("user1", "repo1", "http://example.com", formType, Some("key")), Set(WebHook.PullRequest))
+          (
+            RepositoryWebHook("user1", "repo1", "http://example.com", formType, Some("key"), hookId),
+            Set(WebHook.PullRequest)
+          )
         )
       )
       assert(
         service.getWebHook("user1", "repo1", "http://example.com") == Some(
-          (RepositoryWebHook("user1", "repo1", "http://example.com", formType, Some("key")), Set(WebHook.PullRequest))
+          (
+            RepositoryWebHook("user1", "repo1", "http://example.com", formType, Some("key"), hookId),
+            Set(WebHook.PullRequest)
+          )
         )
       )
       assert(
         service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == List(
-          (RepositoryWebHook("user1", "repo1", "http://example.com", formType, Some("key")))
+          (RepositoryWebHook("user1", "repo1", "http://example.com", formType, Some("key"), hookId))
         )
       )
       assert(service.getWebHooksByEvent("user1", "repo1", WebHook.Push) == Nil)
@@ -82,7 +90,7 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
       assert(
         service.getWebHook("user1", "repo1", "http://example.com") == Some(
           (
-            RepositoryWebHook("user1", "repo1", "http://example.com", jsonType, Some("key")),
+            RepositoryWebHook("user1", "repo1", "http://example.com", jsonType, Some("key"), hookId),
             Set(WebHook.Push, WebHook.Issues)
           )
         )
@@ -90,7 +98,7 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
       assert(service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == Nil)
       assert(
         service.getWebHooksByEvent("user1", "repo1", WebHook.Push) == List(
-          (RepositoryWebHook("user1", "repo1", "http://example.com", jsonType, Some("key")))
+          (RepositoryWebHook("user1", "repo1", "http://example.com", jsonType, Some("key"), hookId))
         )
       )
       service.deleteWebHook("user1", "repo1", "http://example.com")
@@ -114,9 +122,11 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
       )
       assert(
         service.getWebHooks("user1", "repo1") == List(
-          RepositoryWebHook("user1", "repo1", "http://example.com/1", ctype, Some("key")) -> Set(WebHook.PullRequest),
-          RepositoryWebHook("user1", "repo1", "http://example.com/2", ctype, Some("key")) -> Set(WebHook.Push),
-          RepositoryWebHook("user1", "repo1", "http://example.com/3", ctype, Some("key")) -> Set(
+          RepositoryWebHook("user1", "repo1", "http://example.com/1", ctype, Some("key"), 1) -> Set(
+            WebHook.PullRequest
+          ),
+          RepositoryWebHook("user1", "repo1", "http://example.com/2", ctype, Some("key"), 2) -> Set(WebHook.Push),
+          RepositoryWebHook("user1", "repo1", "http://example.com/3", ctype, Some("key"), 3) -> Set(
             WebHook.PullRequest,
             WebHook.Push
           )
@@ -124,8 +134,8 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
       )
       assert(
         service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == List(
-          RepositoryWebHook("user1", "repo1", "http://example.com/1", ctype, Some("key")),
-          RepositoryWebHook("user1", "repo1", "http://example.com/3", ctype, Some("key"))
+          RepositoryWebHook("user1", "repo1", "http://example.com/1", ctype, Some("key"), 1),
+          RepositoryWebHook("user1", "repo1", "http://example.com/3", ctype, Some("key"), 3)
         )
       )
     }

@@ -1,5 +1,5 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiUser, CreateAUser, JsonFormat, UpdateAUser}
+import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.{AdminAuthenticator, UsersAuthenticator}
@@ -111,4 +111,37 @@ trait ApiUserControllerBase extends ControllerBase {
         NotFound()
     }
   })
+
+  /**
+   * Emails i. List email addresses for a user
+   * https://developer.github.com/v3/users/emails/#list-email-addresses-for-a-user
+   */
+  get("/api/v3/user/emails")(usersOnly {
+    JsonFormat(
+      ApiEmail.fromMailAddresses(
+        context.loginAccount.get.mailAddress,
+        getAccountExtraMailAddresses(context.loginAccount.get.userName)
+      )
+    )
+  })
+
+  /*
+   * ii. List public email addresses for a user
+   * https://developer.github.com/v3/users/emails/#list-public-email-addresses-for-a-user
+   */
+
+  /*
+   * iii. Add email address(es)
+   * https://developer.github.com/v3/users/emails/#add-email-addresses
+   */
+
+  /*
+   * iv. Delete email address(es)
+   * https://developer.github.com/v3/users/emails/#delete-email-addresses
+   */
+
+  /*
+ * v. Toggle primary email visibility
+ * https://developer.github.com/v3/users/emails/#toggle-primary-email-visibility
+ */
 }
