@@ -1,6 +1,9 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.31.2 - 7 Apr 2019
+- Bug and security fix
+
 ### 4.31.1 - 17 Mar 2019
 - Bug fix
 

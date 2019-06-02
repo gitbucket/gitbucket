@@ -70,6 +70,9 @@ Support
 
 What's New in 4.31.x
 -------------
+### 4.31.2 - 7 Apr 2019
+- Bug and security fix
+
 ### 4.31.1 - 17 Mar 2019
 - Bug fix
 

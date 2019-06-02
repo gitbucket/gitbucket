@@ -12,21 +12,26 @@
         </div>
       </div>
       <div style="padding-left: 10px; padding-right: 10px;">
-        @account.description.map{ description =>
+        @account.description.map { description =>
           <p style="color: #999">@description</p>
         }
-        @if(account.url.isDefined){
+        @account.url.map { url =>
           <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a>
+            <i class="octicon octicon-home"></i>
+            @if(url.startsWith("http://") || url.startsWith("https://")){
+              <a href="@url">@url</a>
+            } else {
+            <span style="color: #999">@url</span>
+            }
           </p>
         }
         @if(context.settings.showMailAddress){
           <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <i class="octicon octicon-mail"></i> <a href="mailto: @account.mailAddress">@account.mailAddress</a>
+            <i class="octicon octicon-mail"></i> <a href="mailto:@account.mailAddress">@account.mailAddress</a>
           </p>
-          @extraMailAddresses.map{ mail =>
+          @extraMailAddresses.map { mail =>
             <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <i class="octicon octicon-mail"></i> <a href="mailto: @mail">@mail</a>
+              <i class="octicon octicon-mail"></i> <a href="mailto:@mail">@mail</a>
             </p>
           }
         }

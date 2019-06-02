@@ -3,7 +3,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.31.1"
+val GitBucketVersion = "4.31.2"
 val ScalatraVersion = "2.6.3"
 val JettyVersion = "9.4.14.v20181114"
 val JgitVersion = "5.2.0.201812061821-r"
@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
   "org.json4s"                      %% "json4s-jackson"              % "3.5.2",
   "commons-io"                      % "commons-io"                   % "2.6",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
-  "io.github.gitbucket"             % "markedj"                      % "1.0.15",
+  "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.18",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.6",
@@ -56,7 +56,7 @@ libraryDependencies ++= Seq(
   "com.zaxxer"                      % "HikariCP"                     % "3.2.0",
   "com.typesafe"                    % "config"                       % "1.3.3",
   "com.typesafe.akka"               %% "akka-actor"                  % "2.5.18",
-  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.0.0",
+  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.0.Final",
   "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.7.0-akka-2.5.x" exclude ("c3p0", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
