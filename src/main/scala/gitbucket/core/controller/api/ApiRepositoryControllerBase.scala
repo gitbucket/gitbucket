@@ -30,7 +30,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    */
   get("/api/v3/user/repos")(usersOnly {
     JsonFormat(getVisibleRepositories(context.loginAccount, Option(context.loginAccount.get.userName)).map { r =>
-      ApiRepository(r, getAccountByUserName(r.owner).get, getPermission(r.owner, r.name, context.loginAccount))
+      ApiRepository(r, getAccountByUserName(r.owner).get)
     })
   })
 
@@ -40,7 +40,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    */
   get("/api/v3/users/:userName/repos") {
     JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("userName"))).map { r =>
-      ApiRepository(r, getAccountByUserName(r.owner).get, getPermission(r.owner, r.name, context.loginAccount))
+      ApiRepository(r, getAccountByUserName(r.owner).get)
     })
   }
 
@@ -50,7 +50,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    */
   get("/api/v3/orgs/:orgName/repos") {
     JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("orgName"))).map { r =>
-      ApiRepository(r, getAccountByUserName(r.owner).get, getPermission(r.owner, r.name, context.loginAccount))
+      ApiRepository(r, getAccountByUserName(r.owner).get)
     })
   }
 
@@ -90,13 +90,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
           val repository = Database() withTransaction { session =>
             getRepository(owner, data.name)(session).get
           }
-          JsonFormat(
-            ApiRepository(
-              repository,
-              getAccountByUserName(owner).get,
-              getPermission(repository.owner, repository.name, context.loginAccount)
-            )
-          )
+          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
         } else {
           ApiError(
             "A repository with this name already exists on this account",
@@ -130,13 +124,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
           val repository = Database() withTransaction { session =>
             getRepository(groupName, data.name).get
           }
-          JsonFormat(
-            ApiRepository(
-              repository,
-              getAccountByUserName(groupName).get,
-              getPermission(repository.owner, repository.name, context.loginAccount)
-            )
-          )
+          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
         } else {
           ApiError(
             "A repository with this name already exists for this group",
@@ -152,13 +140,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/#get
    */
   get("/api/v3/repos/:owner/:repository")(referrersOnly { repository =>
-    JsonFormat(
-      ApiRepository(
-        repository,
-        getAccountByUserName(repository.owner).get,
-        getPermission(repository.owner, repository.name, context.loginAccount)
-      )
-    )
+    JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(repository.owner).get)))
   })
 
   /*
