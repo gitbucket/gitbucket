@@ -53,12 +53,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
         ApiPullRequest(
           issue = issue,
           pullRequest = pullRequest,
-          headRepo = ApiRepository(
-            headRepo,
-            ApiUser(headOwner),
-            Some(getPermission(headRepo.userName, headRepo.repositoryName, context.loginAccount))
-          ),
-          baseRepo = ApiRepository(repository, baseOwner),
+          headRepo = ApiRepository(headRepo, ApiUser(headOwner)),
+          baseRepo = ApiRepository(repository, ApiUser(baseOwner)),
           user = ApiUser(issueUser),
           labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
             .map(ApiLabel(_, RepositoryName(repository))),
@@ -243,8 +239,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
       ApiPullRequest(
         issue = issue,
         pullRequest = pullRequest,
-        headRepo = ApiRepository(headRepo, headOwner),
-        baseRepo = ApiRepository(repository, baseOwner),
+        headRepo = ApiRepository(headRepo, ApiUser(headOwner)),
+        baseRepo = ApiRepository(repository, ApiUser(baseOwner)),
         user = ApiUser(issueUser),
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
           .map(ApiLabel(_, RepositoryName(repository))),

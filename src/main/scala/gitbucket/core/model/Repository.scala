@@ -10,7 +10,6 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val isPrivate = column[Boolean]("PRIVATE")
     val description = column[String]("DESCRIPTION")
     val defaultBranch = column[String]("DEFAULT_BRANCH")
-    val repositoryId = column[Int]("REPOSITORY_ID", O AutoInc)
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
     val lastActivityDate = column[java.util.Date]("LAST_ACTIVITY_DATE")
@@ -37,7 +36,6 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           registeredDate,
           updatedDate,
           lastActivityDate,
-          repositoryId,
           originUserName.?,
           originRepositoryName.?,
           parentUserName.?,
@@ -59,7 +57,6 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
             repository._10,
             repository._11,
             repository._12,
-            repository._13,
             RepositoryOptions.tupled.apply(options)
           )
       }, { (r: Repository) =>
@@ -74,7 +71,6 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
               r.registeredDate,
               r.updatedDate,
               r.lastActivityDate,
-              r.repositoryId,
               r.originUserName,
               r.originRepositoryName,
               r.parentUserName,
@@ -100,7 +96,6 @@ case class Repository(
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
   lastActivityDate: java.util.Date,
-  repositoryId: Int = 0,
   originUserName: Option[String],
   originRepositoryName: Option[String],
   parentUserName: Option[String],

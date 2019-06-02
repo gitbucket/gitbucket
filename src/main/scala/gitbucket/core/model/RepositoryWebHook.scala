@@ -12,15 +12,11 @@ trait RepositoryWebHookComponent extends TemplateComponent { self: Profile =>
     val url = column[String]("URL")
     val token = column[Option[String]]("TOKEN")
     val ctype = column[WebHookContentType]("CTYPE")
-    val webHookId = column[Int]("WEB_HOOK_ID", O AutoInc)
     def * =
-      (userName, repositoryName, url, ctype, token, webHookId) <> ((RepositoryWebHook.apply _).tupled, RepositoryWebHook.unapply)
+      (userName, repositoryName, url, ctype, token) <> ((RepositoryWebHook.apply _).tupled, RepositoryWebHook.unapply)
 
     def byPrimaryKey(owner: String, repository: String, url: String) =
       byRepository(owner, repository) && (this.url === url.bind)
-
-    def byId(owner: String, repository: String, id: Int) =
-      byRepository(owner, repository) && (this.webHookId === id.bind)
   }
 }
 
@@ -29,6 +25,5 @@ case class RepositoryWebHook(
   repositoryName: String,
   url: String,
   ctype: WebHookContentType,
-  token: Option[String],
-  webHookId: Int = 0
+  token: Option[String]
 ) extends WebHook

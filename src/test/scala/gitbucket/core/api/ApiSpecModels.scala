@@ -182,8 +182,7 @@ object ApiSpecModels {
     repository = repository,
     owner = apiUser,
     forkedCount = repositoryInfo.forkedCount,
-    watchers = 0,
-    permission = None
+    watchers = 0
   )
 
   val apiLabel = ApiLabel(
@@ -410,8 +409,6 @@ object ApiSpecModels {
     assets = Seq(apiReleaseAsset)
   )
 
-  val apiEmail = ApiEmail("root@localhost", true)
-
   // JSON String for APIs
 
   val jsonUser = """{
@@ -430,15 +427,12 @@ object ApiSpecModels {
        |"name":"Hello-World",
        |"full_name":"octocat/Hello-World",
        |"description":"This your first repo!",
-       |"id":0,
        |"watchers":0,
        |"forks":1,
        |"private":false,
-       |"fork":true,
        |"default_branch":"master",
        |"owner":$jsonUser,
-       |"created_at":"2011-04-14T16:00:49Z",
-       |"updated_at":"2011-04-14T16:00:49Z",
+       |"id":0,
        |"forks_count":1,
        |"watchers_count":0,
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World",
@@ -692,13 +686,5 @@ object ApiSpecModels {
        |"body":"content",
        |"author":${jsonUser},
        |"assets":[${jsonReleaseAsset}]
-       |}""".stripMargin
-
-  val jsonEmail =
-    s"""{
-       |"email":"root@localhost",
-       |"primary":true,
-       |"verified":true,
-       |"visibility":"public"
        |}""".stripMargin
 }
