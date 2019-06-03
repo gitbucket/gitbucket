@@ -28,6 +28,9 @@
           }
         }
         @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
+          @if(!originRepository.branchList.contains(originId)){
+            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(originId)">@gitbucket.core.helper.html.checkicon(true) @originId</a></li>
+          }
           @originRepository.branchList.map { branch =>
             <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
           }
@@ -39,16 +42,21 @@
           }
         }
         @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
+          @if(!forkedRepository.branchList.contains(forkedId)){
+            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(forkedId)">@gitbucket.core.helper.html.checkicon(true) @forkedId</a></li>
+          }
           @forkedRepository.branchList.map { branch =>
             <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
           }
         }
       </div>
-      <div class="check-conflict" style="display: none;">
-        <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
-      </div>
+      @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+        <div class="check-conflict" style="display: none;">
+          <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
+        </div>
+      }
     </div>
-    @if(commits.nonEmpty && context.loginAccount.isDefined){
+    @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
       <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
         <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
         &nbsp;&nbsp;
@@ -94,16 +102,6 @@
         <h4>There isn't anything to compare.</h4>
         <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
       </div>
-      @*
-      <table class="table table-bordered table-hover table-issues">
-        <tr>
-          <td style="padding: 20px; background-color: #eee; text-align: center;">
-            <h4>There isn't anything to compare.</h4>
-            <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
-          </td>
-        </tr>
-      </table>
-      *@
     } else {
       <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
         <table class="fill-width">
@@ -147,14 +145,6 @@
                 @helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")
               </td>
               <td><span class="monospace">@commit.shortMessage</span></td>
-              @*
-              <span class="badge" style="display: inline">@if(comments.isDefined){
-              @comments.get.flatMap @{
-              case comment: CommitComment => Some(comment)
-              case other => None
-              }.count(t => t.commitId == commit.id && !t.pullRequest)
-              }</span>
-              *@
               <td style="width: 10%; text-align: right;">
                 <a href="@helpers.url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
               </td>
@@ -164,7 +154,6 @@
         }
       </div>
       @gitbucket.core.helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
-      <p>Showing you all comments on commits in this comparison.</p>
       @gitbucket.core.issues.html.commentlist(None, comments, false, repository, None)
     }
   }
@@ -221,7 +210,7 @@ $(function(){
     $('#show-form').click();
   }
 
-  @if(context.loginAccount.isDefined){
+  @if(context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
     function checkConflict(from, to){
       $('.check-conflict').show();
       $.get('@helpers.url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
