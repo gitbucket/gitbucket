@@ -1,10 +1,12 @@
 package gitbucket.core.controller
 
 import gitbucket.core.issues.milestones.html
-import gitbucket.core.service.{RepositoryService, MilestonesService, AccountService}
-import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.service.{AccountService, MilestonesService, RepositoryService}
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.SyntaxSugars._
 import org.scalatra.forms._
+import org.scalatra.i18n.Messages
 
 class MilestonesController
     extends MilestonesControllerBase
@@ -20,7 +22,7 @@ trait MilestonesControllerBase extends ControllerBase {
   case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 
   val milestoneForm = mapping(
-    "title" -> trim(label("Title", text(required, maxlength(100)))),
+    "title" -> trim(label("Title", text(required, maxlength(100), milestone, uniqueMilestone))),
     "description" -> trim(label("Description", optional(text()))),
     "dueDate" -> trim(label("Due Date", optional(date())))
   )(MilestoneForm.apply)
@@ -86,4 +88,20 @@ trait MilestonesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
+  private def uniqueMilestone: Constraint = new Constraint() {
+    override def validate(
+      name: String,
+      value: String,
+      params: Map[String, Seq[String]],
+      messages: Messages
+    ): Option[String] = {
+      for {
+        owner <- params.optionValue("owner")
+        repository <- params.optionValue("repository")
+        _ <- getMilestones(owner, repository).find(_.title.equalsIgnoreCase(value))
+      } yield {
+        "Milestone already exists."
+      }
+    }
+  }
 }
