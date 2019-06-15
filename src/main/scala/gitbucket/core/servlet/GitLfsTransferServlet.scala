@@ -28,7 +28,7 @@ class GitLfsTransferServlet extends HttpServlet {
       if (file.exists()) {
         res.setStatus(HttpStatus.SC_OK)
         res.setContentType("application/octet-stream")
-        res.setContentLength(file.length.toInt)
+        res.setHeader("Content-Length", file.length.toString)
         using(new FileInputStream(file), res.getOutputStream) { (in, out) =>
           IOUtils.copy(in, out)
           out.flush()
