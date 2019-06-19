@@ -1,8 +1,8 @@
 ### Before submitting an issue to GitBucket I have first:
 
-- [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
-- [] searched for similar already existing issue
-- [] read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki) 
+- [ ] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
+- [ ] searched for similar already existing issue
+- [ ] read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki)
 
 *(if you have performed all the above, remove the paragraph and continue describing the issue with template below)*
 
