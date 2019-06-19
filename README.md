@@ -22,7 +22,7 @@ The current version of GitBucket provides many features such as:
 - Account and group management with LDAP integration
 - a Plug-in system
 
-If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
+If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/readme.md).
 
 Installation
 --------
