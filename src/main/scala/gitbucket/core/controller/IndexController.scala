@@ -151,7 +151,7 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/signout") {
     session.invalidate
-    redirect("/")
+    redirect("/signin")
   }
 
   get("/activities.atom") {
