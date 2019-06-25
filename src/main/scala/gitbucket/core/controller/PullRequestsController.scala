@@ -69,6 +69,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     "requestBranch" -> trim(text(required, maxlength(100))),
     "commitIdFrom" -> trim(text(required, maxlength(40))),
     "commitIdTo" -> trim(text(required, maxlength(40))),
+    "isDraft" -> trim(boolean(required)),
     "assignedUserName" -> trim(optional(text())),
     "milestoneId" -> trim(optional(number())),
     "priorityId" -> trim(optional(number())),
@@ -77,7 +78,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   val mergeForm = mapping(
     "message" -> trim(label("Message", text(required))),
-    "strategy" -> trim(label("Strategy", text(required)))
+    "strategy" -> trim(label("Strategy", text(required))),
+    "isDraft" -> trim(boolean(required))
   )(MergeForm.apply)
 
   case class PullRequestForm(
@@ -90,13 +92,14 @@ trait PullRequestsControllerBase extends ControllerBase {
     requestBranch: String,
     commitIdFrom: String,
     commitIdTo: String,
+    isDraft: Boolean,
     assignedUserName: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Option[String]
   )
 
-  case class MergeForm(message: String, strategy: String)
+  case class MergeForm(message: String, strategy: String, isDraft: Boolean)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     val q = request.getParameter("q")
@@ -286,6 +289,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           flash += "error" -> s"""Can't delete the default branch "${pullreq.requestBranch}"."""
         }
       }
+
       redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
     }) getOrElse NotFound()
   })
@@ -338,14 +342,26 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
+  post("/:owner/:repository/pull/:id/update_draft")(readableUsersOnly { baseRepository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      (_, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      owner = pullreq.requestUserName
+      name = pullreq.requestRepositoryName
+      if hasDeveloperRole(owner, name, context.loginAccount)
+    } yield {
+      updateDraftToPullRequest(baseRepository.owner, baseRepository.name, issueId)
+    }) getOrElse NotFound()
+  })
+
   post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>
     params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner
       val name = repository.name
 
-      mergePullRequest(repository, issueId, context.loginAccount.get, form.message, form.strategy) match {
+      mergePullRequest(repository, issueId, context.loginAccount.get, form.message, form.strategy, form.isDraft) match {
         case Right(objectId) => redirect(s"/${owner}/${name}/pull/${issueId}")
-        case Left(message)   => Some(BadRequest())
+        case Left(message)   => Some(BadRequest(message))
       }
     } getOrElse NotFound()
   })
@@ -543,6 +559,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           requestBranch = form.requestBranch,
           commitIdFrom = form.commitIdFrom,
           commitIdTo = form.commitIdTo,
+          isDraft = form.isDraft,
           loginAccount = context.loginAccount.get
         )
 

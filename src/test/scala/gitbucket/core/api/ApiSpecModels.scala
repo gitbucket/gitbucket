@@ -139,7 +139,8 @@ object ApiSpecModels {
     requestRepositoryName = repo1Name.name,
     requestBranch = "new-topic",
     commitIdFrom = sha1,
-    commitIdTo = sha1
+    commitIdTo = sha1,
+    isDraft = true
   )
 
   val commitComment = CommitComment(

@@ -79,6 +79,7 @@
                 completionContext  = "issues",
                 style              = "height: 200px;"
               )
+              <div class="text-right">
               <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
               <input type="hidden" name="targetBranch" value="@originId"/>
               <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
@@ -86,8 +87,20 @@
               <input type="hidden" name="requestBranch" value="@forkedId"/>
               <input type="hidden" name="commitIdFrom" value="@sourceId"/>
               <input type="hidden" name="commitIdTo" value="@commitId"/>
-              <div class="align-right">
-                <input type="submit" class="btn btn-success" value="Create pull request"/>
+               <input type="hidden" id="is-draft" name="isDraft" value=false />
+
+<!--                <input type="submit" class="btn btn-success" value="Create pull request"/>-->
+<!--                formaction="@context.path/@originRepository.owner/@originRepository.name/pulls/new"-->
+                <div class="btn-group dropup">
+                <input type="submit" class="btn btn-success" tabindex="2" value="Create pull request" id="submit-button" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pulls/new"/>
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right">
+                  <li><a id="pull-request">Create pull request</a></li>
+                  <li><a id="draft-request">Create draft request</a></li>
+                </ul>
+                </div>
               </div>
             </div>
             <div class="col-md-3">
@@ -159,6 +172,21 @@
   }
 }
 <script>
+
+$(function(){
+  $('#draft-request').click(function(){
+    $("#is-draft").val(true);
+    $('#submit-button').attr('value', 'Create draft request')
+    $('#action').val('create draft request');
+  });
+  $('#pull-request').click(function(){
+  $("#is-draft").val(false);
+    $('#submit-button').attr('value', 'Create pull request')
+    $('#action').val('create pull request');
+  });
+});
+
+
 $(function(){
   function updateSelector(e){
     e.parents('ul').find('i').attr('class', 'octicon');

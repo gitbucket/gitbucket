@@ -77,15 +77,37 @@
           } else {
             <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
             @if(status.hasMergePermission){
-              <span class="strong">Merging can be performed automatically.</span>
-              <div class="small">
-                Merging can be performed automatically.
-              </div>
+              @if(!pullreq.isDraft){
+                  <span class="strong">Merging can be performed automatically.</span>
+                  <div class="small">
+                  Merging can be performed automatically.
+                 </div>
+               } else {
+                   <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pull/@issue.issueId/update_draft" validate="true">
+                   <span class="strong">This pull request is still a work in progress.</span>
+                   <div class="small">
+                   Draft pull requests cannot be merged.
+                   </div>
+                   <div class="pull-right">
+                     <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pull/@issue.issueId/update_draft"/>
+                   </div>`
+                   </form>
+                  }
             } else {
-              <span class="strong">This branch has no conflicts with the base branch.</span>
-              <div class="small">
-                Only those with write access to this repository can merge pull requests.
-              </div>
+                 @if(pullreq.isDraft){
+                   <span class="strong">This pull request is still a work in progress.</span>
+                   <div class="small">
+                    Draft pull requests cannot be merged.
+                   </div>
+                 <div class="pull-right">
+                 <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pull/@issue.issueId/update_draft"/>
+                 </div>`
+              } else {
+                    <span class="strong">This branch has no conflicts with the base branch.</span>
+                    <div class="small">
+                      Only those with write access to this repository can merge pull requests.
+                    </div>
+              }
             }
           }
         }
@@ -93,7 +115,7 @@
       </div>
       @if(status.hasMergePermission){
         <div style="padding:15px; border-top:solid 1px #e5e5e5; background:#fafafa">
-          <input type="button" class="btn @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge){ disabled="true"}/>
+          <input type="button" class="btn @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge || pullreq.isDraft){ disabled="true"}/>
           &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
           <div id="command-line" style="display: none;margin-top: 15px;">
             <hr />
@@ -191,6 +213,7 @@
             <input type="button" class="btn btn-default" value="Cancel" id="cancel-merge-pull-request"/>
             <input type="submit" class="btn btn-success" value="Confirm merge"/>
             <input type="hidden" name="strategy" value="@originRepository.repository.options.defaultMergeOption"/>
+            <input type="hidden" name="isDraft" value="@pullreq.isDraft" />
           </div>
         </div>
       </form>
@@ -199,6 +222,15 @@
 </div>
 
 <script>
+
+$(function(){
+  $('#ready-for-review').click(function(){
+    $.post('@helpers.url(originRepository)/pull/@issue.issueId/update_draft', function(data, status){
+      location.reload();
+    })
+  });
+});
+
 $(function(){
   $('.show-command-line').click(function(){
     $('#command-line').toggle();

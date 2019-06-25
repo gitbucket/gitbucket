@@ -12,6 +12,7 @@ trait PullRequestComponent extends TemplateComponent { self: Profile =>
     val requestBranch = column[String]("REQUEST_BRANCH")
     val commitIdFrom = column[String]("COMMIT_ID_FROM")
     val commitIdTo = column[String]("COMMIT_ID_TO")
+    val isDraft = column[Boolean]("IS_DRAFT")
     def * =
       (
         userName,
@@ -22,7 +23,8 @@ trait PullRequestComponent extends TemplateComponent { self: Profile =>
         requestRepositoryName,
         requestBranch,
         commitIdFrom,
-        commitIdTo
+        commitIdTo,
+        isDraft
       ) <> (PullRequest.tupled, PullRequest.unapply)
 
     def byPrimaryKey(userName: String, repositoryName: String, issueId: Int) =
@@ -41,5 +43,6 @@ case class PullRequest(
   requestRepositoryName: String,
   requestBranch: String,
   commitIdFrom: String,
-  commitIdTo: String
+  commitIdTo: String,
+  isDraft: Boolean
 )

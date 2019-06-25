@@ -114,6 +114,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                       requestBranch = reqBranch,
                       commitIdFrom = commitIdFrom.getName,
                       commitIdTo = commitIdTo.getName,
+                      isDraft = false,
                       loginAccount = context.loginAccount.get
                     )
                     getApiPullRequest(repository, issueId).map(JsonFormat(_))
@@ -141,6 +142,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                       requestBranch = reqBranch,
                       commitIdFrom = commitIdFrom.getName,
                       commitIdTo = commitIdTo.getName,
+                      isDraft = false,
                       loginAccount = context.loginAccount.get
                     )
                     getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))

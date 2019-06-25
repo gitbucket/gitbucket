@@ -138,6 +138,7 @@ trait ServiceSpecBase extends MockitoSugar {
       requestBranch = requestBranch,
       commitIdFrom = baesBranch,
       commitIdTo = requestBranch,
+      isDraft = false,
       loginAccount = loginAccount.get
     )
     dummyService.getPullRequest(baseUserName, baseRepositoryName, issueId).get
