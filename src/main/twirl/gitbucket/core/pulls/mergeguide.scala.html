@@ -76,39 +76,28 @@
             </div>
           } else {
             <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
+
+        @if(pullreq.isDraft){
+          <span class="strong">This pull request is still a work in progress.</span>
+        <div class="pull-right">
+          <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" />
+        </div>
+          <div class="small">
+            Draft pull requests cannot be merged.
+          </div>
+        } else {
             @if(status.hasMergePermission){
-              @if(!pullreq.isDraft){
                   <span class="strong">Merging can be performed automatically.</span>
                   <div class="small">
                   Merging can be performed automatically.
                  </div>
-               } else {
-                   <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pull/@issue.issueId/update_draft" validate="true">
-                   <span class="strong">This pull request is still a work in progress.</span>
-                   <div class="small">
-                   Draft pull requests cannot be merged.
-                   </div>
-                   <div class="pull-right">
-                     <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pull/@issue.issueId/update_draft"/>
-                   </div>`
-                   </form>
-                  }
             } else {
-                 @if(pullreq.isDraft){
-                   <span class="strong">This pull request is still a work in progress.</span>
-                   <div class="small">
-                    Draft pull requests cannot be merged.
-                   </div>
-                 <div class="pull-right">
-                 <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pull/@issue.issueId/update_draft"/>
-                 </div>`
-              } else {
                     <span class="strong">This branch has no conflicts with the base branch.</span>
                     <div class="small">
                       Only those with write access to this repository can merge pull requests.
                     </div>
-              }
             }
+           }
           }
         }
       }
