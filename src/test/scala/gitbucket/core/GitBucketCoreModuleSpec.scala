@@ -33,7 +33,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
         // TODO https://github.com/testcontainers/testcontainers-java/issues/736
         container.withCommand("mysqld --default-authentication-plugin=mysql_native_password")
       }
-      container.starting()
+      container.start()
       try {
         new Solidbase().migrate(
           DriverManager.getConnection(s"${container.jdbcUrl}?useSSL=false", container.username, container.password),
@@ -42,7 +42,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
           new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
         )
       } finally {
-        container.finished()
+        container.stop()
       }
     }
   }
@@ -51,7 +51,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
     test(s"Migration PostgreSQL $tag", ExternalDBTest) {
       val container = PostgreSQLContainer(s"postgres:$tag")
 
-      container.starting()
+      container.start()
       try {
         new Solidbase().migrate(
           DriverManager.getConnection(container.jdbcUrl, container.username, container.password),
@@ -60,7 +60,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
           new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
         )
       } finally {
-        container.finished()
+        container.stop()
       }
     }
   }
