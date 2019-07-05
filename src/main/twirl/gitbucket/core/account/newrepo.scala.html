@@ -84,10 +84,10 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
           <span class="strong">Copy existing git repository</span>
           <div class="normal muted">
             Create new repository from existing git repository.
-            <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
-            <span id="error-sourceUrl" class="error"></span>
           </div>
         </label>
+        <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
+        <span id="error-sourceUrl" class="error"></span>
       </fieldset>
       <fieldset class="border-top form-actions">
         <input type="submit" class="btn btn-success" value="Create repository"/>
