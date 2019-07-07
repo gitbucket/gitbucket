@@ -132,7 +132,7 @@ trait IndexControllerBase extends ControllerBase {
       val redirectURI = new URI(s"$baseUrl/signin/oidc")
       session.get(Keys.Session.OidcContext) match {
         case Some(context: OidcContext) =>
-          authenticate(params, redirectURI, context.state, context.nonce, oidc) map { account =>
+          authenticate(params.toMap, redirectURI, context.state, context.nonce, oidc).map { account =>
             signin(account, context.redirectBackURI)
           } orElse {
             flash += "error" -> "Sorry, authentication failed. Please try again."
