@@ -106,7 +106,7 @@ trait ReleaseControllerBase extends ControllerBase {
     createRelease(repository.owner, repository.name, form.name, form.content, tagName, loginAccount)
 
     // Insert into RELEASE_ASSET
-    val files = params.collect {
+    val files = params.toMap.collect {
       case (name, value) if name.startsWith("file:") =>
         val Array(_, fileId) = name.split(":")
         (fileId, value)
@@ -174,7 +174,7 @@ trait ReleaseControllerBase extends ControllerBase {
           val assets = getReleaseAssets(repository.owner, repository.name, tagName)
           deleteReleaseAssets(repository.owner, repository.name, tagName)
 
-          val files = params.collect {
+          val files = params.toMap.collect {
             case (name, value) if name.startsWith("file:") =>
               val Array(_, fileId) = name.split(":")
               (fileId, value)

@@ -133,7 +133,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
               repository,
               getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
-              flash.toMap.map(f => f._1 -> f._2.toString)
+              flash.iterator.map(f => f._1 -> f._2.toString).toMap
             )
 
 //                html.pullreq(
