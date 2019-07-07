@@ -147,7 +147,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       // Update database
       renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
     }
-    flash += "info" -> "Repository settings has been updated."
+    flash.update("info", "Repository settings has been updated.")
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
   })
 
@@ -167,7 +167,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
       }
-      flash += "info" -> "Repository default branch has been updated."
+      flash.update("info", "Repository default branch has been updated.")
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     }
   })
@@ -231,7 +231,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnly { (form, repository) =>
     addWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
-    flash += "info" -> s"Webhook ${form.url} created"
+    flash.update("info", s"Webhook ${form.url} created")
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
@@ -240,7 +240,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/delete")(ownerOnly { repository =>
     deleteWebHook(repository.owner, repository.name, params("url"))
-    flash += "info" -> s"Webhook ${params("url")} deleted"
+    flash.update("info", s"Webhook ${params("url")} deleted")
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
@@ -350,7 +350,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnly { (form, repository) =>
     updateWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
-    flash += "info" -> s"webhook ${form.url} updated"
+    flash.update("info", s"webhook ${form.url} updated")
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
@@ -390,7 +390,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         git.gc().call()
       }
     }
-    flash += "info" -> "Garbage collection has been executed."
+    flash.update("info", "Garbage collection has been executed.")
     redirect(s"/${repository.owner}/${repository.name}/settings/danger")
   })
 

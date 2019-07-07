@@ -266,7 +266,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       val repository = getRepository(owner, name).get
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
       if (branchProtection.enabled) {
-        flash += "error" -> s"branch ${pullreq.requestBranch} is protected."
+        flash.update("error", s"branch ${pullreq.requestBranch} is protected.")
       } else {
         if (repository.repository.defaultBranch != pullreq.requestBranch) {
           val userName = context.loginAccount.get.userName
@@ -283,7 +283,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             "delete_branch"
           )
         } else {
-          flash += "error" -> s"""Can't delete the default branch "${pullreq.requestBranch}"."""
+          flash.update("error", s"""Can't delete the default branch "${pullreq.requestBranch}".""")
         }
       }
       redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
@@ -303,7 +303,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     } yield {
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
       if (branchProtection.needStatusCheck(loginAccount.userName)) {
-        flash += "error" -> s"branch ${pullreq.requestBranch} is protected need status check."
+        flash.update("error", s"branch ${pullreq.requestBranch} is protected need status check.")
       } else {
         LockUtil.lock(s"${owner}/${name}") {
           val alias =
@@ -325,11 +325,11 @@ trait PullRequestsControllerBase extends ControllerBase {
             Some(pullreq)
           ) match {
             case None => // conflict
-              flash += "error" -> s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}."
+              flash.update("error", s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}.")
             case Some(oldId) =>
               // update pull request
               updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize")
-              flash += "info" -> s"Merge branch '${alias}' into ${pullreq.requestBranch}"
+              flash.update("info", s"Merge branch '${alias}' into ${pullreq.requestBranch}")
           }
         }
       }

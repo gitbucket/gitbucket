@@ -139,7 +139,7 @@ trait WikiControllerBase extends ControllerBase {
       if (revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))) {
         redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
       } else {
-        flash += "info" -> "This patch was not able to be reversed."
+        flash.update("info", "This patch was not able to be reversed.")
         redirect(
           s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}"
         )
@@ -154,7 +154,7 @@ trait WikiControllerBase extends ControllerBase {
       if (revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)) {
         redirect(s"/${repository.owner}/${repository.name}/wiki")
       } else {
-        flash += "info" -> "This patch was not able to be reversed."
+        flash.update("info", "This patch was not able to be reversed.")
         redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
       }
     } else Unauthorized()
