@@ -792,10 +792,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       JGitUtil.createTag(git, form.tagName, form.message, form.commitId)
     } match {
       case Right(message) =>
-        flash += "info" -> message
+        flash.update("info", message)
         redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
       case Left(message) =>
-        flash += "error" -> message
+        flash.update("error", message)
         redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
     }
   })
@@ -810,12 +810,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       JGitUtil.createBranch(git, fromBranchName, newBranchName)
     } match {
       case Right(message) =>
-        flash += "info" -> message
+        flash.update("info", message)
         redirect(
           s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}"
         )
       case Left(message) =>
-        flash += "error" -> message
+        flash.update("error", message)
         redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
     }
   })

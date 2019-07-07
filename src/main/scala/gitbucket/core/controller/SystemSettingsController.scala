@@ -305,7 +305,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       } SshServer.start(sshAddress, baseUrl)
     }
 
-    flash += "info" -> "System settings has been updated."
+    flash.update("info", "System settings has been updated.")
     redirect("/admin/system")
   })
 
@@ -333,7 +333,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   post("/admin/plugins/_reload")(adminOnly {
     PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
-    flash += "info" -> "All plugins were reloaded."
+    flash.update("info", "All plugins were reloaded.")
     redirect("/admin/plugins")
   })
 
@@ -343,7 +343,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
       PluginRegistry
         .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-      flash += "info" -> s"${pluginId} was uninstalled."
+      flash.update("info", s"${pluginId} was uninstalled.")
     }
 
     redirect("/admin/plugins")
@@ -391,7 +391,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     getAccountByUserName(userName, true).map {
       account =>
         if (account.isAdmin && (form.isRemoved || !form.isAdmin) && isLastAdministrator(account)) {
-          flash += "error" -> "Account can't be turned off because this is last one administrator."
+          flash.update("error", "Account can't be turned off because this is last one administrator.")
           redirect(s"/admin/users/${userName}/_edituser")
         } else {
           if (form.isRemoved) {
