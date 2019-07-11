@@ -48,6 +48,14 @@ trait PullRequestService {
       .map(pr => pr.commitIdTo -> pr.commitIdFrom)
       .update((commitIdTo, commitIdFrom))
 
+  def updateDraftToPullRequest(owner: String, repository: String, issueId: Int)(
+    implicit s: Session
+  ): Unit =
+    PullRequests
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map(pr => pr.isDraft)
+      .update(false)
+
   def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])(
     implicit s: Session
   ): List[PullRequestCount] =
@@ -97,6 +105,7 @@ trait PullRequestService {
     requestBranch: String,
     commitIdFrom: String,
     commitIdTo: String,
+    isDraft: Boolean,
     loginAccount: Account
   )(implicit s: Session, context: Context): Unit = {
     getIssue(originRepository.owner, originRepository.name, issueId.toString).foreach { baseIssue =>
@@ -109,7 +118,8 @@ trait PullRequestService {
         requestRepositoryName,
         requestBranch,
         commitIdFrom,
-        commitIdTo
+        commitIdTo,
+        isDraft
       )
 
       // fetch requested branch
@@ -215,6 +225,7 @@ trait PullRequestService {
 
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
+   *
    */
   def updatePullRequests(owner: String, repository: String, branch: String, loginAccount: Account, action: String)(
     implicit s: Session,

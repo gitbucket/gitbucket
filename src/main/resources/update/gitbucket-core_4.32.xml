@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <addColumn tableName="PULL_REQUEST">
+    <column name="IS_DRAFT" type="boolean" nullable="false" defaultValueBoolean="false" />
+  </addColumn>
+</changeSet>
