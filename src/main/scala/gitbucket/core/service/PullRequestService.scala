@@ -225,7 +225,6 @@ trait PullRequestService {
 
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
-   *
    */
   def updatePullRequests(owner: String, repository: String, branch: String, loginAccount: Account, action: String)(
     implicit s: Session,

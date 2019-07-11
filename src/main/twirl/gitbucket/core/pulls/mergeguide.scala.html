@@ -79,23 +79,23 @@
 
         @if(pullreq.isDraft){
           <span class="strong">This pull request is still a work in progress.</span>
-        <div class="pull-right">
-          <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" />
-        </div>
+          <div class="pull-right">
+            <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" />
+          </div>
           <div class="small">
             Draft pull requests cannot be merged.
           </div>
         } else {
             @if(status.hasMergePermission){
-                  <span class="strong">Merging can be performed automatically.</span>
-                  <div class="small">
-                  Merging can be performed automatically.
-                 </div>
+              <span class="strong">Merging can be performed automatically.</span>
+              <div class="small">
+                Merging can be performed automatically.
+              </div>
             } else {
-                    <span class="strong">This branch has no conflicts with the base branch.</span>
-                    <div class="small">
-                      Only those with write access to this repository can merge pull requests.
-                    </div>
+              <span class="strong">This branch has no conflicts with the base branch.</span>
+              <div class="small">
+                Only those with write access to this repository can merge pull requests.
+              </div>
             }
            }
           }
