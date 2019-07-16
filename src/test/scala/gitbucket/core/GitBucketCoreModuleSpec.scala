@@ -30,7 +30,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
         override val container = new org.testcontainers.containers.MySQLContainer(s"mysql:$tag") {
           override def getDriverClassName = "org.mariadb.jdbc.Driver"
         }
-        // TODO https://github.com/testcontainers/testcontainers-java/issues/736
+        // TODO https://jira.mariadb.org/browse/CONJ-663
         container.withCommand("mysqld --default-authentication-plugin=mysql_native_password")
       }
       container.start()
