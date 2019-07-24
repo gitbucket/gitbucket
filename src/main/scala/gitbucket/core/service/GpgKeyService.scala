@@ -3,13 +3,13 @@ package gitbucket.core.service
 import java.io.ByteArrayInputStream
 
 import gitbucket.core.model.GpgKey
-
-import collection.JavaConverters._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.bouncycastle.bcpg.ArmoredInputStream
 import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory
+
+import scala.jdk.CollectionConverters._
 
 trait GpgKeyService {
   def getGpgPublicKeys(userName: String)(implicit s: Session): List[GpgKey] =

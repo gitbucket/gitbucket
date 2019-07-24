@@ -752,7 +752,7 @@ trait IssuesService {
     implicit s: Session
   ): Unit = {
     extractIssueId(message).foreach { issueId =>
-      val content = fromIssue.issueId + ":" + fromIssue.title
+      val content = s"${fromIssue.issueId}:${fromIssue.title}"
       if (getIssue(owner, repository, issueId).isDefined) {
         // Not add if refer comment already exist.
         if (!getComments(owner, repository, issueId.toInt).exists { x =>

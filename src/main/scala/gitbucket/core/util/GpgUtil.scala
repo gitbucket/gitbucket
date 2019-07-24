@@ -1,7 +1,8 @@
 package gitbucket.core.util
 import java.io.ByteArrayInputStream
 
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.bouncycastle.bcpg.ArmoredInputStream

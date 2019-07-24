@@ -245,10 +245,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
             }
           }
 
-          tables += Table(tableName.toUpperCase, columns)
+          tables += Table(tableName.toUpperCase, columns.toSeq)
         }
     }
-    html.dbviewer(tables)
+    html.dbviewer(tables.toSeq)
   })
 
   post("/admin/dbviewer/_query")(adminOnly {

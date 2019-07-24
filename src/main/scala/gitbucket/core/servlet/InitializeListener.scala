@@ -12,6 +12,10 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.JDBCUtil._
 import gitbucket.core.model.Profile.profile.blockingApi._
+// Imported names have higher precedence than names, defined in other files.
+// If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
+import gitbucket.core.servlet.Database
+
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import javax.servlet.{ServletContextEvent, ServletContextListener}
@@ -21,7 +25,7 @@ import org.slf4j.LoggerFactory
 import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Initialize GitBucket system.

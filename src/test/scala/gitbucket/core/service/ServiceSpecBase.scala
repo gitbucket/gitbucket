@@ -7,8 +7,6 @@ import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
 import gitbucket.core.model._
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.commons.io.FileUtils
 import java.sql.DriverManager
@@ -17,7 +15,7 @@ import java.io.File
 import gitbucket.core.controller.Context
 import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
 
 import scala.util.Random

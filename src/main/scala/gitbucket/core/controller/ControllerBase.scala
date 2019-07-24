@@ -365,7 +365,7 @@ trait AccountManagementControllerBase extends ControllerBase {
       params: Map[String, Seq[String]],
       messages: Messages
     ): Option[String] = {
-      val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
+      val extraMailAddresses = params.view.filterKeys(k => k.startsWith("extraMailAddresses"))
       if (extraMailAddresses.exists {
             case (k, v) =>
               v.contains(value)
@@ -388,7 +388,7 @@ trait AccountManagementControllerBase extends ControllerBase {
       params: Map[String, Seq[String]],
       messages: Messages
     ): Option[String] = {
-      val extraMailAddresses = params.filterKeys(k => k.startsWith("extraMailAddresses"))
+      val extraMailAddresses = params.view.filterKeys(k => k.startsWith("extraMailAddresses"))
       if (Some(value) == params.optionValue("mailAddress") || extraMailAddresses.count {
             case (k, v) =>
               v.contains(value)

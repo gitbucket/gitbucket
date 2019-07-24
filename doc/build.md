@@ -29,7 +29,7 @@ To build war file, run the following command:
 $ sbt package
 ```
 
-`gitbucket_2.12-x.x.x.war` is generated into `target/scala-2.12`.
+`gitbucket_2.13-x.x.x.war` is generated into `target/scala-2.13`.
 
 To build an executable war file, run
 

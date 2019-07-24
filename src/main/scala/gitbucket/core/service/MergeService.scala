@@ -8,8 +8,6 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{JGitUtil, LockUtil}
 import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git
@@ -18,7 +16,7 @@ import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait MergeService {
   self: AccountService

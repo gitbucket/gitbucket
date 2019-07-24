@@ -6,7 +6,8 @@ import gitbucket.core.util.ReferrerAuthenticator
 import gitbucket.core.util.SyntaxSugars.using
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
-import scala.collection.JavaConverters._
+
+import scala.jdk.CollectionConverters._
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
   self: ReferrerAuthenticator =>

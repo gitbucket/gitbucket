@@ -14,7 +14,8 @@ import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
 import java.io.ByteArrayInputStream
 import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
-import scala.collection.JavaConverters._
+
+import scala.jdk.CollectionConverters._
 
 object WikiService {
 

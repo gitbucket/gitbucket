@@ -36,7 +36,7 @@ object FileUtil {
 
   def isText(content: Array[Byte]): Boolean = !content.contains(0)
 
-  def generateFileId: String = System.currentTimeMillis + Random.alphanumeric.take(10).mkString
+  def generateFileId: String = s"${System.currentTimeMillis}${Random.alphanumeric.take(10).mkString}"
 
   def getExtension(name: String): String =
     name.lastIndexOf('.') match {
@@ -56,7 +56,7 @@ object FileUtil {
   }
 
   def getLfsFilePath(owner: String, repository: String, oid: String): String =
-    Directory.getLfsDir(owner, repository) + "/" + checkFilename(oid)
+    s"${Directory.getLfsDir(owner, repository)}/${checkFilename(oid)}"
 
   def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
 
