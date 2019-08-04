@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import java.io.File
+import java.io.{File, FileInputStream, FileOutputStream}
 
 import scala.util.Using
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
@@ -993,24 +993,31 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               val entryPath =
                 if (path.isEmpty) baseName + "/" + treeWalk.getPathString
                 else path.split("/").last + treeWalk.getPathString.substring(path.length)
-              val size = JGitUtil.getContentSize(git.getRepository.open(treeWalk.getObjectId(0)))
               val mode = treeWalk.getFileMode.getBits
-              val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
               JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
+                val tempFile = File.createTempFile("gitbucket", ".archive")
+                val size = using(new FileOutputStream(tempFile)) { out =>
+                  IOUtils.copy(
+                    EolStreamTypeUtil.wrapInputStream(
+                      in,
+                      EolStreamTypeUtil
+                        .detectStreamType(
+                          OperationType.CHECKOUT_OP,
+                          git.getRepository.getConfig.get(WorkingTreeOptions.KEY),
+                          treeWalk.getAttributes
+                        )
+                    ),
+                    out
+                  )
+                }
+
+                val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
                 archive.putArchiveEntry(entry)
-                IOUtils.copy(
-                  EolStreamTypeUtil.wrapInputStream(
-                    in,
-                    EolStreamTypeUtil
-                      .detectStreamType(
-                        OperationType.CHECKOUT_OP,
-                        git.getRepository.getConfig.get(WorkingTreeOptions.KEY),
-                        treeWalk.getAttributes
-                      )
-                  ),
-                  archive
-                )
+                using(new FileInputStream(tempFile)) { in =>
+                  IOUtils.copy(in, archive)
+                }
                 archive.closeArchiveEntry()
+                tempFile.delete()
               }
             }
           }
@@ -1034,6 +1041,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         Using.resource(new ZipArchiveOutputStream(response.getOutputStream)) { zip =>
           archive(revision, ".zip", zip) { (path, size, date, mode) =>
             val entry = new ZipArchiveEntry(path)
+            entry.setSize(size)
             entry.setUnixMode(mode)
             entry.setTime(date.getTime)
             entry
@@ -1058,6 +1066,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             tar.setAddPaxHeadersForNonAsciiNames(true)
             archive(revision, ".tar.gz", tar) { (path, size, date, mode) =>
               val entry = new TarArchiveEntry(path)
+              entry.setSize(size)
               entry.setModTime(date)
               entry.setMode(mode)
               entry
