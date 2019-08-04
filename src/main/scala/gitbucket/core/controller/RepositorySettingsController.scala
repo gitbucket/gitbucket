@@ -12,12 +12,14 @@ import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
+import gitbucket.core.model.WebHookContentType
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
-import gitbucket.core.model.WebHookContentType
+
+import scala.util.Using
 
 class RepositorySettingsController
     extends RepositorySettingsControllerBase
@@ -164,7 +166,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     } else {
       saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
       // Change repository HEAD
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
       }
       flash.update("info", "Repository default branch has been updated.")
@@ -252,7 +254,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       Array(h.getName, h.getValue)
     }
 
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
         import scala.concurrent.duration._
         import scala.concurrent._
@@ -386,7 +388,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         git.gc().call()
       }
     }

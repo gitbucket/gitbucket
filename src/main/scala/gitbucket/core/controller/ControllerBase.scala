@@ -20,6 +20,7 @@ import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
 import is.tagomor.woothee.Classifier
 
 import scala.util.Try
+import scala.util.Using
 import net.coobird.thumbnailator.Thumbnails
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
@@ -240,7 +241,7 @@ abstract class ControllerBase
       case false                                => None
     }
 
-    using(new TreeWalk(git.getRepository)) { treeWalk =>
+    Using.resource(new TreeWalk(git.getRepository)) { treeWalk =>
       treeWalk.addTree(revCommit.getTree)
       treeWalk.setRecursive(true)
       _getPathObjectId(path, treeWalk)
@@ -268,7 +269,7 @@ abstract class ControllerBase
           response.setContentLength(attrs("size").toInt)
           val oid = attrs("oid").split(":")(1)
 
-          using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))) { in =>
+          Using.resource(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))) { in =>
             IOUtils.copy(in, response.getOutputStream)
           }
         } else {

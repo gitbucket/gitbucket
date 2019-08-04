@@ -8,7 +8,6 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil
@@ -20,6 +19,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 trait PullRequestService {
   self: IssuesService
@@ -387,7 +387,7 @@ trait PullRequestService {
     requestRepositoryName: String,
     requestCommitId: String
   ): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
-    using(
+    Using.resources(
       Git.open(getRepositoryDir(userName, repositoryName)),
       Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
     ) { (oldGit, newGit) =>
@@ -478,7 +478,7 @@ trait PullRequestService {
     originId: String,
     forkedId: String
   ): (Option[ObjectId], Option[ObjectId]) = {
-    using(
+    Using.resources(
       Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
       Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
     ) {

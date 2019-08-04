@@ -2,7 +2,6 @@ package gitbucket.core.service
 
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.util.{DatabaseConfig, Directory, FileUtil, JGitUtil}
-import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
@@ -19,6 +18,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
 
 import scala.util.Random
+import scala.util.Using
 
 trait ServiceSpecBase extends MockitoSugar {
 
@@ -58,7 +58,7 @@ trait ServiceSpecBase extends MockitoSugar {
     FileUtil.withTmpDir(new File(FileUtils.getTempDirectory(), Random.alphanumeric.take(10).mkString)) { dir =>
       val (url, user, pass) = (DatabaseConfig.url(Some(dir.toString)), DatabaseConfig.user, DatabaseConfig.password)
       org.h2.Driver.load()
-      using(DriverManager.getConnection(url, user, pass)) { conn =>
+      Using.resource(DriverManager.getConnection(url, user, pass)) { conn =>
         val solidbase = new Solidbase()
         val db = new H2Database()
         db.setConnection(new JdbcConnection(conn)) // TODO Remove setConnection in the future

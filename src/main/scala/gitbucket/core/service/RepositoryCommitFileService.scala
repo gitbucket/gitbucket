@@ -8,11 +8,11 @@ import gitbucket.core.service.WebHookService.WebHookPushPayload
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.{JGitUtil, LockUtil}
-import gitbucket.core.util.SyntaxSugars.using
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
+import scala.util.Using
 
 trait RepositoryCommitFileService {
   self: AccountService with ActivityService with IssuesService with PullRequestService with WebHookPullRequestService =>
@@ -117,7 +117,7 @@ trait RepositoryCommitFileService {
   )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headName = s"refs/heads/${branch}"

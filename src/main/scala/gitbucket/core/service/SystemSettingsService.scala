@@ -8,6 +8,7 @@ import gitbucket.core.service.SystemSettingsService._
 import gitbucket.core.util.ConfigUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.SyntaxSugars._
+import scala.util.Using
 
 trait SystemSettingsService {
 
@@ -70,7 +71,7 @@ trait SystemSettingsService {
       props.setProperty(SkinName, settings.skinName.toString)
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
 
-      using(new java.io.FileOutputStream(GitBucketConf)) { out =>
+      Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
       }
     }
@@ -79,7 +80,7 @@ trait SystemSettingsService {
   def loadSystemSettings(): SystemSettings = {
     defining(new java.util.Properties()) { props =>
       if (GitBucketConf.exists) {
-        using(new java.io.FileInputStream(GitBucketConf)) { in =>
+        Using.resource(new java.io.FileInputStream(GitBucketConf)) { in =>
           props.load(in)
         }
       }

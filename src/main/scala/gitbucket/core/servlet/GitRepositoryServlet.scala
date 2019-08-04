@@ -4,6 +4,8 @@ import java.io.File
 import java.util
 import java.util.Date
 
+import scala.util.Using
+
 import gitbucket.core.api
 import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
@@ -144,7 +146,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
               }
 
               res.setContentType("application/vnd.git-lfs+json")
-              using(res.getWriter) { out =>
+              Using.resource(res.getWriter) { out =>
                 out.print(write(batchResponse))
                 out.flush()
               }
@@ -254,7 +256,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
             }
         }
-        using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
           existIds = JGitUtil.getAllCommitIds(git)
         }
       } catch {
@@ -269,7 +271,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     Database() withTransaction { implicit session =>
       try {
-        using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
           JGitUtil.removeCache(git)
 
           val pushedIds = scala.collection.mutable.Set[String]()
@@ -293,7 +295,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             if (JGitUtil.isEmpty(git) && commits.nonEmpty && branchName != repositoryInfo.repository.defaultBranch) {
               saveRepositoryDefaultBranch(owner, repository, branchName)
               // Change repository HEAD
-              using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+              Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
                 git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + branchName)
               }
             }
@@ -447,7 +449,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
 
           commitIds.foreach {
             case (oldCommitId, newCommitId) =>
-              val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+              val commits = Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
                 JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
                   val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
                   diffs.collect {

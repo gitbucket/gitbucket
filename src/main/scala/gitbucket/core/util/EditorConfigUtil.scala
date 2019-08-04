@@ -12,7 +12,8 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{ObjectReader, Repository}
 import org.eclipse.jgit.revwalk.{RevTree, RevWalk}
 import org.eclipse.jgit.treewalk.TreeWalk
-import gitbucket.core.util.SyntaxSugars._
+
+import scala.util.Using
 
 object EditorConfigUtil {
   private class JGitResource(repo: Repository, revStr: String, path: Ec4jPath) extends Resource {
@@ -27,7 +28,7 @@ object EditorConfigUtil {
     }
 
     private def getRevTree: RevTree = {
-      using(repo.newObjectReader()) { reader: ObjectReader =>
+      Using.resource(repo.newObjectReader()) { reader: ObjectReader =>
         val revWalk = new RevWalk(reader)
         val id = repo.resolve(revStr)
         val commit = revWalk.parseCommit(id)
@@ -36,7 +37,7 @@ object EditorConfigUtil {
     }
 
     override def exists(): Boolean = {
-      using(repo.newObjectReader()) { reader: ObjectReader =>
+      Using.resource(repo.newObjectReader()) { reader: ObjectReader =>
         try {
           val treeWalk = Option(TreeWalk.forPath(reader, removeInitialSlash(path), getRevTree))
           treeWalk.isDefined
@@ -59,7 +60,7 @@ object EditorConfigUtil {
     }
 
     override def openReader(): Reader = {
-      using(repo.newObjectReader) { reader: ObjectReader =>
+      Using.resource(repo.newObjectReader) { reader: ObjectReader =>
         val treeWalk = TreeWalk.forPath(reader, removeInitialSlash(path), getRevTree)
         new InputStreamReader(reader.open(treeWalk.getObjectId(0)).openStream, StandardCharsets.UTF_8)
       }

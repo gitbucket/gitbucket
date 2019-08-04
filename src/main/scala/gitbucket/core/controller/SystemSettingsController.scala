@@ -19,6 +19,7 @@ import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Using
 
 class SystemSettingsController
     extends SystemSettingsControllerBase
@@ -225,20 +226,20 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     val conn = request2Session(request).conn
     val meta = conn.getMetaData
     val tables = ListBuffer[Table]()
-    using(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))) {
+    Using.resource(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))) {
       rs =>
         while (rs.next()) {
           val tableName = rs.getString("TABLE_NAME")
 
           val pkColumns = ListBuffer[String]()
-          using(meta.getPrimaryKeys(null, null, tableName)) { rs =>
+          Using.resource(meta.getPrimaryKeys(null, null, tableName)) { rs =>
             while (rs.next()) {
               pkColumns += rs.getString("COLUMN_NAME").toUpperCase
             }
           }
 
           val columns = ListBuffer[Column]()
-          using(meta.getColumns(null, "%", tableName, "%")) { rs =>
+          Using.resource(meta.getColumns(null, "%", tableName, "%")) { rs =>
             while (rs.next()) {
               val columnName = rs.getString("COLUMN_NAME").toUpperCase
               columns += Column(columnName, pkColumns.contains(columnName))
@@ -259,10 +260,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         if (trimmedQuery.nonEmpty) {
           try {
             val conn = request2Session(request).conn
-            using(conn.prepareStatement(query)) {
+            Using.resource(conn.prepareStatement(query)) {
               stmt =>
                 if (trimmedQuery.toUpperCase.startsWith("SELECT")) {
-                  using(stmt.executeQuery()) {
+                  Using.resource(stmt.executeQuery()) {
                     rs =>
                       val meta = rs.getMetaData
                       val columns = for (i <- 1 to meta.getColumnCount) yield {
@@ -516,7 +517,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
     response.setContentLength(file.length.toInt)
 
-    using(new FileInputStream(file)) { in =>
+    Using.resource(new FileInputStream(file)) { in =>
       IOUtils.copy(in, response.outputStream)
     }
 

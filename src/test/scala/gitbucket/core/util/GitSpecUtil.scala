@@ -1,7 +1,5 @@
 package gitbucket.core.util
 
-import gitbucket.core.util.SyntaxSugars._
-
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
@@ -13,6 +11,7 @@ import org.eclipse.jgit.errors._
 
 import java.nio.file._
 import java.io.File
+import scala.util.Using
 
 object GitSpecUtil {
 
@@ -28,7 +27,8 @@ object GitSpecUtil {
     }
   }
 
-  def withTestRepository[U](f: Git => U): U = withTestFolder(folder => using(Git.open(createTestRepository(folder)))(f))
+  def withTestRepository[U](f: Git => U): U =
+    withTestFolder(folder => Using.resource(Git.open(createTestRepository(folder)))(f))
 
   def createTestRepository(dir: File): File = {
     RepositoryCache.clear()
@@ -81,7 +81,7 @@ object GitSpecUtil {
 
   def getFile(git: Git, branch: String, path: String) = {
     val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
-    val objectId = using(new TreeWalk(git.getRepository)) { walk =>
+    val objectId = Using.resource(new TreeWalk(git.getRepository)) { walk =>
       walk.addTree(revCommit.getTree)
       walk.setRecursive(true)
       @scala.annotation.tailrec
@@ -108,7 +108,7 @@ object GitSpecUtil {
     if (conflicted) {
       throw new RuntimeException("conflict!")
     }
-    val mergeTipCommit = using(new RevWalk(repository))(_.parseCommit(mergeTip))
+    val mergeTipCommit = Using.resource(new RevWalk(repository))(_.parseCommit(mergeTip))
     val committer = mergeTipCommit.getCommitterIdent
     // creates merge commit
     val mergeCommit = new CommitBuilder()

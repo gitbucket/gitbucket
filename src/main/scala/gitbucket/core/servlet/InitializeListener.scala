@@ -9,7 +9,6 @@ import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.JDBCUtil._
 import gitbucket.core.model.Profile.profile.blockingApi._
 // Imported names have higher precedence than names, defined in other files.
@@ -26,6 +25,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 /**
  * Initialize GitBucket system.
@@ -142,7 +142,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     logger.info("Extract bundled plugins...")
     val cl = Thread.currentThread.getContextClassLoader
     try {
-      using(cl.getResourceAsStream("bundle-plugins.txt")) { pluginsFile =>
+      Using.resource(cl.getResourceAsStream("bundle-plugins.txt")) { pluginsFile =>
         if (pluginsFile != null) {
           val plugins = IOUtils.readLines(pluginsFile, "UTF-8")
           val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
@@ -157,7 +157,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
                   logger.info(s"Extract to ${file.getAbsolutePath}")
 
                   FileUtils.forceMkdirParent(file)
-                  using(in, new FileOutputStream(file)) {
+                  Using.resources(in, new FileOutputStream(file)) {
                     case (in, out) => IOUtils.copy(in, out)
                   }
                 }

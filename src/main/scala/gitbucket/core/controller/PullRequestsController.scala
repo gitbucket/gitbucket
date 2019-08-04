@@ -1,7 +1,5 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.{CommitComment, CommitComments, IssueComment, WebHook}
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
@@ -15,11 +13,9 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.{ObjectId, PersonIdent}
-import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.BadRequest
 
-import scala.collection.JavaConverters._
+import scala.util.Using
 
 class PullRequestsController
     extends PullRequestsControllerBase
@@ -273,7 +269,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       } else {
         if (repository.repository.defaultBranch != pullreq.requestBranch) {
           val userName = context.loginAccount.get.userName
-          using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
             git.branchDelete().setForce(true).setBranchNames(pullreq.requestBranch).call()
             recordDeleteBranchActivity(repository.owner, repository.name, userName, pullreq.requestBranch)
           }
@@ -316,9 +312,11 @@ trait PullRequestsControllerBase extends ControllerBase {
             } else {
               s"${pullreq.userName}:${pullreq.branch}"
             }
-          val existIds = using(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
-            JGitUtil.getAllCommitIds(git)
-          }.toSet
+          val existIds = Using
+            .resource(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
+              JGitUtil.getAllCommitIds(git)
+            }
+            .toSet
           pullRemote(
             repository,
             pullreq.requestBranch,
@@ -372,7 +370,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       case (Some(originUserName), Some(originRepositoryName)) => {
         getRepository(originUserName, originRepositoryName).map {
           originRepository =>
-            using(
+            Using.resources(
               Git.open(getRepositoryDir(originUserName, originRepositoryName)),
               Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
             ) { (oldGit, newGit) =>
@@ -388,7 +386,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         } getOrElse NotFound()
       }
       case _ => {
-        using(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))) { git =>
+        Using.resource(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))) { git =>
           JGitUtil.getDefaultBranch(git, forkedRepository).map {
             case (_, defaultBranch) =>
               redirect(
@@ -510,7 +508,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             }
           };
           originRepository <- getRepository(originOwner, originRepositoryName)) yield {
-      using(
+      Using.resources(
         Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
         Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
       ) {
@@ -585,7 +583,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       context.loginAccount.map(x => Seq(x.mailAddress) ++ getAccountExtraMailAddresses(x.userName)).getOrElse(Nil)
 
     val branches =
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
         git =>
           JGitUtil
             .getBranches(
