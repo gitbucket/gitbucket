@@ -13,7 +13,7 @@ import gitbucket.core.util._
 import org.eclipse.jgit.api.Git
 import org.scalatra.NoContent
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait ApiPullRequestControllerBase extends ControllerBase {
   self: AccountService

@@ -4,9 +4,10 @@ import java.io.File
 import java.util
 import java.util.Date
 
+import scala.util.Using
+
 import gitbucket.core.api
 import gitbucket.core.model.WebHook
-import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
@@ -14,6 +15,11 @@ import gitbucket.core.service._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
+import gitbucket.core.model.Profile.profile.blockingApi._
+// Imported names have higher precedence than names, defined in other files.
+// If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
+import gitbucket.core.servlet.Database
+
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.http.server.GitServlet
 import org.eclipse.jgit.lib._
@@ -108,7 +114,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                             GitLfs.Action(
                               href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
                               header =
-                                Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                                Map("Authorization" -> StringUtil.encodeBlowfish(s"$timeout ${requestObject.oid}")),
                               expires_at = new Date(timeout)
                             )
                           )
@@ -129,7 +135,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                             GitLfs.Action(
                               href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
                               header =
-                                Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                                Map("Authorization" -> StringUtil.encodeBlowfish(s"$timeout ${requestObject.oid}")),
                               expires_at = new Date(timeout)
                             )
                           )
@@ -140,7 +146,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
               }
 
               res.setContentType("application/vnd.git-lfs+json")
-              using(res.getWriter) { out =>
+              Using.resource(res.getWriter) { out =>
                 out.print(write(batchResponse))
                 out.flush()
               }
@@ -216,7 +222,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   }
 }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
     extends PostReceiveHook
@@ -250,7 +256,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
             }
         }
-        using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
           existIds = JGitUtil.getAllCommitIds(git)
         }
       } catch {
@@ -265,7 +271,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     Database() withTransaction { implicit session =>
       try {
-        using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
           JGitUtil.removeCache(git)
 
           val pushedIds = scala.collection.mutable.Set[String]()
@@ -289,7 +295,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             if (JGitUtil.isEmpty(git) && commits.nonEmpty && branchName != repositoryInfo.repository.defaultBranch) {
               saveRepositoryDefaultBranch(owner, repository, branchName)
               // Change repository HEAD
-              using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+              Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
                 git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + branchName)
               }
             }
@@ -443,7 +449,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
 
           commitIds.foreach {
             case (oldCommitId, newCommitId) =>
-              val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+              val commits = Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
                 JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
                   val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
                   diffs.collect {

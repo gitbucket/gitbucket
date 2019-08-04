@@ -16,6 +16,8 @@ import org.scalatra._
 import org.scalatra.servlet.{FileItem, FileUploadSupport, MultipartConfig}
 import org.apache.commons.io.{FileUtils, IOUtils}
 
+import scala.util.Using
+
 /**
  * Provides Ajax based file upload functionality.
  *
@@ -80,7 +82,7 @@ class FileUploadController
             { (file, fileId) =>
               val fileName = file.getName
               LockUtil.lock(s"${owner}/${repository}/wiki") {
-                using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) {
+                Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) {
                   git =>
                     val builder = DirCache.newInCore.builder()
                     val inserter = git.getRepository.newObjectInserter()

@@ -4,7 +4,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.31.2"
-val ScalatraVersion = "2.6.3"
+val ScalatraVersion = "2.7.0-RC1"
 val JettyVersion = "9.4.14.v20181114"
 val JgitVersion = "5.2.0.201812061821-r"
 
@@ -17,7 +17,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.8"
+scalaVersion := "2.13.0"
 
 scalafmtOnCompile := true
 
@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "3.5.2",
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.7",
   "commons-io"                      % "commons-io"                   % "2.6",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.6",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "1.19.1",
-  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.11",
+  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.197",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.4.2",
@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.0.Final",
-  "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.7.0-akka-2.5.x" exclude ("c3p0", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
+  "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.8.1-akka-2.5.x" exclude ("com.mchange", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
   "net.coobird"                     % "thumbnailator"                % "0.4.8",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
@@ -77,7 +77,7 @@ libraryDependencies ++= Seq(
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method", "-Xfuture")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 

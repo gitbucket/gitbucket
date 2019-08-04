@@ -3,10 +3,11 @@ import gitbucket.core.api.{ApiObject, ApiRef, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.ReferrerAuthenticator
-import gitbucket.core.util.SyntaxSugars.using
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
-import scala.collection.JavaConverters._
+
+import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
   self: ReferrerAuthenticator =>
@@ -17,7 +18,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     val revstr = multiParams("splat").head
-    using(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository().findRef(revstr)
 
       if (ref != null) {

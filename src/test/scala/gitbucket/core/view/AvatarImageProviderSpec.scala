@@ -10,7 +10,7 @@ import gitbucket.core.service.RequestCache
 import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
 import org.mockito.Mockito._
 import org.scalatest.FunSpec
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.twirl.api.Html
 
 class AvatarImageProviderSpec extends FunSpec with MockitoSugar {

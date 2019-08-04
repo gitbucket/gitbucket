@@ -55,6 +55,7 @@ trait WebHookService {
       .map { case (w, t) => w -> t.event }
       .list
       .groupBy(_._1)
+      .view
       .mapValues(_.map(_._2).toSet)
       .toList
       .sortBy(_._1.url)
@@ -87,6 +88,7 @@ trait WebHookService {
       .map { case (w, t) => w -> t.event }
       .list
       .groupBy(_._1)
+      .view
       .mapValues(_.map(_._2).toSet)
       .headOption
 
@@ -136,6 +138,7 @@ trait WebHookService {
       .map { case (w, t) => w -> t.event }
       .list
       .groupBy(_._1)
+      .view
       .mapValues(_.map(_._2).toSet)
       .toList
       .sortBy(_._1.url)
@@ -164,6 +167,7 @@ trait WebHookService {
       .map { case (w, t) => w -> t.event }
       .list
       .groupBy(_._1)
+      .view
       .mapValues(_.map(_._2).toSet)
       .headOption
 
@@ -396,7 +400,7 @@ trait WebHookPullRequestService extends WebHookService {
       if wht.event === WebHook.PullRequest.asInstanceOf[WebHook.Event].bind && wht.byRepositoryWebHook(wh)
     } yield {
       ((is, iu, pr, bu, ru), wh)
-    }).list.groupBy(_._1).mapValues(_.map(_._2))
+    }).list.groupBy(_._1).map { case (k, v) => (k, v.map(_._2)) }
 
   def callPullRequestWebHookByRequestBranch(
     action: String,

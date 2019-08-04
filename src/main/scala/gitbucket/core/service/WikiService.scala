@@ -14,7 +14,9 @@ import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
 import java.io.ByteArrayInputStream
 import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
-import scala.collection.JavaConverters._
+
+import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 object WikiService {
 
@@ -73,7 +75,7 @@ trait WikiService {
    * Returns the wiki page.
    */
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
-    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+    Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       if (!JGitUtil.isEmpty(git)) {
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(
@@ -92,7 +94,7 @@ trait WikiService {
    * Returns the list of wiki page names.
    */
   def getWikiPageList(owner: String, repository: String): List[String] = {
-    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+    Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       JGitUtil
         .getFileList(git, "master", ".")
         .filter(_.name.endsWith(".md"))
@@ -118,7 +120,7 @@ trait WikiService {
 
     try {
       LockUtil.lock(s"${owner}/${repository}/wiki") {
-        using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+        Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
           val reader = git.getRepository.newObjectReader
           val oldTreeIter = new CanonicalTreeParser
           oldTreeIter.reset(reader, git.getRepository.resolve(from + "^{tree}"))
@@ -133,7 +135,7 @@ trait WikiService {
             }
           }
 
-          val patch = using(new java.io.ByteArrayOutputStream()) { out =>
+          val patch = Using.resource(new java.io.ByteArrayOutputStream()) { out =>
             val formatter = new DiffFormatter(out)
             formatter.setRepository(git.getRepository)
             formatter.format(diffs.asJava)
@@ -237,7 +239,7 @@ trait WikiService {
     currentId: Option[String]
   ): Option[String] = {
     LockUtil.lock(s"${owner}/${repository}/wiki") {
-      using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+      Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headId = git.getRepository.resolve(Constants.HEAD + "^{commit}")
@@ -309,7 +311,7 @@ trait WikiService {
     message: String
   ): Unit = {
     LockUtil.lock(s"${owner}/${repository}/wiki") {
-      using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+      Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headId = git.getRepository.resolve(Constants.HEAD + "^{commit}")

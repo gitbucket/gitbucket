@@ -6,12 +6,12 @@ import gitbucket.core.servlet.Database
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.SyntaxSugars.using
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jgit.api.Git
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.Using
 
 trait ApiRepositoryControllerBase extends ControllerBase {
   self: RepositoryService
@@ -193,7 +193,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repository/raw/*")(referrersOnly { repository =>
     val (id, path) = repository.splitPath(multiParams("splat").head)
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
       getPathObjectId(git, path, revCommit).map { objectId =>

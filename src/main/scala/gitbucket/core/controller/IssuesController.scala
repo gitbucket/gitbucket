@@ -145,7 +145,7 @@ trait IssuesControllerBase extends ControllerBase {
         form.assignedUserName,
         form.milestoneId,
         form.priorityId,
-        form.labelNames.toArray.flatMap(_.split(",")),
+        form.labelNames.toSeq.flatMap(_.split(",")),
         context.loginAccount.get
       )
 

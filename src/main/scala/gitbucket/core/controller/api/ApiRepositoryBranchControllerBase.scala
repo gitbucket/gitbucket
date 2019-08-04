@@ -3,11 +3,11 @@ import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, ProtectedBranchService, RepositoryService}
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil.getBranches
 import org.eclipse.jgit.api.Git
+import scala.util.Using
 
 trait ApiRepositoryBranchControllerBase extends ControllerBase {
   self: RepositoryService
@@ -25,7 +25,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/branches/#list-branches
    */
   get("/api/v3/repos/:owner/:repository/branches")(referrersOnly { repository =>
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       JsonFormat(
         JGitUtil
           .getBranches(
@@ -45,7 +45,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/branches/#get-branch
    */
   get("/api/v3/repos/:owner/:repository/branches/*")(referrersOnly { repository =>
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
         (for {
           branch <- params.get("splat") if repository.branchList.contains(branch)
@@ -214,7 +214,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    */
   patch("/api/v3/repos/:owner/:repository/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
         (for {
           branch <- params.get("splat") if repository.branchList.contains(branch)

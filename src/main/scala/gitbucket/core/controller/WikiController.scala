@@ -13,6 +13,7 @@ import gitbucket.core.util.Directory._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
+import scala.util.Using
 
 class WikiController
     extends WikiControllerBase
@@ -90,7 +91,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/:page/_history")(referrersOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
 
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
       JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
         case Right((logs, hasNext)) => html.history(Some(pageName), logs, repository, isEditable(repository))
         case Left(_)                => NotFound()
@@ -102,7 +103,7 @@ trait WikiControllerBase extends ControllerBase {
     val pageName = StringUtil.urlDecode(params("page"))
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
       html.compare(
         Some(pageName),
         from,
@@ -118,7 +119,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/_compare/:commitId")(referrersOnly { repository =>
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
       html.compare(
         None,
         from,
@@ -139,7 +140,7 @@ trait WikiControllerBase extends ControllerBase {
       if (revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))) {
         redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
       } else {
-        flash += "info" -> "This patch was not able to be reversed."
+        flash.update("info", "This patch was not able to be reversed.")
         redirect(
           s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}"
         )
@@ -154,7 +155,7 @@ trait WikiControllerBase extends ControllerBase {
       if (revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)) {
         redirect(s"/${repository.owner}/${repository.name}/wiki")
       } else {
-        flash += "info" -> "This patch was not able to be reversed."
+        flash.update("info", "This patch was not able to be reversed.")
         redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
       }
     } else Unauthorized()
@@ -269,7 +270,7 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
       JGitUtil.getCommitLog(git, "master") match {
         case Right((logs, hasNext)) => html.history(None, logs, repository, isEditable(repository))
         case Left(_)                => NotFound()
@@ -279,7 +280,7 @@ trait WikiControllerBase extends ControllerBase {
 
   get("/:owner/:repository/wiki/_blob/*")(referrersOnly { repository =>
     val path = multiParams("splat").head
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
+    Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("master"))
 
       getPathObjectId(git, path, revCommit).map { objectId =>

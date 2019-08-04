@@ -19,6 +19,7 @@ import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Using
 
 class SystemSettingsController
     extends SystemSettingsControllerBase
@@ -225,30 +226,30 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     val conn = request2Session(request).conn
     val meta = conn.getMetaData
     val tables = ListBuffer[Table]()
-    using(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))) {
+    Using.resource(meta.getTables(null, "%", "%", Array("TABLE", "VIEW"))) {
       rs =>
         while (rs.next()) {
           val tableName = rs.getString("TABLE_NAME")
 
           val pkColumns = ListBuffer[String]()
-          using(meta.getPrimaryKeys(null, null, tableName)) { rs =>
+          Using.resource(meta.getPrimaryKeys(null, null, tableName)) { rs =>
             while (rs.next()) {
               pkColumns += rs.getString("COLUMN_NAME").toUpperCase
             }
           }
 
           val columns = ListBuffer[Column]()
-          using(meta.getColumns(null, "%", tableName, "%")) { rs =>
+          Using.resource(meta.getColumns(null, "%", tableName, "%")) { rs =>
             while (rs.next()) {
               val columnName = rs.getString("COLUMN_NAME").toUpperCase
               columns += Column(columnName, pkColumns.contains(columnName))
             }
           }
 
-          tables += Table(tableName.toUpperCase, columns)
+          tables += Table(tableName.toUpperCase, columns.toSeq)
         }
     }
-    html.dbviewer(tables)
+    html.dbviewer(tables.toSeq)
   })
 
   post("/admin/dbviewer/_query")(adminOnly {
@@ -259,10 +260,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         if (trimmedQuery.nonEmpty) {
           try {
             val conn = request2Session(request).conn
-            using(conn.prepareStatement(query)) {
+            Using.resource(conn.prepareStatement(query)) {
               stmt =>
                 if (trimmedQuery.toUpperCase.startsWith("SELECT")) {
-                  using(stmt.executeQuery()) {
+                  Using.resource(stmt.executeQuery()) {
                     rs =>
                       val meta = rs.getMetaData
                       val columns = for (i <- 1 to meta.getColumnCount) yield {
@@ -305,7 +306,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       } SshServer.start(sshAddress, baseUrl)
     }
 
-    flash += "info" -> "System settings has been updated."
+    flash.update("info", "System settings has been updated.")
     redirect("/admin/system")
   })
 
@@ -333,7 +334,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   post("/admin/plugins/_reload")(adminOnly {
     PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
-    flash += "info" -> "All plugins were reloaded."
+    flash.update("info", "All plugins were reloaded.")
     redirect("/admin/plugins")
   })
 
@@ -343,7 +344,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
       PluginRegistry
         .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-      flash += "info" -> s"${pluginId} was uninstalled."
+      flash.update("info", s"${pluginId} was uninstalled.")
     }
 
     redirect("/admin/plugins")
@@ -391,7 +392,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     getAccountByUserName(userName, true).map {
       account =>
         if (account.isAdmin && (form.isRemoved || !form.isAdmin) && isLastAdministrator(account)) {
-          flash += "error" -> "Account can't be turned off because this is last one administrator."
+          flash.update("error", "Account can't be turned off because this is last one administrator.")
           redirect(s"/admin/users/${userName}/_edituser")
         } else {
           if (form.isRemoved) {
@@ -516,7 +517,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
     response.setContentLength(file.length.toInt)
 
-    using(new FileInputStream(file)) { in =>
+    Using.resource(new FileInputStream(file)) { in =>
       IOUtils.copy(in, response.outputStream)
     }
 

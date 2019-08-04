@@ -17,7 +17,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters.{asScalaSet, mapAsJavaMap}
+import scala.jdk.CollectionConverters._
 
 /**
  * Service class for the OpenID Connect authentication.
@@ -101,7 +101,7 @@ trait OpenIDConnectService {
     redirectURI: URI
   ): Option[AuthenticationSuccessResponse] =
     try {
-      AuthenticationResponseParser.parse(redirectURI, mapAsJavaMap(params)) match {
+      AuthenticationResponseParser.parse(redirectURI, params.asJava) match {
         case response: AuthenticationSuccessResponse =>
           if (response.getState == state) {
             Some(response)
@@ -207,5 +207,5 @@ object OpenIDConnectService {
     "RSA" -> Family.RSA,
     "ECDSA" -> Family.EC,
     "EdDSA" -> Family.ED
-  ).toMap.map { case (name, family) => (name, asScalaSet(family).toSet) }
+  ).toMap.map { case (name, family) => (name, family.asScala.toSet) }
 }

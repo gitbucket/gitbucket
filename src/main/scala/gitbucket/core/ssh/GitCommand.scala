@@ -11,13 +11,13 @@ import org.apache.sshd.server.session.ServerSession
 import org.slf4j.LoggerFactory
 import java.io.{File, InputStream, OutputStream}
 
-import SyntaxSugars._
 import org.eclipse.jgit.api.Git
 import Directory._
 import gitbucket.core.ssh.PublicKeyAuthenticator.AuthType
 import org.eclipse.jgit.transport.{ReceivePack, UploadPack}
 import org.apache.sshd.server.shell.UnknownCommand
 import org.eclipse.jgit.errors.RepositoryNotFoundException
+import scala.util.Using
 
 object GitCommand {
   val DefaultCommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-\+_.]+).git'\Z""".r
@@ -152,7 +152,7 @@ class DefaultGitUploadPack(owner: String, repoName: String)
     }
 
     if (execute) {
-      using(Git.open(getRepositoryDir(owner, repoName))) { git =>
+      Using.resource(Git.open(getRepositoryDir(owner, repoName))) { git =>
         val repository = git.getRepository
         val upload = new UploadPack(repository)
         upload.upload(in, out, err)
@@ -177,7 +177,7 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, ss
     }
 
     if (execute) {
-      using(Git.open(getRepositoryDir(owner, repoName))) { git =>
+      Using.resource(Git.open(getRepositoryDir(owner, repoName))) { git =>
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
         if (!repoName.endsWith(".wiki")) {
@@ -202,7 +202,7 @@ class PluginGitUploadPack(repoName: String, routing: GitRepositoryRouting)
 
     if (execute) {
       val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
-      using(Git.open(new File(Directory.GitBucketHome, path))) { git =>
+      Using.resource(Git.open(new File(Directory.GitBucketHome, path))) { git =>
         val repository = git.getRepository
         val upload = new UploadPack(repository)
         upload.upload(in, out, err)
@@ -222,7 +222,7 @@ class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting)
 
     if (execute) {
       val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
-      using(Git.open(new File(Directory.GitBucketHome, path))) { git =>
+      Using.resource(Git.open(new File(Directory.GitBucketHome, path))) { git =>
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
         receive.receive(in, out, err)

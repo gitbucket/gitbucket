@@ -3,9 +3,9 @@ package gitbucket.core.util
 import java.io._
 import java.sql._
 import java.text.SimpleDateFormat
-import SyntaxSugars._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.util.Using
 
 /**
  * Provides implicit class which extends java.sql.Connection.
@@ -26,7 +26,7 @@ object JDBCUtil {
 
     def find[T](sql: String, params: Any*)(f: ResultSet => T): Option[T] = {
       execute(sql, params: _*) { stmt =>
-        using(stmt.executeQuery()) { rs =>
+        Using.resource(stmt.executeQuery()) { rs =>
           if (rs.next) Some(f(rs)) else None
         }
       }
@@ -34,7 +34,7 @@ object JDBCUtil {
 
     def select[T](sql: String, params: Any*)(f: ResultSet => T): Seq[T] = {
       execute(sql, params: _*) { stmt =>
-        using(stmt.executeQuery()) { rs =>
+        Using.resource(stmt.executeQuery()) { rs =>
           val list = new ListBuffer[T]
           while (rs.next) {
             list += f(rs)
@@ -46,14 +46,14 @@ object JDBCUtil {
 
     def selectInt(sql: String, params: Any*): Int = {
       execute(sql, params: _*) { stmt =>
-        using(stmt.executeQuery()) { rs =>
+        Using.resource(stmt.executeQuery()) { rs =>
           if (rs.next) rs.getInt(1) else 0
         }
       }
     }
 
     private def execute[T](sql: String, params: Any*)(f: (PreparedStatement) => T): T = {
-      using(conn.prepareStatement(sql)) { stmt =>
+      Using.resource(conn.prepareStatement(sql)) { stmt =>
         params.zipWithIndex.foreach {
           case (p, i) =>
             p match {
@@ -68,7 +68,7 @@ object JDBCUtil {
     def importAsSQL(in: InputStream): Unit = {
       conn.setAutoCommit(false)
       try {
-        using(in) { in =>
+        Using.resource(in) { in =>
           var out = new ByteArrayOutputStream()
 
           var length = 0
@@ -111,7 +111,7 @@ object JDBCUtil {
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
       val file = File.createTempFile("gitbucket-export-", ".sql")
 
-      using(new FileOutputStream(file)) { out =>
+      Using.resource(new FileOutputStream(file)) { out =>
         val dbMeta = conn.getMetaData
         val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
 
@@ -168,7 +168,7 @@ object JDBCUtil {
     }
 
     def allTableNames(): Seq[String] = {
-      using(conn.getMetaData.getTables(null, null, "%", Seq("TABLE").toArray)) { rs =>
+      Using.resource(conn.getMetaData.getTables(null, null, "%", Seq("TABLE").toArray)) { rs =>
         val tableNames = new ListBuffer[String]
         while (rs.next) {
           val name = rs.getString("TABLE_NAME").toUpperCase
@@ -188,7 +188,7 @@ object JDBCUtil {
           tableName
         }
 
-      using(meta.getExportedKeys(null, null, normalizedTableName)) { rs =>
+      Using.resource(meta.getExportedKeys(null, null, normalizedTableName)) { rs =>
         val children = new ListBuffer[String]
         while (rs.next) {
           val childTableName = rs.getString("FKTABLE_NAME").toUpperCase
@@ -218,7 +218,7 @@ object JDBCUtil {
       ordered ++ orphans
     }
 
-    def tsort[A](edges: Traversable[(A, A)]): Iterable[A] = {
+    def tsort[A](edges: Iterable[(A, A)]): Iterable[A] = {
       @tailrec
       def tsort(toPreds: Map[A, Set[A]], done: Iterable[A]): Iterable[A] = {
         val (noPreds, hasPreds) = toPreds.partition { _._2.isEmpty }
@@ -226,7 +226,7 @@ object JDBCUtil {
           if (hasPreds.isEmpty) done else sys.error(hasPreds.toString)
         } else {
           val found = noPreds.map { _._1 }
-          tsort(hasPreds.mapValues { _ -- found }, done ++ found)
+          tsort(hasPreds.map { case (k, v) => (k, v -- found) }, done ++ found)
         }
       }
 

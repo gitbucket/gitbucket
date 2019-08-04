@@ -17,17 +17,15 @@ import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.HttpClientUtil._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
-import org.apache.http.client.methods.HttpGet
 import org.apache.sshd.server.command.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PluginRegistry {
 
@@ -415,7 +413,6 @@ case class PluginInfo(
 
 class PluginWatchThread(context: ServletContext, dir: String) extends Thread with SystemSettingsService {
   import gitbucket.core.model.Profile.profile.blockingApi._
-  import scala.collection.JavaConverters._
 
   private val logger = LoggerFactory.getLogger(classOf[PluginWatchThread])
 
@@ -445,7 +442,7 @@ class PluginWatchThread(context: ServletContext, dir: String) extends Thread wit
         }
         if (events.nonEmpty) {
           events.foreach { event =>
-            logger.info(event.kind + ": " + event.context)
+            logger.info(s"${event.kind}: ${event.context}")
           }
           new Thread {
             override def run(): Unit = {

@@ -22,7 +22,7 @@
 <script>
 $(function(){
   $('#submit-@labelId').click(function(e){
-    $.post('@helpers.url(repository)/issues/labels/@{if(labelId == "new") "new" else labelId + "/edit"}', {
+    $.post('@helpers.url(repository)/issues/labels/@{if(labelId == "new") "new" else s"$labelId/edit"}', {
       'labelName' : $('#labelName-@labelId').val(),
       'labelColor': $('#labelColor-@labelId').val()
     }, function(data, status){

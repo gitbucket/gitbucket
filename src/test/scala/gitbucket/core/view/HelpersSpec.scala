@@ -3,7 +3,7 @@ package gitbucket.core.view
 import gitbucket.core.controller.Context
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.scalatest.FunSpec
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import java.util.Date
 import java.util.TimeZone
 

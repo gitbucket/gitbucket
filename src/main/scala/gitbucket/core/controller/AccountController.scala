@@ -5,7 +5,6 @@ import java.io.File
 import gitbucket.core.account.html
 import gitbucket.core.helper
 import gitbucket.core.model._
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.ssh.SshUtil
@@ -347,7 +346,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
         updateImage(userName, form.fileId, form.clearImage)
         updateAccountExtraMailAddresses(userName, form.extraMailAddresses.filter(_ != ""))
-        flash += "info" -> "Account information has been updated."
+        flash.update("info", "Account information has been updated.")
         redirect(s"/${userName}/_edit")
 
     } getOrElse NotFound()
@@ -359,7 +358,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     getAccountByUserName(userName, true).map {
       account =>
         if (isLastAdministrator(account)) {
-          flash += "error" -> "Account can't be removed because this is last one administrator."
+          flash.update("error", "Account can't be removed because this is last one administrator.")
           redirect(s"/${userName}/_edit")
         } else {
 //      // Remove repositories
@@ -439,7 +438,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
       val (tokenId, token) = generateAccessToken(userName, form.note)
-      flash += "generatedToken" -> (tokenId, token)
+      flash.update("generatedToken", (tokenId, token))
     }
     redirect(s"/${userName}/_application")
   })
@@ -475,7 +474,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/:userName/_hooks/new", accountWebHookForm(false))(managersOnly { form =>
     val userName = params("userName")
     addAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
-    flash += "info" -> s"Webhook ${form.url} created"
+    flash.update("info", s"Webhook ${form.url} created")
     redirect(s"/${userName}/_hooks")
   })
 
@@ -485,7 +484,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_hooks/delete")(managersOnly {
     val userName = params("userName")
     deleteAccountWebHook(userName, params("url"))
-    flash += "info" -> s"Webhook ${params("url")} deleted"
+    flash.update("info", s"Webhook ${params("url")} deleted")
     redirect(s"/${userName}/_hooks")
   })
 
@@ -508,7 +507,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/:userName/_hooks/edit", accountWebHookForm(true))(managersOnly { form =>
     val userName = params("userName")
     updateAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
-    flash += "info" -> s"webhook ${form.url} updated"
+    flash.update("info", s"webhook ${form.url} updated")
     redirect(s"/${userName}/_hooks")
   })
 
@@ -543,7 +542,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))
       case e: java.lang.IllegalArgumentException             => Map("error" -> ("invalid url"))
       case e: org.apache.http.client.ClientProtocolException => Map("error" -> ("invalid url"))
-      case NonFatal(e)                                       => Map("error" -> (e.getClass + " " + e.getMessage))
+      case NonFatal(e)                                       => Map("error" -> (s"${e.getClass} ${e.getMessage}"))
     }
 
     contentType = formats("json")
@@ -683,7 +682,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
           updateImage(form.groupName, form.fileId, form.clearImage)
 
-          flash += "info" -> "Account information has been updated."
+          flash.update("info", "Account information has been updated.")
           redirect(s"/${groupName}/_editgroup")
 
         } getOrElse NotFound()

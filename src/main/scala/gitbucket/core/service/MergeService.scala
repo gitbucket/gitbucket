@@ -7,9 +7,6 @@ import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{JGitUtil, LockUtil}
-import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git
@@ -18,7 +15,8 @@ import org.eclipse.jgit.errors.NoMergeBaseException
 import org.eclipse.jgit.lib.{CommitBuilder, ObjectId, PersonIdent, Repository}
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 trait MergeService {
   self: AccountService
@@ -35,7 +33,7 @@ trait MergeService {
    * Returns true if conflict will be caused.
    */
   def checkConflict(userName: String, repositoryName: String, branch: String, issueId: Int): Option[String] = {
-    using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
+    Using.resource(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
       new MergeCacheInfo(git, branch, issueId).checkConflict()
     }
   }
@@ -52,7 +50,7 @@ trait MergeService {
     branch: String,
     issueId: Int
   ): Option[Option[String]] = {
-    using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
+    Using.resource(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
       new MergeCacheInfo(git, branch, issueId).checkConflictCache()
     }
   }
@@ -99,7 +97,7 @@ trait MergeService {
     requestBranch: String,
     issueId: Int
   ): Unit = {
-    using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
+    Using.resource(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
       git.fetch
         .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
         .setRefSpecs(new RefSpec(s"refs/heads/${requestBranch}:refs/pull/${issueId}/head"))
@@ -118,7 +116,7 @@ trait MergeService {
     remoteRepositoryName: String,
     remoteBranch: String
   ): Either[String, (ObjectId, ObjectId, ObjectId)] = {
-    using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+    Using.resource(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
       val remoteRefName = s"refs/heads/${remoteBranch}"
       val tmpRefName = s"refs/remote-temp/${remoteUserName}/${remoteRepositoryName}/${remoteBranch}"
       val refSpec = new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true)
@@ -177,7 +175,7 @@ trait MergeService {
     val remoteRepositoryName = remoteRepository.name
     tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch).map {
       case (newTreeId, oldBaseId, oldHeadId) =>
-        using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+        Using.resource(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
           val existIds = JGitUtil.getAllCommitIds(git).toSet
 
           val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
@@ -261,7 +259,7 @@ trait MergeService {
           getPullRequest(repository.owner, repository.name, issueId)
             .map {
               case (issue, pullreq) =>
-                using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+                Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
                   // mark issue as merged and close.
                   val commentId =
                     createComment(repository.owner, repository.name, loginAccount.userName, issueId, message, "merge")
@@ -280,11 +278,13 @@ trait MergeService {
                     pullreq.commitIdTo
                   )
 
-                  val revCommits = using(new RevWalk(git.getRepository)) { revWalk =>
-                    commits.flatten.map { commit =>
-                      revWalk.parseCommit(git.getRepository.resolve(commit.id))
+                  val revCommits = Using
+                    .resource(new RevWalk(git.getRepository)) { revWalk =>
+                      commits.flatten.map { commit =>
+                        revWalk.parseCommit(git.getRepository.resolve(commit.id))
+                      }
                     }
-                  }.reverse
+                    .reverse
 
                   // merge git repository
                   (strategy match {
@@ -404,7 +404,7 @@ object MergeService {
       mergeCommit.setCommitter(committer)
       mergeCommit.setMessage(message)
       // insertObject and got mergeCommit Object Id
-      using(repository.newObjectInserter) { inserter =>
+      Using.resource(repository.newObjectInserter) { inserter =>
         val mergeCommitId = inserter.insert(mergeCommit)
         inserter.flush()
         mergeCommitId
@@ -472,7 +472,7 @@ object MergeService {
       } catch {
         case e: NoMergeBaseException => true
       }
-      val mergeTipCommit = using(new RevWalk(repository))(_.parseCommit(mergeTip))
+      val mergeTipCommit = Using.resource(new RevWalk(repository))(_.parseCommit(mergeTip))
       val committer = mergeTipCommit.getCommitterIdent
 
       def _updateBranch(treeId: ObjectId, message: String, branchName: String): Unit = {
@@ -525,10 +525,10 @@ object MergeService {
         newCommit
       }
 
-      val mergeBaseTipCommit = using(new RevWalk(repository))(_.parseCommit(mergeBaseTip))
+      val mergeBaseTipCommit = Using.resource(new RevWalk(repository))(_.parseCommit(mergeBaseTip))
       var previousId = mergeBaseTipCommit.getId
 
-      using(repository.newObjectInserter) { inserter =>
+      Using.resource(repository.newObjectInserter) { inserter =>
         commits.foreach { commit =>
           val nextCommit = _cloneCommit(commit, previousId, mergeBaseTipCommit.getId)
           previousId = inserter.insert(nextCommit)
@@ -544,8 +544,9 @@ object MergeService {
         throw new RuntimeException("This pull request can't merge automatically.")
       }
 
-      val mergeBaseTipCommit = using(new RevWalk(repository))(_.parseCommit(mergeBaseTip))
-      val mergeBranchHeadCommit = using(new RevWalk(repository))(_.parseCommit(repository.resolve(mergedBranchName)))
+      val mergeBaseTipCommit = Using.resource(new RevWalk(repository))(_.parseCommit(mergeBaseTip))
+      val mergeBranchHeadCommit =
+        Using.resource(new RevWalk(repository))(_.parseCommit(repository.resolve(mergedBranchName)))
 
       // Create squash commit
       val mergeCommit = new CommitBuilder()
@@ -556,7 +557,7 @@ object MergeService {
       mergeCommit.setMessage(message)
 
       // insertObject and got squash commit Object Id
-      val newCommitId = using(repository.newObjectInserter) { inserter =>
+      val newCommitId = Using.resource(repository.newObjectInserter) { inserter =>
         val newCommitId = inserter.insert(mergeCommit)
         inserter.flush()
         newCommitId
@@ -579,7 +580,7 @@ object MergeService {
     private def createMergeCommit(treeId: ObjectId, committer: PersonIdent, message: String) =
       Util.createMergeCommit(repository, treeId, committer, message, Seq[ObjectId](mergeBaseTip, mergeTip))
 
-    private def parseCommit(id: ObjectId) = using(new RevWalk(repository))(_.parseCommit(id))
+    private def parseCommit(id: ObjectId) = Using.resource(new RevWalk(repository))(_.parseCommit(id))
 
   }
 
