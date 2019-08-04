@@ -4,12 +4,16 @@ import javax.servlet._
 import javax.servlet.http._
 
 import gitbucket.core.model.Account
-import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.{GitRepositoryFilter, GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{AccessTokenService, AccountService, RepositoryService, SystemSettingsService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{AuthUtil, Implicits, Keys}
+import gitbucket.core.util.{AuthUtil, Keys}
+import gitbucket.core.model.Profile.profile.blockingApi._
+// Imported names have higher precedence than names, defined in other files.
+// If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
+import gitbucket.core.servlet.Database
+
 import org.slf4j.LoggerFactory
 
 /**

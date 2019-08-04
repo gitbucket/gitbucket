@@ -8,6 +8,9 @@ import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{AccessTokenService, AccountService, SystemSettingsService}
 import gitbucket.core.util.{AuthUtil, Keys}
 import gitbucket.core.model.Profile.profile.blockingApi._
+// Imported names have higher precedence than names, defined in other files.
+// If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
+import gitbucket.core.servlet.Database
 
 class ApiAuthenticationFilter extends Filter with AccessTokenService with AccountService with SystemSettingsService {
 

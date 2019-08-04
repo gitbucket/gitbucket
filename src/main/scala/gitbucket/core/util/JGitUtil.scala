@@ -9,7 +9,7 @@ import StringUtil._
 import SyntaxSugars._
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
 import org.eclipse.jgit.revwalk.filter._
@@ -20,7 +20,6 @@ import org.eclipse.jgit.errors.{ConfigInvalidException, IncorrectObjectTypeExcep
 import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 
 import org.cache2k.Cache2kBuilder
 import org.eclipse.jgit.api.errors._
@@ -684,7 +683,7 @@ object JGitUtil {
       df.setRepository(git.getRepository)
 
       val toCommit = revWalk.parseCommit(git.getRepository.resolve(to))
-      from match {
+      (from match {
         case None => {
           toCommit.getParentCount match {
             case 0 =>
@@ -700,7 +699,7 @@ object JGitUtil {
           val fromCommit = revWalk.parseCommit(git.getRepository.resolve(from))
           df.scan(fromCommit.getTree, toCommit.getTree).asScala
         }
-      }
+      }).toSeq
     }
   }
 
@@ -908,10 +907,10 @@ object JGitUtil {
       }
       Right("Tag added.")
     } catch {
-      case e: GitAPIException              => Left("Sorry, some Git operation error occurs.")
-      case e: ConcurrentRefUpdateException => Left("Sorry some error occurs.")
+      case e: ConcurrentRefUpdateException => Left("Sorry, some error occurs.")
       case e: InvalidTagNameException      => Left("Sorry, that name is invalid.")
       case e: NoHeadException              => Left("Sorry, this repo doesn't have HEAD reference")
+      case e: GitAPIException              => Left("Sorry, some Git operation error occurs.")
     }
   }
 
@@ -1247,7 +1246,7 @@ object JGitUtil {
       } finally {
         walk.dispose()
       }
-    }
+    }.toSeq
   }
 
   def getBlame(git: Git, id: String, path: String): Iterable[BlameInfo] = {
@@ -1277,7 +1276,7 @@ object JGitUtil {
           }
           idLine :+= (c.name, i)
         }
-        val limeMap = idLine.groupBy(_._1).mapValues(_.map(_._2).toSet)
+        val limeMap = idLine.groupBy(_._1).view.mapValues(_.map(_._2).toSet)
         blameMap.values.map { b =>
           b.copy(lines = limeMap(b.id))
         }

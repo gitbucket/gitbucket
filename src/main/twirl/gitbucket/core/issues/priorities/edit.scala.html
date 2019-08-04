@@ -23,7 +23,7 @@
 <script>
 $(function(){
   $('#submit-@priorityId').click(function(e){
-    $.post('@helpers.url(repository)/issues/priorities/@{if(priorityId == "new") "new" else priorityId + "/edit"}', {
+    $.post('@helpers.url(repository)/issues/priorities/@{if(priorityId == "new") "new" else s"$priorityId/edit"}', {
       'priorityName' : $('#priorityName-@priorityId').val(),
       'description' : $('#description-@priorityId').val(),
       'priorityColor': $('#priorityColor-@priorityId').val()

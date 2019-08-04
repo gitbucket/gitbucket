@@ -254,9 +254,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
-        import scala.collection.JavaConverters._
         import scala.concurrent.duration._
         import scala.concurrent._
+        import scala.jdk.CollectionConverters._
         import scala.util.control.NonFatal
         import org.apache.http.util.EntityUtils
         import scala.concurrent.ExecutionContext.Implicits.global
@@ -298,7 +298,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))
           case e: java.lang.IllegalArgumentException             => Map("error" -> ("invalid url"))
           case e: org.apache.http.client.ClientProtocolException => Map("error" -> ("invalid url"))
-          case NonFatal(e)                                       => Map("error" -> (e.getClass + " " + e.getMessage))
+          case NonFatal(e)                                       => Map("error" -> (s"${e.getClass} ${e.getMessage}"))
         }
 
         contentType = formats("json")

@@ -5,7 +5,6 @@ import java.io.File
 import gitbucket.core.account.html
 import gitbucket.core.helper
 import gitbucket.core.model._
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.ssh.SshUtil
@@ -543,7 +542,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))
       case e: java.lang.IllegalArgumentException             => Map("error" -> ("invalid url"))
       case e: org.apache.http.client.ClientProtocolException => Map("error" -> ("invalid url"))
-      case NonFatal(e)                                       => Map("error" -> (e.getClass + " " + e.getMessage))
+      case NonFatal(e)                                       => Map("error" -> (s"${e.getClass} ${e.getMessage}"))
     }
 
     contentType = formats("json")

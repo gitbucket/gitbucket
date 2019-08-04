@@ -258,7 +258,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     def getSummary(statuses: List[CommitStatus]): (CommitState, String) = {
       val stateMap = statuses.groupBy(_.state)
       val state = CommitState.combine(stateMap.keySet)
-      val summary = stateMap.map { case (keyState, states) => states.size + " " + keyState.name }.mkString(", ")
+      val summary = stateMap.map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")
       state -> summary
     }
 
@@ -351,7 +351,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repository = repository,
       branch = form.branch,
       path = form.path,
-      files = files,
+      files = files.toIndexedSeq,
       message = form.message.getOrElse("Add files via upload"),
       loginAccount = context.loginAccount.get
     ) {
@@ -980,7 +980,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val date = commit.getCommitterIdent.getWhen
         val sha1 = oid.getName()
         val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
-        val pathSuffix = if (path.isEmpty) "" else '-' + path.replace('/', '-')
+        val pathSuffix = if (path.isEmpty) "" else s"-${path.replace('/', '-')}"
         val baseName = repository.name + "-" + repositorySuffix + pathSuffix
 
         using(new TreeWalk(git.getRepository)) { treeWalk =>

@@ -19,7 +19,7 @@ import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait PullRequestService {
   self: IssuesService
@@ -544,7 +544,7 @@ object PullRequestService {
     lazy val commitStateSummary: (CommitState, String) = {
       val stateMap = statuses.groupBy(_.state)
       val state = CommitState.combine(stateMap.keySet)
-      val summary = stateMap.map { case (keyState, states) => states.size + " " + keyState.name }.mkString(", ")
+      val summary = stateMap.map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")
       state -> summary
     }
     lazy val statusesAndRequired: List[(CommitStatus, Boolean)] = statuses.map { s =>

@@ -1,15 +1,12 @@
 package gitbucket.core.util
 
 import GitSpecUtil._
-import gitbucket.core.util.SyntaxSugars.using
 import org.apache.commons.io.IOUtils
-import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Constants
-import org.eclipse.jgit.treewalk.TreeWalk
 import org.scalatest.FunSuite
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class JGitUtilSpec extends FunSuite {
 
