@@ -5,10 +5,10 @@ import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.JGitUtil.{FileInfo, getContentFromId, getFileList}
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars.using
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
+import scala.util.Using
 
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
   self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
@@ -45,7 +45,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
       getFileList(git, revision, dirName).find(f => f.name.equals(fileName))
     }
 
-    using(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path)
       if (fileList.isEmpty) { // file or NotFound
         getFileInfo(git, refStr, path)
@@ -113,7 +113,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
       data <- extractFromJsonBody[CreateAFile]
     } yield {
       val branch = data.branch.getOrElse(repository.repository.defaultBranch)
-      val commit = using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val commit = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
         revCommit.name
       }

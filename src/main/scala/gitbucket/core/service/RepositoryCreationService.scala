@@ -4,7 +4,6 @@ import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{FileUtil, JGitUtil, LockUtil}
 import gitbucket.core.model.{Account, Role}
@@ -18,6 +17,7 @@ import org.eclipse.jgit.lib.{Constants, FileMode}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Using
 
 object RepositoryCreationService {
 
@@ -107,7 +107,7 @@ trait RepositoryCreationService {
         JGitUtil.initRepository(gitdir)
 
         if (initOption == "README" || initOption == "EMPTY_COMMIT") {
-          using(Git.open(gitdir)) { git =>
+          Using.resource(Git.open(gitdir)) { git =>
             val builder = DirCache.newInCore.builder()
             val inserter = git.getRepository.newObjectInserter()
             val headId = git.getRepository.resolve(Constants.HEAD + "^{commit}")
@@ -148,7 +148,7 @@ trait RepositoryCreationService {
 
         copyRepositoryDir.foreach { dir =>
           try {
-            using(Git.open(dir)) { git =>
+            Using.resource(Git.open(dir)) { git =>
               git.push().setRemote(gitdir.toURI.toString).setPushAll().setPushTags().call()
             }
           } finally {

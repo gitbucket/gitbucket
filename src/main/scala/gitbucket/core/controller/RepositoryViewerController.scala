@@ -996,7 +996,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               val mode = treeWalk.getFileMode.getBits
               JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
                 val tempFile = File.createTempFile("gitbucket", ".archive")
-                val size = using(new FileOutputStream(tempFile)) { out =>
+                val size = Using.resource(new FileOutputStream(tempFile)) { out =>
                   IOUtils.copy(
                     EolStreamTypeUtil.wrapInputStream(
                       in,
@@ -1013,7 +1013,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
                 val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
                 archive.putArchiveEntry(entry)
-                using(new FileInputStream(tempFile)) { in =>
+                Using.resource(new FileInputStream(tempFile)) { in =>
                   IOUtils.copy(in, archive)
                 }
                 archive.closeArchiveEntry()

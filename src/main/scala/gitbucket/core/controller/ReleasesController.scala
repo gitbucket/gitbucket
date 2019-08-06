@@ -8,9 +8,9 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import org.scalatra.forms._
 import gitbucket.core.releases.html
-import gitbucket.core.util.SyntaxSugars.using
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
+import scala.util.Using
 
 class ReleaseController
     extends ReleaseControllerBase
@@ -130,7 +130,7 @@ trait ReleaseControllerBase extends ControllerBase {
     val Seq(previousTag, currentTag) = multiParams("splat")
     val previousTagId = repository.tags.collectFirst { case x if x.name == previousTag => x.id }.getOrElse("")
 
-    val commitLog = using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+    val commitLog = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       val commits = JGitUtil.getCommitLog(git, previousTagId, currentTag).reverse
       commits
         .map { commit =>
