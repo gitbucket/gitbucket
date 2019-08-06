@@ -88,7 +88,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       }
 
       // Install bundled plugins
-      extractBundledPlugins(gitbucketVersion)
+      extractBundledPlugins()
 
       // Load plugins
       logger.info("Initialize plugins")
@@ -138,7 +138,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     }
   }
 
-  private def extractBundledPlugins(gitbucketVersion: String): Unit = {
+  private def extractBundledPlugins(): Unit = {
     logger.info("Extract bundled plugins...")
     val cl = Thread.currentThread.getContextClassLoader
     try {
@@ -150,7 +150,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           plugins.asScala.foreach { plugin =>
             plugin.trim.split(":") match {
               case Array(pluginId, pluginVersion) =>
-                val fileName = s"gitbucket-${pluginId}-plugin-gitbucket_${gitbucketVersion}-${pluginVersion}.jar"
+                val fileName = s"gitbucket-${pluginId}-plugin-${pluginVersion}.jar"
                 val in = cl.getResourceAsStream("plugins/" + fileName)
                 if (in != null) {
                   val file = new File(PluginHome, fileName)
