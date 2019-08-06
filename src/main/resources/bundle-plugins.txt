@@ -1,1 +1,4 @@
-notifications:1.7.1
+notifications:1.8.0
+gist:4.18.0
+emoji:4.6.0
+pages:1.8.0

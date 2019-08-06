@@ -165,8 +165,8 @@ executableKey := {
   plugins.foreach { plugin =>
     plugin.trim.split(":") match {
       case Array(pluginId, pluginVersion) =>
-        val url = "https://plugins.gitbucket-community.org/releases/" +
-          s"gitbucket-${pluginId}-plugin/gitbucket-${pluginId}-plugin-gitbucket_${version.value}-${pluginVersion}.jar"
+        val url = "https://github.com/" +
+          s"gitbucket/gitbucket-${pluginId}-plugin/releases/download/${pluginVersion}/gitbucket-${pluginId}-plugin-${pluginVersion}.jar"
         log info s"Download: ${url}"
         IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
       case _ => ()
