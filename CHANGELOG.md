@@ -1,6 +1,15 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.32.0 - 7 Aug 2019
+
+- Bump to Scala 2.13.0 and Scalatra 2.7.0
+- Draft pull request
+- Drop network installation of plugins
+- Compare view works for commit id
+- Apply default priority to pull requests
+- Focus title after clicking issue / pull request edit button
+
 ### 4.31.2 - 7 Apr 2019
 - Bug and security fix
 

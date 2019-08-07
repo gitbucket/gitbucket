@@ -68,19 +68,15 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.31.x
+What's New in 4.32.x
 -------------
-### 4.31.2 - 7 Apr 2019
-- Bug and security fix
+### 4.32.0 - 7 Aug 2019
 
-### 4.31.1 - 17 Mar 2019
-- Bug fix
-
-### 4.31.0 - 17 Mar 2019
-- Docker support in CI plugin
-- Verify GPG key signed commit
-- OAuth2 Token (sent as a parameter) authentication support and new APIs in Web API
-- OGP (Open Graph protocol) support
-- Username completion with avatars
+- Bump to Scala 2.13.0 and Scalatra 2.7.0
+- Draft pull request
+- Drop network installation of plugins
+- Compare view works for commit id
+- Apply default priority to pull requests
+- Focus title after clicking issue / pull request edit button
 
 See the [change log](CHANGELOG.md) for all of the updates.
