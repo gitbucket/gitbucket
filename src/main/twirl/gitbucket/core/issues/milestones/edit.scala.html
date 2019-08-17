@@ -29,9 +29,9 @@
           <input type="submit" class="btn btn-success" value="Create milestone"/>
         } else {
           @if(milestone.get.closedDate.isDefined){
-            <input type="button" class="btn btn-default" value="Open" id="open" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/close';"/>
+            <input type="button" class="btn btn-default" value="Open" id="open" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
           } else {
-            <input type="button" class="btn btn-default" value="Close" id="close" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
+            <input type="button" class="btn btn-default" value="Close" id="close" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/close';"/>
           }
           <input type="submit" class="btn btn-success" value="Update milestone"/>
         }
