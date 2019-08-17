@@ -98,7 +98,16 @@ trait MilestonesControllerBase extends ControllerBase {
       for {
         owner <- params.optionValue("owner")
         repository <- params.optionValue("repository")
-        _ <- getMilestones(owner, repository).find(_.title.equalsIgnoreCase(value))
+        _ <- params.optionValue("milestoneId") match {
+          // existing milestone
+          case Some(id) =>
+            getMilestones(owner, repository)
+              .find(m => m.title.equalsIgnoreCase(value) && m.milestoneId.toString != id)
+          // new milestone
+          case None =>
+            getMilestones(owner, repository)
+              .find(m => m.title.equalsIgnoreCase(value))
+        }
       } yield {
         "Milestone already exists."
       }
