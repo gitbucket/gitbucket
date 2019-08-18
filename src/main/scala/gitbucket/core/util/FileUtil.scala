@@ -95,5 +95,11 @@ object FileUtil {
       System.getProperty("gitbucket.maxFileSize").toLong
     else
       3 * 1024 * 1024
+  
+  lazy val UploadTimeout =
+    if (System.getProperty("gitbucket.UploadTimeout") != null)
+      System.getProperty("gitbucket.UploadTimeout").toLong
+    else
+      3e4
 
 }
