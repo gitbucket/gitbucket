@@ -96,11 +96,6 @@ object FileUtil {
     else
       3 * 1024 * 1024
 
-  /**
-   * Add Upload Timeout Var.
-   * travisCI does not like me.... 
-   */
-
   lazy val UploadTimeout =
     if (System.getProperty("gitbucket.UploadTimeout") != null)
       System.getProperty("gitbucket.UploadTimeout").toLong
