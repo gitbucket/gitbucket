@@ -31,7 +31,6 @@ class FileUploadController
     with ReleaseService {
 
   configureMultipartHandling(MultipartConfig(maxFileSize = Some(FileUtil.MaxFileSize)))
-  configureMultipartHandling(MultipartConfig(uploadTimeout = Some(FileUtil.UploadTimeout)))
 
   post("/image") {
     execute(
