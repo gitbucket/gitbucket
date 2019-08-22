@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.32.0"
 val ScalatraVersion = "2.7.0-RC1"
-val JettyVersion = "9.4.19.v20190610"
+val JettyVersion = "9.4.20.v20190813"
 val JgitVersion = "5.4.0.201906121030-r"
 
 lazy val root = (project in file("."))
@@ -55,10 +55,10 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "3.3.1",
   "com.typesafe"                    % "config"                       % "1.3.4",
-  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.23",
+  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.25",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
-  "org.cache2k"                     % "cache2k-all"                  % "1.2.2.Final",
+  "org.cache2k"                     % "cache2k-all"                  % "1.2.3.Final",
   "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.8.1-akka-2.5.x" exclude ("com.mchange", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
   "net.coobird"                     % "thumbnailator"                % "0.4.8",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
@@ -68,7 +68,7 @@ libraryDependencies ++= Seq(
   "junit"                           % "junit"                        % "4.12" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "3.0.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.29.0" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.30.0" % "test",
   "org.testcontainers"              % "mysql"                        % "1.12.0" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.12.0" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
