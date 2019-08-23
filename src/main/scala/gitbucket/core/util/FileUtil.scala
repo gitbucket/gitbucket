@@ -100,6 +100,30 @@ object FileUtil {
     if (System.getProperty("gitbucket.UploadTimeout") != null)
       System.getProperty("gitbucket.UploadTimeout").toLong
     else
-      3 * 10000
+      3 * 10
+
+  lazy val MaxFileSizeReleases =
+    if (System.getProperty("gitbucket.maxFileSizeReleases") != null)
+      System.getProperty("gitbucket.maxFileSizeReleases").toLong
+    else
+      MaxFileSize
+
+  lazy val UploadTimeoutIssues =
+    if (System.getProperty("gitbucket.UploadTimeoutIssues") != null)
+      System.getProperty("gitbucket.UploadTimeoutIssues").toLong
+    else
+      UploadTimeout
+
+  lazy val MaxFileSizeIssues =
+    if (System.getProperty("gitbucket.maxFileSizeIssues") != null)
+      System.getProperty("gitbucket.maxFileSizeIssues").toLong
+    else
+      MaxFileSize
+
+  lazy val UploadTimeoutReleases =
+    if (System.getProperty("gitbucket.UploadTimeoutReleases") != null)
+      System.getProperty("gitbucket.UploadTimeoutReleases").toLong
+    else
+      UploadTimeout
 
 }

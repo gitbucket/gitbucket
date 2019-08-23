@@ -42,6 +42,21 @@ public class JettyLauncher {
                         case "--max_file_size":
                             System.setProperty("gitbucket.maxFileSize", dim[1]);
                             break;
+                        case "--upload_timeout":
+                            System.setProperty("gitbucket.UploadTimeout", dim[1]);
+                            break;
+                        case "--max_file_size_issues":
+                            System.setProperty("gitbucket.maxFileSizeIssues", dim[1]);
+                            break;
+                        case "--upload_timeout_issues":
+                            System.setProperty("gitbucket.UploadTimeoutIssues", dim[1]);
+                            break;
+                        case "--max_file_size_releases":
+                            System.setProperty("gitbucket.maxFileSizeReleases", dim[1]);
+                            break;
+                        case "--upload_timeout_releases":
+                            System.setProperty("gitbucket.UploadTimeoutReleases", dim[1]);
+                            break;
                         case "--gitbucket.home":
                             System.setProperty("gitbucket.home", dim[1]);
                             break;
