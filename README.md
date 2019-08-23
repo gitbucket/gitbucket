@@ -39,6 +39,11 @@ You can specify following options:
 - `--gitbucket.home=[DATA_DIR]`
 - `--temp_dir=[TEMP_DIR]`
 - `--max_file_size=[MAX_FILE_SIZE]`
+- `--upload_timeout=[MAX_UPLOAD_TIME_IN_SECONDS]` (defaults to 30)
+- `--max_file_size_issues=[MAX_FILE_SIZE_FOR_ISSUES]` (defaults to max_file_size)
+- `--upload_timeout_issues=[MAX_UPLOAD_TIME_IN_SECONDS_FOR_ISSUES]` (defaults to upload_timeout)
+- `--max_file_size_releases=[MAX_FILE_SIZE_FOR_RELEASES]` (defaults to max_file_size)
+- `--upload_timeout_releases=[MAX_UPLOAD_TIME_IN_SECONDS_FOR_RELEASES]` (defaults to upload_timeout)
 
 `TEMP_DIR` is used as the [temporary directory for the jetty application context](https://www.eclipse.org/jetty/documentation/9.3.x/ref-temporary-directories.html). This is the directory into which the `gitbucket.war` file is unpacked, the source files are compiled, etc. If given this parameter **must** match the path of an existing directory or the application will quit reporting an error; if not given the path used will be a `tmp` directory inside the gitbucket home.
 
