@@ -96,4 +96,10 @@ object FileUtil {
     else
       3 * 1024 * 1024
 
+  lazy val UploadTimeout =
+    if (System.getProperty("gitbucket.UploadTimeout") != null)
+      System.getProperty("gitbucket.UploadTimeout").toLong
+    else
+      3 * 10000
+
 }
