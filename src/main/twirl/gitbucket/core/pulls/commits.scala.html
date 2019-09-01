@@ -7,7 +7,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.pulls.html.menu("commits", issue, pullreq, commits.flatten, comments, changedFileSize, isManageable, repository){
-  <table class="table table-bordered">
+  <table class="table table-bordered table-hover">
   @commits.map { day =>
     <tr>
       <th rowspan="@day.size" width="100">@helpers.date(day.head.commitTime)</th>
