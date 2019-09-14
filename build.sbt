@@ -27,9 +27,7 @@ coverageExcludedPackages := ".*\\.html\\..*"
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
   Resolver.jcenterRepo,
-  "amateras" at "http://amateras.sourceforge.jp/mvn/",
-  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
+  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 
 libraryDependencies ++= Seq(
