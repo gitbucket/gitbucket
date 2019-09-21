@@ -43,7 +43,7 @@ You can specify following options:
 
 `TEMP_DIR` is used as the [temporary directory for the jetty application context](https://www.eclipse.org/jetty/documentation/9.3.x/ref-temporary-directories.html). This is the directory into which the `gitbucket.war` file is unpacked, the source files are compiled, etc. If given this parameter **must** match the path of an existing directory or the application will quit reporting an error; if not given the path used will be a `tmp` directory inside the gitbucket home.
 
-`MAX_FILE_SIZE` is the max file size for upload files.
+`MAX_FILE_SIZE` is the max file size in bytes for upload files *( default is 3 MB -> 3 x 1024 x 1024 )*.
 
 You can also deploy `gitbucket.war` to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
