@@ -256,3 +256,17 @@ licenseOverrides := {
   case DepModuleInfo("com.github.bkromhout", "java-diff-utils", _) =>
     LicenseInfo(LicenseCategory.Apache, "Apache-2.0", "http://www.apache.org/licenses/LICENSE-2.0")
 }
+
+testOptions in Test ++= {
+  if (scala.util.Properties.isWin) {
+    Seq(
+      Tests.Exclude(
+        Set(
+          "gitbucket.core.GitBucketCoreModuleSpec"
+        )
+      )
+    )
+  } else {
+    Nil
+  }
+}

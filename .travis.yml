@@ -15,3 +15,14 @@ cache:
     - $HOME/.sbt/boot
     - $HOME/.sbt/launchers
     - $HOME/.coursier
+matrix:
+  include:
+  - os: windows
+    language: bash
+    env: JDK="adopt@1.8.212-04"
+    before_script:
+    - curl "https://raw.githubusercontent.com/DanySK/Gravis-CI/c8f400623d8f756ef7c/.install-jdk-travis.sh" --output .install-jdk-travis.sh
+    - source .install-jdk-travis.sh
+    - wget https://raw.githubusercontent.com/paulp/sbt-extras/0ee2dae2eba72efb4a464a5ad255e348696ecda7/sbt && chmod +x ./sbt
+    script:
+    - ./sbt test
