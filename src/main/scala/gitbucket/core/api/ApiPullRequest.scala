@@ -21,7 +21,8 @@ case class ApiPullRequest(
   body: String,
   user: ApiUser,
   labels: List[ApiLabel],
-  assignee: Option[ApiUser]
+  assignee: Option[ApiUser],
+  draft: Option[Boolean]
 ) {
   val id = 0 // dummy id
   val html_url = ApiPath(s"${base.repo.html_url.path}/pull/${number}")
@@ -62,7 +63,8 @@ object ApiPullRequest {
       body = issue.content.getOrElse(""),
       user = user,
       labels = labels,
-      assignee = assignee
+      assignee = assignee,
+      draft = Some(pullRequest.isDraft)
     )
 
   case class Commit(sha: String, ref: String, repo: ApiRepository)(baseOwner: String) {

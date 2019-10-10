@@ -520,6 +520,7 @@ object ApiSpecModels {
        |"user":$jsonUser,
        |"labels":[$jsonLabel],
        |"assignee":$jsonUser,
+       |"draft":true,
        |"id":0,
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347",
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",

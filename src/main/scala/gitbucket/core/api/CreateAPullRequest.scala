@@ -5,7 +5,8 @@ case class CreateAPullRequest(
   head: String,
   base: String,
   body: Option[String],
-  maintainer_can_modify: Option[Boolean]
+  maintainer_can_modify: Option[Boolean],
+  draft: Option[Boolean]
 )
 
 case class CreateAPullRequestAlt(
