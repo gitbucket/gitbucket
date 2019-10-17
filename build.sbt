@@ -5,8 +5,8 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.32.0"
 val ScalatraVersion = "2.7.0-RC1"
-val JettyVersion = "9.4.20.v20190813"
-val JgitVersion = "5.5.0.201909110433-r"
+val JettyVersion = "9.4.21.v20190926"
+val JgitVersion = "5.5.1.201910021850-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -48,12 +48,12 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.4.4",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.5.1",
   "org.postgresql"                  % "postgresql"                   % "42.2.6",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "3.4.1",
-  "com.typesafe"                    % "config"                       % "1.3.4",
-  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.25",
+  "com.typesafe"                    % "config"                       % "1.4.0",
+  "com.typesafe.akka"               %% "akka-actor"                  % "2.5.26",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
@@ -65,10 +65,10 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.12" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "3.0.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.32.0" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.12.1" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.12.1" % "test",
+  "org.mockito"                     % "mockito-core"                 % "3.1.0" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.33.0" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.12.2" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.12.2" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.10.1",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3"
