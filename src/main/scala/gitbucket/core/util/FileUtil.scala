@@ -27,10 +27,12 @@ object FileUtil {
   }
 
   def getSafeMimeType(name: String): String = {
-    getMimeType(name).replace("text/html", "text/plain")
+    getMimeType(name)
+      .replace("text/html", "text/plain")
+      .replace("image/svg+xml", "text/plain; charset=UTF-8")
   }
 
-  def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
+  def isImage(name: String): Boolean = getSafeMimeType(name).startsWith("image/")
 
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
