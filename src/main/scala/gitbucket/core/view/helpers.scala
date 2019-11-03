@@ -6,6 +6,7 @@ import java.util.{Date, Locale, TimeZone}
 import com.nimbusds.jose.util.JSONObjectUtils
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
+import gitbucket.core.model.PullRequest
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
@@ -272,6 +273,18 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the url to the account page.
    */
   def url(userName: String)(implicit context: Context): String = s"${context.path}/${encodeRefName(userName)}"
+
+  /**
+   * Generates the url to the pull request base branch.
+   */
+  def basePRBranchUrl(pullreq: PullRequest)(implicit context: Context): String =
+    s"${context.path}/${encodeRefName(pullreq.userName)}/${encodeRefName(pullreq.repositoryName)}/tree/${encodeRefName(pullreq.branch)}"
+
+  /**
+   * Generates the url to the pull request branch.
+   */
+  def requestPRBranchUrl(pullreq: PullRequest)(implicit context: Context): String =
+    s"${context.path}/${encodeRefName(pullreq.requestUserName)}/${encodeRefName(pullreq.repositoryName)}/tree/${encodeRefName(pullreq.requestBranch)}"
 
   /**
    * Returns the url to the root of assets.
