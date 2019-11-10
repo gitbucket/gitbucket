@@ -37,7 +37,9 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
       } match {
       case Some(Right(account)) =>
         request.setAttribute(Keys.Session.LoginAccount, account)
-        updateLastLoginDate(account.userName)
+        Database() withTransaction { implicit session =>
+          updateLastLoginDate(account.userName)
+        }
         chain.doFilter(req, res)
       case None => chain.doFilter(req, res)
       case Some(Left(_)) => {
