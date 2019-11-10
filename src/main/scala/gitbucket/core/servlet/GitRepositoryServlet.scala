@@ -239,7 +239,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     with MilestonesService
     with WebHookPullRequestService
     with WebHookPullRequestReviewCommentService
-    with CommitsService {
+    with CommitsService
+    with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil
@@ -269,6 +270,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   }
 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
+    val settings = loadSystemSettings()
+
     Database() withTransaction { implicit session =>
       try {
         Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
@@ -317,7 +320,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                     getAccountByUserName(pusher).foreach { pusherAccount =>
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
                         getIssue(owner, repository, issueId.toString).foreach { issue =>
-                          callIssuesWebHook("closed", repositoryInfo, issue, pusherAccount)
+                          callIssuesWebHook("closed", repositoryInfo, issue, pusherAccount, settings)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repositoryInfo, commit.fullMessage, pusherAccount))
                         }
@@ -337,7 +340,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   }.isDefined) {
                 markMergeAndClosePullRequest(pusher, owner, repository, pull)
                 getAccountByUserName(pusher).foreach { pusherAccount =>
-                  callPullRequestWebHook("closed", repositoryInfo, pull.issueId, pusherAccount)
+                  callPullRequestWebHook("closed", repositoryInfo, pull.issueId, pusherAccount, settings)
                 }
               }
             }
@@ -365,14 +368,14 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                 case ReceiveCommand.Type.CREATE | ReceiveCommand.Type.UPDATE |
                     ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
                   getAccountByUserName(pusher).foreach { pusherAccount =>
-                    updatePullRequests(owner, repository, branchName, pusherAccount, "synchronize")
+                    updatePullRequests(owner, repository, branchName, pusherAccount, "synchronize", settings)
                   }
                 case _ =>
               }
             }
 
             // call web hook
-            callWebHookOf(owner, repository, WebHook.Push) {
+            callWebHookOf(owner, repository, WebHook.Push, settings) {
               for {
                 pusherAccount <- getAccountByUserName(pusher)
                 ownerAccount <- getAccountByUserName(owner)
@@ -390,7 +393,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               }
             }
             if (command.getType == ReceiveCommand.Type.CREATE) {
-              callWebHookOf(owner, repository, WebHook.Create) {
+              callWebHookOf(owner, repository, WebHook.Create, settings) {
                 for {
                   pusherAccount <- getAccountByUserName(pusher)
                   ownerAccount <- getAccountByUserName(owner)
@@ -428,11 +431,14 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     extends PostReceiveHook
     with WebHookService
     with AccountService
-    with RepositoryService {
+    with RepositoryService
+    with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[WikiCommitHook])
 
   override def onPostReceive(receivePack: ReceivePack, commands: util.Collection[ReceiveCommand]): Unit = {
+    val settings = loadSystemSettings()
+
     Database() withTransaction { implicit session =>
       try {
         commands.asScala.headOption.foreach { command =>
@@ -468,7 +474,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                     (commits.head._1, fileName, commits.last._3)
                 }
 
-              callWebHookOf(owner, repository, WebHook.Gollum) {
+              callWebHookOf(owner, repository, WebHook.Gollum, settings) {
                 for {
                   pusherAccount <- getAccountByUserName(pusher)
                   repositoryUser <- getAccountByUserName(owner)

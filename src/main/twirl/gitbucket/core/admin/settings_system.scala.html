@@ -283,6 +283,17 @@
     Send notifications
   </label>
 </fieldset>
+<!--====================================================================-->
+<!-- Web hook -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Web hook</label>
+<fieldset>
+  <label class="checkbox" for="allowPrivateAddress">
+    <input type="checkbox" id="allowPrivateAddress" name="webhook.allowPrivateAddress"@if(context.settings.webHook.allowPrivateAddress){ checked}/>
+    Allow sending to private addresses
+  </label>
+</fieldset>
 <script>
 $(function(){
   $('#skinName').change(function(evt) {

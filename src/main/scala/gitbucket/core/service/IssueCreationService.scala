@@ -57,7 +57,7 @@ trait IssueCreationService {
     createReferComment(owner, name, issue, title + " " + body.getOrElse(""), loginAccount)
 
     // call web hooks
-    callIssuesWebHook("opened", repository, issue, loginAccount)
+    callIssuesWebHook("opened", repository, issue, loginAccount, context.settings)
 
     // call hooks
     PluginRegistry().getIssueHooks.foreach(_.created(issue, repository))

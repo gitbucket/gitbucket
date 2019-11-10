@@ -354,7 +354,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       path = form.path,
       files = files.toIndexedSeq,
       message = form.message.getOrElse("Add files via upload"),
-      loginAccount = context.loginAccount.get
+      loginAccount = context.loginAccount.get,
+      settings = context.settings
     ) {
       case (git, headTip, builder, inserter) =>
         JGitUtil.processTree(git, headTip) { (path, tree) =>
@@ -441,7 +442,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       charset = form.charset,
       message = form.message.getOrElse(s"Create ${form.newFileName}"),
       commit = form.commit,
-      loginAccount = context.loginAccount.get
+      loginAccount = context.loginAccount.get,
+      settings = context.settings
     )
 
     redirect(
@@ -465,7 +467,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
       },
       commit = form.commit,
-      loginAccount = context.loginAccount.get
+      loginAccount = context.loginAccount.get,
+      settings = context.settings
     )
 
     redirect(
@@ -485,7 +488,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       charset = "",
       message = form.message.getOrElse(s"Delete ${form.fileName}"),
       commit = form.commit,
-      loginAccount = context.loginAccount.get
+      loginAccount = context.loginAccount.get,
+      settings = context.settings
     )
 
     redirect(

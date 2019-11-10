@@ -8,6 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{JGitUtil, LockUtil}
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
@@ -167,7 +168,8 @@ trait MergeService {
     remoteBranch: String,
     loginAccount: Account,
     message: String,
-    pullreq: Option[PullRequest]
+    pullreq: Option[PullRequest],
+    settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): Option[ObjectId] = {
     val localUserName = localRepository.owner
     val localRepositoryName = localRepository.name
@@ -212,7 +214,7 @@ trait MergeService {
               closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, localUserName, localRepositoryName)
                 .foreach { issueId =>
                   getIssue(localRepository.owner, localRepository.name, issueId.toString).foreach { issue =>
-                    callIssuesWebHook("closed", localRepository, issue, loginAccount)
+                    callIssuesWebHook("closed", localRepository, issue, loginAccount, settings)
                     PluginRegistry().getIssueHooks
                       .foreach(
                         _.closedByCommitComment(issue, localRepository, commit.fullMessage, loginAccount)
@@ -223,7 +225,7 @@ trait MergeService {
           }
 
           pullreq.foreach { pullreq =>
-            callWebHookOf(localRepository.owner, localRepository.name, WebHook.Push) {
+            callWebHookOf(localRepository.owner, localRepository.name, WebHook.Push, settings) {
               for {
                 ownerAccount <- getAccountByUserName(localRepository.owner)
               } yield {
@@ -251,7 +253,8 @@ trait MergeService {
     loginAccount: Account,
     message: String,
     strategy: String,
-    isDraft: Boolean
+    isDraft: Boolean,
+    settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context, context: Context): Either[String, ObjectId] = {
     if (!isDraft) {
       if (repository.repository.options.mergeOptions.split(",").contains(strategy)) {
@@ -333,7 +336,7 @@ trait MergeService {
                             repository.name
                           ).foreach { issueId =>
                             getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                              callIssuesWebHook("closed", repository, issue, loginAccount)
+                              callIssuesWebHook("closed", repository, issue, loginAccount, context.settings)
                               PluginRegistry().getIssueHooks
                                 .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
                             }
@@ -347,7 +350,7 @@ trait MergeService {
                           repository.name
                         ).foreach { issueId =>
                           getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                            callIssuesWebHook("closed", repository, issue, loginAccount)
+                            callIssuesWebHook("closed", repository, issue, loginAccount, context.settings)
                             PluginRegistry().getIssueHooks
                               .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                           }
@@ -355,16 +358,23 @@ trait MergeService {
                         closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
                           .foreach { issueId =>
                             getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                              callIssuesWebHook("closed", repository, issue, loginAccount)
+                              callIssuesWebHook("closed", repository, issue, loginAccount, context.settings)
                               PluginRegistry().getIssueHooks
                                 .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                             }
                           }
                       }
 
-                      callPullRequestWebHook("closed", repository, issueId, context.loginAccount.get)
+                      callPullRequestWebHook("closed", repository, issueId, context.loginAccount.get, context.settings)
 
-                      updatePullRequests(repository.owner, repository.name, pullreq.branch, loginAccount, "closed")
+                      updatePullRequests(
+                        repository.owner,
+                        repository.name,
+                        pullreq.branch,
+                        loginAccount,
+                        "closed",
+                        settings
+                      )
 
                       // call hooks
                       PluginRegistry().getPullRequestHooks.foreach { h =>

@@ -127,17 +127,14 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           branch,
           path,
           Some(paths.last),
-          if (data.sha.isDefined) {
-            Some(paths.last)
-          } else {
-            None
-          },
+          data.sha.map(_ => paths.last),
           StringUtil.base64Decode(data.content),
           data.message,
           commit,
           context.loginAccount.get,
           data.committer.map(_.name).getOrElse(context.loginAccount.get.fullName),
-          data.committer.map(_.email).getOrElse(context.loginAccount.get.mailAddress)
+          data.committer.map(_.email).getOrElse(context.loginAccount.get.mailAddress),
+          context.settings
         )
         ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
       }

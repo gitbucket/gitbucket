@@ -90,17 +90,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
-    "showMailAddress" -> trim(label("Show mail address", boolean())) //,
-//    "pluginNetworkInstall" -> trim(label("Network plugin installation", boolean())),
-//    "proxy" -> optionalIfNotChecked(
-//      "useProxy",
-//      mapping(
-//        "host" -> trim(label("Proxy host", text(required))),
-//        "port" -> trim(label("Proxy port", number())),
-//        "user" -> trim(label("Keystore", optional(text()))),
-//        "password" -> trim(label("Keystore", optional(text())))
-//      )(Proxy.apply)
-//    )
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
+    "webhook" -> mapping(
+      "allowPrivateAddress" -> trim(label("Allow private address", boolean()))
+    )(WebHook.apply)
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {

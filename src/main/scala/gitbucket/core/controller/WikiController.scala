@@ -191,7 +191,7 @@ trait WikiControllerBase extends ControllerBase {
                 form.pageName,
                 commitId
               )
-              callWebHookOf(repository.owner, repository.name, WebHook.Gollum) {
+              callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
                 getAccountByUserName(repository.owner).map { repositoryUser =>
                   WebHookGollumPayload("edited", form.pageName, commitId, repository, repositoryUser, loginAccount)
                 }
@@ -229,7 +229,7 @@ trait WikiControllerBase extends ControllerBase {
             commitId =>
               updateLastActivityDate(repository.owner, repository.name)
               recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
-              callWebHookOf(repository.owner, repository.name, WebHook.Gollum) {
+              callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
                 getAccountByUserName(repository.owner).map { repositoryUser =>
                   WebHookGollumPayload("created", form.pageName, commitId, repository, repositoryUser, loginAccount)
                 }

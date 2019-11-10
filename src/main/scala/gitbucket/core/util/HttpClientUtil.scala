@@ -1,5 +1,7 @@
 package gitbucket.core.util
 
+import java.net.{InetAddress, URL}
+
 import gitbucket.core.service.SystemSettingsService
 import org.apache.http.HttpHost
 import org.apache.http.auth.{AuthScope, UsernamePasswordCredentials}
@@ -30,6 +32,15 @@ object HttpClientUtil {
     } finally {
       httpClient.close()
     }
+  }
+
+  def isPrivateAddress(address: String): Boolean = {
+    val ipAddress = InetAddress.getByName(address)
+    ipAddress.isSiteLocalAddress || ipAddress.isLinkLocalAddress || ipAddress.isLoopbackAddress
+  }
+
+  def isPrivateUrl(url: String): Boolean = {
+    isPrivateAddress(new URL(url).getHost)
   }
 
 }

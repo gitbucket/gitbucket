@@ -324,13 +324,14 @@ trait PullRequestsControllerBase extends ControllerBase {
             pullreq.branch,
             loginAccount,
             s"Merge branch '${alias}' into ${pullreq.requestBranch}",
-            Some(pullreq)
+            Some(pullreq),
+            context.settings
           ) match {
             case None => // conflict
               flash.update("error", s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}.")
             case Some(oldId) =>
               // update pull request
-              updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize")
+              updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize", context.settings)
               flash.update("info", s"Merge branch '${alias}' into ${pullreq.requestBranch}")
           }
         }
@@ -357,7 +358,15 @@ trait PullRequestsControllerBase extends ControllerBase {
       val owner = repository.owner
       val name = repository.name
 
-      mergePullRequest(repository, issueId, context.loginAccount.get, form.message, form.strategy, form.isDraft) match {
+      mergePullRequest(
+        repository,
+        issueId,
+        context.loginAccount.get,
+        form.message,
+        form.strategy,
+        form.isDraft,
+        context.settings
+      ) match {
         case Right(objectId) => redirect(s"/${owner}/${name}/pull/${issueId}")
         case Left(message)   => Some(BadRequest(message))
       }
@@ -558,7 +567,8 @@ trait PullRequestsControllerBase extends ControllerBase {
           commitIdFrom = form.commitIdFrom,
           commitIdTo = form.commitIdTo,
           isDraft = form.isDraft,
-          loginAccount = context.loginAccount.get
+          loginAccount = context.loginAccount.get,
+          settings = context.settings
         )
 
         // insert labels

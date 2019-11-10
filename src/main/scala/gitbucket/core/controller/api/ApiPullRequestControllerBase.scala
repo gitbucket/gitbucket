@@ -115,7 +115,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                       commitIdFrom = commitIdFrom.getName,
                       commitIdTo = commitIdTo.getName,
                       isDraft = false,
-                      loginAccount = context.loginAccount.get
+                      loginAccount = context.loginAccount.get,
+                      settings = context.settings
                     )
                     getApiPullRequest(repository, issueId).map(JsonFormat(_))
                   case _ =>
@@ -143,7 +144,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                       commitIdFrom = commitIdFrom.getName,
                       commitIdTo = commitIdTo.getName,
                       isDraft = false,
-                      loginAccount = context.loginAccount.get
+                      loginAccount = context.loginAccount.get,
+                      settings = context.settings
                     )
                     getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
                   case _ =>

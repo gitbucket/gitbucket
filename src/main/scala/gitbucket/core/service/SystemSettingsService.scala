@@ -70,6 +70,7 @@ trait SystemSettingsService {
       }
       props.setProperty(SkinName, settings.skinName.toString)
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
+      props.setProperty(WebHookAllowPrivateAddress, settings.webHook.allowPrivateAddress.toString)
 
       Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
@@ -146,7 +147,8 @@ trait SystemSettingsService {
           None
         },
         getValue(props, SkinName, "skin-blue"),
-        getValue(props, ShowMailAddress, false)
+        getValue(props, ShowMailAddress, false),
+        WebHook(getValue(props, WebHookAllowPrivateAddress, false))
       )
     }
   }
@@ -175,7 +177,8 @@ object SystemSettingsService {
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
     skinName: String,
-    showMailAddress: Boolean
+    showMailAddress: Boolean,
+    webHook: WebHook
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
@@ -252,7 +255,7 @@ object SystemSettingsService {
 
   case class SshAddress(host: String, port: Int, genericUser: String)
 
-  case class Lfs(serverUrl: Option[String])
+  case class WebHook(allowPrivateAddress: Boolean)
 
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
@@ -303,6 +306,7 @@ object SystemSettingsService {
   private val PluginProxyPort = "plugin.proxy.port"
   private val PluginProxyUser = "plugin.proxy.user"
   private val PluginProxyPassword = "plugin.proxy.password"
+  private val WebHookAllowPrivateAddress = "webhook.allow_private_address"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {

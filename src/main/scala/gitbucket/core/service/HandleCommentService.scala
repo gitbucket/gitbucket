@@ -80,16 +80,17 @@ trait HandleCommentService {
 
           // call web hooks
           action match {
-            case None => commentId foreach (callIssueCommentWebHook(repository, issue, _, loginAccount))
+            case None =>
+              commentId foreach (callIssueCommentWebHook(repository, issue, _, loginAccount, context.settings))
             case Some(act) =>
               val webHookAction = act match {
                 case "close"  => "closed"
                 case "reopen" => "reopened"
               }
               if (issue.isPullRequest)
-                callPullRequestWebHook(webHookAction, repository, issue.issueId, loginAccount)
+                callPullRequestWebHook(webHookAction, repository, issue.issueId, loginAccount, context.settings)
               else
-                callIssuesWebHook(webHookAction, repository, issue, loginAccount)
+                callIssuesWebHook(webHookAction, repository, issue, loginAccount, context.settings)
           }
 
           // call hooks
