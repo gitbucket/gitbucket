@@ -331,6 +331,7 @@ trait WebHookPullRequestService extends WebHookService {
             issue,
             RepositoryName(repository),
             ApiUser(issueUser),
+            None, // TODO Get assigned user
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository)))
           ),
@@ -700,6 +701,7 @@ object WebHookService {
           issue,
           RepositoryName(repository),
           ApiUser(issueUser),
+          None, // TODO Get assigned user
           labels.map(ApiLabel(_, RepositoryName(repository)))
         ),
         comment =

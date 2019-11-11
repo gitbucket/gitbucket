@@ -45,6 +45,7 @@ trait ApiIssueControllerBase extends ControllerBase {
           issue = issue,
           repositoryName = RepositoryName(repository),
           user = ApiUser(issueUser),
+          assignee = None, // TODO Get assigned user
           labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
             .map(ApiLabel(_, RepositoryName(repository)))
         )
@@ -66,6 +67,7 @@ trait ApiIssueControllerBase extends ControllerBase {
           issue,
           RepositoryName(repository),
           ApiUser(openedUser),
+          None, // TODO Get assigned user
           getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))
         )
       )
@@ -98,6 +100,7 @@ trait ApiIssueControllerBase extends ControllerBase {
             issue,
             RepositoryName(repository),
             ApiUser(loginAccount),
+            None, // TODO Get assigned user
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository)))
           )
