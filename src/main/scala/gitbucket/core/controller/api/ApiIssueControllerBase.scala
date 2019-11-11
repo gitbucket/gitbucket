@@ -31,7 +31,7 @@ trait ApiIssueControllerBase extends ControllerBase {
     val condition = IssueSearchCondition(request)
     val baseOwner = getAccountByUserName(repository.owner).get
 
-    val issues: List[(Issue, Account)] =
+    val issues: List[(Issue, Account, Option[Account])] =
       searchIssueByApi(
         condition = condition,
         offset = (page - 1) * PullRequestLimit,
@@ -40,12 +40,12 @@ trait ApiIssueControllerBase extends ControllerBase {
       )
 
     JsonFormat(issues.map {
-      case (issue, issueUser) =>
+      case (issue, issueUser, assignedUser) =>
         ApiIssue(
           issue = issue,
           repositoryName = RepositoryName(repository),
           user = ApiUser(issueUser),
-          assignee = None, // TODO Get assigned user
+          assignee = assignedUser.map(ApiUser(_)),
           labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
             .map(ApiLabel(_, RepositoryName(repository)))
         )
