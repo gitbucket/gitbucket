@@ -504,12 +504,13 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
       for {
         issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
         users = getAccountsByUserNames(
-          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName),
+          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName) ++ issue.assignedUserName,
           Set(sender)
         )
         issueUser <- users.get(issue.openedUserName)
         repoOwner <- users.get(repository.owner)
         commenter <- users.get(issueComment.commentedUserName)
+        assignedUser = issue.assignedUserName.flatMap(users.get(_))
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
       } yield {
         WebHookIssueCommentPayload(
@@ -519,6 +520,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
           commentUser = commenter,
           repository = repository,
           repositoryUser = repoOwner,
+          assignedUser = assignedUser,
           sender = sender,
           labels = labels
         )
@@ -692,6 +694,7 @@ object WebHookService {
       commentUser: Account,
       repository: RepositoryInfo,
       repositoryUser: Account,
+      assignedUser: Option[Account],
       sender: Account,
       labels: List[Label]
     ): WebHookIssueCommentPayload =
@@ -702,7 +705,7 @@ object WebHookService {
           issue,
           RepositoryName(repository),
           ApiUser(issueUser),
-          None, // TODO Get assigned user
+          assignedUser.map(ApiUser(_)),
           labels.map(ApiLabel(_, RepositoryName(repository)))
         ),
         comment =
