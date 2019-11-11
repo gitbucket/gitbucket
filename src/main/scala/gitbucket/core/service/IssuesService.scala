@@ -265,7 +265,7 @@ trait IssuesService {
   }
 
   /** for api
-   * @return (issue, issueUser, commentCount)
+   * @return (issue, issueUser, assignedUser)
    */
   def searchIssueByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)(
     implicit s: Session
