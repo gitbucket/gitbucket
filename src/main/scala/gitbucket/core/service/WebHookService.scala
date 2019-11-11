@@ -318,7 +318,8 @@ trait WebHookPullRequestService extends WebHookService {
     sender: Account
   )(implicit s: Session, context: JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, WebHook.Issues) {
-      val users = getAccountsByUserNames(Set(repository.owner, issue.openedUserName), Set(sender))
+      val users =
+        getAccountsByUserNames(Set(repository.owner, issue.openedUserName) ++ issue.assignedUserName, Set(sender))
       for {
         repoOwner <- users.get(repository.owner)
         issueUser <- users.get(issue.openedUserName)
@@ -331,7 +332,7 @@ trait WebHookPullRequestService extends WebHookService {
             issue,
             RepositoryName(repository),
             ApiUser(issueUser),
-            None, // TODO Get assigned user
+            issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository)))
           ),

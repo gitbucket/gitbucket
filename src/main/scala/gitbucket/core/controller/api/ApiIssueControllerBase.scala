@@ -60,14 +60,15 @@ trait ApiIssueControllerBase extends ControllerBase {
     (for {
       issueId <- params("id").toIntOpt
       issue <- getIssue(repository.owner, repository.name, issueId.toString)
-      openedUser <- getAccountByUserName(issue.openedUserName)
+      users = getAccountsByUserNames(Set(issue.openedUserName) ++ issue.assignedUserName, Set())
+      openedUser <- users.get(issue.openedUserName)
     } yield {
       JsonFormat(
         ApiIssue(
           issue,
           RepositoryName(repository),
           ApiUser(openedUser),
-          None, // TODO Get assigned user
+          issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
           getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))
         )
       )
@@ -100,7 +101,7 @@ trait ApiIssueControllerBase extends ControllerBase {
             issue,
             RepositoryName(repository),
             ApiUser(loginAccount),
-            None, // TODO Get assigned user
+            issue.assignedUserName.flatMap(getAccountByUserName(_)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository)))
           )
