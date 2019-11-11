@@ -3,6 +3,7 @@ package gitbucket.core.util
 import java.net.{InetAddress, URL}
 
 import gitbucket.core.service.SystemSettingsService
+import org.apache.commons.net.util.SubnetUtils
 import org.apache.http.HttpHost
 import org.apache.http.auth.{AuthScope, UsernamePasswordCredentials}
 import org.apache.http.impl.client.{BasicCredentialsProvider, CloseableHttpClient, HttpClientBuilder}
@@ -41,6 +42,16 @@ object HttpClientUtil {
 
   def isPrivateUrl(url: String): Boolean = {
     isPrivateAddress(new URL(url).getHost)
+  }
+
+  def inIpRange(ipRange: String, ipAddress: String): Boolean = {
+    if (ipRange.contains('/')) {
+      val utils = new SubnetUtils(ipRange)
+      utils.setInclusiveHostCount(true)
+      utils.getInfo.isInRange(ipAddress)
+    } else {
+      ipRange == ipAddress
+    }
   }
 
 }
