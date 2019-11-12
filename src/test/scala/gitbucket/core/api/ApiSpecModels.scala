@@ -195,6 +195,7 @@ object ApiSpecModels {
     issue = issue,
     repositoryName = repo1Name,
     user = apiUser,
+    assignee = Some(apiUser),
     labels = List(apiLabel)
   )
 
@@ -202,6 +203,7 @@ object ApiSpecModels {
     issue = issuePR,
     repositoryName = repo1Name,
     user = apiUser,
+    assignee = Some(apiUser),
     labels = List(apiLabel)
   )
 
@@ -449,12 +451,14 @@ object ApiSpecModels {
        |"number":1347,
        |"title":"Found a bug",
        |"user":$jsonUser,
+       |"assignee":$jsonUser,
        |"labels":[$jsonLabel],
        |"state":"open",
        |"created_at":"2011-04-14T16:00:49Z",
        |"updated_at":"2011-04-14T16:00:49Z",
        |"body":"I'm having a problem with this.",
        |"id":0,
+       |"assignees":[$jsonUser],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
        |}""".stripMargin
@@ -463,12 +467,14 @@ object ApiSpecModels {
        |"number":1347,
        |"title":"new-feature",
        |"user":$jsonUser,
+       |"assignee":$jsonUser,
        |"labels":[$jsonLabel],
        |"state":"closed",
        |"created_at":"2011-04-14T16:00:49Z",
        |"updated_at":"2011-04-14T16:00:49Z",
        |"body":"Please pull these awesome changes",
        |"id":0,
+       |"assignees":[$jsonUser],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347",
        |"pull_request":{
