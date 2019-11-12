@@ -199,6 +199,14 @@ object ApiSpecModels {
     labels = List(apiLabel)
   )
 
+  val apiNotAssignedIssue = ApiIssue(
+    issue = issue,
+    repositoryName = repo1Name,
+    user = apiUser,
+    assignee = None,
+    labels = List(apiLabel)
+  )
+
   val apiIssuePR = ApiIssue(
     issue = issuePR,
     repositoryName = repo1Name,
@@ -459,6 +467,21 @@ object ApiSpecModels {
        |"body":"I'm having a problem with this.",
        |"id":0,
        |"assignees":[$jsonUser],
+       |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
+       |}""".stripMargin
+
+  val jsonNotAssignedIssue = s"""{
+       |"number":1347,
+       |"title":"Found a bug",
+       |"user":$jsonUser,
+       |"labels":[$jsonLabel],
+       |"state":"open",
+       |"created_at":"2011-04-14T16:00:49Z",
+       |"updated_at":"2011-04-14T16:00:49Z",
+       |"body":"I'm having a problem with this.",
+       |"id":0,
+       |"assignees":[],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
        |}""".stripMargin
