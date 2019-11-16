@@ -53,7 +53,8 @@ trait ServiceSpecBase extends MockitoSugar {
       skinName = "skin-blue",
       showMailAddress = false,
       webHook = SystemSettingsService.WebHook(
-        allowPrivateAddress = false
+        blockPrivateAddress = false,
+        whitelist = Nil
       )
     )
 

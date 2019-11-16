@@ -40,10 +40,6 @@ object HttpClientUtil {
     ipAddress.isSiteLocalAddress || ipAddress.isLinkLocalAddress || ipAddress.isLoopbackAddress
   }
 
-  def isPrivateUrl(url: String): Boolean = {
-    isPrivateAddress(new URL(url).getHost)
-  }
-
   def inIpRange(ipRange: String, ipAddress: String): Boolean = {
     if (ipRange.contains('/')) {
       val utils = new SubnetUtils(ipRange)

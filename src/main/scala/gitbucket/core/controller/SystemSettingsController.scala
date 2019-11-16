@@ -92,7 +92,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
     "showMailAddress" -> trim(label("Show mail address", boolean())),
     "webhook" -> mapping(
-      "allowPrivateAddress" -> trim(label("Allow private address", boolean()))
+      "blockPrivateAddress" -> trim(label("Block private address", boolean())),
+      "whitelist" -> trim(label("Whitelist", multiLineText()))
     )(WebHook.apply)
   )(SystemSettings.apply).verifying { settings =>
     Vector(
@@ -516,6 +517,17 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     ()
   })
+
+  private def multiLineText(constraints: Constraint*): SingleValueType[Seq[String]] =
+    new SingleValueType[Seq[String]](constraints: _*) {
+      def convert(value: String, messages: Messages): Seq[String] = {
+        if (value == null) {
+          Nil
+        } else {
+          value.split("\n").toIndexedSeq.map(_.trim)
+        }
+      }
+    }
 
   private def members: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] = {

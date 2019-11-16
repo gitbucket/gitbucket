@@ -217,6 +217,14 @@ trait WebHookService {
     }
   }
 
+  private def validateTargetAddress(settings: SystemSettings, url: String): Boolean = {
+    val host = new java.net.URL(url).getHost
+
+    !settings.webHook.blockPrivateAddress ||
+    !HttpClientUtil.isPrivateAddress(host) ||
+    settings.webHook.whitelist.exists(range => HttpClientUtil.inIpRange(range, host))
+  }
+
   def callWebHook(event: WebHook.Event, webHooks: List[WebHook], payload: WebHookPayload, settings: SystemSettings)(
     implicit c: JsonFormat.Context
   ): List[(WebHook, String, Future[HttpRequest], Future[HttpResponse])] = {
@@ -237,8 +245,7 @@ trait WebHookService {
             }
           }
           try {
-
-            if (!settings.webHook.allowPrivateAddress && HttpClientUtil.isPrivateUrl(webHook.url)) {
+            if (!validateTargetAddress(settings, webHook.url)) {
               throw new IllegalArgumentException(s"Illegal address: ${webHook.url}")
             }
             val httpClient = HttpClientBuilder.create.useSystemProperties.addInterceptorLast(itcp).build

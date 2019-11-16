@@ -139,7 +139,8 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       skinName = "skin-blue",
       showMailAddress = false,
       webHook = WebHook(
-        allowPrivateAddress = false
+        blockPrivateAddress = false,
+        whitelist = Nil
       )
     )
 
