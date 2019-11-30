@@ -53,8 +53,9 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
   }
 
   def doBasicAuth(auth: String, settings: SystemSettings, request: HttpServletRequest): Option[Account] = {
-    implicit val session = request.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
     val Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
-    authenticate(settings, username, password)
+    Database() withTransaction { implicit session =>
+      authenticate(settings, username, password)
+    }
   }
 }
