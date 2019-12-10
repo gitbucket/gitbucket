@@ -34,6 +34,7 @@ class JsonFormatSpec extends FunSuite {
   }
   test("apiIssue") {
     assert(JsonFormat(apiIssue) == expected(jsonIssue))
+    assert(JsonFormat(apiNotAssignedIssue) == expected(jsonNotAssignedIssue))
     assert(JsonFormat(apiIssuePR) == expected(jsonIssuePR))
   }
   test("apiPullRequest") {

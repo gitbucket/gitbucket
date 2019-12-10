@@ -318,7 +318,8 @@ trait WebHookPullRequestService extends WebHookService {
     sender: Account
   )(implicit s: Session, context: JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, WebHook.Issues) {
-      val users = getAccountsByUserNames(Set(repository.owner, issue.openedUserName), Set(sender))
+      val users =
+        getAccountsByUserNames(Set(repository.owner, issue.openedUserName) ++ issue.assignedUserName, Set(sender))
       for {
         repoOwner <- users.get(repository.owner)
         issueUser <- users.get(issue.openedUserName)
@@ -331,6 +332,7 @@ trait WebHookPullRequestService extends WebHookService {
             issue,
             RepositoryName(repository),
             ApiUser(issueUser),
+            issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository)))
           ),
@@ -502,12 +504,13 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
       for {
         issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
         users = getAccountsByUserNames(
-          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName),
+          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName) ++ issue.assignedUserName,
           Set(sender)
         )
         issueUser <- users.get(issue.openedUserName)
         repoOwner <- users.get(repository.owner)
         commenter <- users.get(issueComment.commentedUserName)
+        assignedUser = issue.assignedUserName.flatMap(users.get(_))
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
       } yield {
         WebHookIssueCommentPayload(
@@ -517,6 +520,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
           commentUser = commenter,
           repository = repository,
           repositoryUser = repoOwner,
+          assignedUser = assignedUser,
           sender = sender,
           labels = labels
         )
@@ -690,6 +694,7 @@ object WebHookService {
       commentUser: Account,
       repository: RepositoryInfo,
       repositoryUser: Account,
+      assignedUser: Option[Account],
       sender: Account,
       labels: List[Label]
     ): WebHookIssueCommentPayload =
@@ -700,6 +705,7 @@ object WebHookService {
           issue,
           RepositoryName(repository),
           ApiUser(issueUser),
+          assignedUser.map(ApiUser(_)),
           labels.map(ApiLabel(_, RepositoryName(repository)))
         ),
         comment =
