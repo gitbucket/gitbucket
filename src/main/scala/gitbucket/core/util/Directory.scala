@@ -10,7 +10,7 @@ object Directory {
   val GitBucketHome = (System.getProperty("gitbucket.home") match {
     // -Dgitbucket.home=<path>
     case path if (path != null) => new File(path)
-    case _ =>
+    case _                      =>
       // default is HOME/.gitbucket
       val oldHome = new File(System.getProperty("user.home"), "gitbucket")
       if (oldHome.exists && oldHome.isDirectory && new File(oldHome, "version").exists) {
