@@ -16,11 +16,16 @@ public class JettyLauncher {
         System.setProperty("java.awt.headless", "true");
 
         String host = null;
-        int port = 8080;
+        String port = null;
         InetSocketAddress address = null;
         String contextPath = "/";
         String tmpDirPath="";
         boolean forceHttps = false;
+
+        host = getEnvironmentVariable("gitbucket.host");
+        port = getEnvironmentVariable("gitbucket.port");
+        contextPath = getEnvironmentVariable("gitbucket.prefix");
+        tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
 
         for(String arg: args) {
             if(arg.startsWith("--") && arg.contains("=")) {
@@ -31,13 +36,10 @@ public class JettyLauncher {
                             host = dim[1];
                             break;
                         case "--port":
-                            port = Integer.parseInt(dim[1]);
+                            port = dim[1];
                             break;
                         case "--prefix":
                             contextPath = dim[1];
-                            if (!contextPath.startsWith("/")) {
-                                contextPath = "/" + contextPath;
-                            }
                             break;
                         case "--max_file_size":
                             System.setProperty("gitbucket.maxFileSize", dim[1]);
@@ -62,10 +64,14 @@ public class JettyLauncher {
             }
         }
 
+        if (contextPath != null && !contextPath.startsWith("/")) {
+            contextPath = "/" + contextPath;
+        }
+
         if(host != null) {
-            address = new InetSocketAddress(host, port);
+            address = new InetSocketAddress(host, getPort(port));
         } else {
-            address = new InetSocketAddress(port);
+            address = new InetSocketAddress(getPort(port));
         }
 
         Server server = new Server(address);
@@ -141,6 +147,23 @@ public class JettyLauncher {
             return new File(home);
         }
         return new File(System.getProperty("user.home"), ".gitbucket");
+    }
+
+    private static String getEnvironmentVariable(String key){
+        String value =  System.getenv(key.toUpperCase().replace('.', '_'));
+        if (value != null && value.length() == 0){
+            return null;
+        } else {
+            return value;
+        }
+    }
+
+    private static int getPort(String port){
+        if(port == null) {
+            return 8080;
+        } else {
+            return Integer.parseInt(port);
+        }
     }
 
     private static Handler addStatisticsHandler(Handler handler) {

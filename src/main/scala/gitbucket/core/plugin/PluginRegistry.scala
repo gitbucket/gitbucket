@@ -15,7 +15,7 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.DatabaseConfig
+import gitbucket.core.util.{ConfigUtil, DatabaseConfig}
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
@@ -235,7 +235,7 @@ object PluginRegistry {
       .reverse
   }
 
-  lazy val extraPluginDir: Option[String] = Option(System.getProperty("gitbucket.pluginDir"))
+  lazy val extraPluginDir: Option[String] = ConfigUtil.getConfigValue[String]("gitbucket.pluginDir")
 
   def getGitBucketVersion(pluginJarFileName: String): Option[String] = {
     val regex = ".+-gitbucket\\_(\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?)-.+".r
