@@ -8,7 +8,7 @@ trait Validations {
   /**
    * Constraint for the identifier such as user name or page name.
    */
-  def identifier: Constraint = new Constraint() {
+  val identifier: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (!value.matches("[a-zA-Z0-9\\-_.]+")) {
         Some(s"${name} contains invalid character.")
@@ -22,19 +22,22 @@ trait Validations {
   /**
    * Constraint for the password.
    */
-  def password: Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if (System.getProperty("gitbucket.validate.password") != "false" && !value.matches("[a-zA-Z0-9\\-_.]+")) {
+  val password: Constraint = new Constraint() {
+    lazy val validatePassword = ConfigUtil.getConfigValue[Boolean]("gitbucket.validate.password").getOrElse(true)
+
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
+      if (validatePassword == true && !value.matches("[a-zA-Z0-9\\-_.]+")) {
         Some(s"${name} contains invalid character.")
       } else {
         None
       }
+    }
   }
 
   /**
    * Constraint for the repository identifier.
    */
-  def repository: Constraint = new Constraint() {
+  val repository: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (!value.matches("[a-zA-Z0-9\\-\\+_.]+")) {
         Some(s"${name} contains invalid character.")
@@ -48,7 +51,7 @@ trait Validations {
   /**
    * Constraint for the color pattern.
    */
-  def color = pattern("#[0-9a-fA-F]{6}")
+  val color = pattern("#[0-9a-fA-F]{6}")
 
   /**
    * ValueType for the java.util.Date property.

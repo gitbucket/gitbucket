@@ -26,11 +26,6 @@ public class JettyLauncher {
         port = getEnvironmentVariable("gitbucket.port");
         contextPath = getEnvironmentVariable("gitbucket.prefix");
         tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
-        setSystemPropertyFromEnv("gitbucket.maxFileSize");
-        setSystemPropertyFromEnv("gitbucket.UploadTimeout");
-        setSystemPropertyFromEnv("gitbucket.home");
-        setSystemPropertyFromEnv("gitbucket.pluginDir");
-        setSystemPropertyFromEnv("gitbucket.validate.password");
 
         for(String arg: args) {
             if(arg.startsWith("--") && arg.contains("=")) {
@@ -147,14 +142,11 @@ public class JettyLauncher {
         if(home != null && home.length() > 0){
             return new File(home);
         }
-        return new File(System.getProperty("user.home"), ".gitbucket");
-    }
-
-    private static void setSystemPropertyFromEnv(String key){
-        String value = getEnvironmentVariable(key);
-        if(value != null){
-            System.setProperty(key, value);
+        home = System.getenv("GITBUCKET_HOME");
+        if(home != null && home.length() > 0){
+            return new File(home);
         }
+        return new File(System.getProperty("user.home"), ".gitbucket");
     }
 
     private static String getEnvironmentVariable(String key){
