@@ -265,17 +265,19 @@ trait IssuesService {
   }
 
   /** for api
-   * @return (issue, issueUser, commentCount)
+   * @return (issue, issueUser, assignedUser)
    */
   def searchIssueByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)(
     implicit s: Session
-  ): List[(Issue, Account)] = {
+  ): List[(Issue, Account, Option[Account])] = {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, false, offset, limit, repos)
       .join(Accounts)
       .on { case t1 ~ t2 ~ i ~ t3 => t3.userName === t1.openedUserName }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 => i asc }
-      .map { case t1 ~ t2 ~ i ~ t3 => (t1, t3) }
+      .joinLeft(Accounts)
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 => t4.userName === t1.assignedUserName }
+      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 => i asc }
+      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 => (t1, t3, t4) }
       .list
   }
 

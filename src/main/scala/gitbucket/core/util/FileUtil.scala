@@ -92,16 +92,12 @@ object FileUtil {
     name
   }
 
-  lazy val MaxFileSize =
-    if (System.getProperty("gitbucket.maxFileSize") != null)
-      System.getProperty("gitbucket.maxFileSize").toLong
-    else
-      3 * 1024 * 1024
+  lazy val MaxFileSize: Long = {
+    ConfigUtil.getConfigValue[Long]("gitbucket.maxFileSize").getOrElse(3 * 1024 * 1024)
+  }
 
-  lazy val UploadTimeout =
-    if (System.getProperty("gitbucket.UploadTimeout") != null)
-      System.getProperty("gitbucket.UploadTimeout").toLong
-    else
-      3 * 10000
+  lazy val UploadTimeout: Long = {
+    ConfigUtil.getConfigValue[Long]("gitbucket.UploadTimeout").getOrElse(3 * 10000)
+  }
 
 }

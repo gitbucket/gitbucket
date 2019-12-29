@@ -255,12 +255,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             account,
             members,
             extraMailAddresses,
-            context.loginAccount.exists(
-              x =>
-                members.exists { member =>
-                  member.userName == x.userName && member.isManager
-              }
-            )
+            isGroupManager(context.loginAccount, members)
           )
         }
 
@@ -272,12 +267,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, Some(userName)),
             extraMailAddresses,
-            context.loginAccount.exists(
-              x =>
-                members.exists { member =>
-                  member.userName == x.userName && member.isManager
-              }
-            )
+            isGroupManager(context.loginAccount, members)
           )
         }
       }
@@ -823,4 +813,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }
   }
+
+  private def isGroupManager(account: Option[Account], members: Seq[GroupMember]): Boolean = {
+    account.exists { account =>
+      account.isAdmin || members.exists { member =>
+        member.userName == account.userName && member.isManager
+      }
+    }
+  }
+
 }

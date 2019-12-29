@@ -49,6 +49,7 @@
   <table class="table table-bordered diff-outside" commitId="@newCommitId" fileName="@diff.newPath" data-diff-id="@i">
     <tr>
       <th style="font-weight: normal;" class="box-header">
+        <i class="fa fa-chevron-down rotate" data-toggle="collapse" data-target=".diff-collapse-@i" aria-hidden="true" style="cursor: pointer; font-size: 12px"></i>
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
@@ -92,7 +93,7 @@
         }
       </th>
     </tr>
-    <tr>
+    <tr class="diff-collapse-@i collapse in">
       <td style="padding: 0;">
         @if(diff.oldObjectId == diff.newObjectId){
           @if(diff.oldPath != diff.newPath){
@@ -139,6 +140,17 @@
 <script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
 <link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
 <script>
+
+$(".rotate").click(function(){
+    if($(this).hasClass('fa-chevron-right')) {
+      $(this).removeClass('fa-chevron-right');
+      $(this).addClass('fa-chevron-down');
+    } else {
+      $(this).removeClass('fa-chevron-down');
+      $(this).addClass('fa-chevron-right');
+    }
+});
+
 $(function(){
   @if(showIndex){
     $('#toggle-file-list').click(function(){

@@ -4,6 +4,7 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.{AdminAuthenticator, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.StringUtil._
 import org.scalatra.NoContent
 
 trait ApiUserControllerBase extends ControllerBase {
@@ -70,7 +71,7 @@ trait ApiUserControllerBase extends ControllerBase {
     } yield {
       val user = createAccount(
         data.login,
-        data.password,
+        pbkdf2_sha256(data.password),
         data.fullName.getOrElse(data.login),
         data.email,
         data.isAdmin.getOrElse(false),

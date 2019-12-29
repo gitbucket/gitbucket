@@ -311,7 +311,7 @@ object SystemSettingsService {
   private val WebHookWhitelist = "webhook.whitelist"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
-    getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {
+    getConfigValue(key).getOrElse {
       defining(props.getProperty(key)) { value =>
         if (value == null || value.isEmpty) {
           default
@@ -319,7 +319,7 @@ object SystemSettingsService {
           convertType(value).asInstanceOf[A]
         }
       }
-    })
+    }
   }
 
   private def getSeqValue[A: ClassTag](props: java.util.Properties, key: String, default: A): Seq[A] = {
@@ -333,7 +333,7 @@ object SystemSettingsService {
   }
 
   private def getOptionValue[A: ClassTag](props: java.util.Properties, key: String, default: Option[A]): Option[A] = {
-    getSystemProperty(key).orElse(getEnvironmentVariable(key).orElse {
+    getConfigValue(key).orElse {
       defining(props.getProperty(key)) { value =>
         if (value == null || value.isEmpty) {
           default
@@ -341,7 +341,7 @@ object SystemSettingsService {
           Some(convertType(value)).asInstanceOf[Option[A]]
         }
       }
-    })
+    }
   }
 
 }

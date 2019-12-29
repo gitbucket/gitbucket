@@ -118,6 +118,7 @@ class WebHookJsonFormatSpec extends FunSuite {
       commentUser = account,
       repository = repositoryInfo,
       repositoryUser = account,
+      assignedUser = Some(account),
       sender = account,
       labels = List(label)
     )
