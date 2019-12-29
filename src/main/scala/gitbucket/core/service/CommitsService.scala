@@ -94,7 +94,8 @@ trait CommitsService {
               repository,
               issue,
               pullRequest,
-              loginAccount
+              loginAccount,
+              context.settings
             )
         }
       case None =>

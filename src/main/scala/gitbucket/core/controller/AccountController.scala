@@ -526,7 +526,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       WebHookPushPayload.createDummyPayload(ownerAccount)
     }
 
-    val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload).head
+    val (webHook, json, reqFuture, resFuture) =
+      callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload, context.settings).head
 
     val toErrorMap: PartialFunction[Throwable, Map[String, String]] = {
       case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))

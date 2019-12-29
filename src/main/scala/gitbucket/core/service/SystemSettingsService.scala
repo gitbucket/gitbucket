@@ -70,6 +70,8 @@ trait SystemSettingsService {
       }
       props.setProperty(SkinName, settings.skinName.toString)
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
+      props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)
+      props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
 
       Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
@@ -146,7 +148,8 @@ trait SystemSettingsService {
           None
         },
         getValue(props, SkinName, "skin-blue"),
-        getValue(props, ShowMailAddress, false)
+        getValue(props, ShowMailAddress, false),
+        WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, ""))
       )
     }
   }
@@ -175,7 +178,8 @@ object SystemSettingsService {
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
     skinName: String,
-    showMailAddress: Boolean
+    showMailAddress: Boolean,
+    webHook: WebHook
   ) {
 
     def baseUrl(request: HttpServletRequest): String =
@@ -252,7 +256,7 @@ object SystemSettingsService {
 
   case class SshAddress(host: String, port: Int, genericUser: String)
 
-  case class Lfs(serverUrl: Option[String])
+  case class WebHook(blockPrivateAddress: Boolean, whitelist: Seq[String])
 
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
@@ -303,6 +307,8 @@ object SystemSettingsService {
   private val PluginProxyPort = "plugin.proxy.port"
   private val PluginProxyUser = "plugin.proxy.user"
   private val PluginProxyPassword = "plugin.proxy.password"
+  private val WebHookBlockPrivateAddress = "webhook.block_private_address"
+  private val WebHookWhitelist = "webhook.whitelist"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getConfigValue(key).getOrElse {
@@ -312,6 +318,16 @@ object SystemSettingsService {
         } else {
           convertType(value).asInstanceOf[A]
         }
+      }
+    }
+  }
+
+  private def getSeqValue[A: ClassTag](props: java.util.Properties, key: String, default: A): Seq[A] = {
+    getValue[String](props, key, "").split("\n").toIndexedSeq.map { value =>
+      if (value == null || value.isEmpty) {
+        default
+      } else {
+        convertType(value).asInstanceOf[A]
       }
     }
   }

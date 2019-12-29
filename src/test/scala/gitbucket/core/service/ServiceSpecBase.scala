@@ -51,7 +51,11 @@ trait ServiceSpecBase extends MockitoSugar {
       oidcAuthentication = false,
       oidc = None,
       skinName = "skin-blue",
-      showMailAddress = false
+      showMailAddress = false,
+      webHook = SystemSettingsService.WebHook(
+        blockPrivateAddress = false,
+        whitelist = Nil
+      )
     )
 
   def withTestDB[A](action: (Session) => A): A = {
@@ -137,7 +141,8 @@ trait ServiceSpecBase extends MockitoSugar {
       commitIdFrom = baesBranch,
       commitIdTo = requestBranch,
       isDraft = false,
-      loginAccount = loginAccount.get
+      loginAccount = loginAccount.get,
+      settings = createSystemSettings()
     )
     dummyService.getPullRequest(baseUserName, baseRepositoryName, issueId).get
   }

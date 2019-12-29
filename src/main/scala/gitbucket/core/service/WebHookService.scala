@@ -3,24 +3,26 @@ package gitbucket.core.service
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
+import gitbucket.core.controller.Context
 import gitbucket.core.model.{
   Account,
+  AccountWebHook,
+  AccountWebHookEvent,
   CommitComment,
   Issue,
   IssueComment,
   Label,
   PullRequest,
-  WebHook,
   RepositoryWebHook,
   RepositoryWebHookEvent,
-  AccountWebHook,
-  AccountWebHookEvent
+  WebHook
 }
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
 import gitbucket.core.util.JGitUtil.CommitInfo
-import gitbucket.core.util.{RepositoryName, StringUtil}
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.{HttpClientUtil, RepositoryName, StringUtil}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
@@ -34,6 +36,7 @@ import scala.util.{Failure, Success}
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 import org.apache.http.client.entity.EntityBuilder
 import org.apache.http.entity.ContentType
 
@@ -201,20 +204,28 @@ trait WebHookService {
   def deleteAccountWebHook(owner: String, url: String)(implicit s: Session): Unit =
     AccountWebHooks.filter(_.byPrimaryKey(owner, url)).delete
 
-  def callWebHookOf(owner: String, repository: String, event: WebHook.Event)(
+  def callWebHookOf(owner: String, repository: String, event: WebHook.Event, settings: SystemSettings)(
     makePayload: => Option[WebHookPayload]
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     val webHooks = getWebHooksByEvent(owner, repository, event)
     if (webHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, webHooks, _))
+      makePayload.map(callWebHook(event, webHooks, _, settings))
     }
     val accountWebHooks = getAccountWebHooksByEvent(owner, event)
     if (accountWebHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, accountWebHooks, _))
+      makePayload.map(callWebHook(event, accountWebHooks, _, settings))
     }
   }
 
-  def callWebHook(event: WebHook.Event, webHooks: List[WebHook], payload: WebHookPayload)(
+  private def validateTargetAddress(settings: SystemSettings, url: String): Boolean = {
+    val host = new java.net.URL(url).getHost
+
+    !settings.webHook.blockPrivateAddress ||
+    !HttpClientUtil.isPrivateAddress(host) ||
+    settings.webHook.whitelist.exists(range => HttpClientUtil.inIpRange(range, host))
+  }
+
+  def callWebHook(event: WebHook.Event, webHooks: List[WebHook], payload: WebHookPayload, settings: SystemSettings)(
     implicit c: JsonFormat.Context
   ): List[(WebHook, String, Future[HttpRequest], Future[HttpResponse])] = {
     import org.apache.http.impl.client.HttpClientBuilder
@@ -234,6 +245,9 @@ trait WebHookService {
             }
           }
           try {
+            if (!validateTargetAddress(settings, webHook.url)) {
+              throw new IllegalArgumentException(s"Illegal address: ${webHook.url}")
+            }
             val httpClient = HttpClientBuilder.create.useSystemProperties.addInterceptorLast(itcp).build
             logger.debug(s"start web hook invocation for ${webHook.url}")
             val httpPost = new HttpPost(webHook.url)
@@ -302,7 +316,6 @@ trait WebHookService {
     } else {
       Nil
     }
-    // logger.debug("end callWebHook")
   }
 }
 
@@ -315,9 +328,10 @@ trait WebHookPullRequestService extends WebHookService {
     action: String,
     repository: RepositoryService.RepositoryInfo,
     issue: Issue,
-    sender: Account
+    sender: Account,
+    settings: SystemSettings
   )(implicit s: Session, context: JsonFormat.Context): Unit = {
-    callWebHookOf(repository.owner, repository.name, WebHook.Issues) {
+    callWebHookOf(repository.owner, repository.name, WebHook.Issues, settings) {
       val users =
         getAccountsByUserNames(Set(repository.owner, issue.openedUserName) ++ issue.assignedUserName, Set(sender))
       for {
@@ -346,10 +360,11 @@ trait WebHookPullRequestService extends WebHookService {
     action: String,
     repository: RepositoryService.RepositoryInfo,
     issueId: Int,
-    sender: Account
+    sender: Account,
+    settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
-    callWebHookOf(repository.owner, repository.name, WebHook.PullRequest) {
+    callWebHookOf(repository.owner, repository.name, WebHook.PullRequest, settings) {
       for {
         (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
         users = getAccountsByUserNames(
@@ -408,7 +423,8 @@ trait WebHookPullRequestService extends WebHookService {
     action: String,
     requestRepository: RepositoryService.RepositoryInfo,
     requestBranch: String,
-    sender: Account
+    sender: Account,
+    settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
     for {
@@ -439,7 +455,7 @@ trait WebHookPullRequestService extends WebHookService {
         mergedComment = getMergedComment(baseRepo.owner, baseRepo.name, issue.issueId)
       )
 
-      callWebHook(WebHook.PullRequest, webHooks, payload)
+      callWebHook(WebHook.PullRequest, webHooks, payload, settings)
     }
   }
 
@@ -453,10 +469,11 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
     repository: RepositoryService.RepositoryInfo,
     issue: Issue,
     pullRequest: PullRequest,
-    sender: Account
+    sender: Account,
+    settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
-    callWebHookOf(repository.owner, repository.name, WebHook.PullRequestReviewComment) {
+    callWebHookOf(repository.owner, repository.name, WebHook.PullRequestReviewComment, settings) {
       val users =
         getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
       for {
@@ -498,9 +515,10 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
     repository: RepositoryService.RepositoryInfo,
     issue: Issue,
     issueCommentId: Int,
-    sender: Account
+    sender: Account,
+    settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
-    callWebHookOf(repository.owner, repository.name, WebHook.IssueComment) {
+    callWebHookOf(repository.owner, repository.name, WebHook.IssueComment, settings) {
       for {
         issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
         users = getAccountsByUserNames(

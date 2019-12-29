@@ -2,12 +2,12 @@ package gitbucket.core.view
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import javax.servlet.http.{HttpServletRequest, HttpSession}
 
+import javax.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
-import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
+import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings, WebHook}
 import org.mockito.Mockito._
 import org.scalatest.FunSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -137,7 +137,11 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       oidcAuthentication = false,
       oidc = None,
       skinName = "skin-blue",
-      showMailAddress = false
+      showMailAddress = false,
+      webHook = WebHook(
+        blockPrivateAddress = false,
+        whitelist = Nil
+      )
     )
 
   /**

@@ -8,6 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil
@@ -106,7 +107,8 @@ trait PullRequestService {
     commitIdFrom: String,
     commitIdTo: String,
     isDraft: Boolean,
-    loginAccount: Account
+    loginAccount: Account,
+    settings: SystemSettings
   )(implicit s: Session, context: Context): Unit = {
     getIssue(originRepository.owner, originRepository.name, issueId.toString).foreach { baseIssue =>
       PullRequests insert PullRequest(
@@ -142,7 +144,7 @@ trait PullRequestService {
       )
 
       // call web hook
-      callPullRequestWebHook("opened", originRepository, issueId, loginAccount)
+      callPullRequestWebHook("opened", originRepository, issueId, loginAccount, settings)
 
       getIssue(originRepository.owner, originRepository.name, issueId.toString) foreach { issue =>
         // extract references and create refer comment
@@ -226,7 +228,14 @@ trait PullRequestService {
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
    */
-  def updatePullRequests(owner: String, repository: String, branch: String, loginAccount: Account, action: String)(
+  def updatePullRequests(
+    owner: String,
+    repository: String,
+    branch: String,
+    loginAccount: Account,
+    action: String,
+    settings: SystemSettings
+  )(
     implicit s: Session,
     c: JsonFormat.Context
   ): Unit = {
@@ -275,7 +284,8 @@ trait PullRequestService {
           action,
           getRepository(owner, repository).get,
           pullreq.requestBranch,
-          loginAccount
+          loginAccount,
+          settings
         )
       }
     }

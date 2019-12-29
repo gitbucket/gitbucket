@@ -283,6 +283,23 @@
     Send notifications
   </label>
 </fieldset>
+<!--====================================================================-->
+<!-- Web hook -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Web hook</label>
+<fieldset>
+  <label class="checkbox" for="blockPrivateAddress">
+    <input type="checkbox" id="blockPrivateAddress" name="webhook.blockPrivateAddress"@if(context.settings.webHook.blockPrivateAddress){ checked}/>
+    Block sending to private addresses
+  </label>
+</fieldset>
+<div class="webhook">
+  <label><span class="strong">IP whitelist</span></label>
+  <fieldset>
+    <textarea name="webhook.whitelist" class="form-control" style="height: 100px;">@context.settings.webHook.whitelist.mkString("\n")</textarea>
+  </fieldset>
+</div>
 <script>
 $(function(){
   $('#skinName').change(function(evt) {
@@ -343,6 +360,10 @@ $(function(){
       // With only SMTP in current version, if SMTP is unchecked then we disable notification
       $('#notification').prop('checked', false);
     }
+  }).change();
+
+  $('#blockPrivateAddress').change(function(){
+    $('.webhook textarea').prop('disabled', !$(this).prop('checked'));
   }).change();
 });
 </script>

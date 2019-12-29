@@ -90,17 +90,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
-    "showMailAddress" -> trim(label("Show mail address", boolean())) //,
-//    "pluginNetworkInstall" -> trim(label("Network plugin installation", boolean())),
-//    "proxy" -> optionalIfNotChecked(
-//      "useProxy",
-//      mapping(
-//        "host" -> trim(label("Proxy host", text(required))),
-//        "port" -> trim(label("Proxy port", number())),
-//        "user" -> trim(label("Keystore", optional(text()))),
-//        "password" -> trim(label("Keystore", optional(text())))
-//      )(Proxy.apply)
-//    )
+    "showMailAddress" -> trim(label("Show mail address", boolean())),
+    "webhook" -> mapping(
+      "blockPrivateAddress" -> trim(label("Block private address", boolean())),
+      "whitelist" -> trim(label("Whitelist", multiLineText()))
+    )(WebHook.apply)
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
@@ -523,6 +517,17 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     ()
   })
+
+  private def multiLineText(constraints: Constraint*): SingleValueType[Seq[String]] =
+    new SingleValueType[Seq[String]](constraints: _*) {
+      def convert(value: String, messages: Messages): Seq[String] = {
+        if (value == null) {
+          Nil
+        } else {
+          value.split("\n").toIndexedSeq.map(_.trim)
+        }
+      }
+    }
 
   private def members: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
