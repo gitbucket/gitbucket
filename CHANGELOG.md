@@ -1,6 +1,13 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.33.0 - 31 Dec 2019
+
+- All CLI options are configurable by environmental variables
+- Folding pull request files
+- WebHook security options
+- Add asignee and asignees properties to some Web APIs' response
+
 ### 4.32.0 - 7 Aug 2019
 
 - Bump to Scala 2.13.0 and Scalatra 2.7.0

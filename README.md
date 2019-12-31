@@ -71,13 +71,11 @@ Support
 
 What's New in 4.32.x
 -------------
-### 4.32.0 - 7 Aug 2019
+### 4.33.0 - 31 Dec 2019
 
-- Bump to Scala 2.13.0 and Scalatra 2.7.0
-- Draft pull request
-- Drop network installation of plugins
-- Compare view works for commit id
-- Apply default priority to pull requests
-- Focus title after clicking issue / pull request edit button
+- All CLI options are configurable by environmental variables
+- Folding pull request files
+- WebHook security options
+- Add asignee and asignees properties to some Web APIs' response
 
 See the [change log](CHANGELOG.md) for all of the updates.
