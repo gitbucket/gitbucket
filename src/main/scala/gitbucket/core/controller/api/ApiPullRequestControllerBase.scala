@@ -114,7 +114,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                       requestBranch = reqBranch,
                       commitIdFrom = commitIdFrom.getName,
                       commitIdTo = commitIdTo.getName,
-                      isDraft = false,
+                      isDraft = createPullReq.draft.getOrElse(false),
                       loginAccount = context.loginAccount.get,
                       settings = context.settings
                     )
