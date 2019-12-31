@@ -76,6 +76,6 @@ What's New in 4.32.x
 - All CLI options are configurable by environmental variables
 - Folding pull request files
 - WebHook security options
-- Add asignee and asignees properties to some Web APIs' response
+- Add assignee and assignees properties to some Web APIs' response
 
 See the [change log](CHANGELOG.md) for all of the updates.

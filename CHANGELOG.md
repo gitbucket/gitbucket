@@ -6,7 +6,7 @@ All changes to the project will be documented in this file.
 - All CLI options are configurable by environmental variables
 - Folding pull request files
 - WebHook security options
-- Add asignee and asignees properties to some Web APIs' response
+- Add assignee and assignees properties to some Web APIs' response
 
 ### 4.32.0 - 7 Aug 2019
 
