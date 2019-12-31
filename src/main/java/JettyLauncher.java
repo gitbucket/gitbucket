@@ -97,7 +97,7 @@ public class JettyLauncher {
         WebAppContext context = new WebAppContext();
 
         File tmpDir;
-        if(tmpDirPath.equals("")){
+        if(tmpDirPath == null || tmpDirPath.equals("")){
             tmpDir = new File(getGitBucketHome(), "tmp");
             if(!tmpDir.exists()){
                 tmpDir.mkdirs();
@@ -120,7 +120,7 @@ public class JettyLauncher {
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
 
-        context.setContextPath(contextPath);
+        context.setContextPath(contextPath == null ? "" : contextPath);
         context.setDescriptor(location.toExternalForm() + "/WEB-INF/web.xml");
         context.setServer(server);
         context.setWar(location.toExternalForm());
