@@ -138,7 +138,6 @@ $(function(){
   $('#btn-code').click(function(){
     $('#editor').show();
     $('#preview').hide();
-    $('#btn-code').appendClass('active');
     $('#btn-preview').removeClass('active');
   });
 
@@ -146,7 +145,6 @@ $(function(){
     $('#editor').hide();
     $('#preview').show();
     $('#btn-code').removeClass('active');
-    $('#btn-preview').addClass('active');
 
     @if(fileName.map(helpers.isRenderable _).getOrElse(false)) {
       // update preview

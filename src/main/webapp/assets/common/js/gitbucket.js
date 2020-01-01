@@ -76,12 +76,12 @@ function displayErrors(data, elem){
  * @param ignoreSpace {Number} 0: include, 1: ignore
  */
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
-  var old = $('#'+oldTextId), head = $('#' + newTextId);
+  var old = $('#' + oldTextId), head = $('#' + newTextId);
   var render = new JsDiffRender({
-    oldText: old.val(),
-    oldTextName: old.attr('data-file-name'),
-    newText: head.val(),
-    newTextName: head.attr('data-file-name'),
+    oldText    : old.data('val'),
+    oldTextName: old.data('file-name'),
+    newText    : head.data('val'),
+    newTextName: head.data('file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
   });
