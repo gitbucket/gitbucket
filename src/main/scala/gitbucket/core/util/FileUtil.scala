@@ -97,7 +97,7 @@ object FileUtil {
   }
 
   lazy val UploadTimeout: Long = {
-    ConfigUtil.getConfigValue[Long]("gitbucket.UploadTimeout").getOrElse(3 * 10000)
+    ConfigUtil.getConfigValue[Long]("gitbucket.uploadTimeout").getOrElse(3 * 10000)
   }
 
 }
