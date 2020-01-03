@@ -59,7 +59,7 @@ What's New in 4.32.x
 -------------
 ### 4.33.0 - 31 Dec 2019
 
-- All CLI options are configurable by environmental variables
+- All CLI options are configurable by environment variables
 - Folding pull request files
 - WebHook security options
 - Add assignee and assignees properties to some Web APIs' response
