@@ -1,0 +1,196 @@
+@(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.util.DatabaseConfig
+<!--====================================================================-->
+<!-- Services -->
+<!--====================================================================-->
+<label class="strong">Services</label>
+<fieldset>
+  <label class="checkbox">
+    <input type="checkbox" name="gravatar"@if(context.settings.gravatar){ checked}/>
+    Use Gravatar for profile images
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- SSH access -->
+<!--====================================================================-->
+<hr>
+<label class="strong">SSH access</label>
+<fieldset>
+  <label class="checkbox">
+    <input type="checkbox" id="sshEnabled" name="ssh.enabled"@if(context.settings.ssh.enabled){ checked}/>
+    Enable SSH access to git repository
+    <span class="muted normal">(Both SSH host and Base URL are required if SSH access is enabled)</span>
+  </label>
+</fieldset>
+<div class="ssh">
+  <div class="form-group">
+    <label class="control-label col-md-2" for="sshHost">SSH host</label>
+    <div class="col-md-10">
+      <input type="text" id="sshHost" name="ssh.host" class="form-control" value="@context.settings.ssh.sshHost"/>
+      <span id="error-ssh_host" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="sshPort">SSH port</label>
+    <div class="col-md-10">
+      <input type="text" id="sshPort" name="ssh.port" class="form-control" value="@context.settings.ssh.sshPort"/>
+      <span id="error-ssh_port" class="error"></span>
+    </div>
+  </div>
+</div>
+<!--====================================================================-->
+<!-- Communication email -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Communication</label>
+<fieldset>
+  <label class="checkbox">
+    <input type="checkbox" id="useSMTP" name="useSMTP" @if(context.settings.useSMTP){ checked}/>
+    SMTP
+    <span class="muted normal">(Enable notification as well as SMTP configuration if you want to send notification email too)</span>
+  </label>
+</fieldset>
+<div class="useSMTP">
+  <div class="form-group">
+    <label class="control-label col-md-2" for="smtpHost">SMTP host</label>
+    <div class="col-md-10">
+      <input type="text" id="smtpHost" name="smtp.host" class="form-control" value="@context.settings.smtp.map(_.host)"/>
+      <span id="error-smtp_host" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="smtpPort">SMTP port</label>
+    <div class="col-md-10">
+      <input type="text" id="smtpPort" name="smtp.port" class="form-control input-mini" value="@context.settings.smtp.map(_.port)"/>
+      <span id="error-smtp_port" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="smtpUser">SMTP user</label>
+    <div class="col-md-10">
+      <input type="text" id="smtpUser" name="smtp.user" class="form-control" value="@context.settings.smtp.map(_.user)"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="smtpPassword">SMTP password</label>
+    <div class="col-md-10">
+      <input type="password" id="smtpPassword" name="smtp.password" class="form-control" value="@context.settings.smtp.map(_.password)"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="smtpSsl">Enable SSL</label>
+    <div class="col-md-10">
+      <input type="checkbox" id="smtpSsl" name="smtp.ssl"@if(context.settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="smtpStarttls">Enable STARTTLS</label>
+    <div class="col-md-10">
+      <input type="checkbox" id="smtpStarttls" name="smtp.starttls"@if(context.settings.smtp.flatMap(_.starttls).getOrElse(false)){ checked}/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="fromAddress">FROM address</label>
+    <div class="col-md-10">
+      <input type="text" id="fromAddress" name="smtp.fromAddress" class="form-control" value="@context.settings.smtp.map(_.fromAddress)"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="fromName">FROM name</label>
+    <div class="col-md-10">
+      <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@context.settings.smtp.map(_.fromName)"/>
+    </div>
+  </div>
+  <div class="text-right">
+    Send test mail to:
+    <input type="text" id="testAddress" size="30"/>
+    <input type="button" id="sendTestMail" value="Send"/>
+  </div>
+</div>
+<!--====================================================================-->
+<!-- Notification email -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Notifications</label>
+<fieldset>
+  <label class="checkbox" for="notification">
+    <input type="checkbox" id="notification" name="notification"@if(context.settings.notification){ checked}/>
+    Send notifications
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Web hook -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Web hook</label>
+<fieldset>
+  <label class="checkbox" for="blockPrivateAddress">
+    <input type="checkbox" id="blockPrivateAddress" name="webhook.blockPrivateAddress"@if(context.settings.webHook.blockPrivateAddress){ checked}/>
+    Block sending to private addresses
+  </label>
+</fieldset>
+<div class="webhook">
+  <label><span class="strong">IP whitelist</span></label>
+  <fieldset>
+    <textarea name="webhook.whitelist" class="form-control" style="height: 100px;">@context.settings.webHook.whitelist.mkString("\n")</textarea>
+  </fieldset>
+</div>
+<script>
+$(function(){
+  $('#sendTestMail').click(function(){
+    var host        = $('#smtpHost'    ).val();
+    var port        = $('#smtpPort'    ).val();
+    var user        = $('#smtpUser'    ).val();
+    var password    = $('#smtpPassword').val();
+    var ssl         = $('#smtpSsl'     ).prop('checked');
+    var starttls    = $('#smtpStarttls').prop('checked');
+    var fromAddress = $('#fromAddress' ).val();
+    var fromName    = $('#fromName'    ).val();
+    var testAddress = $('#testAddress' ).val();
+
+    if(host == ''){
+      alert('SMTP Host is required.');
+      $('#smtpHost').focus();
+    } else if(testAddress == ''){
+      alert('Destination is required.');
+      $('#testAddress').focus();
+    } else {
+      $.post('@context.path/admin/system/sendmail', {
+        'smtp.host': host,
+        'smtp.port': port,
+        'smtp.user': user,
+        'smtp.password': password,
+        'smtp.ssl': ssl,
+        'smtp.starttls': starttls,
+        'smtp.fromAddress': fromAddress,
+        'smtp.fromName': fromName,
+        'testAddress': testAddress
+      }, function(data, status){
+        if(data != ''){
+          alert(data);
+        }
+      });
+    }
+  });
+
+  $('#sshEnabled').change(function(){
+    $('.ssh input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
+  $('#useSMTP').change(function(){
+    $('.useSMTP input').prop('disabled', !$(this).prop('checked'));
+
+    // With only SMTP in current version, notification cannot be enabled if no communication channel exists
+    $('#notification').prop('disabled', !$(this).prop('checked'));
+
+    if (!$(this).prop('checked')) {
+      // With only SMTP in current version, if SMTP is unchecked then we disable notification
+      $('#notification').prop('checked', false);
+    }
+  }).change();
+
+  $('#blockPrivateAddress').change(function(){
+    $('.webhook textarea').prop('disabled', !$(this).prop('checked'));
+  }).change();
+});
+</script>
