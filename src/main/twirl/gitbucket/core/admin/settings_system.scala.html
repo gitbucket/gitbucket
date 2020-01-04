@@ -151,6 +151,27 @@
   </label>
 </fieldset>
 <!--====================================================================-->
+<!-- File upload -->
+<!--====================================================================-->
+<hr>
+<label class="strong">File upload</label>
+<fieldset>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadMaxFileSize">Max file size</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadMaxFileSize" name="upload.maxFileSize" class="form-control input-mini" value="@context.settings.upload.maxFileSize"/>
+      <span id="error-upload_maxFileSize" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+      <label class="control-label col-md-2" for="uploadTimeout">Timeout</label>
+      <div class="col-md-10">
+        <input type="text" id="uploadTimeout" name="upload.timeout" class="form-control input-mini" value="@context.settings.upload.timeout"/>
+        <span id="error-upload_timeout" class="error"></span>
+      </div>
+    </div>
+  </fieldset>
+<!--====================================================================-->
 <!-- Activity -->
 <!--====================================================================-->
 <hr>

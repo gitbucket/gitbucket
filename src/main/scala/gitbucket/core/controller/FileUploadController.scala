@@ -17,6 +17,7 @@ import org.scalatra.servlet.{FileItem, FileUploadSupport, MultipartConfig}
 import org.apache.commons.io.{FileUtils, IOUtils}
 
 import scala.util.Using
+import gitbucket.core.service.SystemSettingsService
 
 /**
  * Provides Ajax based file upload functionality.
@@ -28,11 +29,11 @@ class FileUploadController
     with FileUploadSupport
     with RepositoryService
     with AccountService
-    with ReleaseService {
-
-  configureMultipartHandling(MultipartConfig(maxFileSize = Some(FileUtil.MaxFileSize)))
+    with ReleaseService
+    with SystemSettingsService {
 
   post("/image") {
+    setMultipartConfig()
     execute(
       { (file, fileId) =>
         FileUtils
@@ -44,6 +45,7 @@ class FileUploadController
   }
 
   post("/tmp") {
+    setMultipartConfig()
     execute(
       { (file, fileId) =>
         FileUtils
@@ -55,6 +57,7 @@ class FileUploadController
   }
 
   post("/file/:owner/:repository") {
+    setMultipartConfig()
     execute(
       { (file, fileId) =>
         FileUtils.writeByteArrayToFile(
@@ -70,6 +73,7 @@ class FileUploadController
   }
 
   post("/wiki/:owner/:repository") {
+    setMultipartConfig()
     // Don't accept not logged-in users
     session.get(Keys.Session.LoginAccount).collect {
       case loginAccount: Account =>
@@ -128,6 +132,7 @@ class FileUploadController
   }
 
   post("/release/:owner/:repository/:tag") {
+    setMultipartConfig()
     session
       .get(Keys.Session.LoginAccount)
       .collect {
@@ -150,6 +155,7 @@ class FileUploadController
 
   post("/import") {
     import JDBCUtil._
+    setMultipartConfig()
     session.get(Keys.Session.LoginAccount).collect {
       case loginAccount: Account if loginAccount.isAdmin =>
         execute({ (file, fileId) =>
@@ -157,6 +163,14 @@ class FileUploadController
         }, _ => true)
     }
     redirect("/admin/data")
+  }
+
+  private def setMultipartConfig(): Unit = {
+    import org.scalatra.servlet.HasMultipartConfig._
+
+    val settings = loadSystemSettings()
+    val config = MultipartConfig(maxFileSize = Some(settings.upload.maxFileSize))
+    config.apply(request.getServletContext())
   }
 
   private def onlyWikiEditable(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
