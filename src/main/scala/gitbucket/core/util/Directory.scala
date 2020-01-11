@@ -62,7 +62,7 @@ object Directory {
     new File(getRepositoryFilesDir(owner, repository), "releases")
 
   /**
-   * Directory for files which are attached to issue.
+   * Directory for Git LFS files.
    */
   def getLfsDir(owner: String, repository: String): File =
     new File(getRepositoryFilesDir(owner, repository), "lfs")
