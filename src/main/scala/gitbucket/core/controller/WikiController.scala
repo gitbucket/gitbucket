@@ -303,7 +303,7 @@ trait WikiControllerBase extends ControllerBase {
 
   private def pagename: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if (value.exists("\\/:*?\"<>|+".contains(_))) {
+      if (value.exists("\\/:*?\"<>|".contains(_))) {
         Some(s"${name} contains invalid character.")
       } else if (notReservedPageName(value) && (value.startsWith("_") || value.startsWith("-"))) {
         Some(s"${name} starts with invalid character.")
