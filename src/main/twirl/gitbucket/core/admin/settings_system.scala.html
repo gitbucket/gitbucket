@@ -157,20 +157,34 @@
 <label class="strong">File upload</label>
 <fieldset>
   <div class="form-group">
-    <label class="control-label col-md-2" for="uploadMaxFileSize">Max file size</label>
+    <label class="control-label col-md-2" for="uploadMaxFileSize">Max size</label>
     <div class="col-md-10">
       <input type="text" id="uploadMaxFileSize" name="upload.maxFileSize" class="form-control input-mini" value="@context.settings.upload.maxFileSize"/>
       <span id="error-upload_maxFileSize" class="error"></span>
     </div>
   </div>
   <div class="form-group">
-      <label class="control-label col-md-2" for="uploadTimeout">Timeout</label>
-      <div class="col-md-10">
-        <input type="text" id="uploadTimeout" name="upload.timeout" class="form-control input-mini" value="@context.settings.upload.timeout"/>
-        <span id="error-upload_timeout" class="error"></span>
-      </div>
+    <label class="control-label col-md-2" for="uploadTimeout">Timeout</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadTimeout" name="upload.timeout" class="form-control input-mini" value="@context.settings.upload.timeout"/>
+      <span id="error-upload_timeout" class="error"></span>
     </div>
-  </fieldset>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadLargeMaxFileSize">Max size for large files</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadLargeMaxFileSize" name="upload.largeMaxFileSize" class="form-control input-mini" value="@context.settings.upload.largeMaxFileSize"/>
+      <span id="error-upload_largeMaxFileSize" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadLargeTimeout">Timeout for large files</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadLargeTimeout" name="upload.largeTimeout" class="form-control input-mini" value="@context.settings.upload.largeTimeout"/>
+      <span id="error-upload_largeTimeout" class="error"></span>
+    </div>
+  </div>
+</fieldset>
 <!--====================================================================-->
 <!-- Activity -->
 <!--====================================================================-->

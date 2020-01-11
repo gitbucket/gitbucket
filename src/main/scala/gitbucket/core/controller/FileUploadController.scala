@@ -132,7 +132,7 @@ class FileUploadController
   }
 
   post("/release/:owner/:repository/:tag") {
-    setMultipartConfig()
+    setMultipartConfigForLargeFile()
     session
       .get(Keys.Session.LoginAccount)
       .collect {
@@ -166,10 +166,14 @@ class FileUploadController
   }
 
   private def setMultipartConfig(): Unit = {
-    import org.scalatra.servlet.HasMultipartConfig._
-
     val settings = loadSystemSettings()
     val config = MultipartConfig(maxFileSize = Some(settings.upload.maxFileSize))
+    config.apply(request.getServletContext())
+  }
+
+  private def setMultipartConfigForLargeFile(): Unit = {
+    val settings = loadSystemSettings()
+    val config = MultipartConfig(maxFileSize = Some(settings.upload.largeMaxFileSize))
     config.apply(request.getServletContext())
   }
 

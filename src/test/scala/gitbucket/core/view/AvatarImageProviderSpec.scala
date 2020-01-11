@@ -144,7 +144,9 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       ),
       upload = Upload(
         maxFileSize = 3 * 1024 * 1024,
-        timeout = 30 * 10000
+        timeout = 30 * 10000,
+        largeMaxFileSize = 3 * 1024 * 1024,
+        largeTimeout = 30 * 10000
       )
     )
 

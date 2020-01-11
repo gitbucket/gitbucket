@@ -72,8 +72,8 @@ $(function(){
 
   $("#drop").dropzone({
     url: '@context.path/upload/release/@repository.owner/@repository.name/@helpers.encodeRefName(tag.name)',
-    maxFilesize: @{context.settings.upload.maxFileSize / 1024 / 1024},
-    timeout: @{context.settings.upload.timeout},
+    maxFilesize: @{context.settings.upload.largeMaxFileSize / 1024 / 1024},
+    timeout: @{context.settings.upload.largeTimeout},
     previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
     success: function(file, id) {
       var attach =

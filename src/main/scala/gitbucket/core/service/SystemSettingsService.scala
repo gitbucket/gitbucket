@@ -74,6 +74,8 @@ trait SystemSettingsService {
       props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
       props.setProperty(UploadMaxFileSize, settings.upload.maxFileSize.toString)
       props.setProperty(UploadTimeout, settings.upload.timeout.toString)
+      props.setProperty(UploadLargeMaxFileSize, settings.upload.largeMaxFileSize.toString)
+      props.setProperty(UploadLargeTimeout, settings.upload.largeTimeout.toString)
 
       Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
         props.store(out, null)
@@ -152,7 +154,12 @@ trait SystemSettingsService {
         getValue(props, SkinName, "skin-blue"),
         getValue(props, ShowMailAddress, false),
         WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
-        Upload(getValue(props, UploadMaxFileSize, 3 * 1024 * 1024), getValue(props, UploadTimeout, 3 * 10000))
+        Upload(
+          getValue(props, UploadMaxFileSize, 3 * 1024 * 1024),
+          getValue(props, UploadTimeout, 3 * 10000),
+          getValue(props, UploadLargeMaxFileSize, 3 * 1024 * 1024),
+          getValue(props, UploadLargeTimeout, 3 * 10000)
+        )
       )
     }
   }
@@ -262,7 +269,7 @@ object SystemSettingsService {
 
   case class WebHook(blockPrivateAddress: Boolean, whitelist: Seq[String])
 
-  case class Upload(maxFileSize: Long, timeout: Long)
+  case class Upload(maxFileSize: Long, timeout: Long, largeMaxFileSize: Long, largeTimeout: Long)
 
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
@@ -308,15 +315,12 @@ object SystemSettingsService {
   private val OidcJwsAlgorithm = "oidc.jws_algorithm"
   private val SkinName = "skinName"
   private val ShowMailAddress = "showMailAddress"
-  private val PluginNetworkInstall = "plugin.networkInstall"
-  private val PluginProxyHost = "plugin.proxy.host"
-  private val PluginProxyPort = "plugin.proxy.port"
-  private val PluginProxyUser = "plugin.proxy.user"
-  private val PluginProxyPassword = "plugin.proxy.password"
   private val WebHookBlockPrivateAddress = "webhook.block_private_address"
   private val WebHookWhitelist = "webhook.whitelist"
-  private val UploadMaxFileSize = "maxFileSize"
-  private val UploadTimeout = "uploadTimeout"
+  private val UploadMaxFileSize = "upload.maxFileSize"
+  private val UploadTimeout = "upload.timeout"
+  private val UploadLargeMaxFileSize = "upload.largeMaxFileSize"
+  private val UploadLargeTimeout = "upload.largeTimeout"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getConfigValue(key).getOrElse {
