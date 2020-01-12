@@ -55,6 +55,12 @@ trait ServiceSpecBase extends MockitoSugar {
       webHook = SystemSettingsService.WebHook(
         blockPrivateAddress = false,
         whitelist = Nil
+      ),
+      upload = SystemSettingsService.Upload(
+        maxFileSize = 3 * 1024 * 1024,
+        timeout = 30 * 10000,
+        largeMaxFileSize = 3 * 1024 * 1024,
+        largeTimeout = 30 * 10000
       )
     )
 

@@ -94,7 +94,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "webhook" -> mapping(
       "blockPrivateAddress" -> trim(label("Block private address", boolean())),
       "whitelist" -> trim(label("Whitelist", multiLineText()))
-    )(WebHook.apply)
+    )(WebHook.apply),
+    "upload" -> mapping(
+      "maxFileSize" -> trim(label("Max file size", long(required))),
+      "timeout" -> trim(label("Timeout", long(required))),
+      "largeMaxFileSize" -> trim(label("Max file size for large file", long(required))),
+      "largeTimeout" -> trim(label("Timeout for large file", long(required)))
+    )(Upload.apply)
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {

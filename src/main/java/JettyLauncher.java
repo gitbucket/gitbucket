@@ -41,12 +41,6 @@ public class JettyLauncher {
                         case "--prefix":
                             contextPath = dim[1];
                             break;
-                        case "--max_file_size":
-                            System.setProperty("gitbucket.maxFileSize", dim[1]);
-                            break;
-                        case "--upload_timeout":
-                            System.setProperty("gitbucket.UploadTimeout", dim[1]);
-                            break;
                         case "--gitbucket.home":
                             System.setProperty("gitbucket.home", dim[1]);
                             break;

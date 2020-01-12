@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
-import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings, WebHook}
+import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings, WebHook, Upload}
 import org.mockito.Mockito._
 import org.scalatest.FunSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -141,6 +141,12 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       webHook = WebHook(
         blockPrivateAddress = false,
         whitelist = Nil
+      ),
+      upload = Upload(
+        maxFileSize = 3 * 1024 * 1024,
+        timeout = 30 * 10000,
+        largeMaxFileSize = 3 * 1024 * 1024,
+        largeTimeout = 30 * 10000
       )
     )
 

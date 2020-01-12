@@ -48,7 +48,8 @@ $(function(){
   try {
     $('#content1').dropzone({
       url: '@context.path/upload/wiki/@repository.owner/@repository.name',
-      maxFilesize: @{FileUtil.MaxFileSize / 1024 / 1024},
+      maxFilesize: @{context.settings.upload.maxFileSize / 1024 / 1024},
+      timeout: @{context.settings.upload.timeout},
       clickable: false,
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
@@ -59,7 +60,8 @@ $(function(){
     });
     $('.clickable').dropzone({
       url: '@context.path/upload/wiki/@repository.owner/@repository.name',
-      maxFilesize: @{FileUtil.MaxFileSize / 1024 / 1024},
+      maxFilesize: @{context.settings.upload.maxFileSize / 1024 / 1024},
+      timeout: @{context.settings.upload.timeout},
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
         var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
