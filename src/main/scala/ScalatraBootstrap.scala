@@ -16,7 +16,7 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
       context.getSessionCookieConfig.setSecure(true)
     }
 
-    // Register TransactionFilter and BasicAuthenticationFilter at first
+    // Register TransactionFilter at first
     context.addFilter("transactionFilter", new TransactionFilter)
     context
       .getFilterRegistration("transactionFilter")

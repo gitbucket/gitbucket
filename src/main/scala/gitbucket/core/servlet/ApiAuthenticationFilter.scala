@@ -24,7 +24,7 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
     val response = res.asInstanceOf[HttpServletResponse]
     Option(request.getHeader("Authorization"))
       .map {
-        case auth if auth.startsWith("token ") =>
+        case auth if auth.toLowerCase().startsWith("token ") =>
           AccessTokenService.getAccountByAccessToken(auth.substring(6).trim).toRight(())
         case auth if auth.startsWith("Basic ") => doBasicAuth(auth, loadSystemSettings(), request).toRight(())
         case _                                 => Left(())
