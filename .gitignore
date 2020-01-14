@@ -28,3 +28,4 @@ project/plugins/project/
 # Metals specific
 .metals
 .bloop
+project/metals.sbt
