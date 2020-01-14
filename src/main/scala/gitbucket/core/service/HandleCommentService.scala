@@ -39,7 +39,10 @@ trait HandleCommentService {
                   ))
               case "reopen" if (issue.closed) =>
                 false ->
-                  (Some("reopen") -> Some(recordReopenIssueActivity _))
+                  (Some("reopen") -> Some(
+                    if (issue.isPullRequest) recordReopenPullRequestActivity _
+                    else recordReopenIssueActivity _
+                  ))
             }
             .map {
               case (closed, t) =>

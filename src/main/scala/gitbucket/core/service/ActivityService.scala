@@ -131,6 +131,23 @@ trait ActivityService {
       currentDate
     )
 
+  def recordReopenPullRequestActivity(
+    userName: String,
+    repositoryName: String,
+    activityUserName: String,
+    issueId: Int,
+    title: String
+  )(implicit s: Session): Unit =
+    Activities insert Activity(
+      userName,
+      repositoryName,
+      activityUserName,
+      "reopen_issue",
+      s"[user:${activityUserName}] reopened pull request [issue:${userName}/${repositoryName}#${issueId}]",
+      Some(title),
+      currentDate
+    )
+
   def recordCommentIssueActivity(
     userName: String,
     repositoryName: String,
