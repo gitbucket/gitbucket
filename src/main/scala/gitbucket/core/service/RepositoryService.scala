@@ -459,6 +459,7 @@ trait RepositoryService {
   /**
    * Returns the list of visible repositories for the specified user.
    * If repositoryUserName is given then filters results by repository owner.
+   * This function is for plugin compatibility.
    *
    * @param loginAccount the logged in account
    * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
@@ -470,23 +471,42 @@ trait RepositoryService {
     loginAccount: Option[Account],
     repositoryUserName: Option[String] = None,
     withoutPhysicalInfo: Boolean = false
+  )(implicit s: Session): List[RepositoryInfo] =
+    getVisibleRepositories(loginAccount, repositoryUserName, withoutPhysicalInfo, false)
+
+  /**
+   * Returns the list of visible repositories for the specified user.
+   * If repositoryUserName is given then filters results by repository owner.
+   *
+   * @param loginAccount the logged in account
+   * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
+   * @param withoutPhysicalInfo if true then the result does not include physical repository information such as commit count,
+   *                            branches and tags
+   * @param limit if true then result will include only repositories associated with the login account.
+   * @return the repository information which is sorted in descending order of lastActivityDate.
+   */
+  def getVisibleRepositories(
+    loginAccount: Option[Account],
+    repositoryUserName: Option[String],
+    withoutPhysicalInfo: Boolean,
+    limit: Boolean
   )(implicit s: Session): List[RepositoryInfo] = {
     (loginAccount match {
       // for Administrators
-      case Some(x) if (x.isAdmin) =>
+      case Some(x) if (x.isAdmin && !limit) =>
         Repositories
           .join(Accounts)
           .on(_.userName === _.userName)
           .filter { case (t1, t2) => t2.removed === false.bind }
           .map { case (t1, t2) => t1 }
       // for Normal Users
-      case Some(x) if (!x.isAdmin) =>
+      case Some(x) if (!x.isAdmin || limit) =>
         Repositories
           .join(Accounts)
           .on(_.userName === _.userName)
           .filter {
             case (t1, t2) =>
-              (t2.removed === false.bind) && ((t1.isPrivate === false.bind) || (t1.userName === x.userName) ||
+              (t2.removed === false.bind) && ((t1.isPrivate === false.bind && !limit.bind) || (t1.userName === x.userName) ||
                 (t1.userName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)) ||
                 (Collaborators.filter { t3 =>
                   t3.byRepository(t1.userName, t1.repositoryName) &&

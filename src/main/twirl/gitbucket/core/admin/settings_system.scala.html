@@ -199,6 +199,21 @@
     </div>
   </div>
 </fieldset>
+<!--====================================================================-->
+<!-- Sidebar -->
+<!--====================================================================-->
+<hr>
+<label><span class="strong">Show Repositories in Sidebar</span></label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="limitVisibleRepositories" value="false"@if(!context.settings.limitVisibleRepositories){ checked}>
+    <span class="strong">All</span> <span class="normal">- Show all repositories in sidebar.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="limitVisibleRepositories" value="true"@if(context.settings.limitVisibleRepositories){ checked}>
+    <span class="strong">Limited</span> <span class="normal">- Limit the visible repositories in sidebar.</span>
+  </label>
+</fieldset>
 <script>
 $(function(){
   $('#skinName').change(function(evt) {
