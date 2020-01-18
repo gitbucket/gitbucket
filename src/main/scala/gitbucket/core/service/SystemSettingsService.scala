@@ -24,6 +24,7 @@ trait SystemSettingsService {
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
+      props.setProperty(LimitVisibleRepositories, settings.limitVisibleRepositories.toString)
       props.setProperty(SshEnabled, settings.ssh.enabled.toString)
       settings.ssh.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
       settings.ssh.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
@@ -99,6 +100,7 @@ trait SystemSettingsService {
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
+        getValue(props, LimitVisibleRepositories, false),
         Ssh(
           getValue(props, SshEnabled, false),
           getOptionValue[String](props, SshHost, None).map(_.trim),
@@ -180,6 +182,7 @@ object SystemSettingsService {
     gravatar: Boolean,
     notification: Boolean,
     activityLogLimit: Option[Int],
+    limitVisibleRepositories: Boolean,
     ssh: Ssh,
     useSMTP: Boolean,
     smtp: Option[Smtp],
@@ -283,6 +286,7 @@ object SystemSettingsService {
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
+  private val LimitVisibleRepositories = "limitVisibleRepositories"
   private val SshEnabled = "ssh"
   private val SshHost = "ssh.host"
   private val SshPort = "ssh.port"

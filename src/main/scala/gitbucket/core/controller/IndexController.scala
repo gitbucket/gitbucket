@@ -65,7 +65,12 @@ trait IndexControllerBase extends ControllerBase {
         val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
         gitbucket.core.html.index(
           getRecentActivitiesByOwners(visibleOwnerSet),
-          getVisibleRepositories(Some(account), withoutPhysicalInfo = true),
+          getVisibleRepositories(
+            Some(account),
+            None,
+            withoutPhysicalInfo = true,
+            limit = context.settings.limitVisibleRepositories
+          ),
           showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
             account.userName
           )
@@ -279,7 +284,12 @@ trait IndexControllerBase extends ControllerBase {
   get("/search") {
     val query = params.getOrElse("query", "").trim.toLowerCase
     val visibleRepositories =
-      getVisibleRepositories(context.loginAccount, repositoryUserName = None, withoutPhysicalInfo = true)
+      getVisibleRepositories(
+        context.loginAccount,
+        None,
+        withoutPhysicalInfo = true,
+        limit = context.settings.limitVisibleRepositories
+      )
     val repositories = visibleRepositories.filter { repository =>
       repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
     }
