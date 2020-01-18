@@ -34,6 +34,8 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
     val pullRequest = column[Boolean]("PULL_REQUEST")
+    val startDate = column[java.util.Date]("START_DATE")
+    val dueDate = column[java.util.Date]("DUE_DATE")
     def * =
       (
         userName,
@@ -48,7 +50,9 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
         closed,
         registeredDate,
         updatedDate,
-        pullRequest
+        pullRequest,
+        startDate.?,
+        dueDate.?
       ) <> (Issue.tupled, Issue.unapply)
 
     def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
@@ -68,5 +72,7 @@ case class Issue(
   closed: Boolean,
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
-  isPullRequest: Boolean
+  isPullRequest: Boolean,
+  startDate: Option[java.util.Date],
+  dueDate: Option[java.util.Date]
 )
