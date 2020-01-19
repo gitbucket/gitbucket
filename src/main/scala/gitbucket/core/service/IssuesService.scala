@@ -21,6 +21,7 @@ import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.view.helpers
 
 trait IssuesService {
   self: AccountService with RepositoryService with LabelsService with PrioritiesService with MilestonesService =>
@@ -340,6 +341,16 @@ trait IssuesService {
                 case "asc"  => t2.priority asc
                 case "desc" => t2.priority desc
               }
+            case "startDate" =>
+              condition.direction match {
+                case "asc"  => t1.startDate.asc.nullsLast
+                case "desc" => t1.startDate.desc.nullsFirst
+              }
+            case "dueDate" =>
+              condition.direction match {
+                case "asc"  => t1.dueDate.asc.nullsLast
+                case "desc" => t1.dueDate.desc.nullsFirst
+              }
           }
       }
       .drop(offset)
@@ -408,7 +419,9 @@ trait IssuesService {
     assignedUserName: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
-    isPullRequest: Boolean = false
+    isPullRequest: Boolean = false,
+    startDate: Option[java.util.Date] = None,
+    dueDate: Option[java.util.Date] = None
   )(implicit s: Session): Int = {
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE"
@@ -428,7 +441,9 @@ trait IssuesService {
           false,
           currentDate,
           currentDate,
-          isPullRequest
+          isPullRequest,
+          startDate,
+          dueDate
         )
 
         // increment issue id
@@ -535,6 +550,80 @@ trait IssuesService {
         t.pullRequest
       }
       .update(true)
+  }
+
+  private def insertIssueDateComment(
+    owner: String,
+    repository: String,
+    issueId: Int,
+    action: String,
+    content: String
+  )(
+    implicit context: Context,
+    s: Session
+  ): Int = {
+    IssueComments insert IssueComment(
+      userName = owner,
+      repositoryName = repository,
+      issueId = issueId,
+      action = action,
+      commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+      content = content,
+      registeredDate = currentDate,
+      updatedDate = currentDate
+    )
+  }
+
+  private def dateOpt(date: Option[java.util.Date]): String = {
+    date match { case Some(d) => helpers.date(d); case _ => "None" }
+  }
+
+  private def dateRange(oldDate: Option[java.util.Date], newDate: Option[java.util.Date]): String = {
+    s"${dateOpt(oldDate)}:${dateOpt(newDate)}"
+  }
+
+  def updateIssueStartDate(
+    owner: String,
+    repository: String,
+    issueId: Int,
+    startDate: Option[java.util.Date],
+    insertComment: Boolean = false
+  )(
+    implicit context: Context,
+    s: Session
+  ): Int = {
+    if (insertComment) {
+      val oldDate = getIssue(owner, repository, s"${issueId}").get.startDate
+      insertIssueDateComment(owner, repository, issueId, "change_start_date", dateRange(oldDate, startDate))
+    }
+    Issues
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        (t.startDate ?, t.updatedDate)
+      }
+      .update(startDate, currentDate)
+  }
+
+  def updateIssueDueDate(
+    owner: String,
+    repository: String,
+    issueId: Int,
+    dueDate: Option[java.util.Date],
+    insertComment: Boolean = false
+  )(
+    implicit context: Context,
+    s: Session
+  ): Int = {
+    if (insertComment) {
+      val oldDate = getIssue(owner, repository, s"${issueId}").get.dueDate
+      insertIssueDateComment(owner, repository, issueId, "change_due_date", dateRange(oldDate, dueDate))
+    }
+    Issues
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        (t.dueDate ?, t.updatedDate)
+      }
+      .update(dueDate, currentDate)
   }
 
   def updateAssignedUserName(
@@ -843,6 +932,8 @@ object IssuesService {
               case ("updated", "asc")   => Some("sort:updated-asc")
               case ("priority", "desc") => Some("sort:priority-desc")
               case ("priority", "asc")  => Some("sort:priority-asc")
+              case ("startDate", "asc") => Some("sort:startDate-asc")
+              case ("dueDate", "asc")   => Some("sort:dueDate-asc")
               case x                    => throw new MatchError(x)
             },
             visibility.map(visibility => s"visibility:${visibility}")
@@ -904,7 +995,8 @@ object IssuesService {
         },
         param(request, "mentioned"),
         param(request, "state", Seq("open", "closed")).getOrElse("open"),
-        param(request, "sort", Seq("created", "comments", "updated", "priority")).getOrElse("created"),
+        param(request, "sort", Seq("created", "comments", "updated", "priority", "startDate", "dueDate"))
+          .getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
         param(request, "visibility"),
         param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)

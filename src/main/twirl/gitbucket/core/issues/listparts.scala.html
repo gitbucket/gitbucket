@@ -135,6 +135,16 @@
                 @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
               </a>
             </li>
+            <li>
+              <a href="@condition.copy(sort="startDate",  direction="asc" ).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.sort == "startDate"  && condition.direction == "asc") Start date
+              </a>
+            </li>
+            <li>
+              <a href="@condition.copy(sort="dueDate",  direction="asc" ).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.sort == "dueDate"  && condition.direction == "asc") Due date
+              </a>
+            </li>
           }
         </span>
         @if(isManageable){
@@ -208,7 +218,10 @@
     }
     @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) => {
       <tr>
-        <td style="padding-top: 12px; padding-bottom: 12px;">
+        <td class="reset-row" style="padding-top: 12px; padding-bottom: 12px;">
+          <div class="col-xs-6 reset-row">
+          <div class="col-md-5">
+            <div class="row">
           @if(isManageable){
             <input type="checkbox" value="@issue.issueId"/>
           }
@@ -227,10 +240,28 @@
           @labels.map { label =>
             <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
           }
-          <span class="pull-right small">
-            @issue.assignedUserName.map { userName =>
+            </div>
+            <div class="row">
+              #@issue.issueId opened @gitbucket.core.helper.html.datetimeago(issue.registeredDate) by @helpers.user(issue.openedUserName, styleClass="username")
+            </div>
+          </div>
+          <div class="col-md-3 small muted" style="max-width:150px">
+            @priority.map(priority => priorities.filter(p => p.priorityName == priority).head).map { priority =>
+            <span><a href="@condition.copy(priority = Some(Some(priority.priorityName))).toURL" class="username"@if(!priority.description.isEmpty) { title="@priority.description.get" }><i class="octicon octicon-flame"></i>
+              <span class="issue-priority issue-priority-inline" style="background-color: #@priority.color; color: #@priority.fontColor;">@priority.priorityName</span></a></span>
+            }
+          </div>
+          <div class="col-md-4 small muted" style="max-width:300px">
+            @milestone.map { milestone =>
+            <span><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>
+            }
+          </div>
+          </div>
+          <div class="col-xs-2 pull-right text-right" style="max-width:100px">
+              @issue.assignedUserName.map { userName =>
               @helpers.avatar(userName, 20, tooltip = true)
             }
+            <span class="text-nowrap">
             @if(commentCount > 0){
               <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">
                 <i class="octicon octicon-comment active"></i> @commentCount
@@ -239,17 +270,24 @@
               <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count" style="color: silver;">
                 <i class="octicon octicon-comment"></i> @commentCount
               </a>
+            </span>
             }
-          </span>
-          <div class="small muted" style="margin-left: 12px; margin-top: 2px;">
-            #@issue.issueId opened @gitbucket.core.helper.html.datetimeago(issue.registeredDate) by @helpers.user(issue.openedUserName, styleClass="username")
-            @priority.map(priority => priorities.filter(p => p.priorityName == priority).head).map { priority =>
-            <span style="margin: 20px;"><a href="@condition.copy(priority = Some(Some(priority.priorityName))).toURL" class="username"@if(!priority.description.isEmpty) { title="@priority.description.get" }><i class="octicon octicon-flame"></i>
-              <span class="issue-priority issue-priority-inline" style="background-color: #@priority.color; color: #@priority.fontColor;">@priority.priorityName</span></a></span>
-            }
-            @milestone.map { milestone =>
-              <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>
-            }
+          </div>
+          <div class="col-xs-5 reset-row pull-right" style="max-width:300px">
+            <div class="col-md-6">
+              @if(issue.startDate.isDefined){
+              <span>
+                <i class="octicon octicon-triangle-right"></i> <span class="text-nowrap">@helpers.date(issue.startDate.get)</span>
+              </span>
+              }
+            </div>
+            <div class="col-md-6">
+              @if(issue.dueDate.isDefined){
+              <span>
+                <i class="octicon octicon-primitive-square"></i> <span class="text-nowrap">@helpers.date(issue.dueDate.get)</span>
+              </span>
+              }
+            </div>
           </div>
         </td>
       </tr>

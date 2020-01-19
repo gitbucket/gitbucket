@@ -102,16 +102,16 @@
 </div>
 <div id="milestone-progress-area">
   @issue.flatMap(_.milestoneId).map { milestoneId =>
-    @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) => {
+    @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
       @gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
-    }}
+    }
   }
 </div>
 <span id="label-milestone">
   @issue.flatMap(_.milestoneId).map { milestoneId =>
-    @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) => {
+    @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
       <a class="strong small username" href="@helpers.url(repository)/issues?milestone=@helpers.urlEncode(milestone.title)&state=open">@milestone.title</a>
-    }}
+    }
   }.getOrElse {
     <span class="muted small">No milestone</span>
   }
@@ -143,6 +143,32 @@
   }.getOrElse{
     <span class="muted small">No one</span>
   }
+</span>
+<hr/>
+<div style="margin-bottom: 14px;">
+  <span class="muted small strong">Start date</span>
+  <div class="pull-right">
+  </div>
+</div>
+<span>
+@if(isManageable){
+  @gitbucket.core.helper.html.datepicker("startDate", issue.flatMap(_.startDate))
+  <span id="error-startDate" class="error"></span>
+}else{
+  <span class="muted small">@(issue.flatMap(_.startDate) match {case Some(d) => helpers.date(d); case _ => "None"})</span>
+}
+</span>
+<hr/>
+<div style="margin-bottom: 14px;">
+  <span class="muted small strong">Due date</span>
+</div>
+<span>
+@if(isManageable){
+  @gitbucket.core.helper.html.datepicker("dueDate", issue.flatMap(_.dueDate))
+  <span id="error-dueDate" class="error"></span>
+}else{
+  <span class="muted small">@(issue.flatMap(_.dueDate) match {case Some(d) => helpers.date(d); case _ => "None"})</span>
+}
 </span>
 @if(issue.isEmpty){
   <input type="hidden" name="assignedUserName" value=""/>
@@ -210,6 +236,22 @@ $(function(){
       function(){
         displayAssignee($this, userName);
       }
+    );
+  });
+
+  $("#startDate").on("dp.change", function (e) {
+    var value = e.date ? e.date.format("YYYY-MM-DD") : "";
+    $.post('@helpers.url(repository)/issues/@issue.issueId/start_date',
+      { start_date: value },
+      function(){}
+    );
+  });
+
+  $("#dueDate").on("dp.change", function (e) {
+    var value = e.date ? e.date.format("YYYY-MM-DD") : "";
+    $.post('@helpers.url(repository)/issues/@issue.issueId/due_date',
+      { due_date: value },
+      function(){}
     );
   });
 }.getOrElse {
