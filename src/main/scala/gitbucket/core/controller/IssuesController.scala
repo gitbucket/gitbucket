@@ -442,9 +442,14 @@ trait IssuesControllerBase extends ControllerBase {
   val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
 
   private def toDateOpt(value: String): Option[java.util.Date] = {
-    val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-    Option(dateFormat.parse(value))
+    try {
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      Option(dateFormat.parse(value))
+    } catch {
+      case e: java.text.ParseException => None
+    }
   }
+
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
     params("checked").split(',') map (_.toInt) foreach execute
     params("from") match {

@@ -246,7 +246,7 @@
       case "change_start_date" => {
         <div class="discussion-item discussion-item-pencil">
           <div class="discussion-item-header">
-            <span class="discussion-item-icon"><i class="octicon octicon-pencil"></i></span>
+            <span class="discussion-item-icon" style="padding-left:10px"><i class="octicon octicon-triangle-right"></i></span>
             @helpers.avatar(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             change start date from <code>@comment.content.split(":")(0)</code> to <code>@comment.content.split(":")(1)</code>
@@ -257,7 +257,7 @@
       case "change_due_date" => {
         <div class="discussion-item discussion-item-pencil">
           <div class="discussion-item-header">
-            <span class="discussion-item-icon"><i class="octicon octicon-pencil"></i></span>
+            <span class="discussion-item-icon" style="padding-left:7px"><i class="octicon octicon-primitive-square"></i></span>
             @helpers.avatar(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             change due date from <code>@comment.content.split(":")(0)</code> to <code>@comment.content.split(":")(1)</code>

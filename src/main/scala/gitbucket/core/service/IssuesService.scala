@@ -341,6 +341,16 @@ trait IssuesService {
                 case "asc"  => t2.priority asc
                 case "desc" => t2.priority desc
               }
+            case "startDate" =>
+              condition.direction match {
+                case "asc"  => t1.startDate.asc.nullsLast
+                case "desc" => t1.startDate.desc.nullsFirst
+              }
+            case "dueDate" =>
+              condition.direction match {
+                case "asc"  => t1.dueDate.asc.nullsLast
+                case "desc" => t1.dueDate.desc.nullsFirst
+              }
           }
       }
       .drop(offset)
@@ -922,6 +932,8 @@ object IssuesService {
               case ("updated", "asc")   => Some("sort:updated-asc")
               case ("priority", "desc") => Some("sort:priority-desc")
               case ("priority", "asc")  => Some("sort:priority-asc")
+              case ("startDate", "asc") => Some("sort:startDate-asc")
+              case ("dueDate", "asc")   => Some("sort:dueDate-asc")
               case x                    => throw new MatchError(x)
             },
             visibility.map(visibility => s"visibility:${visibility}")
@@ -983,7 +995,8 @@ object IssuesService {
         },
         param(request, "mentioned"),
         param(request, "state", Seq("open", "closed")).getOrElse("open"),
-        param(request, "sort", Seq("created", "comments", "updated", "priority")).getOrElse("created"),
+        param(request, "sort", Seq("created", "comments", "updated", "priority", "startDate", "dueDate"))
+          .getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
         param(request, "visibility"),
         param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
