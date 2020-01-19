@@ -218,9 +218,9 @@
     }
     @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) => {
       <tr>
-        <td style="padding-top: 12px; padding-bottom: 12px;">
-          <div class="col-xs-7">
-          <div class="col-md-4">
+        <td class="reset-row" style="padding-top: 12px; padding-bottom: 12px;">
+          <div class="col-xs-6 reset-row">
+          <div class="col-md-5">
             <div class="row">
           @if(isManageable){
             <input type="checkbox" value="@issue.issueId"/>
@@ -251,13 +251,13 @@
               <span class="issue-priority issue-priority-inline" style="background-color: #@priority.color; color: #@priority.fontColor;">@priority.priorityName</span></a></span>
             }
           </div>
-          <div class="col-md-5 small muted" style="max-width:300px">
+          <div class="col-md-4 small muted" style="max-width:300px">
             @milestone.map { milestone =>
             <span><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>
             }
           </div>
           </div>
-          <div class="col-xs-1 pull-right text-right" style="max-width:150px">
+          <div class="col-xs-2 pull-right text-right" style="max-width:100px">
               @issue.assignedUserName.map { userName =>
               @helpers.avatar(userName, 20, tooltip = true)
             }
@@ -273,7 +273,7 @@
             </span>
             }
           </div>
-          <div class="col-xs-4 pull-right" style="max-width:300px">
+          <div class="col-xs-5 reset-row pull-right" style="max-width:300px">
             <div class="col-md-6">
               @if(issue.startDate.isDefined){
               <span>

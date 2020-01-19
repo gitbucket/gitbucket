@@ -255,6 +255,11 @@ div.row {
   margin-right: 0px;
 }
 
+.reset-row{
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
 /*
 ul.nav-tabs {
   height: 42px;
