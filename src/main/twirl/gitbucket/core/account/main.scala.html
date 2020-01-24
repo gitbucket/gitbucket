@@ -2,8 +2,15 @@
   isGroupManager: Boolean = false)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(account.userName){
-  <div class="main-sidebar">
-    <div class="sidebar">
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- logo -->
+  <a href="/" class="brand-link">
+    <img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" class="brand-image img-circle elevation-3" style="background-color:white">
+    <span class="brand-text font-weight-light">GitBucket</span>
+  </a>
+
+  <div class="sidebar">
+    <nav class="mt-2">
       <div class="user-panel">
         <div class="pull-left image">@helpers.avatar(account.userName, 40)</div>
         <div class="pull-left info">
@@ -40,15 +47,16 @@
         </p>
       </div>
       @if(groupNames.nonEmpty){
-        <ul class="sidebar-menu">
-          <li class="header">Groups</li>
+        <ul class="nav nav-pills nav-sidebar flex-column">
+          <li class="nav-item">Groups</li>
           @groupNames.map { groupName =>
-            <li>@helpers.avatarLink(groupName, 20, tooltip = true, label = true)</li>
+            <li class="nav-item">@helpers.avatarLink(groupName, 20, tooltip = true, label = true)</li>
           }
         </ul>
       }
-    </div>
+    </nav>
   </div>
+</aside>
   <div class="content-wrapper">
     <div class="content body">
       <ul class="nav nav-tabs" style="margin-bottom: 5px;">

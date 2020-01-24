@@ -2,9 +2,13 @@
   password: Option[Any] = None,
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Sign in"){
-  <div class="content-wrapper main-center">
-    <div class="content body">
-      <div class="signin-form">
+<div class="login-page">
+  <div class="login-box">
+    <div class="login-logo">
+      <span>GitBucket</span>
+    </div>
+    <div class="card">
+      <div class="card-body login-card-body">
         @context.settings.information.map { information =>
           <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -16,4 +20,5 @@
       </div>
     </div>
   </div>
+</div>
 }

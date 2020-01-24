@@ -1,0 +1,44 @@
+@(title:String,
+active:String = "",
+showBannerToCreatePersonalAccessToken: Boolean = false)(body:Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">@title</h1>
+          </div>
+        </div>
+      </div>
+      @context.settings.information.map { information =>
+      <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        @Html(information)
+      </div>
+      }
+      @if(showBannerToCreatePersonalAccessToken){
+      <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        You can
+        <a href="@context.path/@context.loginAccount.map(_.userName)/_application" style="color: inherit;">
+          <strong>create a personal access token</strong>
+        </a> and use it in place of a password on the <code>git</code> command line.
+      </div>
+      }
+    </div>
+    <div class="content body">
+      <div class="container">
+        <div class="row">
+
+        </div>
+        <div class="card card-primary card-outline card-outline-tabs mt-4">
+          @gitbucket.core.dashboard.html.tab(active)
+          <div class="card-body">
+            <div class="tab-content">
+              @body
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+

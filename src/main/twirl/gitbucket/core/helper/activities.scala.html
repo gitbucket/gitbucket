@@ -4,8 +4,9 @@
 @if(activities.isEmpty){
   No activity
 } else {
+<div class="list-group list-group-flush m-3">
   @activities.map { activity =>
-    <div class="block">
+    <div class="list-group-item">
       @(activity.activityType match {
         case "open_issue"        => detailActivity(activity, "issue-opened")
         case "comment_issue"     => detailActivity(activity, "comment-discussion")
@@ -58,6 +59,8 @@
       })
     </div>
   }
+</div>
+
 }
 
 @detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
