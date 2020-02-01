@@ -21,12 +21,12 @@
       }
       <span class="caret"></span>
     </button>
-    <ul class="dropdown-menu@if(right){ pull-right}">
+    <div class="dropdown-menu@if(right){ pull-right}">
       @if(filterId.nonEmpty) {
-        <li><input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter._2"/></li>
+        <input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter._2"/>
       }
       @body
-    </ul>
+    </div>
   </div>
   @if(filterId.nonEmpty) {
     <script>

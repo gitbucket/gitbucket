@@ -7,18 +7,23 @@
   prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
   maxValueWidth = "200px"
 ) {
-  <li><div id="branch-control-title">Switch branches<button id="branch-control-close" class="pull-right">&times</button></div></li>
-  <li><input id="branch-control-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="Find or create branch ..."/></li>
+  <div class="px-2 py-1">
+    <div id="branch-control-title">
+      <span>Switch branches</span>
+      <button id="branch-control-close"  class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <input id="branch-control-input" type="text" class="form-control form-control-sm" placeholder="Find or create branch ..."/>
+  </div>
   @body
   @if(hasWritePermission) {
-    <li id="create-branch" style="display: none;">
-      <a><form action="@helpers.url(repository)/branches" method="post" style="margin: 0;">
-        <span class="strong">Create branch:&nbsp;<span class="new-branch"></span></span>
-        <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
-        <input type="hidden" name="new">
-        <input type="hidden" name="from" value="@branch">
-      </form></a>
-    </li>
+    <a class="dropdown-item"><form action="@helpers.url(repository)/branches" method="post">
+      <span class="strong">Create branch:&nbsp;<span class="new-branch"></span></span>
+      <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
+      <input type="hidden" name="new">
+      <input type="hidden" name="from" value="@branch">
+    </form></a>
   }
 }
 <script>

@@ -7,16 +7,16 @@
     @gitbucket.core.html.maincard("Repositories", "repos", false){
     <div class="container">
       <div class="btn-group" id="owner-dropdown">
-        <button id="test" class="dropdown-toggle btn btn-default" data-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="strong">All</span>
           <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu">
-          <li><a href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a></li>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <a class="dropdown-item" href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a>
           @visibleRepositories.map(_.owner).distinct.map { userName =>
-            <li><a href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a></li>
+            <a class="dropdown-item" href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a>
           }
-        </ul>
+        </div>
       </div>
       @if(visibleRepositories.isEmpty){
         No repositories

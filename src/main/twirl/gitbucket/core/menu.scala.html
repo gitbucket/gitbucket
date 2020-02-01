@@ -6,9 +6,9 @@
 @import gitbucket.core.view.helpers
 
 @menuitem(path: String, name: String, label: String, icon: String, count: Int = 0) = {
-  <li class = "nav-item @if(active == name){active}">
+  <li class="nav-item">
     @if(path.startsWith("http")){
-      <a class="nav-link" href="@path" target="_blank">
+      <a class="nav-link@if(active == name){ active}" href="@path" target="_blank">
         <i class="nav-icon octicon octicon-@icon"></i>
         <p>
           @label
@@ -18,7 +18,7 @@
         </p>
       </a>
     } else {
-      <a class="nav-link" href="@helpers.url(repository)@path">
+      <a class="nav-link@if(active == name){ active}" href="@helpers.url(repository)@path">
         <i class="nav-icon octicon octicon-@icon"></i>
         <p>
           @label
@@ -31,12 +31,7 @@
   </li>
 }
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
-  <!-- logo -->
-  <a href="/" class="brand-link">
-    <img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" class="brand-image img-circle elevation-3" style="background-color:white">
-    <span class="brand-text font-weight-light">GitBucket</span>
-  </a>
-
+  @gitbucket.core.helper.html.logo()
   <div class="sidebar">
   <nav class="mt-2">
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-acording="false">
@@ -75,48 +70,58 @@
   </nav>
 </div>
 </aside>
+<!--.content-wrapper-->
 <div class="content-wrapper">
-  <div class="content body clearfix">
-    <div class="headbar">
-      <div class="container">
-        @gitbucket.core.helper.html.information(info)
-        @gitbucket.core.helper.html.error(error)
-        <div class="head">
-          <div class="pull-right">
-            @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
-              @repositoryHeaderComponent(repository, context)
-            }
-            @if(repository.repository.options.allowFork) {
-              @if(context.loginAccount.isEmpty){
-                <a class="btn btn-default btn-sm" href="@context.path/signin?redirect=@helpers.urlEncode(s"${context.path}/${repository.owner}/${repository.name}")">
-                  <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
-                </a>
-              } else {
-                <a class="btn btn-default btn-sm" href="@context.path/@repository.owner/@repository.name/fork" rel="facebox">
-                  <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
-                </a>
-              }
-            }
-            <form id="fork-form" method="post" action="@context.path/@repository.owner/@repository.name/fork" style="display: none;">
-              <input type="hidden" name="account" value="@context.loginAccount.map(_.userName)"/>
-            </form>
-          </div>
-          @gitbucket.core.helper.html.repositoryicon(repository, true)
-          <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
-
-          @defining(repository.repository){ x =>
-            @if(repository.repository.originRepositoryName.isDefined){
-              <div class="forked">
-                forked from <a href="@context.path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
-              </div>
-            }
+  <!--.content-header-->
+  <div class="content-header">
+    <div class="container-fluid">
+      @gitbucket.core.helper.html.information(info)
+      @gitbucket.core.helper.html.error(error)
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark">
+            @gitbucket.core.helper.html.repositoryicon(repository, true)
+            <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
+          </h1>
+        </div><!-- /.col -->
+        <div class="col-sm-6">
+          <div class="float-right">
+          @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
+          @repositoryHeaderComponent(repository, context)
           }
-        </div>
-      </div>
+          @if(repository.repository.options.allowFork) {
+          @if(context.loginAccount.isEmpty){
+          <a class="btn btn-default btn-sm" href="@context.path/signin?redirect=@helpers.urlEncode(s"${context.path}/${repository.owner}/${repository.name}")">
+            <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+          </a>
+          } else {
+          <a class="btn btn-default btn-sm" href="@context.path/@repository.owner/@repository.name/fork" rel="facebox">
+            <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+          </a>
+          }
+          }
+          <form id="fork-form" method="post" action="@context.path/@repository.owner/@repository.name/fork" style="display: none;">
+            <input type="hidden" name="account" value="@context.loginAccount.map(_.userName)"/>
+          </form>
+          @defining(repository.repository){ x =>
+          @if(repository.repository.originRepositoryName.isDefined){
+          <div class="forked">
+            forked from <a href="@context.path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+          </div>
+          }
+          }
+          </div><!--/.float-right-->
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+  </div><!--/.content-header-->
+  <div class="content">
+    <div class="container-fluid">
+      @body
     </div>
-    @body
   </div>
 </div>
+<!--/.content-wrapper-->
 <script>
 $(function(){
   $('a[rel*=facebox]').facebox({

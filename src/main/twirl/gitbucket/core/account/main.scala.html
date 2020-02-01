@@ -3,12 +3,7 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(account.userName){
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
-  <!-- logo -->
-  <a href="/" class="brand-link">
-    <img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" class="brand-image img-circle elevation-3" style="background-color:white">
-    <span class="brand-text font-weight-light">GitBucket</span>
-  </a>
-
+  @gitbucket.core.helper.html.logo()
   <div class="sidebar">
     <nav class="mt-2">
       <div class="user-panel">
