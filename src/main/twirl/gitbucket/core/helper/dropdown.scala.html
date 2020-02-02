@@ -21,9 +21,9 @@
       }
       <span class="caret"></span>
     </button>
-    <div class="dropdown-menu@if(right){ pull-right}">
+    <div class="dropdown-menu px-2@if(right){ pull-right}">
       @if(filterId.nonEmpty) {
-        <input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter._2"/>
+        <input id="@filterId-input" type="text" class="form-control form-control-sm dropdown-filter-input" placeholder="@filter._2"/>
       }
       @body
     </div>
@@ -38,9 +38,9 @@
         var inputVal = $('#@{filterId}-input').val();
         $.each($('#@{filterId}-input').parent().parent().find('a'), function(index, elem) {
           if ( !inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >=0 ) {
-            $(elem).parent().show();
+            $(elem).show();
           } else {
-            $(elem).parent().hide();
+            $(elem).hide();
           }
         });
       });
