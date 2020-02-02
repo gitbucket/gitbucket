@@ -5,36 +5,49 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Labels - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("labels", repository){
-    @if(context.loginAccount.isDefined){
-      <div class="pull-right" style="margin-bottom: 10px;">
-        <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
-      </div>
-    }
-    <table class="table table-bordered table-hover table-issues" id="new-label-table" style="display: none;">
-      <tr><td></td></tr>
-    </table>
-    <table class="table table-bordered table-hover table-issues">
-      <thead>
-        <tr id="label-row-header">
-          <th>@labels.size labels</th>
-        </tr>
-      </thead>
-      <tbody>
-        @labels.map { label =>
-          @gitbucket.core.issues.labels.html.label(label, counts, repository, hasWritePermission)
-        }
-        @if(labels.isEmpty){
-          <tr>
-            <td style="padding: 20px; background-color: #eee; text-align: center;">
-              No labels to show.
-              @if(hasWritePermission){
-                Click on the "New Label" button above to create one.
+<div class="row">
+  <div class="container">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>labels</h4>
+        </div>
+        <div class="card-body">
+          @if(context.loginAccount.isDefined){
+          <div class="float-right" style="margin-bottom: 10px;">
+            <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
+          </div>
+          }
+          <table class="table table-bordered table-hover table-issues mt-2" id="new-label-table" style="display: none;">
+            <tr><td></td></tr>
+          </table>
+          <table class="table table-bordered table-hover table-issues mt-2">
+            <thead class="thead-light">
+              <tr id="label-row-header">
+                <th>@labels.size labels</th>
+              </tr>
+            </thead>
+            <tbody>
+              @labels.map { label =>
+                @gitbucket.core.issues.labels.html.label(label, counts, repository, hasWritePermission)
               }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+              @if(labels.isEmpty){
+              <tr>
+                <td style="padding: 20px; background-color: #eee; text-align: center;">
+                  No labels to show.
+                  @if(hasWritePermission){
+                    Click on the "New Label" button above to create one.
+                  }
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   }
 }
 <script>

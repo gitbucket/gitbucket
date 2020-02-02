@@ -30,148 +30,114 @@
         <span id="table-issues-control">
           @gitbucket.core.helper.html.dropdown("Author", filter = ("author", "Find Author...")) {
             @collaborators.map { collaborator =>
-              <li>
-                <a href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
-                  @gitbucket.core.helper.html.checkicon(condition.author == Some(collaborator))
-                  @helpers.avatar(collaborator, 20) @collaborator
-                </a>
-              </li>
+              <a class="dropdown-item" href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.author == Some(collaborator))
+                @helpers.avatar(collaborator, 20) @collaborator
+              </a>
             }
           }
           @gitbucket.core.helper.html.dropdown("Label", filter = ("label", "Find Label...")) {
             @labels.map { label =>
-              <li>
-                <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
-                  @gitbucket.core.helper.html.checkicon(condition.labels.contains(label.labelName))
-                  <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-                  @label.labelName
-                </a>
-              </li>
+              <a class="dropdown-item" href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.labels.contains(label.labelName))
+                <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+                @label.labelName
+              </a>
             }
           }
           @gitbucket.core.helper.html.dropdown("Priority", filter = ("priority", "Find Priority...")) {
-            <li>
-              <a href="@condition.copy(priority = (if(condition.priority == Some(None)) None else Some(None))).toURL">
+              <a class="dropdown-item" href="@condition.copy(priority = (if(condition.priority == Some(None)) None else Some(None))).toURL">
                 @gitbucket.core.helper.html.checkicon(condition.priority == Some(None)) Issues with no priority
               </a>
-            </li>
             @priorities.map { priority =>
-              <li>
-                <a href="@condition.copy(priority = (if(condition.priority == Some(Some(priority.priorityName))) None else Some(Some(priority.priorityName)))).toURL"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
-                  @gitbucket.core.helper.html.checkicon(condition.priority == Some(Some(priority.priorityName)))
-                  <span style="background-color: #@priority.color;" class="label-color">&nbsp;&nbsp;</span>
-                  @priority.priorityName
-                </a>
-              </li>
+              <a class="dropdown-item" href="@condition.copy(priority = (if(condition.priority == Some(Some(priority.priorityName))) None else Some(Some(priority.priorityName)))).toURL"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
+                @gitbucket.core.helper.html.checkicon(condition.priority == Some(Some(priority.priorityName)))
+                <span style="background-color: #@priority.color;" class="label-color">&nbsp;&nbsp;</span>
+                @priority.priorityName
+              </a>
             }
           }
           @gitbucket.core.helper.html.dropdown("Milestone", filter = ("milestone", "Find Milestone...")) {
-            <li>
-              <a href="@condition.copy(milestone = (if(condition.milestone == Some(None)) None else Some(None))).toURL">
+              <a class="dropdown-item" href="@condition.copy(milestone = (if(condition.milestone == Some(None)) None else Some(None))).toURL">
                 @gitbucket.core.helper.html.checkicon(condition.milestone == Some(None)) Issues with no milestone
               </a>
-            </li>
             @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-              <li>
-                <a href="@condition.copy(milestone = (if(condition.milestone == Some(Some(milestone.title))) None else Some(Some(milestone.title)))).toURL">
-                  @gitbucket.core.helper.html.checkicon(condition.milestone == Some(Some(milestone.title))) @milestone.title
-                </a>
-              </li>
+              <a class="dropdown-item" href="@condition.copy(milestone = (if(condition.milestone == Some(Some(milestone.title))) None else Some(Some(milestone.title)))).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.milestone == Some(Some(milestone.title))) @milestone.title
+              </a>
             }
           }
           @gitbucket.core.helper.html.dropdown("Assignee", filter = ("assignee", "Find Assignee...")) {
-            <li>
-              <a href="@condition.copy(assigned = (if(condition.assigned == Some(None)) None else Some(None))).toURL">
+              <a class="dropdown-item" href="@condition.copy(assigned = (if(condition.assigned == Some(None)) None else Some(None))).toURL">
                 @gitbucket.core.helper.html.checkicon(condition.assigned == Some(None)) Assigned to nobody
               </a>
-            </li>
             @collaborators.map { collaborator =>
-              <li>
-                <a href="@condition.copy(assigned = (if(condition.assigned == Some(Some(collaborator))) None else Some(Some(collaborator)))).toURL">
-                  @gitbucket.core.helper.html.checkicon(condition.assigned == Some(Some(collaborator)))
-                  @helpers.avatar(collaborator, 20) @collaborator
-                </a>
-              </li>
+              <a class="dropdown-item" href="@condition.copy(assigned = (if(condition.assigned == Some(Some(collaborator))) None else Some(Some(collaborator)))).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.assigned == Some(Some(collaborator)))
+                @helpers.avatar(collaborator, 20) @collaborator
+              </a>
             }
           }
           @gitbucket.core.helper.html.dropdown("Sort"){
-            <li>
-              <a href="@condition.copy(sort="created",  direction="desc").toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="priority", direction="asc").toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "priority"  && condition.direction == "asc") Highest priority
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="priority", direction="desc" ).toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "priority"  && condition.direction == "desc") Lowest priority
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="comments", direction="desc").toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="updated",  direction="desc").toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
-              </a>
-            </li>
-            <li>
-              <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
-                @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
-              </a>
-            </li>
+            <a class="dropdown-item" href="@condition.copy(sort="created",  direction="desc").toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="created",  direction="asc" ).toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="priority", direction="asc").toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "priority"  && condition.direction == "asc") Highest priority
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="priority", direction="desc" ).toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "priority"  && condition.direction == "desc") Lowest priority
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="comments", direction="desc").toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="comments", direction="asc" ).toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="updated",  direction="desc").toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+            </a>
+            <a class="dropdown-item" href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+              @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+            </a>
           }
         </span>
         @if(isManageable){
           <span id="table-issues-batchedit">
             @gitbucket.core.helper.html.dropdown("Mark as") {
-              <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
-              <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
+              <a class="dropdown-item" href="javascript:void(0);" class="toggle-state" data-id="open">Open</a>
+              <a class="dropdown-item" href="javascript:void(0);" class="toggle-state" data-id="close">Close</a>
             }
             @gitbucket.core.helper.html.dropdown("Label", filter = ("label", "Find Label...")) {
               @labels.map { label =>
-                <li>
-                  <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
-                    <i class="octicon"></i>
-                    <span class="label" style="background-color: #@label.color;">&nbsp;</span>
-                    @label.labelName
-                  </a>
-                </li>
+                <a class="dropdown-item" href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
+                  <i class="octicon"></i>
+                  <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                  @label.labelName
+                </a>
               }
             }
             @gitbucket.core.helper.html.dropdown("Priority", filter = ("priority", "Find Priority...")) {
-              <li><a href="javascript:void(0);" class="toggle-priority" data-id="">No priority</a></li>
+              <a class="dropdown-item" href="javascript:void(0);" class="toggle-priority" data-id="">No priority</a>
               @priorities.map { priority =>
-                <li><a href="javascript:void(0);" class="toggle-priority" data-id="@priority.priorityId"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
+                <a class="dropdown-item" href="javascript:void(0);" class="toggle-priority" data-id="@priority.priorityId"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
                   <span style="background-color: #@priority.color;" class="label">&nbsp;</span>
-                  @priority.priorityName</a></li>
+                  @priority.priorityName</a>
               }
             }
             @gitbucket.core.helper.html.dropdown("Milestone", filter = ("milestone", "Find Milestone...")) {
-              <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
+              <a class="dropdown-item" href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a>
               @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-                <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                <a class="dropdown-item" href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a>
               }
             }
             @gitbucket.core.helper.html.dropdown("Assignee", filter = ("assignee", "Find Assignee...")) {
-              <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
+              <a class="dropdown-item" href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a>
               @collaborators.map { collaborator =>
-                <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@helpers.avatar(collaborator, 20) @collaborator</a></li>
+                <a class="dropdown-item" href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@helpers.avatar(collaborator, 20) @collaborator</a>
               }
             }
           </span>
