@@ -290,10 +290,16 @@ trait IndexControllerBase extends ControllerBase {
         withoutPhysicalInfo = true,
         limit = context.settings.limitVisibleRepositories
       )
-    val repositories = visibleRepositories.filter { repository =>
+
+    val repositories = {
+      context.settings.limitVisibleRepositories match {
+        case true  => getVisibleRepositories(context.loginAccount)
+        case false => visibleRepositories
+      }
+    }.filter { repository =>
       repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
     }
+
     gitbucket.core.search.html.repositories(query, repositories, visibleRepositories)
   }
-
 }
