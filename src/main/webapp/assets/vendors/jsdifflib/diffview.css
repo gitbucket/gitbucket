@@ -110,7 +110,7 @@ table.diff ins{
   background-color: #a6f3a6;
   text-decoration: none;
 }
-table.diff del{
+table.diff .body.delete del{
   background-color: #f8cbcb;
   text-decoration: none;
 }
