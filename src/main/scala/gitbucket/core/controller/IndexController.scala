@@ -293,7 +293,13 @@ trait IndexControllerBase extends ControllerBase {
 
     val repositories = {
       context.settings.limitVisibleRepositories match {
-        case true  => getVisibleRepositories(context.loginAccount)
+        case true =>
+          getVisibleRepositories(
+            context.loginAccount,
+            None,
+            withoutPhysicalInfo = true,
+            limit = false
+          )
         case false => visibleRepositories
       }
     }.filter { repository =>
