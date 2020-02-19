@@ -1,6 +1,7 @@
 /****************************************************************************/
 /* Common */
 /****************************************************************************/
+/*
 .wrapper { position: static; }
 
 body {
@@ -101,14 +102,13 @@ hr {
   margin-top: 4px;
   margin-bottom: 4px;
 }
-
 pre.reset {
-  /* defaults */
+  /* defaults *
   display: block;
   font-family: monospace;
   white-space: pre;
   margin: 1em 0px;
-  /* bootstrap overrides */
+  /* bootstrap overrides *
   padding: initial;
   line-height: initial;
   color: initial;
@@ -138,16 +138,18 @@ div.content-wrapper {
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
+/*
 .main-header .logo img {
   width: 24px;
   height: 24px;
   display: inline;
   vertical-align: text-bottom;
 }
-
+*/
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
+/*
 div.head {
   margin-bottom: 10px;
   font-size: 18px;
@@ -254,12 +256,6 @@ div.row {
   margin-left: 0px;
   margin-right: 0px;
 }
-
-/*
-ul.nav-tabs {
-  height: 42px;
-}
-*/
 
 ul.nav-pills .link {
   color: #4078c0;
@@ -398,33 +394,37 @@ a.btn-danger:hover .octicon {
 .no-margin {
   margin: 0px;
 }
-
+*/
 /****************************************************************************/
 /* Head Menu */
 /****************************************************************************/
+/*
 div.headbar {
   padding-top: 4px;
   margin-bottom: 8px;
 }
-
+*/
 /****************************************************************************/
 /* Create Repository */
 /****************************************************************************/
+/*
 .slash {
   font-size: 20px;
 }
-
+*/
 /****************************************************************************/
 /* Sign-in form */
 /****************************************************************************/
+/*
 div.signin-form {
   width: 300px;
   margin: 30px auto;
 }
-
+*/
 /****************************************************************************/
 /* Account page */
 /****************************************************************************/
+/*
 .account-fullname {
   margin-top: 20px;
   font-size: 180%;
@@ -437,10 +437,11 @@ div.signin-form {
   color: #888888;
   font-weight: bold;
 }
-
+*/
 /****************************************************************************/
 /* Repositories */
 /****************************************************************************/
+/*
 div.repository-icon {
   position: absolute;
 }
@@ -519,17 +520,19 @@ li.upload-file {
   background-color: white;
   padding: 4px;
 }
-
+*/
 /****************************************************************************/
 /* Activity */
 /****************************************************************************/
+/*
 div[class^="activity-icon"] i{
     color: #BBB;
 }
-
+*/
 /****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
+/*
 p.description {
   color: gray;
 }
@@ -633,10 +636,11 @@ span.simplified-path {
   border: 1px solid #0088cc;
   color: #0088cc;
 }
-
+*/
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
+/*
 #search-filter-box {
   font-size: 100%;
 }
@@ -647,7 +651,7 @@ span.simplified-path {
     -moz-box-shadow: none;
     box-shadow: none;
 }
-
+*/
 a.button-link {
     font-weight: normal;
     color: gray;
@@ -661,7 +665,7 @@ a.selected {
     font-weight: bold;
     color: black;
 }
-
+/*
 span.issue-status {
   text-align: center;
   padding: 4px 8px 4px 8px;
@@ -722,7 +726,7 @@ a#clear-filter {
   font-weight: bold;
   margin-bottom: 10px;
 }
-
+*/
 span.milestone-alert {
   font-weight: bold;
   color: #bd2c00;
@@ -742,13 +746,13 @@ a.milestone-title {
 }
 
 div.milestone-menu {
- margin-top: 8px;
+ /*margin-top: 8px;*/
 }
 
 div.milestone-menu a.delete {
   color: #b00;
 }
-
+/*
 div.issue-info {
   border-top: 1px solid #e5e5e5;
   border-bottom: 1px solid #e5e5e5;
@@ -776,12 +780,7 @@ div.issue-comment-box textarea{
   height: 100px;
   max-height: 300px;
 }
-/*
-div.commit-comment-box.panel-body {
-  padding-top: 8px;
-  padding-bottom: 0px;
-}
-*/
+
 div.commit-comment-box div.tabbable {
   margin-top: 5px;
 }
@@ -948,22 +947,35 @@ pre.reset.discussion-item-content-text{
   padding-top: 1px;
   color: white;
 }
+*/
+.priority-badge{
+  padding: 8px;
+  border-radius: 4px;
+  vertical-align: middle;
+  display: inline-block;
+}
 
 .priority-sort-handle {
+/*
   margin-top: 3px;
   padding-right: 10px;
+  */
+  vertical-align: middle;
+  display: inline-block;
+  color:#999;
 }
 
 .priority-sort-handle i::before {
   cursor: move;
-  display: block;
+  /*display: block;
   width: 0.5em;
-  overflow: hidden;
+  overflow: hidden;*/
+  vertical-align: middle;
   font-size: 2em;
 }
 
 .priority-default .octicon {
-  font-size: 1.5em;
+  /*font-size: 1.5em;*/
   color: #ccc;
 }
 
@@ -974,6 +986,7 @@ pre.reset.discussion-item-content-text{
 /****************************************************************************/
 /* Pull request */
 /****************************************************************************/
+/*
 div.pullreq-info {
   border: 1px solid #ddd;
   background-color: #f8f8f8;
@@ -986,10 +999,11 @@ div.pullreq-info {
   transition: none;
   display: none;
 }
-
+*/
 /****************************************************************************/
 /* Wiki */
 /****************************************************************************/
+/*
 .wiki-main {
   margin-right: 260px;
 }
@@ -1030,10 +1044,11 @@ div.wiki-footer {
   background-color: #f5f5f5;
   color: gray;
 }
-
+*/
 /****************************************************************************/
 /* Commit */
 /****************************************************************************/
+/*
 div.author-info div.committer {
   display: block;
   margin-left: 25px;
@@ -1109,10 +1124,11 @@ div.author-info div.committer {
   padding-left: 4px;
   padding-right: 4px;
 }
-
+*/
 /****************************************************************************/
 /* Diff */
 /****************************************************************************/
+/*
 table.diff {
   font-size: 12px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
@@ -1138,7 +1154,7 @@ table.diff td.body {
 }
 
 table.diff th.line-num {
-  /*min-width: 20px;*/
+  /*min-width: 20px;*
   width: 20px;
 }
 
@@ -1212,7 +1228,7 @@ table.diff tbody tr.not-diff:hover td {
 
 .diffstat-bar {
   display: inline-block;
-  /* For IE 6/7 */
+  /* For IE 6/7 *
   *display: inline;
   *zoom: 1;
   margin-left: 3px;
@@ -1249,10 +1265,10 @@ table.diff tbody tr.not-diff:hover td {
   text-align: center;
 }
 
-/* ------- for imageDiff */
+/* ------- for imageDiff *
 .diff-image-frame {
   display: table-cell;
-  *float: left; /* for ie7 */
+  *float: left; /* for ie7 *
   vertical-align: middle;
   padding: 20px;
   background-color: #eee;
@@ -1394,9 +1410,9 @@ table.diff tbody tr.not-diff:hover td {
 }
 
 .diff-image-stack.onion .diff-silde-bar {
-  background: -ms-linear-gradient(left,  #bd2c00 0%,#55a532 100%); /* IE10+ */
+  background: -ms-linear-gradient(left,  #bd2c00 0%,#55a532 100%); /* IE10+ *
   background: linear-gradient(to right,  #bd2c00 0%,#55a532 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bd2c00', endColorstr='#55a532',GradientType=1 ); /* IE6-9 */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bd2c00', endColorstr='#55a532',GradientType=1 ); /* IE6-9 *
 }
 
 .diff-image-stack.blink .diff-silde-bar {
@@ -1409,9 +1425,11 @@ table.diff tbody tr.not-diff:hover td {
   padding-bottom: 18px;
   text-align: center;
 }
+*/
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/
+/*
 ul.collaborator {
   list-style-type: none;
   margin: 0px;
@@ -1433,10 +1451,11 @@ ul.collaborator li:hover {
 ul.collaborator a.remove {
   padding: 6px;
 }
-
+*/
 /****************************************************************************/
 /* Markdown */
 /****************************************************************************/
+/*
 div.markdown-body {
   line-height: 1.7;
   font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
@@ -1515,7 +1534,7 @@ div.markdown-body code {
 }
 
 div.markdown-body table {
-  /*width: 100%;*/
+  /*width: 100%;*
   margin-bottom: 20px;
 }
 
@@ -1663,10 +1682,11 @@ a.markdown-anchor-link span.octicon {
   visibility: hidden;
   vertical-align: middle;
 }
-
+*/
 /****************************************************************************/
 /* File finder */
 /****************************************************************************/
+/*
 #tree-finder-field {
   border: none;
   box-shadow: none;
@@ -1702,10 +1722,11 @@ a.markdown-anchor-link span.octicon {
 #tree-finder-results .navigation-focus td {
   background: #fff;
 }
-
+*/
 /****************************************************************************/
 /* blame */
 /****************************************************************************/
+/*
 .blobview pre.blob {
   padding-left: 0;
 }
@@ -1714,12 +1735,6 @@ a.markdown-anchor-link span.octicon {
   margin-left: 0;
   padding-left: 50px;
 }
-
-/*
-div.container.blame-container{
-  width:1270px;
-}
-*/
 
 .line-age-legend {
   display: none;
@@ -1844,10 +1859,11 @@ div.container.blame-container{
 .heat8 { background-color:#c0513f }
 .heat9 { background-color:#a2503a }
 .heat10{ background-color:#793738 }
-
+*/
 /****************************************************************************/
 /* Mobile */
 /****************************************************************************/
+/*
 @media (max-width: 767px) {
   .pc {
     display: none;
@@ -1856,10 +1872,11 @@ div.container.blame-container{
     margin-right: 0px;
   }
 }
-
+*/
 /****************************************************************************/
 /* Print */
 /****************************************************************************/
+/*
 @media print {
   div.headbar {
     display: none;
@@ -1873,10 +1890,11 @@ div.container.blame-container{
   width: 20px;
   height: 20px;
 }
-
+*/
 /****************************************************************************/
 /* Suppress transition animation on load */
 /****************************************************************************/
+/*
 body.page-load * {
   -webkit-transition: none !important;
   -moz-transition: none !important;
@@ -1902,3 +1920,4 @@ body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-rig
 body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
   padding: 2px 4px;
 }
+*/
