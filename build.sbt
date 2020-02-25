@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
   "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.8.1-akka-2.5.x" exclude ("com.mchange", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
-  "net.coobird"                     % "thumbnailator"                % "0.4.10",
+  "net.coobird"                     % "thumbnailator"                % "0.4.11",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
