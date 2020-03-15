@@ -10,14 +10,20 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header">
-          <h4>Labels</h4>
+          <div class="row">
+            <div class="col">
+              <h4>Labels</h4>
+            </div>
+            <div class="col float-right">
+              @if(context.loginAccount.isDefined){
+              <div class="float-right">
+                <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
+              </div>
+              }
+            </div>
+          </div>
         </div>
         <div class="card-body">
-          @if(context.loginAccount.isDefined){
-          <div class="float-right mb-2">
-            <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
-          </div>
-          }
           <table class="table table-bordered table-hover table-issues mt-2" id="new-label-table" style="display: none;">
             <tr><td></td></tr>
           </table>

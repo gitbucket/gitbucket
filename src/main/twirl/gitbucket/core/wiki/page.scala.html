@@ -65,8 +65,8 @@
           </div>
         </div>
       </div><!-- /.card-body -->
+      @footer.map { footerPage =>
       <div class="card-footer">
-        @footer.map { footerPage =>
         <div class="wiki-sidebar wiki-footer">
           @if(isEditable){
           <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
@@ -82,14 +82,16 @@
           pages            = pages
           )
         </div>
+      </div>
         }.getOrElse{
         @if(isEditable){
+      <div class="card-footer">
         <a class="button-link" href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;">
           <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom footer</div>
         </a>
+      </div>
         }
-        }
-      </div><!-- /.card-footer -->
+      }
     </div><!-- /.card -->
   </div><!-- /.col -->
   <div class="col-md-3">
