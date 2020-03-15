@@ -14,13 +14,13 @@
   tabIndex: Int = -2,
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<div class="tabbable">
+<div class="tabbable mt-2">
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
-    <li class="active"><a href="#tab@uid" data-toggle="tab" id="write@uid">Write</a></li>
-    <li><a href="#tab@(uid + 1)" data-toggle="tab" id="preview@uid">Preview</a></li>
+    <li class="nav-item"><a href="#tab@uid" class="nav-link active" data-toggle="tab" id="write@uid">Write</a></li>
+    <li class="nav-item"><a href="#tab@(uid + 1)" class="nav-link" data-toggle="tab" id="preview@uid">Preview</a></li>
   </ul>
   <div class="tab-content">
-    <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
+    <div class="tab-pane active mt-1" id="tab@uid">
       <span id="error-content" class="error"></span>
       @textarea = {
         <textarea id="content@uid" class="form-control" name="content" placeholder="@placeholder" style="resize: vertical; @style"
