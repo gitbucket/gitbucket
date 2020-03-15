@@ -5,8 +5,8 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.33.0"
 val ScalatraVersion = "2.7.0-RC1"
-val JettyVersion = "9.4.26.v20200117"
-val JgitVersion = "5.6.1.202002131546-r"
+val JettyVersion = "9.4.27.v20200227"
+val JgitVersion = "5.7.0.202003110725-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              % "commons-compress"             % "1.20",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.6",
-  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.11",
+  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.12",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "1.23",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
@@ -59,17 +59,17 @@ libraryDependencies ++= Seq(
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
   "com.enragedginger"               %% "akka-quartz-scheduler"       % "1.8.1-akka-2.5.x" exclude ("com.mchange", "c3p0") exclude ("com.zaxxer", "HikariCP-java6"),
-  "net.coobird"                     % "thumbnailator"                % "0.4.9",
+  "net.coobird"                     % "thumbnailator"                % "0.4.11",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "3.2.4" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.35.2" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.12.5" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.12.5" % "test",
+  "org.mockito"                     % "mockito-core"                 % "3.3.3" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.36.0" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.13.0" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.13.0" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.10.1",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3"
