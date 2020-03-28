@@ -60,13 +60,12 @@
   <!-- ACCESS_TOKEN -->
   <!--================================================================================================-->
   <createTable tableName="ACCESS_TOKEN">
-    <column name="ACCESS_TOKEN_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="ACCESS_TOKEN_ID" type="int" nullable="false" autoIncrement="true" unique="true" primaryKeyName="IDX_ACCESS_TOKEN_PK" primaryKey="true" />
     <column name="TOKEN_HASH" type="varchar(40)" nullable="false"/>
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="NOTE" type="text" nullable="false"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_ACCESS_TOKEN_PK" tableName="ACCESS_TOKEN" columnNames="ACCESS_TOKEN_ID"/>
   <addUniqueConstraint constraintName="IDX_ACCESS_TOKEN_TOKEN_HASH" tableName="ACCESS_TOKEN" columnNames="TOKEN_HASH"/>
   <addForeignKeyConstraint constraintName="IDX_ACCESS_TOKEN_FK0" baseTableName="ACCESS_TOKEN" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
 
@@ -74,7 +73,7 @@
   <!-- ACTIVITY -->
   <!--================================================================================================-->
   <createTable tableName="ACTIVITY">
-    <column name="ACTIVITY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="ACTIVITY_ID" type="int" nullable="false" autoIncrement="true" unique="true" primaryKeyName="IDX_ACTIVITY_PK" primaryKey="true"/>
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="ACTIVITY_USER_NAME" type="varchar(100)" nullable="false"/>
@@ -84,7 +83,6 @@
     <column name="ACTIVITY_DATE" type="datetime" nullable="false"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_ACTIVITY_PK" tableName="ACTIVITY" columnNames="ACTIVITY_ID"/>
   <addForeignKeyConstraint constraintName="IDX_ACTIVITY_FK1" baseTableName="ACTIVITY" baseColumnNames="ACTIVITY_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
   <addForeignKeyConstraint constraintName="IDX_ACTIVITY_FK0" baseTableName="ACTIVITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
 
@@ -108,7 +106,7 @@
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="COMMIT_ID" type="varchar(100)" nullable="false"/>
-    <column name="COMMENT_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="COMMENT_ID" type="int" nullable="false" autoIncrement="true" unique="true" primaryKeyName="IDX_COMMIT_COMMENT_PK" primaryKey="true" />
     <column name="COMMENTED_USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="CONTENT" type="text" nullable="false"/>
     <column name="FILE_NAME" type="varchar(260)" nullable="true"/>
@@ -119,14 +117,13 @@
     <column name="ISSUE_ID" type="int" nullable="true"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_COMMIT_COMMENT_PK" tableName="COMMIT_COMMENT" columnNames="COMMENT_ID"/>
   <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
 
   <!--================================================================================================-->
   <!-- COMMIT_STATUS -->
   <!--================================================================================================-->
   <createTable tableName="COMMIT_STATUS">
-    <column name="COMMIT_STATUS_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="COMMIT_STATUS_ID" type="int" nullable="false" autoIncrement="true" unique="true" primaryKeyName="IDX_COMMIT_STATUS_PK" primaryKey="true" />
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="COMMIT_ID" type="varchar(40)" nullable="false"/>
@@ -139,7 +136,6 @@
     <column name="UPDATED_DATE" type="datetime" nullable="false"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_COMMIT_STATUS_PK" tableName="COMMIT_STATUS" columnNames="COMMIT_STATUS_ID"/>
   <addUniqueConstraint constraintName="IDX_COMMIT_STATUS_1" tableName="COMMIT_STATUS" columnNames="USER_NAME, REPOSITORY_NAME, COMMIT_ID, CONTEXT"/>
   <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK3" baseTableName="COMMIT_STATUS" baseColumnNames="CREATOR" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
   <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK2" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
@@ -218,7 +214,7 @@
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="ISSUE_ID" type="int" nullable="false"/>
-    <column name="COMMENT_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="COMMENT_ID" type="int" nullable="false" autoIncrement="true" unique="true" primaryKeyName="IDX_ISSUE_COMMENT_PK" primaryKey="true" />
     <column name="ACTION" type="varchar(20)" nullable="false"/>
     <column name="COMMENTED_USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="CONTENT" type="text" nullable="false"/>
@@ -226,7 +222,6 @@
     <column name="UPDATED_DATE" type="datetime" nullable="false"/>
   </createTable>
 
-  <addPrimaryKey constraintName="IDX_ISSUE_COMMENT_PK" tableName="ISSUE_COMMENT" columnNames="COMMENT_ID"/>
   <addForeignKeyConstraint constraintName="IDX_ISSUE_COMMENT_FK0" baseTableName="ISSUE_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
 
   <!--================================================================================================-->
