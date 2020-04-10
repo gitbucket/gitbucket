@@ -5,11 +5,13 @@
   <div class="content-wrapper main-center">
     <div class="content body">
       <div class="signin-form">
-        @context.settings.information.map { information =>
-          <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            @Html(information)
-          </div>
+        @if(context.settings.allowAnonymousAccess){
+          @context.settings.information.map { information =>
+            <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              @Html(information)
+            </div>
+          }
         }
         @gitbucket.core.helper.html.error(error)
         @gitbucket.core.html.signinform(context.settings, userName, password)
