@@ -20,21 +20,6 @@ trait Validations {
   }
 
   /**
-   * Constraint for the password.
-   */
-  val password: Constraint = new Constraint() {
-    lazy val validatePassword = ConfigUtil.getConfigValue[Boolean]("gitbucket.validate.password").getOrElse(true)
-
-    override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      if (validatePassword == true && !value.matches("[a-zA-Z0-9\\-_.]+")) {
-        Some(s"${name} contains invalid character.")
-      } else {
-        None
-      }
-    }
-  }
-
-  /**
    * Constraint for the repository identifier.
    */
   val repository: Constraint = new Constraint() {
