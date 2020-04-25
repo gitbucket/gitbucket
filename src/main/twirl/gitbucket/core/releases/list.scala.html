@@ -1,6 +1,8 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  releases: Seq[(gitbucket.core.util.JGitUtil.TagInfo, Option[(gitbucket.core.model.ReleaseTag, Seq[gitbucket.core.model.ReleaseAsset])])],
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+    releases: Seq[(gitbucket.core.util.JGitUtil.TagInfo, Option[(gitbucket.core.model.ReleaseTag, Seq[gitbucket.core.model.ReleaseAsset])])],
+    hasWritePermission: Boolean,
+    page: Int, totalReleases: Int)(implicit context: gitbucket.core.controller.Context)
+
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Releases" + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
@@ -61,5 +63,9 @@
       }
       </tbody>
     </table>
+    <div class="pull-right">
+    @gitbucket.core.helper.html.paginator(page, totalReleases, gitbucket.core.service.ReleaseService.ReleaseLimit, 10)
+    </div>
+
   }
 }

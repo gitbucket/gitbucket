@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import java.io.File
 
-import gitbucket.core.service.{AccountService, ActivityService, ReleaseService, RepositoryService}
+import gitbucket.core.service.{AccountService, ActivityService, PaginationHelper, ReleaseService, RepositoryService}
 import gitbucket.core.util._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -10,6 +10,7 @@ import org.scalatra.forms._
 import gitbucket.core.releases.html
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
+
 import scala.util.Using
 
 class ReleaseController
@@ -42,17 +43,14 @@ trait ReleaseControllerBase extends ControllerBase {
   )(ReleaseForm.apply)
 
   get("/:owner/:repository/releases")(referrersOnly { repository =>
-    val releases = getReleases(repository.owner, repository.name)
-    val assets = getReleaseAssetsMap(repository.owner, repository.name)
+    val page = PaginationHelper.page(params.get("page"))
 
     html.list(
       repository,
-      repository.tags.reverse.map { tag =>
-        (tag, releases.find(_.tag == tag.name).map { release =>
-          (release, assets(release))
-        })
-      },
-      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+      fetchReleases(repository, page),
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
+      page,
+      repository.tags.size
     )
   })
 
@@ -215,4 +213,21 @@ trait ReleaseControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${repository.name}/releases")
   })
 
+  private def fetchReleases(repository: RepositoryService.RepositoryInfo, page: Int) = {
+
+    import gitbucket.core.service.ReleaseService._
+
+    val (offset, limit) = ((page - 1) * ReleaseLimit, ReleaseLimit)
+    val tagsToDisplay = repository.tags.reverse.slice(offset, offset + limit)
+
+    val releases = getReleases(repository.owner, repository.name, tagsToDisplay)
+    val assets = getReleaseAssetsMap(repository.owner, repository.name, releases)
+
+    val tagsWithReleases = tagsToDisplay.map { tag =>
+      (tag, releases.find(_.tag == tag.name).map { release =>
+        (release, assets(release))
+      })
+    }
+    tagsWithReleases
+  }
 }

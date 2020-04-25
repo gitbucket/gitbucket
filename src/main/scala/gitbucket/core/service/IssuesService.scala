@@ -203,7 +203,7 @@ trait IssuesService {
   }
 
   /**
-   * Returns the search result against  issues.
+   * Returns the search result against issues.
    *
    * @param condition the search condition
    * @param pullRequest if true then returns only pull requests, false then returns only issues.
@@ -910,13 +910,9 @@ object IssuesService {
         param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
       )
 
-    def page(request: HttpServletRequest) =
-      try {
-        val i = param(request, "page").getOrElse("1").toInt
-        if (i <= 0) 1 else i
-      } catch {
-        case e: NumberFormatException => 1
-      }
+    def page(request: HttpServletRequest) = {
+      PaginationHelper.page(param(request, "page"))
+    }
   }
 
   case class CommitStatusInfo(

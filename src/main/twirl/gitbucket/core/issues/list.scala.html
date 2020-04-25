@@ -11,7 +11,9 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   isEditable: Boolean,
   isManageable: Boolean)(implicit context: gitbucket.core.controller.Context)
+
 @import gitbucket.core.view.helpers
+
 @gitbucket.core.html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu(target, repository){
     <ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
