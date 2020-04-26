@@ -494,4 +494,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
 
   case class CommentDiffLine(newLine: Option[String], oldLine: Option[String], `type`: String, text: String)
 
+  def appendQueryString(baseUrl: String, queryString: String): String = {
+    s"$baseUrl${if (baseUrl.contains("?")) "&" else "?"}$queryString"
+  }
+
 }

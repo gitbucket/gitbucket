@@ -47,12 +47,4 @@ case class Pagination(page: Int, count: Int, limit: Int, width: Int) {
       (i >= fixedRange._1 && i <= fixedRange._2)
     }
   }
-
-  def getQParamSymbol(baseUrl: String): String = {
-    if (baseUrl.contains("?")) {
-      "&"
-    } else {
-      "?"
-    }
-  }
 }
