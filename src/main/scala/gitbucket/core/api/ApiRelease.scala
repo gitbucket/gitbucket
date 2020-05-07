@@ -6,7 +6,7 @@ case class ApiReleaseAsset(name: String, size: Long)(tag: String, fileName: Stri
   val label = name
   val file_id = fileName
   val browser_download_url = ApiPath(
-    s"/api/v3/repos/${repositoryName.fullName}/releases/${tag}/assets/${fileName}"
+    s"/${repositoryName.fullName}/releases/${tag}/assets/${fileName}"
   )
 }
 
