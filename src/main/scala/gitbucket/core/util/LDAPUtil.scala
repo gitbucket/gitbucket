@@ -149,7 +149,7 @@ object LDAPUtil {
     keystore: String,
     error: String
   )(f: LDAPConnection => Either[String, A]): Either[String, A] = {
-    if (tls) {
+    if (tls || ssl) {
       // Dynamically set Sun as the security provider
       Security.addProvider(getSslProvider())
 
