@@ -56,7 +56,7 @@ $(function(){
     clickable: true,
     previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
     success: function(file, id) {
-      file.previewElement.remove();
+      $(file.previewElement).remove();
       $('#upload-files').append($('<li class="upload-file">')
         .append($('<span>').data('id', id).text(file.name))
         .append($('<a class="delete" href="javascript:void(0);" style="margin-left: 4px;">(delete)</a>')));
