@@ -96,10 +96,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   def webHookForm(update: Boolean) =
     mapping(
-      "url" -> trim(label("url", text(required, webHook(update)))),
+      "url" -> trim(label("url", text(required, maxlength(1000), webHook(update)))),
       "events" -> webhookEvents,
       "ctype" -> label("ctype", text()),
-      "token" -> optional(trim(label("token", text(maxlength(100)))))
+      "token" -> optional(trim(label("token", text(maxlength(2000)))))
     )(
       (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
     )
