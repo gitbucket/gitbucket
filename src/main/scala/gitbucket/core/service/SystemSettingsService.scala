@@ -70,6 +70,7 @@ trait SystemSettingsService {
         }
       }
       props.setProperty(SkinName, settings.skinName.toString)
+      settings.userDefinedCss.foreach(x => props.setProperty(UserDefinedCss, x))
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
       props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)
       props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
@@ -106,7 +107,11 @@ trait SystemSettingsService {
           getOptionValue[String](props, SshHost, None).map(_.trim),
           getOptionValue(props, SshPort, Some(DefaultSshPort))
         ),
-        getValue(props, UseSMTP, getValue(props, Notification, false)), // handle migration scenario from only notification to useSMTP
+        getValue(
+          props,
+          UseSMTP,
+          getValue(props, Notification, false)
+        ), // handle migration scenario from only notification to useSMTP
         if (getValue(props, UseSMTP, getValue(props, Notification, false))) {
           Some(
             Smtp(
@@ -154,6 +159,7 @@ trait SystemSettingsService {
           None
         },
         getValue(props, SkinName, "skin-blue"),
+        getOptionValue(props, UserDefinedCss, None),
         getValue(props, ShowMailAddress, false),
         WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
         Upload(
@@ -191,6 +197,7 @@ object SystemSettingsService {
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
     skinName: String,
+    userDefinedCss: Option[String],
     showMailAddress: Boolean,
     webHook: WebHook,
     upload: Upload
@@ -212,10 +219,11 @@ object SystemSettingsService {
         .fold(base)(_ + base.dropWhile(_ != ':'))
     }
 
-    def sshAddress: Option[SshAddress] = ssh.sshHost.collect {
-      case host if ssh.enabled =>
-        SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
-    }
+    def sshAddress: Option[SshAddress] =
+      ssh.sshHost.collect {
+        case host if ssh.enabled =>
+          SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
+      }
   }
 
   case class Ssh(
@@ -265,7 +273,7 @@ object SystemSettingsService {
     host: String,
     port: Int,
     user: Option[String],
-    password: Option[String],
+    password: Option[String]
   )
 
   case class SshAddress(host: String, port: Int, genericUser: String)
@@ -318,6 +326,7 @@ object SystemSettingsService {
   private val OidcClientSecret = "oidc.client_secret"
   private val OidcJwsAlgorithm = "oidc.jws_algorithm"
   private val SkinName = "skinName"
+  private val UserDefinedCss = "userDefinedCss"
   private val ShowMailAddress = "showMailAddress"
   private val WebHookBlockPrivateAddress = "webhook.block_private_address"
   private val WebHookWhitelist = "webhook.whitelist"

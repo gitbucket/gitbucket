@@ -138,6 +138,7 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       oidcAuthentication = false,
       oidc = None,
       skinName = "skin-blue",
+      userDefinedCss = None,
       showMailAddress = false,
       webHook = WebHook(
         blockPrivateAddress = false,
@@ -157,7 +158,8 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
   class AvatarImageProviderImpl(account: Option[Account]) extends AvatarImageProvider with RequestCache {
 
     def toHtml(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(
-      implicit context: Context
+      implicit
+      context: Context
     ): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
 
     override def getAccountByMailAddress(mailAddress: String)(implicit context: Context): Option[Account] = account
