@@ -52,6 +52,7 @@ trait ServiceSpecBase extends MockitoSugar {
       oidcAuthentication = false,
       oidc = None,
       skinName = "skin-blue",
+      userDefinedCss = None,
       showMailAddress = false,
       webHook = SystemSettingsService.WebHook(
         blockPrivateAddress = false,
@@ -114,7 +115,8 @@ trait ServiceSpecBase extends MockitoSugar {
   }
 
   def generateNewIssue(userName: String, repositoryName: String, loginUser: String = "root")(
-    implicit s: Session
+    implicit
+    s: Session
   ): Int = {
     dummyService.insertIssue(
       owner = userName,
@@ -130,7 +132,8 @@ trait ServiceSpecBase extends MockitoSugar {
   }
 
   def generateNewPullRequest(base: String, request: String, loginUser: String)(
-    implicit s: Session
+    implicit
+    s: Session
   ): (Issue, PullRequest) = {
     implicit val context = Context(createSystemSettings(), None, this.request)
     val Array(baseUserName, baseRepositoryName, baesBranch) = base.split("/")

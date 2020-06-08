@@ -46,7 +46,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "ssh" -> mapping(
       "enabled" -> trim(label("SSH access", boolean())),
       "host" -> trim(label("SSH host", optional(text()))),
-      "port" -> trim(label("SSH port", optional(number()))),
+      "port" -> trim(label("SSH port", optional(number())))
     )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
@@ -91,6 +91,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
+    "userDefinedCss" -> trim(label("User-defined CSS", optional(text()))),
     "showMailAddress" -> trim(label("Show mail address", boolean())),
     "webhook" -> mapping(
       "blockPrivateAddress" -> trim(label("Block private address", boolean())),
@@ -536,24 +537,26 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       }
     }
 
-  private def members: Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      if (value.split(",").exists {
-            _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
-          }) None
-      else Some("Must select one manager at least.")
-    }
-  }
-
-  protected def disableByNotYourself(paramName: String): Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      params.get(paramName).flatMap { userName =>
-        if (userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
-          Some("You can't disable your account yourself")
-        else
-          None
+  private def members: Constraint =
+    new Constraint() {
+      override def validate(name: String, value: String, messages: Messages): Option[String] = {
+        if (value.split(",").exists {
+              _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
+            }) None
+        else Some("Must select one manager at least.")
       }
     }
-  }
+
+  protected def disableByNotYourself(paramName: String): Constraint =
+    new Constraint() {
+      override def validate(name: String, value: String, messages: Messages): Option[String] = {
+        params.get(paramName).flatMap { userName =>
+          if (userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
+            Some("You can't disable your account yourself")
+          else
+            None
+        }
+      }
+    }
 
 }
