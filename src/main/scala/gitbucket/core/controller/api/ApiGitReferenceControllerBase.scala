@@ -5,6 +5,7 @@ import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.ReferrerAuthenticator
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
+import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
@@ -12,11 +13,23 @@ import scala.util.Using
 trait ApiGitReferenceControllerBase extends ControllerBase {
   self: ReferrerAuthenticator =>
 
+  private val logger = LoggerFactory.getLogger(classOf[ApiGitReferenceControllerBase])
+
   /*
    * i. Get a reference
    * https://developer.github.com/v3/git/refs/#get-a-reference
    */
   get("/api/v3/repos/:owner/:repository/git/ref/*")(referrersOnly { repository =>
+    getRef()
+  })
+
+  // Some versions of GHE support this path
+  get("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
+    logger.warn("git/refs/ endpoint may not be compatible with GitHub API v3. Consider using git/ref/ endpoint instead")
+    getRef()
+  })
+
+  private def getRef() = {
     val revstr = multiParams("splat").head
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository().findRef(revstr)
@@ -38,7 +51,8 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
         })
       }
     }
-  })
+  }
+
   /*
    * ii. Get all references
    * https://developer.github.com/v3/git/refs/#get-all-references
