@@ -16,7 +16,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * i. Get a reference
    * https://developer.github.com/v3/git/refs/#get-a-reference
    */
-  get("/api/v3/repos/:owner/:repository/git/ref/*")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     val revstr = multiParams("splat").head
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository().findRef(revstr)
