@@ -388,6 +388,7 @@ object JGitUtil {
             Using.resource(treeWalk)(f)
           }
         }
+
       @tailrec
       def simplifyPath(
         tuple: (ObjectId, FileMode, String, String, Option[String], RevCommit)
@@ -417,58 +418,19 @@ object JGitUtil {
         case _ => tuple
       }
 
-      def tupleAdd(tuple: (ObjectId, FileMode, String, String, Option[String]), rev: RevCommit) = tuple match {
-        case (oid, fmode, name, path, opt) => (oid, fmode, name, path, opt, rev)
-      }
-
-      @tailrec
-      def findLastCommits(
-        result: List[(ObjectId, FileMode, String, String, Option[String], RevCommit)],
-        restList: List[((ObjectId, FileMode, String, String, Option[String]), Map[RevCommit, RevCommit])],
-        revIterator: java.util.Iterator[RevCommit]
+      def appendLastCommits(
+        fileList: List[(ObjectId, FileMode, String, String, Option[String])]
       ): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] = {
-        if (restList.isEmpty) {
-          result
-        } else if (!revIterator.hasNext) { // maybe, revCommit has only 1 log. other case, restList be empty
-          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(revCommit)) }
-        } else {
-          val newCommit = revIterator.next
-          val (thisTimeChecks, skips) = restList.partition {
-            case (tuple, parentsMap) => parentsMap.contains(newCommit)
-          }
-          if (thisTimeChecks.isEmpty) {
-            findLastCommits(result, restList, revIterator)
-          } else {
-            var nextRest = skips
-            var nextResult = result
-            // Map[(name, oid), (tuple, parentsMap)]
-            val rest = scala.collection.mutable.Map(thisTimeChecks.map { t =>
-              (t._1._3 -> t._1._1) -> t
-            }: _*)
-            lazy val newParentsMap = newCommit.getParents.map(_ -> newCommit).toMap
-            useTreeWalk(newCommit) { walk =>
-              while (walk.next) {
-                rest.remove(walk.getNameString -> walk.getObjectId(0)).foreach {
-                  case (tuple, _) =>
-                    if (newParentsMap.isEmpty) {
-                      nextResult +:= tupleAdd(tuple, newCommit)
-                    } else {
-                      nextRest +:= tuple -> newParentsMap
-                    }
-                }
-              }
-            }
-            rest.values.foreach {
-              case (tuple, parentsMap) =>
-                val restParentsMap = parentsMap - newCommit
-                if (restParentsMap.isEmpty) {
-                  nextResult +:= tupleAdd(tuple, parentsMap(newCommit))
-                } else {
-                  nextRest +:= tuple -> restParentsMap
-                }
-            }
-            findLastCommits(nextResult, nextRest, revIterator)
-          }
+        fileList.map {
+          case (id, mode, name, path, opt) =>
+            val i = git
+              .log()
+              .addPath(path)
+              .add(revCommit)
+              .setMaxCount(1)
+              .call()
+              .iterator()
+            (id, mode, name, path, opt, i.next())
         }
       }
 
@@ -481,11 +443,8 @@ object JGitUtil {
           fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, treeWalk.getPathString, linkUrl)
         }
       }
-      revWalk.markStart(revCommit)
-      val it = revWalk.iterator
-      val lastCommit = it.next
-      val nextParentsMap = Option(lastCommit).map(_.getParents.map(_ -> lastCommit).toMap).getOrElse(Map())
-      findLastCommits(List.empty, fileList.map(a => a -> nextParentsMap), it)
+
+      appendLastCommits(fileList)
         .map(simplifyPath)
         .map {
           case (objectId, fileMode, name, path, linkUrl, commit) =>
@@ -494,7 +453,10 @@ object JGitUtil {
               fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
               name,
               path,
-              getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
+              getSummaryMessage(
+                commit.getFullMessage,
+                commit.getShortMessage
+              ),
               commit.getName,
               commit.getAuthorIdent.getWhen,
               commit.getAuthorIdent.getName,
