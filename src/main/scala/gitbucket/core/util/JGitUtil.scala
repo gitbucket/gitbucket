@@ -373,9 +373,16 @@ object JGitUtil {
    * @param revision the branch name or commit id
    * @param path the directory path (optional)
    * @param baseUrl the base url of GitBucket instance. This parameter is used to generate links of submodules (optional)
-   * @return HTML of the file list
+   * @param commitCount the number of commit of this repository (optional). If this number is greater than threshold, the commit info is cached in memory.
+   * @return The list of files in the specified directory. If the number of files are greater than threshold, the returned file list won't include the commit info.
    */
-  def getFileList(git: Git, revision: String, path: String = ".", baseUrl: Option[String] = None): List[FileInfo] = {
+  def getFileList(
+    git: Git,
+    revision: String,
+    path: String = ".",
+    baseUrl: Option[String] = None,
+    commitCount: Int = 0
+  ): List[FileInfo] = {
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val objectId = git.getRepository.resolve(revision)
       if (objectId == null) return Nil
@@ -397,31 +404,32 @@ object JGitUtil {
       @tailrec
       def simplifyPath(
         tuple: (ObjectId, FileMode, String, String, Option[String], Option[RevCommit])
-      ): (ObjectId, FileMode, String, String, Option[String], Option[RevCommit]) = tuple match {
-        case (oid, FileMode.TREE, name, path, _, commit) =>
-          (Using.resource(new TreeWalk(git.getRepository)) { walk =>
-            walk.addTree(oid)
-            // single tree child, or None
-            if (walk.next() && walk.getFileMode(0) == FileMode.TREE) {
-              Some(
-                (
-                  walk.getObjectId(0),
-                  walk.getFileMode(0),
-                  name + "/" + walk.getNameString,
-                  path + "/" + walk.getNameString,
-                  None,
-                  commit
-                )
-              ).filterNot(_ => walk.next())
-            } else {
-              None
+      ): (ObjectId, FileMode, String, String, Option[String], Option[RevCommit]) =
+        tuple match {
+          case (oid, FileMode.TREE, name, path, _, commit) =>
+            (Using.resource(new TreeWalk(git.getRepository)) { walk =>
+              walk.addTree(oid)
+              // single tree child, or None
+              if (walk.next() && walk.getFileMode(0) == FileMode.TREE) {
+                Some(
+                  (
+                    walk.getObjectId(0),
+                    walk.getFileMode(0),
+                    name + "/" + walk.getNameString,
+                    path + "/" + walk.getNameString,
+                    None,
+                    commit
+                  )
+                ).filterNot(_ => walk.next())
+              } else {
+                None
+              }
+            }) match {
+              case Some(child) => simplifyPath(child)
+              case _           => tuple
             }
-          }) match {
-            case Some(child) => simplifyPath(child)
-            case _           => tuple
-          }
-        case _ => tuple
-      }
+          case _ => tuple
+        }
 
       def appendLastCommits(
         fileList: List[(ObjectId, FileMode, String, String, Option[String])]
@@ -431,17 +439,13 @@ object JGitUtil {
             // Don't attempt to get the last commit if the number of files is very large.
             if (fileList.size >= 100) {
               (id, mode, name, path, opt, None)
+            } else if (commitCount < 10000) {
+              val i = git
+              (id, mode, name, path, opt, Some(getCommit(path)))
             } else {
               val cached = objectCommitCache.getEntry(id)
               if (cached == null) {
-                val i = git
-                  .log()
-                  .addPath(path)
-                  .add(revCommit)
-                  .setMaxCount(1)
-                  .call()
-                  .iterator()
-                val commit = i.next()
+                val commit = getCommit(path)
                 objectCommitCache.put(id, commit)
                 (id, mode, name, path, opt, Some(commit))
               } else {
@@ -451,13 +455,26 @@ object JGitUtil {
         }
       }
 
+      def getCommit(path: String): RevCommit = {
+        git
+          .log()
+          .addPath(path)
+          .add(revCommit)
+          .setMaxCount(1)
+          .call()
+          .iterator()
+          .next()
+      }
+
       var fileList: List[(ObjectId, FileMode, String, String, Option[String])] = Nil
       useTreeWalk(revCommit) { treeWalk =>
         while (treeWalk.next()) {
           val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
             getSubmodules(git, revCommit.getTree, baseUrl).find(_.path == treeWalk.getPathString).map(_.viewerUrl)
           } else None
-          fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, treeWalk.getPathString, linkUrl)
+          fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(
+            0
+          ), treeWalk.getNameString, treeWalk.getPathString, linkUrl)
         }
       }
 
@@ -983,11 +1000,12 @@ object JGitUtil {
    */
   def getContentFromPath(git: Git, revTree: RevTree, path: String, fetchLargeFile: Boolean): Option[Array[Byte]] = {
     @scala.annotation.tailrec
-    def getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
-      case true if (walk.getPathString == path) => Some(walk.getObjectId(0))
-      case true                                 => getPathObjectId(path, walk)
-      case false                                => None
-    }
+    def getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] =
+      walk.next match {
+        case true if (walk.getPathString == path) => Some(walk.getObjectId(0))
+        case true                                 => getPathObjectId(path, walk)
+        case false                                => None
+      }
 
     Using.resource(new TreeWalk(git.getRepository)) { treeWalk =>
       treeWalk.addTree(revTree)
