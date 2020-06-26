@@ -290,6 +290,11 @@ object JGitUtil {
     .entryCapacity(10000)
     .build()
 
+  private val objectCommitCache = new Cache2kBuilder[ObjectId, RevCommit]() {}
+    .name("object-commit")
+    .entryCapacity(10000)
+    .build()
+
   def removeCache(git: Git): Unit = {
     val dir = git.getRepository.getDirectory
     val keyPrefix = dir.getAbsolutePath + "@"
@@ -391,8 +396,8 @@ object JGitUtil {
 
       @tailrec
       def simplifyPath(
-        tuple: (ObjectId, FileMode, String, String, Option[String], RevCommit)
-      ): (ObjectId, FileMode, String, String, Option[String], RevCommit) = tuple match {
+        tuple: (ObjectId, FileMode, String, String, Option[String], Option[RevCommit])
+      ): (ObjectId, FileMode, String, String, Option[String], Option[RevCommit]) = tuple match {
         case (oid, FileMode.TREE, name, path, _, commit) =>
           (Using.resource(new TreeWalk(git.getRepository)) { walk =>
             walk.addTree(oid)
@@ -420,17 +425,29 @@ object JGitUtil {
 
       def appendLastCommits(
         fileList: List[(ObjectId, FileMode, String, String, Option[String])]
-      ): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] = {
+      ): List[(ObjectId, FileMode, String, String, Option[String], Option[RevCommit])] = {
         fileList.map {
           case (id, mode, name, path, opt) =>
-            val i = git
-              .log()
-              .addPath(path)
-              .add(revCommit)
-              .setMaxCount(1)
-              .call()
-              .iterator()
-            (id, mode, name, path, opt, i.next())
+            // Don't attempt to get the last commit if the number of files is very large.
+            if (fileList.size >= 100) {
+              (id, mode, name, path, opt, None)
+            } else {
+              val cached = objectCommitCache.getEntry(id)
+              if (cached == null) {
+                val i = git
+                  .log()
+                  .addPath(path)
+                  .add(revCommit)
+                  .setMaxCount(1)
+                  .call()
+                  .iterator()
+                val commit = i.next()
+                objectCommitCache.put(id, commit)
+                (id, mode, name, path, opt, Some(commit))
+              } else {
+                (id, mode, name, path, opt, Some(cached.getValue))
+              }
+            }
         }
       }
 
@@ -454,13 +471,13 @@ object JGitUtil {
               name,
               path,
               getSummaryMessage(
-                commit.getFullMessage,
-                commit.getShortMessage
+                commit.map(_.getFullMessage).getOrElse(""),
+                commit.map(_.getShortMessage).getOrElse("")
               ),
-              commit.getName,
-              commit.getAuthorIdent.getWhen,
-              commit.getAuthorIdent.getName,
-              commit.getAuthorIdent.getEmailAddress,
+              commit.map(_.getName).getOrElse(""),
+              commit.map(_.getAuthorIdent.getWhen).orNull,
+              commit.map(_.getAuthorIdent.getName).getOrElse(""),
+              commit.map(_.getAuthorIdent.getEmailAddress).getOrElse(""),
               linkUrl
             )
         }
