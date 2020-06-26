@@ -3,65 +3,169 @@ package gitbucket.core.service
 import gitbucket.core.model.Activity
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.util.Directory._
+import org.json4s._
+import org.json4s.jackson.Serialization
+import org.json4s.jackson.Serialization.{read, write}
+
+import scala.util.Using
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+
+import gitbucket.core.controller.Context
+import org.apache.commons.io.input.ReversedLinesFileReader
+
+import scala.collection.mutable.ListBuffer
 
 trait ActivityService {
+  self: RequestCache =>
 
-  def deleteOldActivities(limit: Int)(implicit s: Session): Int = {
-    Activities.map(_.activityId).sortBy(_ desc).drop(limit).firstOption.map { id =>
-      Activities.filter(_.activityId <= id.bind).delete
-    } getOrElse 0
+  private implicit val formats = Serialization.formats(NoTypeHints)
+
+  private def writeLog(activity: Activity): Unit = {
+    Using.resource(new FileOutputStream(ActivityLog, true)) { out =>
+      out.write((write(activity) + "\n").getBytes(StandardCharsets.UTF_8))
+    }
   }
 
-  def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit s: Session): List[Activity] =
-    Activities
-      .join(Repositories)
-      .on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter {
-        case (t1, t2) =>
-          if (isPublic) {
-            (t1.activityUserName === activityUserName.bind) && (t2.isPrivate === false.bind)
-          } else {
-            (t1.activityUserName === activityUserName.bind)
+  def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit context: Context): List[Activity] = {
+    if (!ActivityLog.exists()) {
+      List.empty
+    } else {
+      val list = new ListBuffer[Activity]
+      Using.resource(new ReversedLinesFileReader(ActivityLog, StandardCharsets.UTF_8)) { reader =>
+        var json: String = null
+        while (list.length < 50 && { json = reader.readLine(); json } != null) {
+          val activity = read[Activity](json)
+          if (activity.activityUserName == activityUserName) {
+            if (isPublic == false) {
+              list += activity
+            } else {
+              if (!getRepositoryInfoFromCache(activity.userName, activity.repositoryName)
+                    .map(_.isPrivate)
+                    .getOrElse(true)) {
+                list += activity
+              }
+            }
           }
+        }
       }
-      .sortBy { case (t1, t2) => t1.activityId desc }
-      .map { case (t1, t2) => t1 }
-      .take(30)
-      .list
+      list.toList
+    }
+  }
 
-  def getRecentActivities()(implicit s: Session): List[Activity] =
-    Activities
-      .join(Repositories)
-      .on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter { case (t1, t2) => t2.isPrivate === false.bind }
-      .sortBy { case (t1, t2) => t1.activityId desc }
-      .map { case (t1, t2) => t1 }
-      .take(30)
-      .list
+  def getRecentPublicActivities()(implicit context: Context): List[Activity] = {
+    if (!ActivityLog.exists()) {
+      List.empty
+    } else {
+      val list = new ListBuffer[Activity]
+      Using.resource(new ReversedLinesFileReader(ActivityLog, StandardCharsets.UTF_8)) { reader =>
+        var json: String = null
+        while (list.length < 50 && { json = reader.readLine(); json } != null) {
+          val activity = read[Activity](json)
+          if (!getRepositoryInfoFromCache(activity.userName, activity.repositoryName)
+                .map(_.isPrivate)
+                .getOrElse(true)) {
+            list += activity
+          }
+        }
+      }
+      list.toList
+    }
+  }
 
-  def getRecentActivitiesByOwners(owners: Set[String])(implicit s: Session): List[Activity] =
-    Activities
-      .join(Repositories)
-      .on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter { case (t1, t2) => (t2.isPrivate === false.bind) || (t2.userName inSetBind owners) }
-      .sortBy { case (t1, t2) => t1.activityId desc }
-      .map { case (t1, t2) => t1 }
-      .take(30)
-      .list
+  def getRecentActivitiesByOwners(owners: Set[String])(implicit context: Context): List[Activity] = {
+    if (!ActivityLog.exists()) {
+      List.empty
+    } else {
+      val list = new ListBuffer[Activity]
+      Using.resource(new ReversedLinesFileReader(ActivityLog, StandardCharsets.UTF_8)) { reader =>
+        var json: String = null
+        while (list.length < 50 && { json = reader.readLine(); json } != null) {
+          val activity = read[Activity](json)
+          if (owners.contains(activity.userName)) {
+            list += activity
+          } else if (!getRepositoryInfoFromCache(activity.userName, activity.repositoryName)
+                       .map(_.isPrivate)
+                       .getOrElse(true)) {
+            list += activity
+          }
+        }
+      }
+      list.toList
+    }
+  }
 
-  def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String)(
-    implicit s: Session
-  ): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "create_repository",
-      s"[user:${activityUserName}] created [repo:${userName}/${repositoryName}]",
-      None,
-      currentDate
+  def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "create_repository",
+        s"[user:${activityUserName}] created [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
+
+  def recordDeleteRepositoryActivity(userName: String, repositoryName: String, activityUserName: String): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "delete_repository",
+        s"[user:${activityUserName}] deleted [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
+    )
+  }
+
+  def recordTransferRepositoryActivity(
+    userName: String,
+    repositoryName: String,
+    oldUserName: String,
+    activityUserName: String
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "transfer_repository",
+        s"[user:${activityUserName}] transfered [repo:${oldUserName}/${repositoryName}] to [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
+    )
+  }
+
+  def recordRenameRepositoryActivity(
+    userName: String,
+    repositoryName: String,
+    oldRepositoryName: String,
+    activityUserName: String
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "rename_repository",
+        s"[user:${activityUserName}] renamed [repo:${userName}/${oldRepositoryName}] at [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
+    )
+  }
 
   def recordCreateIssueActivity(
     userName: String,
@@ -69,16 +173,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     title: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "open_issue",
-      s"[user:${activityUserName}] opened issue [issue:${userName}/${repositoryName}#${issueId}]",
-      Some(title),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "open_issue",
+        s"[user:${activityUserName}] opened issue [issue:${userName}/${repositoryName}#${issueId}]",
+        Some(title),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCloseIssueActivity(
     userName: String,
@@ -86,16 +194,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     title: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "close_issue",
-      s"[user:${activityUserName}] closed issue [issue:${userName}/${repositoryName}#${issueId}]",
-      Some(title),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "close_issue",
+        s"[user:${activityUserName}] closed issue [issue:${userName}/${repositoryName}#${issueId}]",
+        Some(title),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordClosePullRequestActivity(
     userName: String,
@@ -103,16 +215,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     title: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "close_issue",
-      s"[user:${activityUserName}] closed pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
-      Some(title),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "close_issue",
+        s"[user:${activityUserName}] closed pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+        Some(title),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordReopenIssueActivity(
     userName: String,
@@ -120,16 +236,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     title: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "reopen_issue",
-      s"[user:${activityUserName}] reopened issue [issue:${userName}/${repositoryName}#${issueId}]",
-      Some(title),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "reopen_issue",
+        s"[user:${activityUserName}] reopened issue [issue:${userName}/${repositoryName}#${issueId}]",
+        Some(title),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordReopenPullRequestActivity(
     userName: String,
@@ -137,16 +257,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     title: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "reopen_issue",
-      s"[user:${activityUserName}] reopened pull request [issue:${userName}/${repositoryName}#${issueId}]",
-      Some(title),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "reopen_issue",
+        s"[user:${activityUserName}] reopened pull request [issue:${userName}/${repositoryName}#${issueId}]",
+        Some(title),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCommentIssueActivity(
     userName: String,
@@ -154,16 +278,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     comment: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "comment_issue",
-      s"[user:${activityUserName}] commented on issue [issue:${userName}/${repositoryName}#${issueId}]",
-      Some(cut(comment, 200)),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "comment_issue",
+        s"[user:${activityUserName}] commented on issue [issue:${userName}/${repositoryName}#${issueId}]",
+        Some(cut(comment, 200)),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCommentPullRequestActivity(
     userName: String,
@@ -171,16 +299,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     comment: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "comment_issue",
-      s"[user:${activityUserName}] commented on pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
-      Some(cut(comment, 200)),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "comment_issue",
+        s"[user:${activityUserName}] commented on pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+        Some(cut(comment, 200)),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCommentCommitActivity(
     userName: String,
@@ -188,32 +320,40 @@ trait ActivityService {
     activityUserName: String,
     commitId: String,
     comment: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "comment_commit",
-      s"[user:${activityUserName}] commented on commit [commit:${userName}/${repositoryName}@${commitId}]",
-      Some(cut(comment, 200)),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "comment_commit",
+        s"[user:${activityUserName}] commented on commit [commit:${userName}/${repositoryName}@${commitId}]",
+        Some(cut(comment, 200)),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCreateWikiPageActivity(
     userName: String,
     repositoryName: String,
     activityUserName: String,
     pageName: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "create_wiki",
-      s"[user:${activityUserName}] created the [repo:${userName}/${repositoryName}] wiki",
-      Some(pageName),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "create_wiki",
+        s"[user:${activityUserName}] created the [repo:${userName}/${repositoryName}] wiki",
+        Some(pageName),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordEditWikiPageActivity(
     userName: String,
@@ -221,16 +361,20 @@ trait ActivityService {
     activityUserName: String,
     pageName: String,
     commitId: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "edit_wiki",
-      s"[user:${activityUserName}] edited the [repo:${userName}/${repositoryName}] wiki",
-      Some(pageName + ":" + commitId),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "edit_wiki",
+        s"[user:${activityUserName}] edited the [repo:${userName}/${repositoryName}] wiki",
+        Some(pageName + ":" + commitId),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordPushActivity(
     userName: String,
@@ -238,23 +382,27 @@ trait ActivityService {
     activityUserName: String,
     branchName: String,
     commits: List[JGitUtil.CommitInfo]
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "push",
-      s"[user:${activityUserName}] pushed to [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
-      Some(
-        commits
-          .take(5)
-          .map { commit =>
-            commit.id + ":" + commit.shortMessage
-          }
-          .mkString("\n")
-      ),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "push",
+        s"[user:${activityUserName}] pushed to [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
+        Some(
+          commits
+            .take(5)
+            .map { commit =>
+              commit.id + ":" + commit.shortMessage
+            }
+            .mkString("\n")
+        ),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCreateTagActivity(
     userName: String,
@@ -262,16 +410,20 @@ trait ActivityService {
     activityUserName: String,
     tagName: String,
     commits: List[JGitUtil.CommitInfo]
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "create_tag",
-      s"[user:${activityUserName}] created tag [tag:${userName}/${repositoryName}#${tagName}] at [repo:${userName}/${repositoryName}]",
-      None,
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "create_tag",
+        s"[user:${activityUserName}] created tag [tag:${userName}/${repositoryName}#${tagName}] at [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordDeleteTagActivity(
     userName: String,
@@ -279,61 +431,80 @@ trait ActivityService {
     activityUserName: String,
     tagName: String,
     commits: List[JGitUtil.CommitInfo]
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "delete_tag",
-      s"[user:${activityUserName}] deleted tag ${tagName} at [repo:${userName}/${repositoryName}]",
-      None,
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "delete_tag",
+        s"[user:${activityUserName}] deleted tag ${tagName} at [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordCreateBranchActivity(
     userName: String,
     repositoryName: String,
     activityUserName: String,
     branchName: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "create_branch",
-      s"[user:${activityUserName}] created branch [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
-      None,
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "create_branch",
+        s"[user:${activityUserName}] created branch [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordDeleteBranchActivity(
     userName: String,
     repositoryName: String,
     activityUserName: String,
     branchName: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "delete_branch",
-      s"[user:${activityUserName}] deleted branch ${branchName} at [repo:${userName}/${repositoryName}]",
-      None,
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "delete_branch",
+        s"[user:${activityUserName}] deleted branch ${branchName} at [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
-  def recordForkActivity(userName: String, repositoryName: String, activityUserName: String, forkedUserName: String)(
-    implicit s: Session
-  ): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "fork",
-      s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${forkedUserName}/${repositoryName}]",
-      None,
-      currentDate
+  def recordForkActivity(
+    userName: String,
+    repositoryName: String,
+    activityUserName: String,
+    forkedUserName: String
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "fork",
+        s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${forkedUserName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordPullRequestActivity(
     userName: String,
@@ -341,16 +512,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     title: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "open_pullreq",
-      s"[user:${activityUserName}] opened pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
-      Some(title),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "open_pullreq",
+        s"[user:${activityUserName}] opened pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+        Some(title),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordMergeActivity(
     userName: String,
@@ -358,16 +533,20 @@ trait ActivityService {
     activityUserName: String,
     issueId: Int,
     message: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "merge_pullreq",
-      s"[user:${activityUserName}] merged pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
-      Some(message),
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "merge_pullreq",
+        s"[user:${activityUserName}] merged pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+        Some(message),
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   def recordReleaseActivity(
     userName: String,
@@ -375,16 +554,20 @@ trait ActivityService {
     activityUserName: String,
     releaseName: String,
     tagName: String
-  )(implicit s: Session): Unit =
-    Activities insert Activity(
-      userName,
-      repositoryName,
-      activityUserName,
-      "release",
-      s"[user:${activityUserName}] released [release:${userName}/${repositoryName}/${tagName}:${releaseName}] at [repo:${userName}/${repositoryName}]",
-      None,
-      currentDate
+  ): Unit = {
+    writeLog(
+      Activity(
+        userName,
+        repositoryName,
+        activityUserName,
+        "release",
+        s"[user:${activityUserName}] released [release:${userName}/${repositoryName}/${tagName}:${releaseName}] at [repo:${userName}/${repositoryName}]",
+        None,
+        currentDate,
+        UUID.randomUUID().toString
+      )
     )
+  }
 
   private def cut(value: String, length: Int): String =
     if (value.length > length) value.substring(0, length) + "..." else value

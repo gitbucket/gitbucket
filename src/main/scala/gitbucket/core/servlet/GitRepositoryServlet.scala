@@ -240,7 +240,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     with WebHookPullRequestService
     with WebHookPullRequestReviewCommentService
     with CommitsService
-    with SystemSettingsService {
+    with SystemSettingsService
+    with RequestCache {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil

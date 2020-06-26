@@ -99,7 +99,7 @@ trait ServiceSpecBase extends MockitoSugar {
   lazy val dummyService = new RepositoryService with AccountService with ActivityService with IssuesService
   with MergeService with PullRequestService with CommitsService with CommitStatusService with LabelsService
   with MilestonesService with PrioritiesService with WebHookService with WebHookPullRequestService
-  with WebHookPullRequestReviewCommentService {
+  with WebHookPullRequestReviewCommentService with RequestCache {
     override def fetchAsPullRequest(
       userName: String,
       repositoryName: String,

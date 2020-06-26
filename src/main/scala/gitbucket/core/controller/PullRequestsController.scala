@@ -36,6 +36,7 @@ class PullRequestsController
     with MergeService
     with ProtectedBranchService
     with PrioritiesService
+    with RequestCache
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService

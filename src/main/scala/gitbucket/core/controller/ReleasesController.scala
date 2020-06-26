@@ -2,7 +2,14 @@ package gitbucket.core.controller
 
 import java.io.File
 
-import gitbucket.core.service.{AccountService, ActivityService, PaginationHelper, ReleaseService, RepositoryService}
+import gitbucket.core.service.{
+  AccountService,
+  ActivityService,
+  PaginationHelper,
+  ReleaseService,
+  RepositoryService,
+  RequestCache
+}
 import gitbucket.core.util._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -22,6 +29,7 @@ class ReleaseController
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with RequestCache
 
 trait ReleaseControllerBase extends ControllerBase {
   self: RepositoryService

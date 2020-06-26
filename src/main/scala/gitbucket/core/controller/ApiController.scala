@@ -52,6 +52,7 @@ class ApiController
     with ReferrerAuthenticator
     with ReadableUsersAuthenticator
     with WritableUsersAuthenticator
+    with RequestCache
 
 trait ApiControllerBase extends ControllerBase {
 
