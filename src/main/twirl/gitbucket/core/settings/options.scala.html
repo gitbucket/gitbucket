@@ -8,11 +8,19 @@
         <div class="panel panel-default">
           <div class="panel-heading strong">Settings</div>
           <div class="panel-body">
-            <fieldset class="form-group">
-              <label for="repositoryName" class="strong">Repository Name:</label>
-              <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
-              <span id="error-repositoryName" class="error"></span>
-            </fieldset>
+            @if(context.settings.repositoryOperation.rename == true || context.loginAccount.get.isAdmin){
+              <fieldset class="form-group">
+                <label for="repositoryName" class="strong">Repository Name:</label>
+                <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
+                <span id="error-repositoryName" class="error"></span>
+              </fieldset>
+            } else {
+              <fieldset class="form-group">
+                <label for="repositoryName" class="strong">Repository Name:</label>
+                @repository.name
+                <input type="hidden" name="repositoryName" id="repositoryName" value="@repository.name"/>
+              </fieldset>
+            }
             <fieldset class="border-top form-group">
               <label for="description" class="strong">Description:</label>
               <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>

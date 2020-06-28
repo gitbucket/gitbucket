@@ -16,6 +16,7 @@ import gitbucket.core.util._
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 import org.scalatra.forms._
+import org.scalatra.Forbidden
 
 class AccountController
     extends AccountControllerBase
@@ -691,22 +692,23 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    LockUtil.lock(s"${form.owner}/${form.name}") {
-      if (getRepository(form.owner, form.name).isEmpty) {
-        createRepository(
-          context.loginAccount.get,
-          form.owner,
-          form.name,
-          form.description,
-          form.isPrivate,
-          form.initOption,
-          form.sourceUrl
-        )
+    if (context.settings.repositoryOperation.create == true || context.loginAccount.get.isAdmin) {
+      LockUtil.lock(s"${form.owner}/${form.name}") {
+        if (getRepository(form.owner, form.name).isEmpty) {
+          createRepository(
+            context.loginAccount.get,
+            form.owner,
+            form.name,
+            form.description,
+            form.isPrivate,
+            form.initOption,
+            form.sourceUrl
+          )
+        }
       }
-    }
-
-    // redirect to the repository
-    redirect(s"/${form.owner}/${form.name}")
+      // redirect to the repository
+      redirect(s"/${form.owner}/${form.name}")
+    } else Forbidden()
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>

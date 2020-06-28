@@ -21,6 +21,10 @@ trait SystemSettingsService {
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
       props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
+      props.setProperty(RepositoryOperationCreate, settings.repositoryOperation.create.toString)
+      props.setProperty(RepositoryOperationDelete, settings.repositoryOperation.delete.toString)
+      props.setProperty(RepositoryOperationRename, settings.repositoryOperation.rename.toString)
+      props.setProperty(RepositoryOperationTransfer, settings.repositoryOperation.transfer.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
@@ -98,6 +102,12 @@ trait SystemSettingsService {
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
+        RepositoryOperation(
+          create = getValue(props, RepositoryOperationCreate, true),
+          delete = getValue(props, RepositoryOperationDelete, true),
+          rename = getValue(props, RepositoryOperationRename, true),
+          transfer = getValue(props, RepositoryOperationTransfer, true)
+        ),
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
@@ -185,6 +195,7 @@ object SystemSettingsService {
     allowAccountRegistration: Boolean,
     allowAnonymousAccess: Boolean,
     isCreateRepoOptionPublic: Boolean,
+    repositoryOperation: RepositoryOperation,
     gravatar: Boolean,
     notification: Boolean,
     activityLogLimit: Option[Int],
@@ -225,6 +236,13 @@ object SystemSettingsService {
           SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
       }
   }
+
+  case class RepositoryOperation(
+    create: Boolean,
+    delete: Boolean,
+    rename: Boolean,
+    transfer: Boolean
+  )
 
   case class Ssh(
     enabled: Boolean,
@@ -291,6 +309,10 @@ object SystemSettingsService {
   private val AllowAccountRegistration = "allow_account_registration"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
+  private val RepositoryOperationCreate = "repository_operation_create"
+  private val RepositoryOperationDelete = "repository_operation_delete"
+  private val RepositoryOperationRename = "repository_operation_rename"
+  private val RepositoryOperationTransfer = "repository_operation_transfer"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"

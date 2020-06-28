@@ -20,6 +20,7 @@ import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 
 import scala.util.Using
+import org.scalatra.Forbidden
 
 class RepositorySettingsController
     extends RepositorySettingsControllerBase
@@ -129,28 +130,32 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Save the repository options.
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
-    saveRepositoryOptions(
-      repository.owner,
-      repository.name,
-      form.description,
-      repository.repository.parentUserName.map { _ =>
-        repository.repository.isPrivate
-      } getOrElse form.isPrivate,
-      form.issuesOption,
-      form.externalIssuesUrl,
-      form.wikiOption,
-      form.externalWikiUrl,
-      form.allowFork,
-      form.mergeOptions,
-      form.defaultMergeOption
-    )
-    // Change repository name
-    if (repository.name != form.repositoryName) {
-      // Update database
-      renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+    if (repository.name != form.repositoryName && context.settings.repositoryOperation.rename == false && context.loginAccount.get.isAdmin == false) {
+      Forbidden()
+    } else {
+      saveRepositoryOptions(
+        repository.owner,
+        repository.name,
+        form.description,
+        repository.repository.parentUserName.map { _ =>
+          repository.repository.isPrivate
+        } getOrElse form.isPrivate,
+        form.issuesOption,
+        form.externalIssuesUrl,
+        form.wikiOption,
+        form.externalWikiUrl,
+        form.allowFork,
+        form.mergeOptions,
+        form.defaultMergeOption
+      )
+      // Change repository name
+      if (repository.name != form.repositoryName) {
+        // Update database
+        renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+      }
+      flash.update("info", "Repository settings has been updated.")
+      redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
     }
-    flash.update("info", "Repository settings has been updated.")
-    redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
   })
 
   /** branch settings */
@@ -368,20 +373,24 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Transfer repository ownership.
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
-    // Change repository owner
-    if (repository.owner != form.newOwner) {
-      renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-    }
-    redirect(s"/${form.newOwner}/${repository.name}")
+    if (context.settings.repositoryOperation.transfer == true || context.loginAccount.get.isAdmin) {
+      // Change repository owner
+      if (repository.owner != form.newOwner) {
+        renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+      }
+      redirect(s"/${form.newOwner}/${repository.name}")
+    } else Forbidden()
   })
 
   /**
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    // Delete the repository and related files
-    deleteRepository(repository.repository)
-    redirect(s"/${repository.owner}")
+    if (context.settings.repositoryOperation.delete == true || context.loginAccount.get.isAdmin) {
+      // Delete the repository and related files
+      deleteRepository(repository.repository)
+      redirect(s"/${repository.owner}")
+    } else Forbidden()
   })
 
   /**
