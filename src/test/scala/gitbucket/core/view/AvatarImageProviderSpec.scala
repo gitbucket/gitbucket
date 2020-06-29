@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
-import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings, WebHook, Upload}
+import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings, Upload, WebHook}
 import org.mockito.Mockito._
 import org.scalatest.FunSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -122,6 +122,13 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       allowAccountRegistration = false,
       allowAnonymousAccess = true,
       isCreateRepoOptionPublic = true,
+      repositoryOperation = RepositoryOperation(
+        create = true,
+        delete = true,
+        rename = true,
+        transfer = true,
+        fork = true
+      ),
       gravatar = useGravatar,
       notification = false,
       activityLogLimit = None,

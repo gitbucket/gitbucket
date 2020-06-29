@@ -12,7 +12,7 @@ import java.sql.DriverManager
 import java.io.File
 
 import gitbucket.core.controller.Context
-import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
+import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
@@ -36,6 +36,13 @@ trait ServiceSpecBase extends MockitoSugar {
       allowAccountRegistration = false,
       allowAnonymousAccess = true,
       isCreateRepoOptionPublic = true,
+      repositoryOperation = RepositoryOperation(
+        create = true,
+        delete = true,
+        rename = true,
+        transfer = true,
+        fork = true
+      ),
       gravatar = false,
       notification = false,
       activityLogLimit = None,
