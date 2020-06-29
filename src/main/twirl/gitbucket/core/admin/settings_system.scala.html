@@ -174,6 +174,19 @@
       </label>
     </div>
   </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Fork</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.fork" value="true"@if(context.settings.repositoryOperation.fork){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can fork repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.fork" value="false"@if(!context.settings.repositoryOperation.fork){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can fork repository.</span>
+      </label>
+    </div>
+  </div>
 </fieldset>
 <hr>
 <label class="strong">Default visibility when creating a new repository</label>
@@ -186,7 +199,7 @@
     <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
     <span class="strong">Private</span> <span class="normal">- Only collaborators can read the repository.</span>
   </label>
-</fieldset>  
+</fieldset>
 <!--====================================================================-->
 <!-- Anonymous access -->
 <!--====================================================================-->

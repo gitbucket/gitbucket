@@ -8,7 +8,7 @@
         <div class="panel panel-default">
           <div class="panel-heading strong">Settings</div>
           <div class="panel-body">
-            @if(context.settings.repositoryOperation.rename == true || context.loginAccount.get.isAdmin){
+            @if(context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin){
               <fieldset class="form-group">
                 <label for="repositoryName" class="strong">Repository Name:</label>
                 <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>

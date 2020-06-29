@@ -130,7 +130,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Save the repository options.
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
-    if (repository.name != form.repositoryName && context.settings.repositoryOperation.rename == false && context.loginAccount.get.isAdmin == false) {
+    if (repository.name != form.repositoryName && !context.settings.repositoryOperation.rename && !context.loginAccount.get.isAdmin) {
       Forbidden()
     } else {
       saveRepositoryOptions(
@@ -373,7 +373,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Transfer repository ownership.
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
-    if (context.settings.repositoryOperation.transfer == true || context.loginAccount.get.isAdmin) {
+    if (context.settings.repositoryOperation.transfer || context.loginAccount.get.isAdmin) {
       // Change repository owner
       if (repository.owner != form.newOwner) {
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
@@ -386,7 +386,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    if (context.settings.repositoryOperation.delete == true || context.loginAccount.get.isAdmin) {
+    if (context.settings.repositoryOperation.delete || context.loginAccount.get.isAdmin) {
       // Delete the repository and related files
       deleteRepository(repository.repository)
       redirect(s"/${repository.owner}")

@@ -44,6 +44,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "delete" -> trim(label("Allow all users to delete repository", boolean())),
       "rename" -> trim(label("Allow all users to rename repository", boolean())),
       "transfer" -> trim(label("Allow all users to transfer repository", boolean())),
+      "fork" -> trim(label("Allow all users to fork repository", boolean()))
     )(RepositoryOperation.apply),
     "gravatar" -> trim(label("Gravatar", boolean())),
     "notification" -> trim(label("Notification", boolean())),

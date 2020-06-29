@@ -692,7 +692,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    if (context.settings.repositoryOperation.create == true || context.loginAccount.get.isAdmin) {
+    if (context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin) {
       LockUtil.lock(s"${form.owner}/${form.name}") {
         if (getRepository(form.owner, form.name).isEmpty) {
           createRepository(
@@ -712,8 +712,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
-    if (repository.repository.options.allowFork) {
-      val loginAccount = context.loginAccount.get
+    val loginAccount = context.loginAccount.get
+    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
       val loginUserName = loginAccount.userName
       val groups = getGroupsByUserName(loginUserName)
       groups match {
@@ -737,8 +737,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    if (repository.repository.options.allowFork) {
-      val loginAccount = context.loginAccount.get
+    val loginAccount = context.loginAccount.get
+    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
       val loginUserName = loginAccount.userName
       val accountName = form.accountName
 
@@ -752,7 +752,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // redirect to the repository
         redirect(s"/${accountName}/${repository.name}")
       }
-    } else BadRequest()
+    } else Forbidden()
   })
 
   private def existsAccount: Constraint = new Constraint() {

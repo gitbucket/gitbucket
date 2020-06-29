@@ -25,6 +25,7 @@ trait SystemSettingsService {
       props.setProperty(RepositoryOperationDelete, settings.repositoryOperation.delete.toString)
       props.setProperty(RepositoryOperationRename, settings.repositoryOperation.rename.toString)
       props.setProperty(RepositoryOperationTransfer, settings.repositoryOperation.transfer.toString)
+      props.setProperty(RepositoryOperationFork, settings.repositoryOperation.fork.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
@@ -106,7 +107,8 @@ trait SystemSettingsService {
           create = getValue(props, RepositoryOperationCreate, true),
           delete = getValue(props, RepositoryOperationDelete, true),
           rename = getValue(props, RepositoryOperationRename, true),
-          transfer = getValue(props, RepositoryOperationTransfer, true)
+          transfer = getValue(props, RepositoryOperationTransfer, true),
+          fork = getValue(props, RepositoryOperationFork, true)
         ),
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
@@ -241,7 +243,8 @@ object SystemSettingsService {
     create: Boolean,
     delete: Boolean,
     rename: Boolean,
-    transfer: Boolean
+    transfer: Boolean,
+    fork: Boolean
   )
 
   case class Ssh(
@@ -313,6 +316,7 @@ object SystemSettingsService {
   private val RepositoryOperationDelete = "repository_operation_delete"
   private val RepositoryOperationRename = "repository_operation_rename"
   private val RepositoryOperationTransfer = "repository_operation_transfer"
+  private val RepositoryOperationFork = "repository_operation_fork"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
