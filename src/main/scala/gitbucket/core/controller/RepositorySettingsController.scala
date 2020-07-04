@@ -45,7 +45,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   // for repository options
   case class OptionsForm(
-    repositoryName: String,
     description: Option[String],
     isPrivate: Boolean,
     issuesOption: String,
@@ -58,9 +57,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
 
   val optionsForm = mapping(
-    "repositoryName" -> trim(
-      label("Repository Name", text(required, maxlength(100), repository, renameRepositoryName))
-    ),
     "description" -> trim(label("Description", optional(text()))),
     "isPrivate" -> trim(label("Repository Type", boolean())),
     "issuesOption" -> trim(label("Issues Option", text(required, featureOption))),
@@ -105,6 +101,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
     )
 
+  // for rename repository
+  case class RenameRepositoryForm(repositoryName: String)
+
+  val renameForm = mapping(
+    "repositoryName" -> trim(
+      label("New repository name", text(required, maxlength(100), repository, renameRepositoryName))
+    )
+  )(RenameRepositoryForm.apply)
+
   // for transfer ownership
   case class TransferOwnerShipForm(newOwner: String)
 
@@ -130,32 +135,23 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Save the repository options.
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
-    if (repository.name != form.repositoryName && !context.settings.repositoryOperation.rename && !context.loginAccount.get.isAdmin) {
-      Forbidden()
-    } else {
-      saveRepositoryOptions(
-        repository.owner,
-        repository.name,
-        form.description,
-        repository.repository.parentUserName.map { _ =>
-          repository.repository.isPrivate
-        } getOrElse form.isPrivate,
-        form.issuesOption,
-        form.externalIssuesUrl,
-        form.wikiOption,
-        form.externalWikiUrl,
-        form.allowFork,
-        form.mergeOptions,
-        form.defaultMergeOption
-      )
-      // Change repository name
-      if (repository.name != form.repositoryName) {
-        // Update database
-        renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-      }
-      flash.update("info", "Repository settings has been updated.")
-      redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
-    }
+    saveRepositoryOptions(
+      repository.owner,
+      repository.name,
+      form.description,
+      repository.repository.parentUserName.map { _ =>
+        repository.repository.isPrivate
+      } getOrElse form.isPrivate,
+      form.issuesOption,
+      form.externalIssuesUrl,
+      form.wikiOption,
+      form.externalWikiUrl,
+      form.allowFork,
+      form.mergeOptions,
+      form.defaultMergeOption
+    )
+    flash.update("info", "Repository settings has been updated.")
+    redirect(s"/${repository.owner}/${repository.name}/settings/options")
   })
 
   /** branch settings */
@@ -367,6 +363,18 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/danger")(ownerOnly {
     html.danger(_, flash.get("info"))
+  })
+
+  /**
+   * Rename repository.
+   */
+  post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
+    if (context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin) {
+      if (repository.name != form.repositoryName) {
+        renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+      }
+      redirect(s"/${repository.owner}/${form.repositoryName}")
+    } else Forbidden()
   })
 
   /**
