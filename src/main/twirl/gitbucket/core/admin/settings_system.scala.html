@@ -116,8 +116,80 @@
     <span class="strong">Deny</span> <span class="normal">- Only administrators can create accounts.</span>
   </label>
 </fieldset>
+<!--====================================================================-->
+<!-- Repository operations -->
+<!--====================================================================-->
 <hr>
-<label class="strong">Default permissions when creating a new repository</label>
+<label class="strong">Repository operation</label>
+<fieldset>
+  <div class="form-group">
+    <label class="control-label col-md-2">Create</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.create" value="true"@if(context.settings.repositoryOperation.create){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can create repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.create" value="false"@if(!context.settings.repositoryOperation.create){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can create repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Delete</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.delete" value="true"@if(context.settings.repositoryOperation.delete){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can delete repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.delete" value="false"@if(!context.settings.repositoryOperation.delete){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can delete repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Rename</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.rename" value="true"@if(context.settings.repositoryOperation.rename){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can rename repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.rename" value="false"@if(!context.settings.repositoryOperation.rename){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can rename repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Transfer</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.transfer" value="true"@if(context.settings.repositoryOperation.transfer){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can transfer repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.transfer" value="false"@if(!context.settings.repositoryOperation.transfer){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can transfer repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Fork</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.fork" value="true"@if(context.settings.repositoryOperation.fork){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can fork repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.fork" value="false"@if(!context.settings.repositoryOperation.fork){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can fork repository.</span>
+      </label>
+    </div>
+  </div>
+</fieldset>
+<hr>
+<label class="strong">Default visibility when creating a new repository</label>
 <fieldset>
   <label class="radio">
     <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
