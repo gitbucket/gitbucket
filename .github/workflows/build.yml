@@ -30,3 +30,11 @@ jobs:
         java-version: ${{ matrix.java }}
     - name: Run tests
       run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
+    - name: Build executable
+      run: sbt executable
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ matrix.java == 8 }}
+      with:
+        name: gitbucket.war
+        path: ./target/executable/gitbucket.war
