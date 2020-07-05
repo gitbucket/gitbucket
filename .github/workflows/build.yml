@@ -35,5 +35,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: artifacts-java${{ matrix.java }}-${{ github.sha }}
+        name: gitbucket-java${{ matrix.java }}-${{ github.sha }}
         path: ./target/executable/gitbucket.*
