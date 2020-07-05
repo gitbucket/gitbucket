@@ -1,4 +1,4 @@
-name: Scala CI
+name: build
 
 on:
   push:
