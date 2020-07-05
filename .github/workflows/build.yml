@@ -24,7 +24,7 @@ jobs:
           ~/.sbt
           ~/.coursier
         key: build-${{ env.cache-name }}-${{ hashFiles('build.sbt') }}
-    - name: Set up JDK 1.8
+    - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
