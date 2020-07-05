@@ -32,9 +32,8 @@ jobs:
       run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
     - name: Build executable
       run: sbt executable
-    - name: Upload artifact
+    - name: Upload artifacts
       uses: actions/upload-artifact@v2
-      if: ${{ matrix.java == 8 }}
       with:
-        name: gitbucket.war
-        path: ./target/executable/gitbucket.war
+        name: artifacts-java${{ matrix.java }}-${{ github.sha }}
+        path: ./target/executable/gitbucket.*
