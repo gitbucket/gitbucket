@@ -221,6 +221,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    */
   put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
     (for {
+      //TODO: crash when body is empty
+      //TODO: Implement sha parameter
       data <- extractFromJsonBody[MergeAPullRequest]
       issueId <- params("id").toIntOpt
       (issue, pullReq) <- getPullRequest(repository.owner, repository.name, issueId)
@@ -235,36 +237,48 @@ trait ApiPullRequestControllerBase extends ControllerBase {
           )
         )
       } else {
-        mergePullRequest(
-          repository,
-          issueId,
-          context.loginAccount.get,
-          data.commit_title.getOrElse(
-            s"Merge pull request #${issueId} from ${pullReq.requestUserName}/${pullReq.requestBranch}"
-          ) + "\n\n" + data.commit_message.getOrElse(""),
-          if (data.merge_method == "merge") "merge-commit" else data.merge_method.getOrElse("merge-commit"),
-          pullReq.isDraft,
-          context.settings
-        ) match {
-          case Right(objectId) =>
-            Ok(
-              JsonFormat(
-                SuccessToMergePrResponse(
-                  sha = objectId.toString,
-                  merged = true,
-                  message = "Pull Request successfully merged"
-                )
+        if (issue.closed) {
+          MethodNotAllowed(
+            JsonFormat(
+              FailToMergePrResponse(
+                message = "Pull Request is not mergeable, Closed",
+                documentation_ur = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
               )
             )
-          case Left(message) =>
-            MethodNotAllowed(
-              JsonFormat(
-                FailToMergePrResponse(
-                  message = "Pull Request is not mergeable",
-                  documentation_ur = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
+          )
+        } else {
+          val strategy =
+            if (data.merge_method.getOrElse("merge-commit") == "merge") "merge-commit"
+            else data.merge_method.getOrElse("merge-commit")
+          mergePullRequest(
+            repository,
+            issueId,
+            context.loginAccount.get,
+            data.commit_message.getOrElse(""), //TODO: Implement commit_title
+            strategy,
+            pullReq.isDraft,
+            context.settings
+          ) match {
+            case Right(objectId) =>
+              Ok(
+                JsonFormat(
+                  SuccessToMergePrResponse(
+                    sha = objectId.toString,
+                    merged = true,
+                    message = "Pull Request successfully merged"
+                  )
                 )
               )
-            )
+            case Left(message) =>
+              MethodNotAllowed(
+                JsonFormat(
+                  FailToMergePrResponse(
+                    message = "Pull Request is not mergeable",
+                    documentation_ur = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
+                  )
+                )
+              )
+          }
         }
       }
     })
