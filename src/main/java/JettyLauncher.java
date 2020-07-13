@@ -4,6 +4,10 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
+import org.eclipse.jetty.server.session.DefaultSessionCache;
+import org.eclipse.jetty.server.session.FileSessionDataStore;
+import org.eclipse.jetty.server.session.SessionCache;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
@@ -21,6 +25,7 @@ public class JettyLauncher {
         String contextPath = "/";
         String tmpDirPath="";
         boolean forceHttps = false;
+        boolean saveSessions = false;
 
         host = getEnvironmentVariable("gitbucket.host");
         port = getEnvironmentVariable("gitbucket.port");
@@ -28,6 +33,9 @@ public class JettyLauncher {
         tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
 
         for(String arg: args) {
+            if(arg.equals("--save_sessions")) {
+                saveSessions = true;
+            }
             if(arg.startsWith("--") && arg.contains("=")) {
                 String[] dim = arg.split("=");
                 if(dim.length >= 2) {
@@ -49,9 +57,6 @@ public class JettyLauncher {
                             break;
                         case "--plugin_dir":
                             System.setProperty("gitbucket.pluginDir", dim[1]);
-                            break;
-                        case "--validate_password":
-                            System.setProperty("gitbucket.validate.password", dim[1]);
                             break;
                     }
                 }
@@ -89,6 +94,19 @@ public class JettyLauncher {
         }
 
         WebAppContext context = new WebAppContext();
+
+        if(saveSessions) {
+            File sessDir = new File(getGitBucketHome(), "sessions");
+            if(!sessDir.exists()){
+                sessDir.mkdirs();
+            }
+            SessionHandler sessions = context.getSessionHandler();
+            SessionCache cache = new DefaultSessionCache(sessions);
+            FileSessionDataStore fsds = new FileSessionDataStore();
+            fsds.setStoreDir(sessDir);
+            cache.setSessionDataStore(fsds);
+            sessions.setSessionCache(cache);
+        }
 
         File tmpDir;
         if(tmpDirPath == null || tmpDirPath.equals("")){

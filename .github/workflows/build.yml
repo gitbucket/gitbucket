@@ -1,0 +1,39 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11]    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-sbt-libs
+      with:
+        path: |
+          ~/.ivy2/cache
+          ~/.sbt
+          ~/.coursier
+        key: build-${{ env.cache-name }}-${{ hashFiles('build.sbt') }}
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+    - name: Run tests
+      run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
+    - name: Build executable
+      run: sbt executable
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: gitbucket-java${{ matrix.java }}-${{ github.sha }}
+        path: ./target/executable/gitbucket.*

@@ -707,7 +707,7 @@ object ApiSpecModels {
       |"size":100,
       |"label":"release.zip",
       |"file_id":"${assetFileName}",
-      |"browser_download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/releases/tag1/assets/${assetFileName}"
+      |"browser_download_url":"http://gitbucket.exmple.com/octocat/Hello-World/releases/tag1/assets/${assetFileName}"
       |}""".stripMargin
 
   val jsonRelease =

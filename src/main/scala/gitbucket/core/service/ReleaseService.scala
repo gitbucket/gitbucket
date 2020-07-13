@@ -1,10 +1,11 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{Account, ReleaseTag, ReleaseAsset}
+import gitbucket.core.model.{Account, ReleaseAsset, ReleaseTag}
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.util.JGitUtil
 
 trait ReleaseService {
   self: AccountService with RepositoryService =>
@@ -35,10 +36,9 @@ trait ReleaseService {
     ReleaseAssets.filter(x => x.byTag(owner, repository, tag)).list
   }
 
-  def getReleaseAssetsMap(owner: String, repository: String)(
+  def getReleaseAssetsMap(owner: String, repository: String, releases: Seq[ReleaseTag])(
     implicit s: Session
   ): Map[ReleaseTag, Seq[ReleaseAsset]] = {
-    val releases = getReleases(owner, repository)
     releases.map(rel => (rel -> getReleaseAssets(owner, repository, rel.tag))).toMap
   }
 
@@ -76,20 +76,18 @@ trait ReleaseService {
     ReleaseTags.filter(x => x.byRepository(owner, repository)).sortBy(x => x.updatedDate).list
   }
 
-  def getRelease(owner: String, repository: String, tag: String)(implicit s: Session): Option[ReleaseTag] = {
-    //Releases filter (_.byPrimaryKey(owner, repository, releaseId)) firstOption
-    ReleaseTags filter (_.byTag(owner, repository, tag)) firstOption
+  def getReleases(owner: String, repository: String, tags: Seq[JGitUtil.TagInfo])(
+    implicit s: Session
+  ): Seq[ReleaseTag] = {
+    ReleaseTags
+      .filter(x => x.byRepository(owner, repository))
+      .filter(x => x.tag inSetBind tags.map(_.name))
+      .sortBy(x => x.updatedDate)
+      .list
   }
-
-//  def getReleaseByTag(owner: String, repository: String, tag: String)(implicit s: Session): Option[Release] = {
-//    Releases filter (_.byTag(owner, repository, tag)) firstOption
-//  }
-//
-//  def getRelease(owner: String, repository: String, releaseId: String)(implicit s: Session): Option[Release] = {
-//    if (isInteger(releaseId))
-//      getRelease(owner, repository, releaseId.toInt)
-//    else None
-//  }
+  def getRelease(owner: String, repository: String, tag: String)(implicit s: Session): Option[ReleaseTag] = {
+    ReleaseTags.filter(_.byTag(owner, repository, tag)).firstOption
+  }
 
   def updateRelease(owner: String, repository: String, tag: String, title: String, content: Option[String])(
     implicit s: Session
@@ -106,4 +104,10 @@ trait ReleaseService {
     deleteReleaseAssets(owner, repository, tag)
     ReleaseTags filter (_.byPrimaryKey(owner, repository, tag)) delete
   }
+}
+
+object ReleaseService {
+
+  val ReleaseLimit = 10
+
 }

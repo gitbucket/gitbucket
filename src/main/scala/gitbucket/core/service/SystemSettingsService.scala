@@ -21,6 +21,11 @@ trait SystemSettingsService {
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
       props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
+      props.setProperty(RepositoryOperationCreate, settings.repositoryOperation.create.toString)
+      props.setProperty(RepositoryOperationDelete, settings.repositoryOperation.delete.toString)
+      props.setProperty(RepositoryOperationRename, settings.repositoryOperation.rename.toString)
+      props.setProperty(RepositoryOperationTransfer, settings.repositoryOperation.transfer.toString)
+      props.setProperty(RepositoryOperationFork, settings.repositoryOperation.fork.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
@@ -70,6 +75,7 @@ trait SystemSettingsService {
         }
       }
       props.setProperty(SkinName, settings.skinName.toString)
+      settings.userDefinedCss.foreach(x => props.setProperty(UserDefinedCss, x))
       props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
       props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)
       props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
@@ -97,6 +103,13 @@ trait SystemSettingsService {
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
+        RepositoryOperation(
+          create = getValue(props, RepositoryOperationCreate, true),
+          delete = getValue(props, RepositoryOperationDelete, true),
+          rename = getValue(props, RepositoryOperationRename, true),
+          transfer = getValue(props, RepositoryOperationTransfer, true),
+          fork = getValue(props, RepositoryOperationFork, true)
+        ),
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
@@ -106,7 +119,11 @@ trait SystemSettingsService {
           getOptionValue[String](props, SshHost, None).map(_.trim),
           getOptionValue(props, SshPort, Some(DefaultSshPort))
         ),
-        getValue(props, UseSMTP, getValue(props, Notification, false)), // handle migration scenario from only notification to useSMTP
+        getValue(
+          props,
+          UseSMTP,
+          getValue(props, Notification, false)
+        ), // handle migration scenario from only notification to useSMTP
         if (getValue(props, UseSMTP, getValue(props, Notification, false))) {
           Some(
             Smtp(
@@ -154,6 +171,7 @@ trait SystemSettingsService {
           None
         },
         getValue(props, SkinName, "skin-blue"),
+        getOptionValue(props, UserDefinedCss, None),
         getValue(props, ShowMailAddress, false),
         WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
         Upload(
@@ -179,6 +197,7 @@ object SystemSettingsService {
     allowAccountRegistration: Boolean,
     allowAnonymousAccess: Boolean,
     isCreateRepoOptionPublic: Boolean,
+    repositoryOperation: RepositoryOperation,
     gravatar: Boolean,
     notification: Boolean,
     activityLogLimit: Option[Int],
@@ -191,6 +210,7 @@ object SystemSettingsService {
     oidcAuthentication: Boolean,
     oidc: Option[OIDC],
     skinName: String,
+    userDefinedCss: Option[String],
     showMailAddress: Boolean,
     webHook: WebHook,
     upload: Upload
@@ -212,11 +232,20 @@ object SystemSettingsService {
         .fold(base)(_ + base.dropWhile(_ != ':'))
     }
 
-    def sshAddress: Option[SshAddress] = ssh.sshHost.collect {
-      case host if ssh.enabled =>
-        SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
-    }
+    def sshAddress: Option[SshAddress] =
+      ssh.sshHost.collect {
+        case host if ssh.enabled =>
+          SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
+      }
   }
+
+  case class RepositoryOperation(
+    create: Boolean,
+    delete: Boolean,
+    rename: Boolean,
+    transfer: Boolean,
+    fork: Boolean
+  )
 
   case class Ssh(
     enabled: Boolean,
@@ -265,7 +294,7 @@ object SystemSettingsService {
     host: String,
     port: Int,
     user: Option[String],
-    password: Option[String],
+    password: Option[String]
   )
 
   case class SshAddress(host: String, port: Int, genericUser: String)
@@ -283,6 +312,11 @@ object SystemSettingsService {
   private val AllowAccountRegistration = "allow_account_registration"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
+  private val RepositoryOperationCreate = "repository_operation_create"
+  private val RepositoryOperationDelete = "repository_operation_delete"
+  private val RepositoryOperationRename = "repository_operation_rename"
+  private val RepositoryOperationTransfer = "repository_operation_transfer"
+  private val RepositoryOperationFork = "repository_operation_fork"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
@@ -318,6 +352,7 @@ object SystemSettingsService {
   private val OidcClientSecret = "oidc.client_secret"
   private val OidcJwsAlgorithm = "oidc.jws_algorithm"
   private val SkinName = "skinName"
+  private val UserDefinedCss = "userDefinedCss"
   private val ShowMailAddress = "showMailAddress"
   private val WebHookBlockPrivateAddress = "webhook.block_private_address"
   private val WebHookWhitelist = "webhook.whitelist"

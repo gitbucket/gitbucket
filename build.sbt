@@ -5,8 +5,8 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.33.0"
 val ScalatraVersion = "2.7.0-RC1"
-val JettyVersion = "9.4.27.v20200227"
-val JgitVersion = "5.7.0.202003110725-r"
+val JettyVersion = "9.4.30.v20200611"
+val JgitVersion = "5.8.0.202006091008-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -36,8 +36,8 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "3.6.7",
-  "commons-io"                      % "commons-io"                   % "2.6",
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.9",
+  "commons-io"                      % "commons-io"                   % "2.7",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.20",
@@ -45,14 +45,14 @@ libraryDependencies ++= Seq(
   "commons-net"                     % "commons-net"                  % "3.6",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.12",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "1.23",
+  "org.apache.tika"                 % "tika-core"                    % "1.24.1",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.5.4",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.6.0",
   "org.postgresql"                  % "postgresql"                   % "42.2.6",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
-  "com.zaxxer"                      % "HikariCP"                     % "3.4.2",
+  "com.zaxxer"                      % "HikariCP"                     % "3.4.5",
   "com.typesafe"                    % "config"                       % "1.4.0",
   "com.typesafe.akka"               %% "akka-actor"                  % "2.5.27",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
@@ -67,11 +67,11 @@ libraryDependencies ++= Seq(
   "junit"                           % "junit"                        % "4.13" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "3.3.3" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.36.0" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.13.0" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.13.0" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.37.0" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.14.3" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.14.3" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
-  "is.tagomor.woothee"              % "woothee-java"                 % "1.10.1",
+  "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3"
 )
 

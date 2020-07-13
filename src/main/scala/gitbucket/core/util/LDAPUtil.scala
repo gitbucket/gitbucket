@@ -127,8 +127,14 @@ object LDAPUtil {
   private def getSslProvider(): Provider = {
     val cachedInstance = provider.get()
     if (cachedInstance == null) {
-      val newInstance = Class
-        .forName("com.sun.net.ssl.internal.ssl.Provider")
+      val cls = try {
+        Class.forName("com.sun.net.ssl.internal.ssl.Provider")
+      } catch {
+        case e: ClassNotFoundException =>
+          Class.forName("com.ibm.jsse.IBMJSSEProvider")
+        case e: Throwable => throw e
+      }
+      val newInstance = cls
         .getDeclaredConstructor()
         .newInstance()
         .asInstanceOf[Provider]
@@ -149,7 +155,7 @@ object LDAPUtil {
     keystore: String,
     error: String
   )(f: LDAPConnection => Either[String, A]): Either[String, A] = {
-    if (tls) {
+    if (tls || ssl) {
       // Dynamically set Sun as the security provider
       Security.addProvider(getSslProvider())
 

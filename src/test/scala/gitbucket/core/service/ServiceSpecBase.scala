@@ -12,7 +12,7 @@ import java.sql.DriverManager
 import java.io.File
 
 import gitbucket.core.controller.Context
-import gitbucket.core.service.SystemSettingsService.{Ssh, SystemSettings}
+import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
@@ -36,6 +36,13 @@ trait ServiceSpecBase extends MockitoSugar {
       allowAccountRegistration = false,
       allowAnonymousAccess = true,
       isCreateRepoOptionPublic = true,
+      repositoryOperation = RepositoryOperation(
+        create = true,
+        delete = true,
+        rename = true,
+        transfer = true,
+        fork = true
+      ),
       gravatar = false,
       notification = false,
       activityLogLimit = None,
@@ -52,6 +59,7 @@ trait ServiceSpecBase extends MockitoSugar {
       oidcAuthentication = false,
       oidc = None,
       skinName = "skin-blue",
+      userDefinedCss = None,
       showMailAddress = false,
       webHook = SystemSettingsService.WebHook(
         blockPrivateAddress = false,
@@ -114,7 +122,8 @@ trait ServiceSpecBase extends MockitoSugar {
   }
 
   def generateNewIssue(userName: String, repositoryName: String, loginUser: String = "root")(
-    implicit s: Session
+    implicit
+    s: Session
   ): Int = {
     dummyService.insertIssue(
       owner = userName,
@@ -130,7 +139,8 @@ trait ServiceSpecBase extends MockitoSugar {
   }
 
   def generateNewPullRequest(base: String, request: String, loginUser: String)(
-    implicit s: Session
+    implicit
+    s: Session
   ): (Issue, PullRequest) = {
     implicit val context = Context(createSystemSettings(), None, this.request)
     val Array(baseUserName, baseRepositoryName, baesBranch) = base.split("/")

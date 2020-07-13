@@ -38,7 +38,14 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "information" -> trim(label("Information", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
-    "isCreateRepoOptionPublic" -> trim(label("Default option to create a new repository", boolean())),
+    "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
+    "repositoryOperation" -> mapping(
+      "create" -> trim(label("Allow all users to create repository", boolean())),
+      "delete" -> trim(label("Allow all users to delete repository", boolean())),
+      "rename" -> trim(label("Allow all users to rename repository", boolean())),
+      "transfer" -> trim(label("Allow all users to transfer repository", boolean())),
+      "fork" -> trim(label("Allow all users to fork repository", boolean()))
+    )(RepositoryOperation.apply),
     "gravatar" -> trim(label("Gravatar", boolean())),
     "notification" -> trim(label("Notification", boolean())),
     "activityLogLimit" -> trim(label("Limit of activity logs", optional(number()))),
@@ -46,7 +53,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "ssh" -> mapping(
       "enabled" -> trim(label("SSH access", boolean())),
       "host" -> trim(label("SSH host", optional(text()))),
-      "port" -> trim(label("SSH port", optional(number()))),
+      "port" -> trim(label("SSH port", optional(number())))
     )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
@@ -91,6 +98,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       )(OIDC.apply)
     ),
     "skinName" -> trim(label("AdminLTE skin name", text(required))),
+    "userDefinedCss" -> trim(label("User-defined CSS", optional(text()))),
     "showMailAddress" -> trim(label("Show mail address", boolean())),
     "webhook" -> mapping(
       "blockPrivateAddress" -> trim(label("Block private address", boolean())),
@@ -177,7 +185,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val newUserForm = mapping(
     "userName" -> trim(label("Username", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password" -> trim(label("Password", text(required, maxlength(20), password))),
+    "password" -> trim(label("Password", text(required, maxlength(20)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
     "extraMailAddresses" -> list(
@@ -191,7 +199,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val editUserForm = mapping(
     "userName" -> trim(label("Username", text(required, maxlength(100), identifier))),
-    "password" -> trim(label("Password", optional(text(maxlength(20), password)))),
+    "password" -> trim(label("Password", optional(text(maxlength(20))))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
     "extraMailAddresses" -> list(
@@ -536,24 +544,26 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       }
     }
 
-  private def members: Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      if (value.split(",").exists {
-            _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
-          }) None
-      else Some("Must select one manager at least.")
-    }
-  }
-
-  protected def disableByNotYourself(paramName: String): Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      params.get(paramName).flatMap { userName =>
-        if (userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
-          Some("You can't disable your account yourself")
-        else
-          None
+  private def members: Constraint =
+    new Constraint() {
+      override def validate(name: String, value: String, messages: Messages): Option[String] = {
+        if (value.split(",").exists {
+              _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
+            }) None
+        else Some("Must select one manager at least.")
       }
     }
-  }
+
+  protected def disableByNotYourself(paramName: String): Constraint =
+    new Constraint() {
+      override def validate(name: String, value: String, messages: Messages): Option[String] = {
+        params.get(paramName).flatMap { userName =>
+          if (userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
+            Some("You can't disable your account yourself")
+          else
+            None
+        }
+      }
+    }
 
 }

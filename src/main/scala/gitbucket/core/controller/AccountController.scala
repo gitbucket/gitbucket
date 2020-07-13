@@ -16,6 +16,7 @@ import gitbucket.core.util._
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 import org.scalatra.forms._
+import org.scalatra.Forbidden
 
 class AccountController
     extends AccountControllerBase
@@ -82,7 +83,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val newForm = mapping(
     "userName" -> trim(label("User name", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password" -> trim(label("Password", text(required, maxlength(20), password))),
+    "password" -> trim(label("Password", text(required, maxlength(20)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
     "extraMailAddresses" -> list(
@@ -94,7 +95,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   )(AccountNewForm.apply)
 
   val editForm = mapping(
-    "password" -> trim(label("Password", optional(text(maxlength(20), password)))),
+    "password" -> trim(label("Password", optional(text(maxlength(20))))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
     "extraMailAddresses" -> list(
@@ -691,27 +692,28 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    LockUtil.lock(s"${form.owner}/${form.name}") {
-      if (getRepository(form.owner, form.name).isEmpty) {
-        createRepository(
-          context.loginAccount.get,
-          form.owner,
-          form.name,
-          form.description,
-          form.isPrivate,
-          form.initOption,
-          form.sourceUrl
-        )
+    if (context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin) {
+      LockUtil.lock(s"${form.owner}/${form.name}") {
+        if (getRepository(form.owner, form.name).isEmpty) {
+          createRepository(
+            context.loginAccount.get,
+            form.owner,
+            form.name,
+            form.description,
+            form.isPrivate,
+            form.initOption,
+            form.sourceUrl
+          )
+        }
       }
-    }
-
-    // redirect to the repository
-    redirect(s"/${form.owner}/${form.name}")
+      // redirect to the repository
+      redirect(s"/${form.owner}/${form.name}")
+    } else Forbidden()
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
-    if (repository.repository.options.allowFork) {
-      val loginAccount = context.loginAccount.get
+    val loginAccount = context.loginAccount.get
+    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
       val loginUserName = loginAccount.userName
       val groups = getGroupsByUserName(loginUserName)
       groups match {
@@ -735,8 +737,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    if (repository.repository.options.allowFork) {
-      val loginAccount = context.loginAccount.get
+    val loginAccount = context.loginAccount.get
+    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
       val loginUserName = loginAccount.userName
       val accountName = form.accountName
 
@@ -750,7 +752,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // redirect to the repository
         redirect(s"/${accountName}/${repository.name}")
       }
-    } else BadRequest()
+    } else Forbidden()
   })
 
   private def existsAccount: Constraint = new Constraint() {
