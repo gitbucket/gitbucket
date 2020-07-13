@@ -16,10 +16,12 @@
       }
     </style>
     <div class="head">
-      <div class="pull-right hide-if-blame"><div class="btn-group">
-        <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
-        <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
-      </div></div>
+      <div class="float-right hide-if-blame">
+        <div class="btn-group">
+          <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
+          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
+        </div>
+      </div>
       <div class="line-age-legend">
         <span>Newer</span>
         <ol>
@@ -35,7 +37,7 @@
             <li class="heat10"></li>
         </ol>
         <span>Older</span>
-      </div>
+      </div><!-- /.head -->
       <div id="branchCtrlWrapper" style="display:inline;">
       @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
         @repository.branchList.map { x =>
@@ -55,27 +57,37 @@
         <span class="label label-info">LFS</span>
       }
     </div>
-    <div class="box-header" style="line-height: 28px;">
-      @helpers.avatarLink(latestCommit, 20)
-      @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
-      <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
-      <span class="label label-default">@helpers.readableSize(content.size)</span>
-      <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
-      <div class="btn-group pull-right">
-        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">Raw</a>
-        @if(content.viewType == "text"){
-          <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))"
-            data-url="@helpers.url(repository)/get-blame/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-repository="@helpers.url(repository)">Blame</a>
-        }
-        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">History</a>
-        @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-          <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-pencil"></i></a>
-        }
-        @if(hasWritePermission && repository.branchList.contains(branch)){
-          <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-trashcan"></i></a>
-        }
-      </div>
-    </div>
+  <div class="row">
+    <div class="container">
+      <div class="col-12">
+        <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <div class="col">
+          @helpers.avatarLink(latestCommit, 20)
+          @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
+          <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
+          <span class="label label-default">@helpers.readableSize(content.size)</span>
+          <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
+        </div><!-- /.col -->
+        <div class="col-auto">
+          <div class="btn-group float-right">
+            <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">Raw</a>
+            @if(content.viewType == "text"){
+              <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))"
+                data-url="@helpers.url(repository)/get-blame/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-repository="@helpers.url(repository)">Blame</a>
+            }
+            <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">History</a>
+            @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
+              <a class="btn btn-sm pr-2" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-pencil"></i></a>
+            }
+            @if(hasWritePermission && repository.branchList.contains(branch)){
+              <a class="btn btn-sm pr-2" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-trashcan"></i></a>
+            }
+          </div>
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.card-header -->
     @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
       @if(!isBlame && isRenderable) {
         <div class="box-content-bottom @if(content.viewType == "text"){ markdown-body } " style="padding-left: 20px; padding-right: 20px;">
@@ -101,7 +113,11 @@
         }
       }
     }
-  }
+      </div>
+    </div>
+  </div>
+
+      }
 }
 <script>
 $(window).on('load', function(){
