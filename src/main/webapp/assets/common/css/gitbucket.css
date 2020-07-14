@@ -684,13 +684,13 @@ table.table-issues td .octicon-issue-closed,
 table.table-issues td .octicon-git-pull-request .closed{
   color : #BD2C00;;
 }
-
+*/
 a.issue-title {
   color: #333;
   font-weight: bold;
   font-size: 120%;
 }
-
+/*
 .label-success {
   background-color: #6cc644;
 }
