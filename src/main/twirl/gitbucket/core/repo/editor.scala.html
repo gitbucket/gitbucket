@@ -12,8 +12,8 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
-<div class="row">
-  <div class="container">
+<div class="container">
+  <div class="row">
     @if(protectedBranch){
     <div class="alert alert-danger">branch @branch is protected.</div>
     }

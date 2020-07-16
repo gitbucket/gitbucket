@@ -16,8 +16,8 @@
 
 @gitbucket.core.html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu(target, repository){
-<div class="row">
-  <div class="container">
+<div class="container">
+  <div class="row">
     <div class="col-12">
       <div class="card">
         <div class="card-header">

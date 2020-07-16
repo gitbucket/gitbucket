@@ -28,11 +28,15 @@ showBannerToCreatePersonalAccessToken: Boolean = false)(body:Html)(implicit cont
     </div>
     <div class="content body">
       <div class="container">
-        <div class="card card-primary card-outline card-outline-tabs mt-4">
-          @gitbucket.core.dashboard.html.tab(active)
-          <div class="card-body">
-            <div class="tab-content">
-              @body
+        <div class="row">
+          <div class="col-12">
+            <div class="card card-primary card-outline card-outline-tabs mt-4">
+              @gitbucket.core.dashboard.html.tab(active)
+              <div class="card-body">
+                <div class="tab-content">
+                  @body
+                </div>
+              </div>
             </div>
           </div>
         </div>

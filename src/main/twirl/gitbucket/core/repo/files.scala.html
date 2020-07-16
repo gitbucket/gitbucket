@@ -22,8 +22,8 @@
     s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
   @gitbucket.core.html.menu("files", repository, Some(branch), info, error){
-<div class="row">
-  <div class="container">
+<div class="container">
+  <div class="row">
     <div class="col-12">
       <div class="card">
         <div class="card-header">
@@ -231,8 +231,8 @@
         </div><!--/.card-->
     }
     </div><!--/.col-->
-  </div><!--/.container-->
-</div><!--/.row-->
+  </div><!--/.row-->
+</div><!--/.container-->
 
 }
 }
