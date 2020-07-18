@@ -27,8 +27,8 @@
       @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
       && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
         <span class="float-right">
-          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
-          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+          <a href="#" data-comment-id="@comment.commentId" class="btn btn-tool"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+          <a href="#" data-comment-id="@comment.commentId" class="btn btn-tool"><i class="octicon octicon-x" aria-label="Remove"></i></a>
         </span>
       }
     </div>
@@ -57,7 +57,7 @@
       <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="float-right">
         @if(isManageable || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
-          <a href="#" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+          <a href="#" class="btn btn-tool" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
         }
       </span>
     </div>
@@ -97,15 +97,15 @@ case comment: gitbucket.core.model.IssueComment => {
                 @helpers.user(comment.commentedUserName, styleClass="username strong")
                 added a commit that referenced this @issueOrPullRequest()
               </div>
-              <div style="discussion-item-content">
-                @commitId.map{ id =>
-                  <span class="float-right"><a href="@context.path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></span>
-                }
+              <div class="small" style="discussion-item-content">
                 <span class="discussion-item-content-head"><i class="octicon octicon-git-commit"></i></span>
                 @helpers.link(head, repository)
                 @rest.map{ content =>
-                  <a href="javascript:void(0)" class="omit" onclick="$(this.parentNode).find('.discussion-item-content-text').toggle()">...</a>
+                  <a href="javascript:void(0)" class="omit text-muted" onclick="$(this.parentNode).find('.discussion-item-content-text').toggle()">...</a>
                   <pre class="reset discussion-item-content-text" style="display:none">@helpers.link(content, repository)</pre>
+                }
+                @commitId.map{ id =>
+                  <span class="ml-3"><a href="@context.path/@repository.owner/@repository.name/commit/@id" class="text-muted monospace">@id.substring(0, 7)</a></span>
                 }
               </div>
             </div>
@@ -318,8 +318,8 @@ case comment: gitbucket.core.model.CommitComment => {
       </span>
       @if((isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
         <span class="float-right">
-          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
-          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+          <a href="#" data-comment-id="@comment.commentId" class="btn btn-tool"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+          <a href="#" data-comment-id="@comment.commentId" class="btn btn-tool"><i class="octicon octicon-x" aria-label="Remove"></i></a>
         </span>
       }
     </div>

@@ -26,13 +26,13 @@
                   <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)">@branch.name</a>
                   <span class="branch-meta">
                     <span>Updated @gitbucket.core.helper.html.datetimeago(branch.commitTime, false)
-                      by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "muted-link")</span>
+                      by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "text-muted")</span>
                     </span>
                   </span>
                 </td>
                 <td class="branch-a-b-count">
                   @if(repository.repository.defaultBranch == branch.name){
-                    <span class="badge">Default</span>
+                    <span class="badge badge-secondary">Default</span>
                   } else {
                     @branch.mergeInfo.map{ info =>
                       <div data-toggle="tooltip" title="@info.ahead commits ahead, @info.behind commits behind @repository.repository.defaultBranch">
@@ -75,7 +75,7 @@
                           }
                         }
                         @if(hasWritePermission){
-                          <span style="margin-left: 8px;">
+                          <span class="ml-2">
                           @if(prs.map(!_._2.closed).getOrElse(false)){
                             <a class="disabled" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="octicon octicon-trashcan"></i></a>
                           } else {
