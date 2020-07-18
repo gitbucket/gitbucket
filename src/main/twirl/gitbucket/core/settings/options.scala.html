@@ -2,141 +2,141 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Settings", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
+@gitbucket.core.helper.html.information(info)
     @gitbucket.core.settings.html.menu("options", repository){
-      @gitbucket.core.helper.html.information(info)
+
       <form id="form" method="post" action="@helpers.url(repository)/settings/options" validate="true" autocomplete="off">
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Settings</div>
-          <div class="panel-body">
-            <fieldset class="form-group">
+        <div class="card-body">
+          <h3>Settings</h3>
+          <div>
+            <div class="form-group">
               <label for="description" class="strong">Description:</label>
               <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
-            </fieldset>
-            <fieldset class="border-top">
-              <label class="radio">
-                <input type="radio" name="isPrivate" value="false"
-                  @if(!repository.repository.isPrivate              ){ checked  }
-                  @if(repository.repository.parentUserName.isDefined){ disabled }
+            </div>
+            <div class="form-group">
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="isPrivate" value="false" id="is-private-false"
+                       @if(!repository.repository.isPrivate              ){ checked  }
+                       @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong"><i class="octicon octicon-repo"></i> Public</span><br>
-                <div class="normal muted">
+                <label class="form-check-label" for="is-private-false"><i class="octicon octicon-repo" for="public-repository-checkbox"></i> Public</label>
+                <div class="small text-muted">
                   Anyone can see this repository. You choose who can commit.
                 </div>
-              </label>
-              <label class="radio">
-                <input type="radio" name="isPrivate" value="true"
-                  @if(repository.repository.isPrivate               ){ checked  }
-                  @if(repository.repository.parentUserName.isDefined){ disabled }
-                >
-                <span class="strong"><i class="octicon octicon-lock"></i> Private</span><br>
-                <div class="normal muted">
-                  You choose who can see and commit to this repository.
+              </div>
+
+              <div class="form-group">
+                <div class="form-check">
+                  <input type="radio" class="form-check-input" name="isPrivate" value="true" id="is-private-true"
+                    @if(repository.repository.isPrivate               ){ checked  }
+                    @if(repository.repository.parentUserName.isDefined){ disabled }
+                  >
+                  <label class="form-check-label" for="is-private-true"><i class="octicon octicon-lock" for="private-repository-checkbox"></i> Private</label>
+                  <div class="small text-muted">
+                    You choose who can see and commit to this repository.
+                  </div>
                 </div>
-              </label>
-            </fieldset>
-            <fieldset class="form-group">
-              <label class="checkbox" for="allowFork">
-                <input type="checkbox" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
-                Forks<br>
-                <div class="normal muted">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
+                <label class="form-check-label" for="allowFork">Forks</label>
+                <div class="small text-muted">
                   Allow users who can access this repository to fork it.
                 </div>
-              </label>
-            </fieldset>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Issues and Pull Requests</div>
-          <div class="panel-body">
-            <fieldset class="form-group">
-              <div class="radio">
-                <label>
-                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issue tracking and pull request system
+          <h3>Issues and Pull Requests</h3>
+          <div>
+            <div class="form-group">
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="issuesOption" id="issues-option-disable" value="DISABLE"@if(repository.repository.options.issuesOption == "DISABLE"){ checked}/>
+                <label class="form-check-label" for="issues-option-disable">
+                   Disable issue tracking and pull request system
                 </label>
               </div>
-              <div class="radio">
-                <label>
-                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create and comment on issues and pull requests
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="issuesOption" value="PRIVATE" id="issues-option-private"@if(repository.repository.options.issuesOption == "PRIVATE"){ checked}/>
+                <label class="form-check-label" for="issues-option-private">
+                   Developers can view, create and comment on issues and pull requests
                 </label>
               </div>
-              <div class="radio">
-                <label>
-                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create and comment on issues and pull requests
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="issuesOption" value="PUBLIC" id="issues-option-public"@if(repository.repository.options.issuesOption == "PUBLIC"){ checked}/>
+                <label class="form-check-label" for="issues-option-public">
+                   Developers and guests can view, create and comment on issues and pull requests
                 </label>
               </div>
-              <div class="radio for-public-repo">
-                <label>
-                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on issues and pull requests
+              <div class="form-check for-public-repo">
+                <input type="radio" class="form-check-input" name="issuesOption" value="ALL" id="issues-option-all"@if(repository.repository.options.issuesOption == "ALL"){ checked}/>
+                <label class="form-check-label" for="issues-option-all">
+                   All users can view, create and comment on issues and pull requests
                 </label>
               </div>
-              <label for="externalIssuesUrl" class="strong">External URL:
-                <span class="normal muted">(Fill if you use an external issue tracking system for this project)</span>
+              <label for="externalIssuesUrl">External URL:
+                <span class="small text-muted">(Fill if you use an external issue tracking system for this project)</span>
               </label>
               <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
-            </fieldset>
+            </div>
           </div>
-        </div>
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Wiki</div>
-          <div class="panel-body">
-            <fieldset class="form-group">
-              <div class="radio">
-                <label>
-                  <input type="radio" name="wikiOption" value="DISABLE" @if(repository.repository.options.wikiOption == "DISABLE"){ checked}> Disable wiki
+          <h3>Wiki</h3>
+          <div>
+            <div class="form-group">
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="wikiOption" value="DISABLE" id="wiki-option-disable"@if(repository.repository.options.wikiOption == "DISABLE"){ checked}/>
+                <label class="form-check-label" for="wiki-option-disable">
+                  Disable wiki
                 </label>
               </div>
-              <div class="radio">
-                <label>
-                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Developers can view, create and edit wiki pages
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="wikiOption" value="PRIVATE" id="wiki-option-private"@if(repository.repository.options.wikiOption == "PRIVATE"){ checked}/>
+                <label class="form-check-label" for="wiki-option-private">
+                  Developers can view, create and edit wiki pages
                 </label>
               </div>
-              <div class="radio">
-                <label>
-                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Developers and guests can view, create and edit wiki pages
+              <div class="form-check">
+                <input type="radio" class="form-check-input" name="wikiOption" value="PUBLIC" id="wiki-option-public"@if(repository.repository.options.wikiOption == "PUBLIC"){ checked}/>
+                <label class="form-check-label" for="wiki-option-public">
+                  Developers and guests can view, create and edit wiki pages
                 </label>
               </div>
-              <div class="radio for-public-repo">
-                <label>
-                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.wikiOption == "ALL"){ checked}> All users can view, create and edit wiki pages
+              <div class="form-check for-public-repo">
+                <input type="radio" class="form-check-input" name="wikiOption" value="ALL" id="wiki-option-all"@if(repository.repository.options.wikiOption == "ALL"){ checked}/>
+                <label class="form-check-label" for="wiki-option-all">
+                  All users can view, create and edit wiki pages
                 </label>
               </div>
-              <label for="externalWikiUrl" class="strong">External URL:
-                <span class="normal muted">(Fill if you use an external wiki for this project)</span>
+              <label for="externalWikiUrl">External URL:
+                <span class="small text-muted">(Fill if you use an external wiki for this project)</span>
               </label>
               <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
-            </fieldset>
+            </div>
           </div>
-        </div>
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Merge strategy</div>
-          <div class="panel-body">
+          <h3>Merge strategy</h3>
+          <div>
             Select pull request merge strategies which are available in this repository. At least one option must be enabled.
-            <fieldset class="form-group">
+            <div class="form-group">
               @defining(repository.repository.options.mergeOptions.split(",")){ mergeOptions =>
-                <div class="checkbox">
-                  <label for="mergeOptions_MergeCommit">
-                    <input type="checkbox" name="mergeOptions" id="mergeOptions_MergeCommit" value="merge-commit" @if(mergeOptions.contains("merge-commit")){checked}>
-                  <span class="strong">Merge commit</span>
-                  <div class="normal muted">Commits will be added to the base branch via a merge commit.</div>
-                  </label>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" name="mergeOptions" id="mergeOptions_MergeCommit" value="merge-commit" @if(mergeOptions.contains("merge-commit")){checked}>
+                  <label for="mergeOptions_MergeCommit" class="form-check-label">Merge commit</label>
+                  <div class="small text-muted">Commits will be added to the base branch via a merge commit.</div>
                 </div>
-                <div class="checkbox">
-                  <label for="mergeOptions_Squash">
-                    <input type="checkbox" name="mergeOptions" id="mergeOptions_Squash" value="squash" @if(mergeOptions.contains("squash")){checked}>
-                    <span class="strong">Squash</span>
-                    <div class="normal muted">Commits will be combined into one commit in the base branch.</div>
-                  </label>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" name="mergeOptions" id="mergeOptions_Squash" value="squash" @if(mergeOptions.contains("squash")){checked}>
+                  <label for="mergeOptions_Squash" class="form-check-label">Squash</label>
+                  <div class="small text-muted">Commits will be combined into one commit in the base branch.</div>
                 </div>
-                <div class="checkbox">
-                  <label for="mergeOptions_Rebase">
-                    <input type="checkbox" name="mergeOptions" id="mergeOptions_Rebase" value="rebase" @if(mergeOptions.contains("rebase")){checked}>
-                    <span class="strong">Rebase</span>
-                    <div class="normal muted">Commits will be rebased and added to the base branch.</div>
-                  </label>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" name="mergeOptions" id="mergeOptions_Rebase" value="rebase" @if(mergeOptions.contains("rebase")){checked}>
+                  <label for="mergeOptions_Rebase" class="form-check-label">Rebase</label>
+                  <div class="small text-muted">Commits will be rebased and added to the base branch.</div>
                 </div>
                 <span id="error-mergeOptions" class="error"></span>
               }
-              <fieldset class="form-group">
+              <div class="form-group">
                 <label for="defaultMergeOption">Default merge strategy</label>
                 <select name="defaultMergeOption" id="defaultMergeOption">
                   <option value="merge-commit">Merge commit</option>
@@ -144,12 +144,14 @@
                   <option value="rebase">Rebase</option>
                 </select>
                 <span id="error-defaultMergeOption" class="error"></span>
-              </fieldset>
-            </fieldset>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="align-right" style="margin-top: 20px;">
-          <input type="submit" class="btn btn-success" value="Apply changes"/>
+        <div class="card-footer">
+          <div class="float-right">
+            <input type="submit" class="btn btn-success" value="Apply changes"/>
+          </div>
         </div>
       </form>
     }
