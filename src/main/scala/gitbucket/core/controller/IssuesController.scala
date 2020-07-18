@@ -1,5 +1,6 @@
 package gitbucket.core.controller
 
+import java.text.SimpleDateFormat
 import gitbucket.core.issues.html
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
@@ -53,7 +54,9 @@ trait IssuesControllerBase extends ControllerBase {
     assignedUserName: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
-    labelNames: Option[String]
+    labelNames: Option[String],
+    startDate: Option[java.util.Date],
+    dueDate: Option[java.util.Date]
   )
   case class CommentForm(issueId: Int, content: String)
   case class IssueStateForm(issueId: Int, content: Option[String])
@@ -64,7 +67,9 @@ trait IssuesControllerBase extends ControllerBase {
     "assignedUserName" -> trim(optional(text())),
     "milestoneId" -> trim(optional(number())),
     "priorityId" -> trim(optional(number())),
-    "labelNames" -> trim(optional(text()))
+    "labelNames" -> trim(optional(text())),
+    "startDate" -> trim(optional(date())),
+    "dueDate" -> trim(optional(date()))
   )(IssueCreateForm.apply)
 
   val issueTitleEditForm = mapping(
@@ -146,7 +151,9 @@ trait IssuesControllerBase extends ControllerBase {
         form.milestoneId,
         form.priorityId,
         form.labelNames.toSeq.flatMap(_.split(",")),
-        context.loginAccount.get
+        context.loginAccount.get,
+        form.startDate,
+        form.dueDate
       )
 
       redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
@@ -350,6 +357,20 @@ trait IssuesControllerBase extends ControllerBase {
     Ok("updated")
   })
 
+  ajaxPost("/:owner/:repository/issues/:id/start_date")(writableUsersOnly { repository =>
+    val startDate = params.get("start_date").flatMap(toDateOpt(_))
+    updateIssueStartDate(repository.owner, repository.name, params("id").toInt, startDate, true)
+    Ok("updated")
+  })
+
+  ajaxPost("/:owner/:repository/issues/:id/due_date")(writableUsersOnly { repository =>
+    val dueDate = params.get("due_date").flatMap(toDateOpt(_))
+    print(params("due_date"))
+    print(dueDate)
+    updateIssueDueDate(repository.owner, repository.name, params("id").toInt, dueDate, true)
+    Ok("updated")
+  })
+
   post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>
     defining(params.get("value")) {
       action =>
@@ -419,6 +440,15 @@ trait IssuesControllerBase extends ControllerBase {
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
   val milestoneId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
   val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
+
+  private def toDateOpt(value: String): Option[java.util.Date] = {
+    try {
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      Option(dateFormat.parse(value))
+    } catch {
+      case e: java.text.ParseException => None
+    }
+  }
 
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
     params("checked").split(',') map (_.toInt) foreach execute

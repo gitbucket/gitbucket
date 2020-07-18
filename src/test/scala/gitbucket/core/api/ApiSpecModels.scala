@@ -108,7 +108,9 @@ object ApiSpecModels {
     closed = false,
     registeredDate = date1,
     updatedDate = date1,
-    isPullRequest = false
+    isPullRequest = false,
+    startDate = None,
+    dueDate = None
   )
 
   val issuePR = issue.copy(

@@ -19,7 +19,9 @@ trait IssueCreationService {
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Seq[String],
-    loginAccount: Account
+    loginAccount: Account,
+    startDate: Option[java.util.Date] = None,
+    dueDate: Option[java.util.Date] = None
   )(implicit context: Context, s: Session): Issue = {
 
     val owner = repository.owner
@@ -36,7 +38,9 @@ trait IssueCreationService {
       body,
       if (manageable) assignee else None,
       if (manageable) milestoneId else None,
-      if (manageable) priorityId else None
+      if (manageable) priorityId else None,
+      startDate = startDate,
+      dueDate = dueDate
     )
     val issue: Issue = getIssue(owner, name, issueId.toString).get
 

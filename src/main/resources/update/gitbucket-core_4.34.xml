@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <addColumn tableName="ISSUE">
+    <column name="START_DATE" type="datetime" nullable="true"/>
+    <column name="DUE_DATE" type="datetime" nullable="true"/>
+  </addColumn>
+</changeSet>
