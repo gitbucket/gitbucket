@@ -29,6 +29,8 @@ object Directory {
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
 
+  val ActivityLog = new File(GitBucketHome, "activity.log")
+
   val RepositoryHome = s"${GitBucketHome}/repositories"
 
   val DatabaseHome = s"${GitBucketHome}/data"

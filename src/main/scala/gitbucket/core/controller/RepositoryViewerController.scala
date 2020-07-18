@@ -60,6 +60,7 @@ class RepositoryViewerController
     with WebHookPullRequestService
     with WebHookPullRequestReviewCommentService
     with ProtectedBranchService
+    with RequestCache
 
 /**
  * The repository viewer.

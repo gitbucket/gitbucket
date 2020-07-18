@@ -14,7 +14,7 @@ import scala.util.Using
 class MergeServiceSpec extends FunSpec {
   val service = new MergeService with AccountService with ActivityService with IssuesService with LabelsService
   with MilestonesService with RepositoryService with PrioritiesService with PullRequestService with CommitsService
-  with WebHookPullRequestService with WebHookPullRequestReviewCommentService {}
+  with WebHookPullRequestService with WebHookPullRequestReviewCommentService with RequestCache {}
   val branch = "master"
   val issueId = 10
   def initRepository(owner: String, name: String): File = {

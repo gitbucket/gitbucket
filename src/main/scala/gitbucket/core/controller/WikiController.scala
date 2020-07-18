@@ -24,6 +24,7 @@ class WikiController
     with WebHookService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
+    with RequestCache
 
 trait WikiControllerBase extends ControllerBase {
   self: WikiService

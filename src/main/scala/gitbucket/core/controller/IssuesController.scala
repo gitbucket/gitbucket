@@ -30,6 +30,7 @@ class IssuesController
     with WebHookPullRequestReviewCommentService
     with CommitsService
     with PrioritiesService
+    with RequestCache
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService

@@ -1,9 +1,11 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Session, Issue, Account}
+import gitbucket.core.model.{Account, Issue, Repository, Session}
 import gitbucket.core.util.Implicits
 import gitbucket.core.controller.Context
 import Implicits.request2Session
+import gitbucket.core.model.Profile.{Accounts, Repositories}
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 /**
  * This service is used for a view helper mainly.
@@ -23,21 +25,41 @@ trait RequestCache
   private implicit def context2Session(implicit context: Context): Session =
     request2Session(context.request)
 
-  def getIssue(userName: String, repositoryName: String, issueId: String)(implicit context: Context): Option[Issue] = {
+  def getIssueFromCache(userName: String, repositoryName: String, issueId: String)(
+    implicit context: Context
+  ): Option[Issue] = {
     context.cache(s"issue.${userName}/${repositoryName}#${issueId}") {
       super.getIssue(userName, repositoryName, issueId)
     }
   }
 
-  def getAccountByUserName(userName: String)(implicit context: Context): Option[Account] = {
+  def getAccountByUserNameFromCache(userName: String)(implicit context: Context): Option[Account] = {
     context.cache(s"account.${userName}") {
       super.getAccountByUserName(userName)
     }
   }
 
-  def getAccountByMailAddress(mailAddress: String)(implicit context: Context): Option[Account] = {
+  def getAccountByMailAddressFromCache(mailAddress: String)(implicit context: Context): Option[Account] = {
     context.cache(s"account.${mailAddress}") {
       super.getAccountByMailAddress(mailAddress)
+    }
+  }
+
+  def getRepositoryInfoFromCache(userName: String, repositoryName: String)(
+    implicit context: Context
+  ): Option[Repository] = {
+    context.cache(s"repository.${userName}/${repositoryName}") {
+      Repositories
+        .join(Accounts)
+        .on(_.userName === _.userName)
+        .filter {
+          case (t1, t2) =>
+            t1.byRepository(userName, repositoryName) && t2.removed === false.bind
+        }
+        .map {
+          case (t1, t2) => t1
+        }
+        .firstOption
     }
   }
 }

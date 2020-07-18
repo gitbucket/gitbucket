@@ -169,8 +169,9 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       context: Context
     ): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
 
-    override def getAccountByMailAddress(mailAddress: String)(implicit context: Context): Option[Account] = account
-    override def getAccountByUserName(userName: String)(implicit context: Context): Option[Account] = account
+    override def getAccountByMailAddressFromCache(mailAddress: String)(implicit context: Context): Option[Account] =
+      account
+    override def getAccountByUserNameFromCache(userName: String)(implicit context: Context): Option[Account] = account
   }
 
 }

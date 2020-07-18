@@ -1,6 +1,5 @@
 package gitbucket.core.service
 
-import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
@@ -9,14 +8,11 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.service.WebHookService.WebHookPushPayload
 import gitbucket.core.util.Directory.{getRepositoryDir, getRepositoryFilesDir, getTemporaryDir, getWikiRepositoryDir}
-import gitbucket.core.util.JGitUtil.{CommitInfo, FileInfo}
+import gitbucket.core.util.JGitUtil.FileInfo
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.lib.{Repository => _, _}
-import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import scala.util.Using
 
 trait RepositoryService {
@@ -119,15 +115,6 @@ trait RepositoryService {
             }
             .update(newUserName, newRepositoryName)
 
-          // Updates activity fk before deleting repository because activity is sorted by activityId
-          // and it can't be changed by deleting-and-inserting record.
-          Activities.filter(_.byRepository(oldUserName, oldRepositoryName)).list.foreach { activity =>
-            Activities
-              .filter(_.activityId === activity.activityId.bind)
-              .map(x => (x.userName, x.repositoryName))
-              .update(newUserName, newRepositoryName)
-          }
-
           deleteRepositoryOnModel(oldUserName, oldRepositoryName)
 
           RepositoryWebHooks.insertAll(
@@ -213,50 +200,6 @@ trait RepositoryService {
             collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
           )
 
-          // Update activity messages
-          Activities
-            .filter { t =>
-              (t.message like s"%:${oldUserName}/${oldRepositoryName}]%") ||
-              (t.message like s"%:${oldUserName}/${oldRepositoryName}#%") ||
-              (t.message like s"%:${oldUserName}/${oldRepositoryName}@%")
-            }
-            .map { t =>
-              t.activityId -> t.message
-            }
-            .list
-            .foreach {
-              case (activityId, message) =>
-                Activities
-                  .filter(_.activityId === activityId.bind)
-                  .map(_.message)
-                  .update(
-                    message
-                      .replace(
-                        s"[repo:${oldUserName}/${oldRepositoryName}]",
-                        s"[repo:${newUserName}/${newRepositoryName}]"
-                      )
-                      .replace(
-                        s"[branch:${oldUserName}/${oldRepositoryName}#",
-                        s"[branch:${newUserName}/${newRepositoryName}#"
-                      )
-                      .replace(
-                        s"[tag:${oldUserName}/${oldRepositoryName}#",
-                        s"[tag:${newUserName}/${newRepositoryName}#"
-                      )
-                      .replace(
-                        s"[pullreq:${oldUserName}/${oldRepositoryName}#",
-                        s"[pullreq:${newUserName}/${newRepositoryName}#"
-                      )
-                      .replace(
-                        s"[issue:${oldUserName}/${oldRepositoryName}#",
-                        s"[issue:${newUserName}/${newRepositoryName}#"
-                      )
-                      .replace(
-                        s"[commit:${oldUserName}/${oldRepositoryName}@",
-                        s"[commit:${newUserName}/${newRepositoryName}@"
-                      )
-                  )
-            }
           // Move git repository
           defining(getRepositoryDir(oldUserName, oldRepositoryName)) { dir =>
             if (dir.isDirectory) {
@@ -304,7 +247,7 @@ trait RepositoryService {
   }
 
   private def deleteRepositoryOnModel(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    Activities.filter(_.byRepository(userName, repositoryName)).delete
+//    Activities.filter(_.byRepository(userName, repositoryName)).delete
     Collaborators.filter(_.byRepository(userName, repositoryName)).delete
     CommitComments.filter(_.byRepository(userName, repositoryName)).delete
     IssueLabels.filter(_.byRepository(userName, repositoryName)).delete

@@ -18,7 +18,8 @@ class PullRequestServiceSpec
     with PrioritiesService
     with WebHookService
     with WebHookPullRequestService
-    with WebHookPullRequestReviewCommentService {
+    with WebHookPullRequestReviewCommentService
+    with RequestCache {
 
   def swap(r: (Issue, PullRequest)) = (r._2 -> r._1)
 
