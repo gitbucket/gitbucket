@@ -11,7 +11,7 @@
           <div>
             <div class="form-group">
               <label for="description" class="strong">Description:</label>
-              <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
+              <input type="text" name="description" id="description" class="form-control form-control-sm" value="@repository.repository.description"/>
             </div>
             <div class="form-group">
               <div class="form-check">
@@ -78,7 +78,7 @@
               <label for="externalIssuesUrl">External URL:
                 <span class="small text-muted">(Fill if you use an external issue tracking system for this project)</span>
               </label>
-              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
+              <input type="text" class="form-control form-control-sm" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
             </div>
           </div>
           <h3>Wiki</h3>
@@ -111,7 +111,7 @@
               <label for="externalWikiUrl">External URL:
                 <span class="small text-muted">(Fill if you use an external wiki for this project)</span>
               </label>
-              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
+              <input type="text" class="form-control form-control-sm" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
             </div>
           </div>
           <h3>Merge strategy</h3>
@@ -136,14 +136,16 @@
                 </div>
                 <span id="error-mergeOptions" class="error"></span>
               }
-              <div class="form-group">
-                <label for="defaultMergeOption">Default merge strategy</label>
-                <select name="defaultMergeOption" id="defaultMergeOption">
-                  <option value="merge-commit">Merge commit</option>
-                  <option value="squash">Squash</option>
-                  <option value="rebase">Rebase</option>
-                </select>
-                <span id="error-defaultMergeOption" class="error"></span>
+              <div class="form-group row">
+                <label class="col-form-label col-sm-auto" for="defaultMergeOption">Default merge strategy</label>
+                <div class="col-sm-auto">
+                  <select class="form-control form-control-sm" name="defaultMergeOption" id="defaultMergeOption">
+                    <option value="merge-commit">Merge commit</option>
+                    <option value="squash">Squash</option>
+                    <option value="rebase">Rebase</option>
+                  </select>
+                  <span id="error-defaultMergeOption" class="error"></span>
+                </div>
               </div>
             </div>
           </div>
