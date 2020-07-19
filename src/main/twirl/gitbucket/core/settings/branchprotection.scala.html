@@ -8,61 +8,57 @@
 @gitbucket.core.html.main(s"Branch protection for ${branch}", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("branches", repository){
+    <form name="branchProtection" onsubmit="submitForm(event)">
+    <div class="card-body">
       @gitbucket.core.helper.html.information(info)
       <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
-      <form name="branchProtection" onsubmit="submitForm(event)">
-        <div class="panel panel-default">
-          <div class="panel-heading">Branch protection for <b>@branch</b></div>
-          <div class="panel-body">
-
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" name="enabled" onclick="update()" @check(protection.enabled)>
-                <span class="strong">Protect this branch</span>
-              </label>
-              <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
+        <h3 class="panel-heading">Branch protection for <b>@branch</b></h3>
+        <div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" name="enabled" id="enabled" onclick="update()" @check(protection.enabled)>
+              <label class="form-check-label" for="enabled">Protect this branch</label>
+              <p class="help-block text-muted small">Disables force-pushes to this branch and prevents it from being deleted.</p>
             </div>
-            <div class="checkbox js-enabled" style="display:none">
-              <label>
-                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
-                <span class="strong">Require status checks to pass before merging</span>
-              </label>
-              <p class="help-block">When enabled, commits must first be pushed to another branch, then merged or pushed directly to <b>@branch</b> after status checks have passed.</p>
-              @if( knownContexts.isEmpty ){
-                <div class="alert alert-warning">
-                  Sorry, we couldn’t find any status checks in the last week for this repository.<br />
-                  Please create a commit status by API (<a href="https://developer.github.com/v3/repos/statuses/">Learn more about status checks on GitHub</a>)
-                </div>
-              } else {
-                <div class="js-has_required_statuses" style="display:none">
-                  <div class="panel panel-default">
-                    <div class="panel-heading">Choose which status checks must pass before branches can be merged into <b>@branch</b>.</div>
-                    <div class="panel-body">
-                      @knownContexts.map { context =>
-                        <div class="checkbox">
-                          <label>
-                            <input type="checkbox" name="contexts" value="@context" onclick="update()" @check(protection.status.contexts.find(_ == context))>
-                            <span>@context</span>
-                          </label>
-                        </div>
-                      }
-                    </div>
+          </div>
+          <div class="form-group js-enabled" style="display:none">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" name="has_required_statuses" id="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
+              <label class="form-check-label" for="has_required_statuses">Require status checks to pass before merging</label>
+              <p class="help-block text-muted small">When enabled, commits must first be pushed to another branch, then merged or pushed directly to <b>@branch</b> after status checks have passed.</p>
+            </div>
+            @if( knownContexts.isEmpty ){
+              <div class="alert alert-warning">
+                Sorry, we couldn’t find any status checks in the last week for this repository.<br />
+                Please create a commit status by API (<a href="https://developer.github.com/v3/repos/statuses/">Learn more about status checks on GitHub</a>)
+              </div>
+            } else {
+              <div class="js-has_required_statuses" style="display:none">
+                <h3>Choose which status checks must pass before branches can be merged into <b>@branch</b>.</h3>
+                <div class="form-group">
+                  @knownContexts.map { context =>
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="contexts" value="@context" id="context-@context" onclick="update()" @check(protection.status.contexts.find(_ == context))>
+                    <label class="form-check-label" for="context-@context">@context</label>
                   </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
-                      <span class="strong">Include administrators</span>
-                    </label>
+                  }
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="enforce_for_admins" id="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
+                    <label class="form-check-label" for="enforce_for_admins">Include administrators</label>
                     <p class="help-block">Enforce required status checks for repository administrators.</p>
                   </div>
                 </div>
-              }
-            </div>
-            <input class="btn btn-success js-submit-btn" type="submit" value="Save changes" />
+              </div>
+            }
           </div>
         </div>
-      </form>
+      </div>
+      <div class="card-footer">
+        <div class="float-right">
+          <input class="btn btn-success js-submit-btn" type="submit" value="Save changes" />
+        </div>
+      </div>
+    </form>
     }
   }
 }
