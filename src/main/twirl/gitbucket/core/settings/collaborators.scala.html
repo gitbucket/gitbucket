@@ -7,35 +7,31 @@
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("collaborators", repository){
       <form id="form" method="post" action="@helpers.url(repository)/settings/collaborators" autocomplete="off">
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Collaborators</div>
-          <div class="panel-body">
-            <ul id="collaborator-list" class="collaborator">
-            </ul>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="userName-collaborator">Collaborators</label>
+            <ul id="collaborator-list" class="collaborator"></ul>
             @gitbucket.core.helper.html.account("userName-collaborator", 200, true, false)
-            <input type="button" class="btn btn-default add" value="Add" id="addCollaborator"/>
+            <input type="button" class="btn btn-default btn-sm add" value="Add" id="addCollaborator"/>
             <div>
               <span class="error" id="error-collaborator"></span>
             </div>
           </div>
-        </div>
-
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Groups</div>
-          <div class="panel-body">
-            <ul id="group-list" class="collaborator">
-            </ul>
+          <div class="form-group">
+            <label for="userName-group">Groups</label>
+            <ul id="group-list" class="collaborator"></ul>
             @gitbucket.core.helper.html.account("userName-group", 200, false, true)
-            <input type="button" class="btn btn-default add" value="Add" id="addGroup"/>
+            <input type="button" class="btn btn-default btn-sm add" value="Add" id="addGroup"/>
             <div>
               <span class="error" id="error-group"></span>
             </div>
           </div>
         </div>
-
-        <div class="align-right" style="margin-top: 20px;">
-          <input type="hidden" id="collaborators" name="collaborators" />
-          <input type="submit" class="btn btn-success" value="Apply changes"/>
+        <div class="card-footer">
+          <div class="float-right">
+            <input type="hidden" id="collaborators" name="collaborators" />
+            <input type="submit" class="btn btn-success" value="Apply changes"/>
+          </div>
         </div>
       </form>
     }
@@ -99,28 +95,28 @@ $(function(){
   }
 
   function addListHTML(userName, role, id){
-    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.ADMIN.name" name="' + userName + '">Admin</label>');
+    var adminButton = $('<label class="btn btn-secondary btn-mini"><input type="radio" value="@Role.ADMIN.name" name="' + userName + '">Admin</label>');
     if(role == '@Role.ADMIN.name'){
       adminButton.addClass('active');
     }
-    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.DEVELOPER.name" name="' + userName + '">Developer</label>');
+    var writeButton = $('<label class="btn btn-secondary btn-mini"><input type="radio" value="@Role.DEVELOPER.name" name="' + userName + '">Developer</label>');
     if(role == '@Role.DEVELOPER.name'){
       writeButton.addClass('active');
     }
-    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.GUEST.name" name="' + userName + '">Guest</label>');
+    var readButton = $('<label class="btn btn-secondary btn-mini"><input type="radio" value="@Role.GUEST.name" name="' + userName + '">Guest</label>');
     if(role == '@Role.GUEST.name'){
       readButton.addClass('active');
     }
 
     $(id).append($('<li>')
       .data('name', userName)
-      .append($('<div class="btn-group role" data-toggle="buttons">')
+      .append($('<div class="btn-group btn-group-toggle" data-toggle="buttons"">')
         .append(adminButton)
         .append(writeButton)
         .append(readButton))
       .append(' ')
       .append($('<a target="_blank">').attr('href', '@context.path/' + userName).text(userName))
-      .append($('<a href="#" class="remove pull-right">(remove)</a>')));
+      .append($('<a href="#" class="remove float-right">(remove)</a>')));
   }
 
   function updateValues(){
