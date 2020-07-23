@@ -3,16 +3,16 @@
 @gitbucket.core.html.main("Danger Zone", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("danger", repository){
-      @gitbucket.core.helper.html.information(info)
-      <div class="panel panel-default">
-        <div class="panel-heading strong">Danger Zone</div>
-        <div class="panel-body">
+      <div class="card-body">
+        @gitbucket.core.helper.html.information(info)
+        <h3>Danger Zone</h3>
+        <div >
           <form id="gc-form" method="post" action="@helpers.url(repository)/settings/gc">
             <fieldset class="form-group">
               <label class="strong">Garbage collection</label>
               <div>
                 Run garbage collection for this git repository immediately.
-                <input type="submit" class="btn btn-danger pull-right" value="Garbage collection"/>
+                <input type="submit" class="btn btn-danger btn-sm float-right" value="Garbage collection"/>
               </div>
             </fieldset>
           </form>
@@ -22,9 +22,9 @@
                 <label class="strong">Rename repository</label>
                 <div>
                   Rename this repository. The current URL will be unavailable.
-                  <div class="pull-right">
-                    <input type="text" name="repositoryName" id="repositoryName" class="form-control" style="width: 200px; display: inline; vertical-align: middle;" value="@repository.name"/>
-                    <input type="submit" class="btn btn-danger" value="Rename"/>
+                  <div class="float-right">
+                    <input type="text" name="repositoryName" id="repositoryName" class="form-control form-control-sm" style="width: 200px; display: inline; vertical-align: middle;" value="@repository.name"/>
+                    <input type="submit" class="btn btn-danger btn-sm" value="Rename"/>
                     <div>
                       <span id="error-repositoryName" class="error"></span>
                     </div>
@@ -39,9 +39,9 @@
                 <label class="strong">Transfer Ownership</label>
                 <div>
                   Transfer this repo to another user or to group.
-                  <div class="pull-right">
+                  <div class="float-right">
                     @gitbucket.core.helper.html.account("newOwner", 200, true, true)
-                    <input type="submit" class="btn btn-danger" value="Transfer"/>
+                    <input type="submit" class="btn btn-danger btn-sm" value="Transfer"/>
                     <div>
                       <span id="error-newOwner" class="error"></span>
                     </div>
@@ -56,7 +56,7 @@
                 <label class="strong">Delete repository</label>
                 <div>
                   Once you delete a repository, there is no going back.
-                  <input type="submit" class="btn btn-danger pull-right" value="Delete this repository"/>
+                  <input type="submit" class="btn btn-danger btn-sm float-right" value="Delete this repository"/>
                 </div>
               </fieldset>
             </form>
