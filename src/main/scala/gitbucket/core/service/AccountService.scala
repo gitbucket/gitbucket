@@ -17,7 +17,9 @@ trait AccountService {
   def authenticate(settings: SystemSettings, userName: String, password: String)(
     implicit s: Session
   ): Option[Account] = {
-    val account = if (settings.ldapAuthentication) {
+    val account = if (password.isEmpty) {
+      None
+    } else if (settings.ldapAuthentication) {
       ldapAuthentication(settings, userName, password)
     } else {
       defaultAuthentication(userName, password)
