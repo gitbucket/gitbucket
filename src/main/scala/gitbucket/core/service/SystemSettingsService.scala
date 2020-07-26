@@ -28,7 +28,6 @@ trait SystemSettingsService {
       props.setProperty(RepositoryOperationFork, settings.repositoryOperation.fork.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
-      settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
       props.setProperty(LimitVisibleRepositories, settings.limitVisibleRepositories.toString)
       props.setProperty(SshEnabled, settings.ssh.enabled.toString)
       settings.ssh.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
@@ -112,7 +111,6 @@ trait SystemSettingsService {
         ),
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
-        getOptionValue[Int](props, ActivityLogLimit, None),
         getValue(props, LimitVisibleRepositories, false),
         Ssh(
           getValue(props, SshEnabled, false),
@@ -200,7 +198,6 @@ object SystemSettingsService {
     repositoryOperation: RepositoryOperation,
     gravatar: Boolean,
     notification: Boolean,
-    activityLogLimit: Option[Int],
     limitVisibleRepositories: Boolean,
     ssh: Ssh,
     useSMTP: Boolean,

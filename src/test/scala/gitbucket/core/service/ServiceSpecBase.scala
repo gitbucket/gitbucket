@@ -45,7 +45,6 @@ trait ServiceSpecBase extends MockitoSugar {
       ),
       gravatar = false,
       notification = false,
-      activityLogLimit = None,
       limitVisibleRepositories = false,
       ssh = Ssh(
         enabled = false,

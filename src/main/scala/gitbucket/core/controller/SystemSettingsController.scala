@@ -48,7 +48,6 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     )(RepositoryOperation.apply),
     "gravatar" -> trim(label("Gravatar", boolean())),
     "notification" -> trim(label("Notification", boolean())),
-    "activityLogLimit" -> trim(label("Limit of activity logs", optional(number()))),
     "limitVisibleRepositories" -> trim(label("limitVisibleRepositories", boolean())),
     "ssh" -> mapping(
       "enabled" -> trim(label("SSH access", boolean())),
