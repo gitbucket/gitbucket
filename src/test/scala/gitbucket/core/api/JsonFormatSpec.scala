@@ -1,8 +1,8 @@
 package gitbucket.core.api
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class JsonFormatSpec extends FunSuite {
+class JsonFormatSpec extends AnyFunSuite {
   import ApiSpecModels._
 
   private def expected(json: String) = json.replaceAll("\n", "")

@@ -1,9 +1,9 @@
 package gitbucket.core.util
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import GitSpecUtil._
 
-class EditorConfigUtilSpec extends FunSuite {
+class EditorConfigUtilSpec extends AnyFunSuite {
   val simpleConfig =
     """[*.txt]
       |indent_style = tab

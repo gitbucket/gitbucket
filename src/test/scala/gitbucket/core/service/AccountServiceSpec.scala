@@ -2,9 +2,9 @@ package gitbucket.core.service
 
 import gitbucket.core.model.{Account, GroupMember}
 import java.util.Date
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class AccountServiceSpec extends FunSuite with ServiceSpecBase {
+class AccountServiceSpec extends AnyFunSuite with ServiceSpecBase {
 
   val RootMailAddress = "root@localhost"
 

@@ -1,8 +1,8 @@
 package gitbucket.core.util
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class DirectorySpec extends FunSpec {
+class DirectorySpec extends AnyFunSpec {
 
   describe("GitBucketHome") {
     it("should set under target in test scope") {

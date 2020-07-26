@@ -1,10 +1,10 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
 class PullRequestServiceSpec
-    extends FunSpec
+    extends AnyFunSpec
     with ServiceSpecBase
     with MergeService
     with PullRequestService

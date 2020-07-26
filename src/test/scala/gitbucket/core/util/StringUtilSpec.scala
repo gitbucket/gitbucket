@@ -1,8 +1,8 @@
 package gitbucket.core.util
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class StringUtilSpec extends FunSpec {
+class StringUtilSpec extends AnyFunSpec {
 
   describe("urlEncode") {
     it("should encode whitespace to %20") {

@@ -1,11 +1,11 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 
-class AccessTokenServiceSpec extends FunSuite with ServiceSpecBase {
+class AccessTokenServiceSpec extends AnyFunSuite with ServiceSpecBase {
 
   test("generateAccessToken") {
     withTestDB { implicit session =>

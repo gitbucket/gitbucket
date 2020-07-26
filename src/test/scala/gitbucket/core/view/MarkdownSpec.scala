@@ -2,11 +2,10 @@ package gitbucket.core.view
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import org.scalatest.FunSpec
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.funspec.AnyFunSpec
 import org.mockito.Mockito._
 
-class MarkdownSpec extends FunSpec with MockitoSugar {
+class MarkdownSpec extends AnyFunSpec {
 
   import Markdown._
 
@@ -96,8 +95,8 @@ tasks
 
   describe("toHtml") {
     it("should fix url at the repository root") {
-      val repository = mock[RepositoryInfo]
-      val context = mock[Context]
+      val repository = mock(classOf[RepositoryInfo])
+      val context = mock(classOf[Context])
       when(context.currentPath).thenReturn("/user/repo")
       when(repository.httpUrl(context)).thenReturn("http://localhost:8080/git/user/repo.git")
 
@@ -117,8 +116,8 @@ tasks
     }
 
     it("should fix sub directory url at the file list") {
-      val repository = mock[RepositoryInfo]
-      val context = mock[Context]
+      val repository = mock(classOf[RepositoryInfo])
+      val context = mock(classOf[Context])
       when(context.currentPath).thenReturn("/user/repo/tree/master/sub/dir")
       when(repository.httpUrl(context)).thenReturn("http://localhost:8080/git/user/repo.git")
 
@@ -138,8 +137,8 @@ tasks
     }
 
     it("should fix sub directory url at the blob view") {
-      val repository = mock[RepositoryInfo]
-      val context = mock[Context]
+      val repository = mock(classOf[RepositoryInfo])
+      val context = mock(classOf[Context])
       when(context.currentPath).thenReturn("/user/repo/blob/master/sub/dir/README.md")
       when(repository.httpUrl(context)).thenReturn("http://localhost:8080/git/user/repo.git")
 

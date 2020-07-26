@@ -2,9 +2,10 @@ package gitbucket.core.service
 
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.service.WebHookService._
-import org.scalatest.{Assertion, FunSuite}
+import org.scalatest.Assertion
+import org.scalatest.funsuite.AnyFunSuite
 
-class WebHookJsonFormatSpec extends FunSuite {
+class WebHookJsonFormatSpec extends AnyFunSuite {
   import gitbucket.core.api.ApiSpecModels._
 
   private def assert(payload: WebHookPayload, expected: String): Assertion = {
