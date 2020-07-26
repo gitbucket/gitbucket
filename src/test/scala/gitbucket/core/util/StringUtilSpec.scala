@@ -64,6 +64,9 @@ class StringUtilSpec extends AnyFunSpec {
     it("should returns Nil from message which does not contain close command") {
       assert(StringUtil.extractCloseId("(refs #123)").toSeq == Nil)
     }
+    it("should extract 'close #x, #y, #z' and return extracted multi id") {
+      assert(StringUtil.extractCloseId("(close #1, #2, #3, wip #4, close #5)").toSeq == Seq("1", "2", "3", "5"))
+    }
   }
 
   describe("getRepositoryViewerUrl") {
