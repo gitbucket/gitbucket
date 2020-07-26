@@ -4,7 +4,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.34.0"
-val ScalatraVersion = "2.7.0-RC1"
+val ScalatraVersion = "2.7.0"
 val JettyVersion = "9.4.30.v20200611"
 val JgitVersion = "5.8.0.202006091008-r"
 

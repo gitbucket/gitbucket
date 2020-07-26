@@ -1,10 +1,10 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.{WebHook, RepositoryWebHook}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import gitbucket.core.model.WebHookContentType
 
-class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
+class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
   lazy val service = new WebHookPullRequestService with AccountService with ActivityService with RepositoryService
   with MergeService with PullRequestService with IssuesService with CommitsService with LabelsService
   with MilestonesService with PrioritiesService with WebHookPullRequestReviewCommentService with RequestCache

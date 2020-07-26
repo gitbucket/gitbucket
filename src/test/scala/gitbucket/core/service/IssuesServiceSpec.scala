@@ -2,9 +2,9 @@ package gitbucket.core.service
 
 import gitbucket.core.model._
 import gitbucket.core.service.IssuesService._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class IssuesServiceSpec extends FunSuite with ServiceSpecBase {
+class IssuesServiceSpec extends AnyFunSuite with ServiceSpecBase {
   test("getCommitStatues") {
     withTestDB { implicit session =>
       val user1 = generateNewUserWithDBRepository("user1", "repo1")

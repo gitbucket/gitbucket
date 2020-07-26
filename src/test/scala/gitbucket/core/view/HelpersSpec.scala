@@ -2,15 +2,15 @@ package gitbucket.core.view
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import org.scalatest.FunSpec
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.funspec.AnyFunSpec
 import java.util.Date
 import java.util.TimeZone
+import org.mockito.Mockito._
 
-class HelpersSpec extends FunSpec with MockitoSugar {
+class HelpersSpec extends AnyFunSpec {
 
-  private implicit val context = mock[Context]
-  private val repository = mock[RepositoryInfo]
+  private implicit val context = mock(classOf[Context])
+  private val repository = mock(classOf[RepositoryInfo])
 
   import helpers._
 

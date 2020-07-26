@@ -1,9 +1,9 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class RepositoryServiceSpec extends FunSuite with ServiceSpecBase with RepositoryService with AccountService {
+class RepositoryServiceSpec extends AnyFunSuite with ServiceSpecBase with RepositoryService with AccountService {
   test("renameRepository can rename CommitState, ProtectedBranches") {
     withTestDB { implicit session =>
       val tester = generateNewAccount("tester")

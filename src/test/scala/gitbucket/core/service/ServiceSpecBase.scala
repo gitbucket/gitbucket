@@ -14,16 +14,15 @@ import java.io.File
 import gitbucket.core.controller.Context
 import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
-import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
 
 import scala.util.Random
 import scala.util.Using
 
-trait ServiceSpecBase extends MockitoSugar {
+trait ServiceSpecBase {
 
-  val request = mock[HttpServletRequest]
-  val session = mock[HttpSession]
+  val request = mock(classOf[HttpServletRequest])
+  val session = mock(classOf[HttpSession])
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
   when(request.getRequestURI).thenReturn("/path.html")
   when(request.getContextPath).thenReturn("")

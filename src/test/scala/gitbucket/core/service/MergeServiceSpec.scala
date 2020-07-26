@@ -6,12 +6,12 @@ import gitbucket.core.util.GitSpecUtil._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
 import java.io.File
 import scala.util.Using
 
-class MergeServiceSpec extends FunSpec {
+class MergeServiceSpec extends AnyFunSpec {
   val service = new MergeService with AccountService with ActivityService with IssuesService with LabelsService
   with MilestonesService with RepositoryService with PrioritiesService with PullRequestService with CommitsService
   with WebHookPullRequestService with WebHookPullRequestReviewCommentService with RequestCache {}

@@ -1,9 +1,9 @@
 package gitbucket.core.ssh
 
 import org.apache.sshd.server.shell.UnknownCommand
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class GitCommandFactorySpec extends FunSpec {
+class GitCommandFactorySpec extends AnyFunSpec {
 
   val factory = new GitCommandFactory("http://localhost:8080", None)
 

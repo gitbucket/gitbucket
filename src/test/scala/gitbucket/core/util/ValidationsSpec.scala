@@ -1,9 +1,9 @@
 package gitbucket.core.util
 
 import org.scalatra.i18n.Messages
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class ValidationsSpec extends FunSpec with Validations {
+class ValidationsSpec extends AnyFunSpec with Validations {
 
   describe("identifier") {
     it("should validate id string ") {
