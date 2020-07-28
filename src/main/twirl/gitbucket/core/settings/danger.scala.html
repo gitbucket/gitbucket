@@ -21,7 +21,7 @@
               <fieldset class="border-top form-group">
                 <label class="strong">Rename repository</label>
                 <div>
-                  Rename this repository. The current URL will be unavailable.
+                  Rename this repository. This will make the current URL unavailable.
                   <div class="pull-right">
                     <input type="text" name="repositoryName" id="repositoryName" class="form-control" style="width: 200px; display: inline; vertical-align: middle;" value="@repository.name"/>
                     <input type="submit" class="btn btn-danger" value="Rename"/>
@@ -38,7 +38,7 @@
               <fieldset class="border-top form-group">
                 <label class="strong">Transfer Ownership</label>
                 <div>
-                  Transfer this repo to another user or to group.
+                  Transfer this repository to another user or to group.
                   <div class="pull-right">
                     @gitbucket.core.helper.html.account("newOwner", 200, true, true)
                     <input type="submit" class="btn btn-danger" value="Transfer"/>
@@ -55,7 +55,7 @@
               <fieldset class="border-top form-group">
                 <label class="strong">Delete repository</label>
                 <div>
-                  Once you delete a repository, there is no going back.
+                  Permanently deletes this repository. This cannot be undone.
                   <input type="submit" class="btn btn-danger pull-right" value="Delete this repository"/>
                 </div>
               </fieldset>
