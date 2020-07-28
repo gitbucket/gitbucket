@@ -425,7 +425,7 @@ trait RepositoryService {
    * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
    * @param withoutPhysicalInfo if true then the result does not include physical repository information such as commit count,
    *                            branches and tags
-   * @param limit if true then result will include only repositories associated with the login account.
+   * @param limit if true then result will include only repositories owned by the login account. otherwise, result will be all visible repositories.
    * @return the repository information which is sorted in descending order of lastActivityDate.
    */
   def getVisibleRepositories(
