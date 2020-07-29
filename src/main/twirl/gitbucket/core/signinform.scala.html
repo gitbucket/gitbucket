@@ -26,11 +26,19 @@
           <input type="password" name="password" id="password" class="form-control" value="@password"/>
         </div>
         <input type="hidden" name="hash"/>
-        <input type="submit" class="btn btn-success" value="Sign in" onClick="this.form.hash.value = window.location.hash;"/>
-        @if(systemSettings.allowAccountRegistration){
-          or <a href="@context.path/register">Create new account</a>
-        }
+        <div>
+          <input type="submit" class="btn btn-success btn-block" value="Sign in" onClick="this.form.hash.value = window.location.hash;"/>
+        </div>
       </form>
     </li>
   </ul>
 </div>
+@if(systemSettings.allowAccountRegistration){
+  <div class="panel panel-default">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item text-center">
+        Don't have an account? <a href="@context.path/register">Create one.</a>
+      </li>
+    </ul>
+  </div>
+}

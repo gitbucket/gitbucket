@@ -51,22 +51,22 @@
             <fieldset class="form-group">
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issue tracking and pull request system
+                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issue tracking and pull requests
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create and comment on issues and pull requests
+                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create, and comment on issues and pull requests
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create and comment on issues and pull requests
+                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create, and comment on issues and pull requests
                 </label>
               </div>
               <div class="radio for-public-repo">
                 <label>
-                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on issues and pull requests
+                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create, and comment on issues and pull requests
                 </label>
               </div>
               <label for="externalIssuesUrl" class="strong">External URL:
@@ -87,17 +87,17 @@
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Developers can view, create and edit wiki pages
+                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Developers can view, create, and edit wiki pages
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Developers and guests can view, create and edit wiki pages
+                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Developers and guests can view, create, and edit wiki pages
                 </label>
               </div>
               <div class="radio for-public-repo">
                 <label>
-                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.wikiOption == "ALL"){ checked}> All users can view, create and edit wiki pages
+                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.wikiOption == "ALL"){ checked}> All users can view, create, and edit wiki pages
                 </label>
               </div>
               <label for="externalWikiUrl" class="strong">External URL:

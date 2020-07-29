@@ -6,7 +6,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
   <div class="content body">
     <h2>Create a new repository</h2>
     <p class="muted">
-      A repository contains all the files for your project including the revision history.
+      A repository contains all your project's files, including revision history.
     </p>
     <form id="form" method="post" action="@context.path/new" validate="true" autocomplete="off">
       <fieldset class="border-top form-group">
@@ -62,28 +62,28 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
           <input type="radio" name="initOption" value="EMPTY" checked/>
           <span class="strong">Create an empty repository</span>
           <div class="normal muted">
-            Create an empty repository. You have to initialize by yourself initially.
+            Create an empty repository. You must initialize it yourself.
           </div>
         </label>
         <label class="radio">
           <input type="radio" name="initOption" value="EMPTY_COMMIT"/>
           <span class="strong">Initialize this repository with an empty commit</span>
           <div class="normal muted">
-            Create an empty repository with empty commit. You can clone the repository immediately.
+            Create an empty repository with an empty commit. You can clone the repository immediately.
           </div>
         </label>
         <label class="radio">
           <input type="radio" name="initOption" value="README"/>
           <span class="strong">Initialize this repository with a README</span>
           <div class="normal muted">
-            Create a repository which has README.md. You can clone the repository immediately.
+            Create a repository and commit README.md. You can clone the repository immediately.
           </div>
         </label>
         <label class="radio">
           <input type="radio" name="initOption" value="COPY"/>
           <span class="strong">Copy existing git repository</span>
           <div class="normal muted">
-            Create new repository from existing git repository.
+            Create a new repository by cloning an existing git repository.
           </div>
         </label>
         <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
