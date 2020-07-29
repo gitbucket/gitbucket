@@ -7,11 +7,12 @@ import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
 import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.junit.runner.Description
-import org.scalatest.{FunSuite, Tag}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.Tag
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
-class GitBucketCoreModuleSpec extends FunSuite {
+class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   test("Migration H2") {
     new Solidbase().migrate(

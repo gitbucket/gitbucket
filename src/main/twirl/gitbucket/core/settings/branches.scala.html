@@ -20,7 +20,7 @@
           @gitbucket.core.helper.html.information(info)
           <h3>Default branch</h3>
           <div>
-            <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made, unless you specify a different branch.</p>
+            <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made (unless you specify a different branch).</p>
             <form id="form" method="post" action="@helpers.url(repository)/settings/update_default_branch" validate="true" class="form-inline">
               <span class="error" id="error-defaultBranch"></span>
               <select name="defaultBranch" id="defaultBranch" class="form-control form-control-sm">
@@ -33,7 +33,7 @@
           </div>
           <h3 class="mt-3">Protected branches</h3>
           <div>
-            <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally require status checks before merging. New to protected branches?
+            <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally, require status checks before merging.
               <form class="form-inline">
                 <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control form-control-sm">
                   <option>Choose a branch...</option>

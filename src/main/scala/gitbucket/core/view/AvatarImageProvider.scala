@@ -17,7 +17,7 @@ trait AvatarImageProvider { self: RequestCache =>
 
     val src = if (mailAddress.isEmpty) {
       // by user name
-      getAccountByUserName(userName).map { account =>
+      getAccountByUserNameFromCache(userName).map { account =>
         if (account.image.isEmpty && context.settings.gravatar) {
           s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}&d=retro&r=g"""
         } else {
@@ -28,7 +28,7 @@ trait AvatarImageProvider { self: RequestCache =>
       }
     } else {
       // by mail address
-      getAccountByMailAddress(mailAddress).map { account =>
+      getAccountByMailAddressFromCache(mailAddress).map { account =>
         if (account.image.isEmpty && context.settings.gravatar) {
           s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}&d=retro&r=g"""
         } else {

@@ -5,10 +5,10 @@ import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.CommitState
 import gitbucket.core.service.ProtectedBranchService.{ProtectedBranchReceiveHook, ProtectedBranchInfo}
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
 class ProtectedBranchServiceSpec
-    extends FunSpec
+    extends AnyFunSpec
     with ServiceSpecBase
     with ProtectedBranchService
     with CommitStatusService {

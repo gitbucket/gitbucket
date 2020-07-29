@@ -22,6 +22,7 @@ class DashboardController
     with WebHookPullRequestReviewCommentService
     with MilestonesService
     with UsersAuthenticator
+    with RequestCache
 
 trait DashboardControllerBase extends ControllerBase {
   self: IssuesService with PullRequestService with RepositoryService with AccountService with UsersAuthenticator =>

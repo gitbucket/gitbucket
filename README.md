@@ -57,11 +57,20 @@ Support
 
 What's New in 4.33.x
 -------------
-### 4.33.0 - 31 Dec 2019
+### 4.34.0 - 26 Jul 2020
 
-- All CLI options are configurable by environment variables
-- Folding pull request files
-- WebHook security options
-- Add assignee and assignees properties to some Web APIs' response
+- Enhancement admin settings UI
+   - File upload settings
+   - Restrict repository operations
+   - User-defined CSS
+   - Limit the repository list in the sidebar
+- Improve MariaDB support
+- Improve activity logging
+- CLI option to persist session on disk in the standalone mode
+- Web API updates
+  - Add [list commits API](https://developer.github.com/v3/repos/commits/#list-commits)
+- Bundled plugins updates
+  - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin) 4.18.0 -> 4.19.0
+  - [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin) 1.8.0 -> 1.9.0
 
 See the [change log](CHANGELOG.md) for all of the updates.

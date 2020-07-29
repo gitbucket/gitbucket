@@ -1,6 +1,22 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.34.0 - 26 Jul 2020
+
+- Enhancement admin settings UI
+   - File upload settings
+   - Restrict repository operations
+   - User-defined CSS
+   - Limit the repository list in the sidebar
+- Improve MariaDB support
+- Improve activity logging
+- CLI option to persist session on disk in the standalone mode
+- Web API updates
+  - Add [list commits API](https://developer.github.com/v3/repos/commits/#list-commits)
+- Bundled plugins updates
+  - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin) 4.18.0 -> 4.19.0
+  - [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin) 1.8.0 -> 1.9.0
+
 ### 4.33.0 - 31 Dec 2019
 
 - All CLI options are configurable by environment variables

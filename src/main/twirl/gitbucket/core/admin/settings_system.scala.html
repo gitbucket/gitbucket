@@ -22,8 +22,8 @@
     <td class="danger">
       <p>@gitbucket.core.util.DatabaseConfig.url</p>
       <p>
-        Your GitBucket is running on embedded H2 database.
-        Recommend to <a href="https://github.com/gitbucket/gitbucket/wiki/External-database-configuration">configure to use external database</a> if you would like to use GitBucket for important purpose.
+        GitBucket is using the embedded H2 database.
+        It's recommended that you <a href="https://github.com/gitbucket/gitbucket/wiki/External-database-configuration">configure GitBucket to use an external database</a> if you're running GitBucket in a production environment.
       </p>
     </td>
     }else{
@@ -43,15 +43,15 @@
     </div>
 </fieldset>
 <p class="muted">
-  The base URL is used for redirect, notification email, git repository URL box and more.
-  If the base URL is empty, GitBucket generates URL from the request information.
-  You can use this property to adjust to URL differences between the reverse proxy and GitBucket.
+  The base URL is used for redirects, notification emails, git repository URL boxes, and more.
+  If the base URL is empty, GitBucket generates the URL from the request information.
+  You can use this property to adjust to URL differences between a reverse proxy and GitBucket.
 </p>
 <!--====================================================================-->
 <!-- Information -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">Information</span> (HTML is available)</label>
+<label><span class="strong">Site notification</span> (Supports HTML)</label>
 <fieldset>
   <textarea name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
 </fieldset>
@@ -266,32 +266,18 @@
   </div>
 </fieldset>
 <!--====================================================================-->
-<!-- Activity -->
-<!--====================================================================-->
-<hr>
-<label><span class="strong">Limit of activity logs</span> (Unlimited if it is not specified or zero)</label>
-<fieldset>
-  <div class="form-group">
-    <label class="control-label col-md-2" for="activityLogLimit">Limit</label>
-    <div class="col-md-10">
-      <input type="text" id="activityLogLimit" name="activityLogLimit" class="form-control input-mini" value="@context.settings.activityLogLimit"/>
-      <span id="error-activityLogLimit" class="error"></span>
-    </div>
-  </div>
-</fieldset>
-<!--====================================================================-->
 <!-- Sidebar -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">Show Repositories in Sidebar</span></label>
+<label><span class="strong">Show repositories in sidebar</span></label>
 <fieldset>
   <label class="radio">
     <input type="radio" name="limitVisibleRepositories" value="false"@if(!context.settings.limitVisibleRepositories){ checked}>
-    <span class="strong">All</span> <span class="normal">- Show all repositories in sidebar.</span>
+    <span class="strong">All</span> <span class="normal">- Show all visible repositories in sidebar.</span>
   </label>
   <label class="radio">
     <input type="radio" name="limitVisibleRepositories" value="true"@if(context.settings.limitVisibleRepositories){ checked}>
-    <span class="strong">Limited</span> <span class="normal">- Limit the visible repositories in sidebar.</span>
+    <span class="strong">Limited</span> <span class="normal">- Show only owned repositories in sidebar.</span>
   </label>
 </fieldset>
 <script>

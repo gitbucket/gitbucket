@@ -4,10 +4,10 @@ import gitbucket.core.model._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 class CommitStatusServiceSpec
-    extends FunSuite
+    extends AnyFunSuite
     with ServiceSpecBase
     with CommitStatusService
     with RepositoryService

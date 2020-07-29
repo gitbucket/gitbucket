@@ -1,10 +1,10 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
 class PullRequestServiceSpec
-    extends FunSpec
+    extends AnyFunSpec
     with ServiceSpecBase
     with MergeService
     with PullRequestService
@@ -18,7 +18,8 @@ class PullRequestServiceSpec
     with PrioritiesService
     with WebHookService
     with WebHookPullRequestService
-    with WebHookPullRequestReviewCommentService {
+    with WebHookPullRequestReviewCommentService
+    with RequestCache {
 
   def swap(r: (Issue, PullRequest)) = (r._2 -> r._1)
 

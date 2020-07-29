@@ -14,16 +14,15 @@ import java.io.File
 import gitbucket.core.controller.Context
 import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
-import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
 
 import scala.util.Random
 import scala.util.Using
 
-trait ServiceSpecBase extends MockitoSugar {
+trait ServiceSpecBase {
 
-  val request = mock[HttpServletRequest]
-  val session = mock[HttpSession]
+  val request = mock(classOf[HttpServletRequest])
+  val session = mock(classOf[HttpSession])
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
   when(request.getRequestURI).thenReturn("/path.html")
   when(request.getContextPath).thenReturn("")
@@ -45,7 +44,6 @@ trait ServiceSpecBase extends MockitoSugar {
       ),
       gravatar = false,
       notification = false,
-      activityLogLimit = None,
       limitVisibleRepositories = false,
       ssh = Ssh(
         enabled = false,
@@ -99,7 +97,7 @@ trait ServiceSpecBase extends MockitoSugar {
   lazy val dummyService = new RepositoryService with AccountService with ActivityService with IssuesService
   with MergeService with PullRequestService with CommitsService with CommitStatusService with LabelsService
   with MilestonesService with PrioritiesService with WebHookService with WebHookPullRequestService
-  with WebHookPullRequestReviewCommentService {
+  with WebHookPullRequestReviewCommentService with RequestCache {
     override def fetchAsPullRequest(
       userName: String,
       repositoryName: String,

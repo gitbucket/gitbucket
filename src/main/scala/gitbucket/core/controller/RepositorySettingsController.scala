@@ -30,8 +30,10 @@ class RepositorySettingsController
     with ProtectedBranchService
     with CommitStatusService
     with DeployKeyService
+    with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator
+    with RequestCache
 
 trait RepositorySettingsControllerBase extends ControllerBase {
   self: RepositoryService
@@ -40,6 +42,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     with ProtectedBranchService
     with CommitStatusService
     with DeployKeyService
+    with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator =>
 
@@ -97,9 +100,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       "events" -> webhookEvents,
       "ctype" -> label("ctype", text()),
       "token" -> optional(trim(label("token", text(maxlength(100)))))
-    )(
-      (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
-    )
+    )((url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token))
 
   // for rename repository
   case class RenameRepositoryForm(repositoryName: String)
@@ -251,9 +252,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Send the test request to registered web hook URLs.
    */
   ajaxPost("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
-    def _headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map { h =>
-      Array(h.getName, h.getValue)
-    }
+    def _headers(h: Array[org.apache.http.Header]): Array[Array[String]] =
+      h.map { h =>
+        Array(h.getName, h.getValue)
+      }
 
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
@@ -371,7 +373,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
     if (context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin) {
       if (repository.name != form.repositoryName) {
+        // Update database and move git repository
         renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+        // Record activity log
+        recordRenameRepositoryActivity(
+          repository.owner,
+          form.repositoryName,
+          repository.name,
+          context.loginAccount.get.userName
+        )
       }
       redirect(s"/${repository.owner}/${form.repositoryName}")
     } else Forbidden()
@@ -384,7 +394,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     if (context.settings.repositoryOperation.transfer || context.loginAccount.get.isAdmin) {
       // Change repository owner
       if (repository.owner != form.newOwner) {
+        // Update database and move git repository
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+        // Record activity log
+        recordRenameRepositoryActivity(
+          form.newOwner,
+          repository.name,
+          repository.owner,
+          context.loginAccount.get.userName
+        )
       }
       redirect(s"/${form.newOwner}/${repository.name}")
     } else Forbidden()
@@ -435,32 +453,34 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Provides duplication check for web hook url.
    */
-  private def webHook(needExists: Boolean): Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if (getWebHook(params("owner"), params("repository"), value).isDefined != needExists) {
-        Some(if (needExists) {
-          "URL had not been registered yet."
+  private def webHook(needExists: Boolean): Constraint =
+    new Constraint() {
+      override def validate(name: String, value: String, messages: Messages): Option[String] =
+        if (getWebHook(params("owner"), params("repository"), value).isDefined != needExists) {
+          Some(if (needExists) {
+            "URL had not been registered yet."
+          } else {
+            "URL had been registered already."
+          })
         } else {
-          "URL had been registered already."
-        })
-      } else {
-        None
-      }
-  }
-
-  private def webhookEvents = new ValueType[Set[WebHook.Event]] {
-    def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
-      WebHook.Event.values.flatMap { t =>
-        params.get(name + "." + t.name).map(_ => t)
-      }.toSet
+          None
+        }
     }
-    def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
-      if (convert(name, params, messages).isEmpty) {
-        Seq(name -> messages("error.required").format(name))
-      } else {
-        Nil
+
+  private def webhookEvents =
+    new ValueType[Set[WebHook.Event]] {
+      def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
+        WebHook.Event.values.flatMap { t =>
+          params.get(name + "." + t.name).map(_ => t)
+        }.toSet
       }
-  }
+      def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
+        if (convert(name, params, messages).isEmpty) {
+          Seq(name -> messages("error.required").format(name))
+        } else {
+          Nil
+        }
+    }
 
 //  /**
 //   * Provides Constraint to validate the collaborator name.
@@ -480,70 +500,77 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Duplicate check for the rename repository name.
    */
-  private def renameRepositoryName: Constraint = new Constraint() {
-    override def validate(
-      name: String,
-      value: String,
-      params: Map[String, Seq[String]],
-      messages: Messages
-    ): Option[String] = {
-      for {
-        repoName <- params.optionValue("repository") if repoName != value
-        userName <- params.optionValue("owner")
-        _ <- getRepositoryNamesOfUser(userName).find(_ == value)
-      } yield {
-        "Repository already exists."
+  private def renameRepositoryName: Constraint =
+    new Constraint() {
+      override def validate(
+        name: String,
+        value: String,
+        params: Map[String, Seq[String]],
+        messages: Messages
+      ): Option[String] = {
+        for {
+          repoName <- params.optionValue("repository") if repoName != value
+          userName <- params.optionValue("owner")
+          _ <- getRepositoryNamesOfUser(userName).find(_ == value)
+        } yield {
+          "Repository already exists."
+        }
       }
     }
-  }
 
   /**
-   *
    */
-  private def featureOption: Constraint = new Constraint() {
-    override def validate(
-      name: String,
-      value: String,
-      params: Map[String, Seq[String]],
-      messages: Messages
-    ): Option[String] =
-      if (Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
-  }
+  private def featureOption: Constraint =
+    new Constraint() {
+      override def validate(
+        name: String,
+        value: String,
+        params: Map[String, Seq[String]],
+        messages: Messages
+      ): Option[String] =
+        if (Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
+    }
 
   /**
    * Provides Constraint to validate the repository transfer user.
    */
-  private def transferUser: Constraint = new Constraint() {
-    override def validate(name: String, value: String, messages: Messages): Option[String] =
-      getAccountByUserName(value) match {
-        case None => Some("User does not exist.")
-        case Some(x) =>
-          if (x.userName == params("owner")) {
-            Some("This is current repository owner.")
-          } else {
-            params.get("repository").flatMap { repositoryName =>
-              getRepositoryNamesOfUser(x.userName).find(_ == repositoryName).map { _ =>
-                "User already has same repository."
+  private def transferUser: Constraint =
+    new Constraint() {
+      override def validate(name: String, value: String, messages: Messages): Option[String] =
+        getAccountByUserName(value) match {
+          case None => Some("User does not exist.")
+          case Some(x) =>
+            if (x.userName == params("owner")) {
+              Some("This is current repository owner.")
+            } else {
+              params.get("repository").flatMap { repositoryName =>
+                getRepositoryNamesOfUser(x.userName).find(_ == repositoryName).map { _ =>
+                  "User already has same repository."
+                }
               }
             }
-          }
-      }
-  }
+        }
+    }
 
-  private def mergeOptions = new ValueType[Seq[String]] {
-    override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] = {
-      params.getOrElse("mergeOptions", Nil)
-    }
-    override def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = {
-      val mergeOptions = params.getOrElse("mergeOptions", Nil)
-      if (mergeOptions.isEmpty) {
-        Seq("mergeOptions" -> "At least one option must be enabled.")
-      } else if (!mergeOptions.forall(x => Seq("merge-commit", "squash", "rebase").contains(x))) {
-        Seq("mergeOptions" -> "mergeOptions are invalid.")
-      } else {
-        Nil
+  private def mergeOptions =
+    new ValueType[Seq[String]] {
+      override def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[String] = {
+        params.getOrElse("mergeOptions", Nil)
+      }
+      override def validate(
+        name: String,
+        params: Map[String, Seq[String]],
+        messages: Messages
+      ): Seq[(String, String)] = {
+        val mergeOptions = params.getOrElse("mergeOptions", Nil)
+        if (mergeOptions.isEmpty) {
+          Seq("mergeOptions" -> "At least one option must be enabled.")
+        } else if (!mergeOptions.forall(x => Seq("merge-commit", "squash", "rebase").contains(x))) {
+          Seq("mergeOptions" -> "mergeOptions are invalid.")
+        } else {
+          Nil
+        }
       }
     }
-  }
 
 }

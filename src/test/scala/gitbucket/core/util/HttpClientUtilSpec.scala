@@ -1,8 +1,8 @@
 package gitbucket.core.util
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class HttpClientUtilSpec extends FunSuite {
+class HttpClientUtilSpec extends AnyFunSuite {
 
   test("isPrivateAddress") {
     assert(HttpClientUtil.isPrivateAddress("localhost") == true)

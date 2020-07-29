@@ -1,8 +1,8 @@
 package gitbucket.core.util
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class StringUtilSpec extends FunSpec {
+class StringUtilSpec extends AnyFunSpec {
 
   describe("urlEncode") {
     it("should encode whitespace to %20") {
@@ -63,6 +63,9 @@ class StringUtilSpec extends FunSpec {
     }
     it("should returns Nil from message which does not contain close command") {
       assert(StringUtil.extractCloseId("(refs #123)").toSeq == Nil)
+    }
+    it("should extract 'close #x, #y, #z' and return extracted multi id") {
+      assert(StringUtil.extractCloseId("(close #1, #2, #3, wip #4, close #5)").toSeq == Seq("1", "2", "3", "5"))
     }
   }
 

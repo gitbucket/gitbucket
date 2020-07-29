@@ -9,14 +9,13 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
 import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings, Upload, WebHook}
 import org.mockito.Mockito._
-import org.scalatest.FunSpec
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.funspec.AnyFunSpec
 import play.twirl.api.Html
 
-class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
+class AvatarImageProviderSpec extends AnyFunSpec {
 
-  val request = mock[HttpServletRequest]
-  val session = mock[HttpSession]
+  val request = mock(classOf[HttpServletRequest])
+  val session = mock(classOf[HttpSession])
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
   when(request.getRequestURI).thenReturn("/path.html")
   when(request.getContextPath).thenReturn("")
@@ -131,7 +130,6 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       ),
       gravatar = useGravatar,
       notification = false,
-      activityLogLimit = None,
       limitVisibleRepositories = false,
       ssh = Ssh(
         enabled = false,
@@ -169,8 +167,9 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       context: Context
     ): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
 
-    override def getAccountByMailAddress(mailAddress: String)(implicit context: Context): Option[Account] = account
-    override def getAccountByUserName(userName: String)(implicit context: Context): Option[Account] = account
+    override def getAccountByMailAddressFromCache(mailAddress: String)(implicit context: Context): Option[Account] =
+      account
+    override def getAccountByUserNameFromCache(userName: String)(implicit context: Context): Option[Account] = account
   }
 
 }

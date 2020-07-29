@@ -1,7 +1,22 @@
 package gitbucket.core
 
-import io.github.gitbucket.solidbase.migration.{SqlMigration, LiquibaseMigration}
-import io.github.gitbucket.solidbase.model.{Version, Module}
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.sql.Connection
+import java.util
+import java.util.UUID
+
+import gitbucket.core.model.Activity
+import gitbucket.core.util.Directory.ActivityLog
+import gitbucket.core.util.JDBCUtil
+import io.github.gitbucket.solidbase.Solidbase
+import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration, SqlMigration}
+import io.github.gitbucket.solidbase.model.{Module, Version}
+import org.json4s.NoTypeHints
+import org.json4s.jackson.Serialization
+import org.json4s.jackson.Serialization.write
+
+import scala.util.Using
 
 object GitBucketCoreModule
     extends Module(
@@ -65,5 +80,38 @@ object GitBucketCoreModule
       new Version("4.31.1"),
       new Version("4.31.2"),
       new Version("4.32.0", new LiquibaseMigration("update/gitbucket-core_4.32.xml")),
-      new Version("4.33.0")
+      new Version("4.33.0"),
+      new Version(
+        "4.34.0",
+        new Migration() {
+          override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
+            implicit val formats = Serialization.formats(NoTypeHints)
+            import JDBCUtil._
+
+            val conn = context.get(Solidbase.CONNECTION).asInstanceOf[Connection]
+            val list = conn.select("SELECT * FROM ACTIVITY ORDER BY ACTIVITY_ID") {
+              rs =>
+                Activity(
+                  activityId = UUID.randomUUID().toString,
+                  userName = rs.getString("USER_NAME"),
+                  repositoryName = rs.getString("REPOSITORY_NAME"),
+                  activityUserName = rs.getString("ACTIVITY_USER_NAME"),
+                  activityType = rs.getString("ACTIVITY_TYPE"),
+                  message = rs.getString("MESSAGE"),
+                  additionalInfo = {
+                    val additionalInfo = rs.getString("ADDITIONAL_INFO")
+                    if (rs.wasNull()) None else Some(additionalInfo)
+                  },
+                  activityDate = rs.getTimestamp("ACTIVITY_DATE")
+                )
+            }
+            Using.resource(new FileOutputStream(ActivityLog, true)) { out =>
+              list.foreach { activity =>
+                out.write((write(activity) + "\n").getBytes(StandardCharsets.UTF_8))
+              }
+            }
+          }
+        },
+        new LiquibaseMigration("update/gitbucket-core_4.34.xml")
+      )
     )

@@ -1,9 +1,9 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class LabelsServiceSpec extends FunSpec with ServiceSpecBase {
+class LabelsServiceSpec extends AnyFunSpec with ServiceSpecBase {
   describe("getLabels") {
     it("should be empty when not have any labels") {
       withTestDB { implicit session =>

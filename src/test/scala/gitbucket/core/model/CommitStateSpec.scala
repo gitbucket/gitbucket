@@ -1,9 +1,9 @@
 package gitbucket.core.model
 
 import gitbucket.core.model.CommitState._
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class CommitStateSpec extends FunSpec {
+class CommitStateSpec extends AnyFunSpec {
   describe("CommitState") {
     it("should combine empty must eq PENDING") {
       assert(combine(Set()) == PENDING)

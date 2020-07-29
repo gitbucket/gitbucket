@@ -2,11 +2,10 @@ package gitbucket.core.servlet
 
 import java.io.{File, FileOutputStream}
 
-import akka.event.Logging
 import com.typesafe.config.ConfigFactory
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.service.{ActivityService, SystemSettingsService}
+import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JDBCUtil._
@@ -21,8 +20,6 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory
-import akka.actor.{Actor, ActorSystem, Props}
-import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
@@ -35,23 +32,23 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
 
-  // ActorSystem for Quartz scheduler
-  private val system = ActorSystem(
-    "job",
-    ConfigFactory.parseString("""
-      |akka {
-      |  daemonic = on
-      |  coordinated-shutdown.run-by-jvm-shutdown-hook = off
-      |  quartz {
-      |    schedules {
-      |      Daily {
-      |        expression = "0 0 0 * * ?"
-      |      }
-      |    }
-      |  }
-      |}
-    """.stripMargin)
-  )
+//  // ActorSystem for Quartz scheduler
+//  private val system = ActorSystem(
+//    "job",
+//    ConfigFactory.parseString("""
+//      |akka {
+//      |  daemonic = on
+//      |  coordinated-shutdown.run-by-jvm-shutdown-hook = off
+//      |  quartz {
+//      |    schedules {
+//      |      Daily {
+//      |        expression = "0 0 0 * * ?"
+//      |      }
+//      |    }
+//      |  }
+//      |}
+//    """.stripMargin)
+//  )
 
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
@@ -95,10 +92,10 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
     }
 
-    // Start Quartz scheduler
-    val scheduler = QuartzSchedulerExtension(system)
-
-    scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
+//    // Start Quartz scheduler
+//    val scheduler = QuartzSchedulerExtension(system)
+//
+//    scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
   }
 
   private def checkVersion(manager: JDBCVersionManager, conn: java.sql.Connection): Unit = {
@@ -172,30 +169,12 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
   }
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {
-    // Shutdown Quartz scheduler
-    system.terminate()
+//    // Shutdown Quartz scheduler
+//    system.terminate()
     // Shutdown plugins
     PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
     // Close datasource
     Database.closeDataSource()
   }
 
-}
-
-class DeleteOldActivityActor extends Actor with SystemSettingsService with ActivityService {
-
-  private val logger = Logging(context.system, this)
-
-  def receive = {
-    case s: String => {
-      loadSystemSettings().activityLogLimit.foreach { limit =>
-        if (limit > 0) {
-          Database() withTransaction { implicit session =>
-            val rows = deleteOldActivities(limit)
-            logger.info(s"Deleted ${rows} activity logs")
-          }
-        }
-      }
-    }
-  }
 }

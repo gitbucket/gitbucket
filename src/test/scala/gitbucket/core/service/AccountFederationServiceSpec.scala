@@ -1,8 +1,8 @@
 package gitbucket.core.service
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class AccountFederationServiceSpec extends FunSpec with ServiceSpecBase {
+class AccountFederationServiceSpec extends AnyFunSpec with ServiceSpecBase {
 
   describe("getOrCreateFederatedUser") {
     it("should create a federated account if it does not exist") {

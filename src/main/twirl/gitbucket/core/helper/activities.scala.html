@@ -8,21 +8,24 @@
   @activities.map { activity =>
     <div class="list-group-item">
       @(activity.activityType match {
-        case "open_issue"        => detailActivity(activity, "issue-opened")
-        case "comment_issue"     => detailActivity(activity, "comment-discussion")
-        case "comment_commit"    => detailActivity(activity, "comment-discussion")
-        case "close_issue"       => detailActivity(activity, "issue-closed")
-        case "reopen_issue"      => detailActivity(activity, "issue-reopened")
-        case "open_pullreq"      => detailActivity(activity, "git-pull-request")
-        case "merge_pullreq"     => detailActivity(activity, "git-merge")
-        case "release"           => detailActivity(activity, "package")
-        case "create_repository" => simpleActivity(activity, "repo")
-        case "create_branch"     => simpleActivity(activity, "git-branch")
-        case "delete_branch"     => simpleActivity(activity, "circle-slash")
-        case "create_tag"        => simpleActivity(activity, "tag")
-        case "delete_tag"        => simpleActivity(activity, "circle-slash")
-        case "fork"              => simpleActivity(activity, "repo-forked")
-        case "push"  => customActivity(activity, "git-commit"){
+        case "open_issue"          => simpleActivity(activity)
+        case "comment_issue"       => simpleActivity(activity)
+        case "comment_commit"      => simpleActivity(activity)
+        case "close_issue"         => simpleActivity(activity)
+        case "reopen_issue"        => simpleActivity(activity)
+        case "open_pullreq"        => simpleActivity(activity)
+        case "merge_pullreq"       => simpleActivity(activity)
+        case "release"             => simpleActivity(activity)
+        case "create_repository"   => simpleActivity(activity)
+        case "delete_repository"   => simpleActivity(activity)
+        case "rename_repository"   => simpleActivity(activity)
+        case "transfer_repository" => simpleActivity(activity)
+        case "create_branch"       => simpleActivity(activity)
+        case "delete_branch"       => simpleActivity(activity)
+        case "create_tag"          => simpleActivity(activity)
+        case "delete_tag"          => simpleActivity(activity)
+        case "fork"                => simpleActivity(activity)
+        case "push"  => customActivity(activity){
           <div class="small activity-message">
             {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
               if(i == 3){
@@ -38,12 +41,12 @@
             }}
           </div>
         }
-        case "create_wiki" => customActivity(activity, "book"){
+        case "create_wiki" => customActivity(activity){
           <div class="small activity-message">
             Created <a href={s"${context.path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
           </div>
         }
-        case "edit_wiki" => customActivity(activity, "book"){
+        case "edit_wiki" => customActivity(activity){
           activity.additionalInfo.get.split(":") match {
             case Array(pageName, commitId) =>
               <div class="small activity-message">
@@ -63,26 +66,7 @@
 
 }
 
-@detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
-  @*
-  <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
-  *@
-  <div>
-    <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
-    <div class="strong">
-      @helpers.avatarLink(activity.activityUserName, 16)
-      @helpers.activityMessage(activity.message)
-    </div>
-    @activity.additionalInfo.map { additionalInfo =>
-      <div class=" activity-message">@additionalInfo</div>
-    }
-  </div>
-}
-
-@customActivity(activity: gitbucket.core.model.Activity, image: String)(additionalInfo: Any) = {
-  @*
-  <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
-  *@
+@customActivity(activity: gitbucket.core.model.Activity)(additionalInfo: Any) = {
   <div>
     <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
@@ -93,10 +77,7 @@
   </div>
 }
 
-@simpleActivity(activity: gitbucket.core.model.Activity, image: String) = {
-  @*
-  <div class="activity-icon-small"><i class="octicon octicon-@image"></i></div>
-  *@
+@simpleActivity(activity: gitbucket.core.model.Activity) = {
   <div>
     <span class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
     <div>

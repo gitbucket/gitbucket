@@ -22,7 +22,7 @@ jobs:
         path: |
           ~/.ivy2/cache
           ~/.sbt
-          ~/.coursier
+          ~/.cache/coursier/v1
         key: build-${{ env.cache-name }}-${{ hashFiles('build.sbt') }}
     - name: Set up JDK
       uses: actions/setup-java@v1

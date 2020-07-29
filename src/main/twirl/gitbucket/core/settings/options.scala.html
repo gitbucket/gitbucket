@@ -54,25 +54,25 @@
               <div class="form-check">
                 <input type="radio" class="form-check-input" name="issuesOption" id="issues-option-disable" value="DISABLE"@if(repository.repository.options.issuesOption == "DISABLE"){ checked}/>
                 <label class="form-check-label" for="issues-option-disable">
-                   Disable issue tracking and pull request system
+                  Disable issue tracking and pull requests
                 </label>
               </div>
               <div class="form-check">
                 <input type="radio" class="form-check-input" name="issuesOption" value="PRIVATE" id="issues-option-private"@if(repository.repository.options.issuesOption == "PRIVATE"){ checked}/>
                 <label class="form-check-label" for="issues-option-private">
-                   Developers can view, create and comment on issues and pull requests
+                  Developers can view, create, and comment on issues and pull requests
                 </label>
               </div>
               <div class="form-check">
                 <input type="radio" class="form-check-input" name="issuesOption" value="PUBLIC" id="issues-option-public"@if(repository.repository.options.issuesOption == "PUBLIC"){ checked}/>
                 <label class="form-check-label" for="issues-option-public">
-                   Developers and guests can view, create and comment on issues and pull requests
+                   Developers and guests can view, create, and comment on issues and pull requests
                 </label>
               </div>
               <div class="form-check for-public-repo">
                 <input type="radio" class="form-check-input" name="issuesOption" value="ALL" id="issues-option-all"@if(repository.repository.options.issuesOption == "ALL"){ checked}/>
                 <label class="form-check-label" for="issues-option-all">
-                   All users can view, create and comment on issues and pull requests
+                   All users can view, create, and comment on issues and pull requests
                 </label>
               </div>
               <label for="externalIssuesUrl">External URL:
@@ -93,19 +93,19 @@
               <div class="form-check">
                 <input type="radio" class="form-check-input" name="wikiOption" value="PRIVATE" id="wiki-option-private"@if(repository.repository.options.wikiOption == "PRIVATE"){ checked}/>
                 <label class="form-check-label" for="wiki-option-private">
-                  Developers can view, create and edit wiki pages
+                  Developers can view, create, and edit wiki pages
                 </label>
               </div>
               <div class="form-check">
                 <input type="radio" class="form-check-input" name="wikiOption" value="PUBLIC" id="wiki-option-public"@if(repository.repository.options.wikiOption == "PUBLIC"){ checked}/>
                 <label class="form-check-label" for="wiki-option-public">
-                  Developers and guests can view, create and edit wiki pages
+                  Developers and guests can view, create, and edit wiki pages
                 </label>
               </div>
               <div class="form-check for-public-repo">
                 <input type="radio" class="form-check-input" name="wikiOption" value="ALL" id="wiki-option-all"@if(repository.repository.options.wikiOption == "ALL"){ checked}/>
                 <label class="form-check-label" for="wiki-option-all">
-                  All users can view, create and edit wiki pages
+                  All users can view, create, and edit wiki pages
                 </label>
               </div>
               <label for="externalWikiUrl">External URL:

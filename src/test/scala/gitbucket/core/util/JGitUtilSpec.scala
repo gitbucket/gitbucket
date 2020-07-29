@@ -4,11 +4,11 @@ import GitSpecUtil._
 import org.apache.commons.io.IOUtils
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Constants
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.jdk.CollectionConverters._
 
-class JGitUtilSpec extends FunSuite {
+class JGitUtilSpec extends AnyFunSuite {
 
   test("isEmpty") {
     withTestRepository { git =>
