@@ -274,7 +274,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                 JsonFormat(
                   FailToMergePrResponse(
                     message = "Pull Request is not mergeable",
-                    documentation_url = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
+                    documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
                   )
                 )
               )
