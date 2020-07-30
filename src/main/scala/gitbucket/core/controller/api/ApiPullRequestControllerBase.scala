@@ -10,7 +10,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util._
 import org.eclipse.jgit.api.Git
-import org.scalatra.NoContent
+import org.scalatra.{Conflict, MethodNotAllowed, NoContent, Ok}
 import scala.util.Using
 
 import scala.jdk.CollectionConverters._
@@ -217,8 +217,72 @@ trait ApiPullRequestControllerBase extends ControllerBase {
 
   /*
    * ix. Merge a pull request (Merge Button)
-   * https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
+   * https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request
    */
+  put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
+    (for {
+      //TODO: crash when body is empty
+      //TODO: Implement sha parameter
+      data <- extractFromJsonBody[MergeAPullRequest]
+      issueId <- params("id").toIntOpt
+      (issue, pullReq) <- getPullRequest(repository.owner, repository.name, issueId)
+    } yield {
+      if (checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
+        Conflict(
+          JsonFormat(
+            FailToMergePrResponse(
+              message = "Head branch was modified. Review and try the merge again.",
+              documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
+            )
+          )
+        )
+      } else {
+        if (issue.closed) {
+          MethodNotAllowed(
+            JsonFormat(
+              FailToMergePrResponse(
+                message = "Pull Request is not mergeable, Closed",
+                documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
+              )
+            )
+          )
+        } else {
+          val strategy =
+            if (data.merge_method.getOrElse("merge-commit") == "merge") "merge-commit"
+            else data.merge_method.getOrElse("merge-commit")
+          mergePullRequest(
+            repository,
+            issueId,
+            context.loginAccount.get,
+            data.commit_message.getOrElse(""), //TODO: Implement commit_title
+            strategy,
+            pullReq.isDraft,
+            context.settings
+          ) match {
+            case Right(objectId) =>
+              Ok(
+                JsonFormat(
+                  SuccessToMergePrResponse(
+                    sha = objectId.toString,
+                    merged = true,
+                    message = "Pull Request successfully merged"
+                  )
+                )
+              )
+            case Left(message) =>
+              MethodNotAllowed(
+                JsonFormat(
+                  FailToMergePrResponse(
+                    message = "Pull Request is not mergeable",
+                    documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
+                  )
+                )
+              )
+          }
+        }
+      }
+    })
+  })
 
   /*
    * x. Labels, assignees, and milestones
