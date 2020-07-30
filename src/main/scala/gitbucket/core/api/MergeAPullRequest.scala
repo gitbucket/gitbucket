@@ -1,7 +1,7 @@
 package gitbucket.core.api
 
 /**
- * https://developer.github.com/v3/pulls/#merge-a-pull-request
+ * https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request
  */
 case class MergeAPullRequest(
   commit_title: Option[String],
@@ -18,6 +18,6 @@ case class SuccessToMergePrResponse(
 )
 
 case class FailToMergePrResponse(
-  documentation_ur: String,
+  documentation_url: String,
   message: String
 )

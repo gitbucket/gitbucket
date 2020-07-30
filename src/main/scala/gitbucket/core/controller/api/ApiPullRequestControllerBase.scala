@@ -217,7 +217,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
 
   /*
    * ix. Merge a pull request (Merge Button)
-   * https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
+   * https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request
    */
   put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
     (for {
@@ -232,7 +232,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
           JsonFormat(
             FailToMergePrResponse(
               message = "Head branch was modified. Review and try the merge again.",
-              documentation_ur = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
+              documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
             )
           )
         )
@@ -242,7 +242,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
             JsonFormat(
               FailToMergePrResponse(
                 message = "Pull Request is not mergeable, Closed",
-                documentation_ur = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
+                documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
               )
             )
           )
@@ -274,7 +274,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                 JsonFormat(
                   FailToMergePrResponse(
                     message = "Pull Request is not mergeable",
-                    documentation_ur = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
+                    documentation_url = "https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button",
                   )
                 )
               )
