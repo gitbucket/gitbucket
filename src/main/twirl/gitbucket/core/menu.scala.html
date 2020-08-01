@@ -53,13 +53,13 @@
           @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
         }
       }
-      @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
-        @menuitem("/settings", "settings", "Settings", "gear")
-      }
       @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
         @menu(repository, context).map { link =>
           @menuitem(link.path, link.id, link.label, link.icon.getOrElse("ruby"))
         }
+      }
+      @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
+        @menuitem("/settings", "settings", "Settings", "gear")
       }
     </ul>
   </div>
