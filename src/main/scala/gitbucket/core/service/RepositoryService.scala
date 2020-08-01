@@ -342,6 +342,10 @@ trait RepositoryService {
             repository.originUserName.getOrElse(repository.userName),
             repository.originRepositoryName.getOrElse(repository.repositoryName)
           ),
+          getOpenMilestones(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          ),
           getRepositoryManagers(repository.userName, repository.repositoryName)
         )
     }
@@ -697,6 +701,14 @@ trait RepositoryService {
       (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
     }.length).first
 
+  private def getOpenMilestones(userName: String, repositoryName: String)(implicit s: Session): Int =
+    Query(
+      Milestones
+        .filter(_.byRepository(userName, repositoryName))
+        .filter(_.closedDate.isEmpty)
+        .length
+    ).first
+
   def getForkedRepositories(userName: String, repositoryName: String)(implicit s: Session): List[Repository] =
     Repositories
       .filter { t =>
@@ -749,6 +761,7 @@ object RepositoryService {
     issueCount: Int,
     pullCount: Int,
     forkedCount: Int,
+    milestoneCount: Int,
     branchList: Seq[String],
     tags: Seq[JGitUtil.TagInfo],
     managers: Seq[String]
@@ -763,15 +776,27 @@ object RepositoryService {
       issueCount: Int,
       pullCount: Int,
       forkedCount: Int,
+      milestoneCount: Int,
       managers: Seq[String]
     ) =
-      this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, repo.branchList, repo.tags, managers)
+      this(
+        repo.owner,
+        repo.name,
+        model,
+        issueCount,
+        pullCount,
+        forkedCount,
+        milestoneCount,
+        repo.branchList,
+        repo.tags,
+        managers
+      )
 
     /**
-     * Creates instance without issue and  pull request count.
+     * Creates instance without issue, pull request, and milestone count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, forkedCount: Int, managers: Seq[String]) =
-      this(repo.owner, repo.name, model, 0, 0, forkedCount, repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, 0, 0, forkedCount, 0, repo.branchList, repo.tags, managers)
 
     def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)

@@ -40,7 +40,7 @@
         @menuitem("/pulls", "pulls", "Pull requests", "git-pull-request", repository.pullCount)
         @menuitem("/issues/labels", "labels", "Labels", "tag")
         @menuitem("/issues/priorities", "priorities", "Priorities", "flame")
-        @menuitem("/issues/milestones", "milestones", "Milestones", "milestone")
+        @menuitem("/issues/milestones", "milestones", "Milestones", "milestone", repository.milestoneCount)
       } else {
         @repository.repository.options.externalIssuesUrl.map { externalIssuesUrl =>
           @menuitem(externalIssuesUrl, "issues", "Issues", "issue-opened")
