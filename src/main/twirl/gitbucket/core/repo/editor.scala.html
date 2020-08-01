@@ -39,6 +39,25 @@
                 </optgroup>
               </select>
             </div>
+            <div class="pull-right">
+              <select id="theme" class="form-control" style="margin-bottom: 0px; padding: 0px;">
+                <optgroup label="Editor Theme">
+                  <option value="ambiance">Ambiance</option>
+                  <option value="chaos">Chaos</option>
+                  <option value="chrome">Chrome</option>
+                  <option value="clouds">Clouds</option>
+                  <option value="eclipse">Eclipse</option>
+                  <option value="github">GitHub</option>
+                  <option selected value="monokai">Monokai</option>
+                  <option value="solarized_dark">Solarized dark</option>
+                  <option value="terminal">Terminal</option>
+                  <option value="tomorrow">Tomorrow</option>
+                  <option value="twilight">Twilight</option>
+                  <option value="vibrant_ink">Vibrant Ink</option>
+                  <option value="xcode">Xcode</option>
+                </optgroup>
+              </select>
+            </div>
             <div class="btn-group" data-toggle="buttons-radio">
               <input type="button" id="btn-code" class="btn btn-default btn-small active" value="Code">
               <input type="button" id="btn-preview" class="btn btn-default btn-small" value="Preview">
@@ -86,7 +105,11 @@
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
-  editor.setTheme("ace/theme/monokai");
+  editor.setTheme("ace/theme/" + $('#theme').val());
+
+  $('#theme').change(function(){
+    editor.setTheme("ace/theme/" + $('#theme').val());
+  });
 
   if(localStorage.getItem('gitbucket:editor:wrap') == 'true'){
     editor.getSession().setUseWrapMode(true);
