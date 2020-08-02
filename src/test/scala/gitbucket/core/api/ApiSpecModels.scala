@@ -79,6 +79,7 @@ object ApiSpecModels {
     issueCount = 1,
     pullCount = 1,
     forkedCount = 1,
+    milestoneCount = 1,
     branchList = Seq("master", "develop"),
     tags = Seq(
       TagInfo(name = "v1.0", time = date("2015-05-05T23:40:27Z"), id = "id1", message = "1.0 released"),
