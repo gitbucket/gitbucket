@@ -848,15 +848,19 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     redirect(s"${repository.owner}/${repository.name}/releases")
   })
 
-  get("/:owner/:repository/archive/:name")(referrersOnly { repository =>
-    val name = params("name")
-    archiveRepository(name, repository, "")
+  get("/:owner/:repository/archive-whole-repo/*")(referrersOnly { repository =>
+    val name = params.get("splat")
+    if (name.isDefined) {
+      archiveRepository(name.get, repository, "")
+    }
   })
 
-  get("/:owner/:repository/archive/*/:name")(referrersOnly { repository =>
-    val name = params("name")
-    val path = multiParams("splat").head
-    archiveRepository(name, repository, path)
+  get("/:owner/:repository/archive-partial-repo/*")(referrersOnly { repository =>
+    val name = params.get("name")
+    if (name.isDefined) {
+      val path = multiParams("splat").head
+      archiveRepository(name.get, repository, path)
+    }
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>

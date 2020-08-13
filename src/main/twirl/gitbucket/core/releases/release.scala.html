@@ -48,8 +48,8 @@
                 <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
               </li>
             }
-            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
-            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
+            <li><a href="@helpers.url(repository)/archive-whole-repo/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
+            <li><a href="@helpers.url(repository)/archive-whole-repo/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
           </ul>
         </div>
       </div>
