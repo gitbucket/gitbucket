@@ -322,6 +322,13 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
                         getIssue(owner, repository, issueId.toString).foreach { issue =>
                           callIssuesWebHook("closed", repositoryInfo, issue, pusherAccount, settings)
+                          recordCloseIssueActivity(
+                            owner,
+                            repository,
+                            pusherAccount.userName,
+                            issue.issueId,
+                            issue.title
+                          )
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repositoryInfo, commit.fullMessage, pusherAccount))
                         }
