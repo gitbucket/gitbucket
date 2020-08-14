@@ -931,7 +931,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 if (path == ".") revCommit else JGitUtil.getLastModifiedCommit(git, revCommit, path)
               val commitCount = JGitUtil.getCommitCount(git, lastModifiedCommit.getName)
               // get files
-              val files = JGitUtil.getFileList(git, revision, path, context.settings.baseUrl, commitCount)
+              val files = JGitUtil.getFileList(
+                git,
+                revision,
+                path,
+                context.settings.baseUrl,
+                commitCount,
+                context.settings.repositoryViewer.maxFiles
+              )
               val parentPath = if (path == ".") Nil else path.split("/").toList
               // process README.md or README.markdown
               val readme = files
