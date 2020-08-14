@@ -374,6 +374,7 @@ object JGitUtil {
    * @param path the directory path (optional)
    * @param baseUrl the base url of GitBucket instance. This parameter is used to generate links of submodules (optional)
    * @param commitCount the number of commit of this repository (optional). If this number is greater than threshold, the commit info is cached in memory.
+   * @param maxFiles don't fetch commit info if the number of files in the directory is bigger than this number.
    * @return The list of files in the specified directory. If the number of files are greater than threshold, the returned file list won't include the commit info.
    */
   def getFileList(
@@ -381,7 +382,8 @@ object JGitUtil {
     revision: String,
     path: String = ".",
     baseUrl: Option[String] = None,
-    commitCount: Int = 0
+    commitCount: Int = 0,
+    maxFiles: Int = 100
   ): List[FileInfo] = {
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val objectId = git.getRepository.resolve(revision)
@@ -436,13 +438,13 @@ object JGitUtil {
       ): List[(ObjectId, FileMode, String, String, Option[String], Option[RevCommit])] = {
         fileList.map {
           case (id, mode, name, path, opt) =>
-            // Don't attempt to get the last commit if the number of files is very large.
-            if (fileList.size >= 100) {
+            if (maxFiles > 0 && fileList.size >= maxFiles) {
+              // Don't attempt to get the last commit if the number of files is very large.
               (id, mode, name, path, opt, None)
             } else if (commitCount < 10000) {
-              val i = git
               (id, mode, name, path, opt, Some(getCommit(path)))
             } else {
+              // Use in-memory cache if the commit count is too big.
               val cached = objectCommitCache.getEntry(id)
               if (cached == null) {
                 val commit = getCommit(path)

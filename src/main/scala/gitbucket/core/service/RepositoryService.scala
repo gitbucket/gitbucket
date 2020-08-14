@@ -740,9 +740,10 @@ trait RepositoryService {
 
     // Get template file from project root. When didn't find, will lookup default folder.
     Using.resource(Git.open(Directory.getRepositoryDir(repository.owner, repository.name))) { git =>
-      choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, "."))
+      // maxFiles = 1 means not get commit info because the only objectId and filename are necessary here
+      choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".", maxFiles = 1))
         .orElse {
-          choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".gitbucket"))
+          choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".gitbucket", maxFiles = 1))
         }
         .map { file =>
           JGitUtil.getContentFromId(git, file.id, true).collect {

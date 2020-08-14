@@ -7,7 +7,14 @@ import javax.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
-import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings, Upload, WebHook}
+import gitbucket.core.service.SystemSettingsService.{
+  RepositoryOperation,
+  RepositoryViewerSettings,
+  Ssh,
+  SystemSettings,
+  Upload,
+  WebHook
+}
 import org.mockito.Mockito._
 import org.scalatest.funspec.AnyFunSpec
 import play.twirl.api.Html
@@ -154,6 +161,9 @@ class AvatarImageProviderSpec extends AnyFunSpec {
         timeout = 30 * 10000,
         largeMaxFileSize = 3 * 1024 * 1024,
         largeTimeout = 30 * 10000
+      ),
+      repositoryViewer = RepositoryViewerSettings(
+        maxFiles = 0
       )
     )
 

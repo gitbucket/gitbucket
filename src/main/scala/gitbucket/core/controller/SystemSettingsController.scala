@@ -108,7 +108,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "timeout" -> trim(label("Timeout", long(required))),
       "largeMaxFileSize" -> trim(label("Max file size for large file", long(required))),
       "largeTimeout" -> trim(label("Timeout for large file", long(required)))
-    )(Upload.apply)
+    )(Upload.apply),
+    "repositoryViewer" -> mapping(
+      "maxFiles" -> trim(label("Max files", number(required)))
+    )(RepositoryViewerSettings.apply)
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {

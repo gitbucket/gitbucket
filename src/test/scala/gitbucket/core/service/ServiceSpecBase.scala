@@ -12,7 +12,7 @@ import java.sql.DriverManager
 import java.io.File
 
 import gitbucket.core.controller.Context
-import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, Ssh, SystemSettings}
+import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, RepositoryViewerSettings, Ssh, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 import org.mockito.Mockito._
 
@@ -68,6 +68,9 @@ trait ServiceSpecBase {
         timeout = 30 * 10000,
         largeMaxFileSize = 3 * 1024 * 1024,
         largeTimeout = 30 * 10000
+      ),
+      repositoryViewer = RepositoryViewerSettings(
+        maxFiles = 0
       )
     )
 
