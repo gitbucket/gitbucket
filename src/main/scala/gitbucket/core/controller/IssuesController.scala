@@ -417,6 +417,28 @@ trait IssuesControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
+  /**
+   * JSON API for issue and PR completion.
+   */
+  ajaxGet("/:owner/:repository/_issue/proposals")(writableUsersOnly { repository =>
+    contentType = formats("json")
+    org.json4s.jackson.Serialization.write(
+      Map(
+        "options" -> (
+          getAllIssues(repository.owner, repository.name)
+            .map { t =>
+              Map(
+                "label" -> s"""${if (t.isPullRequest) "<i class='octicon octicon-git-pull-request'></i>"
+                else "<i class='octicon octicon-issue-opened'></i>"}<b> #${StringUtil
+                  .escapeHtml(t.issueId.toString)} ${StringUtil.escapeHtml(t.title)}</b>""",
+                "value" -> t.issueId.toString
+              )
+            }
+        )
+      )
+    )
+  })
+
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
   val milestoneId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
   val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)

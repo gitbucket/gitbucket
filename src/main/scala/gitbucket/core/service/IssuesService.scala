@@ -31,6 +31,9 @@ trait IssuesService {
       Issues filter (_.byPrimaryKey(owner, repository, issueId.toInt)) firstOption
     else None
 
+  def getAllIssues(owner: String, repository: String)(implicit s: Session): List[Issue] =
+    Issues filter (_.byRepository(owner, repository)) sortBy (_.issueId desc) list
+
   def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
     IssueComments filter (_.byIssue(owner, repository, issueId)) sortBy (_.commentId asc) list
 
