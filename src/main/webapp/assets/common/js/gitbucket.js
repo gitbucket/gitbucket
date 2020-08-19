@@ -763,3 +763,170 @@ var applyTaskListCheckedStatus = function(commentArea, checkboxes) {
   ss.pop();
   return ss.join('');
 };
+
+/**
+ * helper function for markdown toolbar operation
+ * check if index position is the middle of a word.
+ * @param txt {String}
+ * @param pos {Number}
+ * returns {Boolean}
+ */
+function isInWord(txt, pos){
+  if(pos <= 0){
+    return false;
+  }else if(pos === txt.length){
+    return false
+  }else{
+    return (txt[pos - 1].match(/\s/g) === null) && (txt[pos].match(/\s/g) === null);
+  }
+};
+
+/**
+ * helper function for markdown toolbar operation
+ * get index of word start position and end position.
+ * @param txt {String}
+ * @param pos {Number}
+ * returns {Array[Number, Number]}
+ */
+function findWordStartEnd(txt, pos){
+  var start = pos;
+  var end = pos;
+  for(var i=pos;i>=0;i--){
+    start = i;
+    if(txt[i].match(/\s/g) !== null){
+      start += 1;
+      break;
+    }
+  }
+  for(var i=pos,l=txt.length;i<l;i++){
+    end = i;
+    if(txt[i].match(/\s/g) !== null){
+      break;
+    }
+  }
+  if(end === (txt.length - 1)) {
+    end += 1;
+  }
+  return [start, end];
+};
+
+/**
+ * helper function for markdown toolbar operation
+ * get previous line break position in txt
+ * @param txt {String}
+ * @param pos {Number}
+ * returns {Number}
+ */
+function findPreviousLineBreak(txt, pos){
+  var start = pos;
+  if(pos === 0) {
+    return 0;
+  }
+  for(var i=pos;i>=0;i--){
+    if(txt[i] === "\n"){
+      start = i;
+      break;
+    }
+  }
+  return start + 1;
+};
+
+/**
+ * functions for insert markdown pattern into text.
+ * for heading and mention, etc. e.g. a|bs => {pattern} a|bs ('|' means cursor)
+ * @param id {String}
+ * @param pattern {String}
+ * @param posOffset {Number}
+ * returns {String}
+ */
+function mdeDecWord(id, pattern, posOffset){
+  var txt = $(id).val();
+  var pos = $(id).prop('selectionStart');
+  var newTxt = txt;
+  var focusPos = pos + pattern.length;
+  if(isInWord(txt, pos)){
+    var wordPos = findWordStartEnd(txt, pos);
+    newTxt = txt.slice(0, wordPos[0]) + pattern + " " + txt.slice(wordPos[0]);
+  }else{
+    newTxt = txt.slice(0, pos) + pattern + " " + txt.slice(pos);
+  }
+  $(id).val(newTxt);
+  $(id).focus();
+  $(id).prop('selectionEnd', focusPos + posOffset);
+};
+
+/**
+ * functions for insert markdown pattern into text.
+ * for quote, list, task list, etc. e.g. a|bs => \n\n{pattern} a|bs
+ *
+ * @param id {String}
+ * @param pattern {String}
+ * returns {String}
+ */
+function mdeDecWordToNewLine(id, pattern){
+  var txt = $(id).val();
+  var pos = $(id).prop('selectionStart');
+  var newTxt = txt;
+  var focusPos = pos;
+  if(isInWord(txt, pos)){
+    var wordPos = findWordStartEnd(txt, pos);
+    newTxt = txt.slice(0, wordPos[0]) + "\n\n"  + pattern + " " + txt.slice(wordPos[0]);
+    focusPos = wordPos[0] + pattern.length + 3;
+  }else{
+    newTxt = txt.slice(0, pos) + "\n\n" + pattern + " " + txt.slice(pos);
+    focusPos = pos + pattern.length + 3;
+  }
+  $(id).val(newTxt);
+  $(id).focus();
+  $(id).prop('selectionEnd', focusPos);
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * for italic ,bold, code, etc. e.g. a|bs => {pattern}a|bs{pattern}
+ * @param id {String}
+ * @param pattern {String}
+ * returns {String}
+ */
+function mdeWrapWord(id, pattern){
+  var txt = $(id).val();
+  var pos = $(id).prop('selectionStart');
+  var newTxt = txt;
+  var focusPos = pos;
+  if(isInWord(txt, pos)){
+    var wordPos = findWordStartEnd(txt, pos);
+    newTxt = txt.slice(0, wordPos[0]) + pattern + txt.slice(wordPos[0], wordPos[1]) + pattern + txt.slice(wordPos[1]);
+    focusPos = pos + pattern.length + (pos - wordPos[0]);
+  }else{
+    newTxt = txt.slice(0, pos) + pattern + pattern + txt.slice(pos);
+    focusPos = pos + pattern.length;
+  }
+  $(id).val(newTxt);
+  $(id).focus();
+  $(id).prop('selectionEnd', focusPos);
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * for link. e.g. a|bs => [abs](|url)
+ * @param id {String}
+ * @param pattern {String}
+ * returns {String}
+ */
+function mdeWrapWordLink(id){
+  var txt = $(id).val();
+  var pos = $(id).prop('selectionStart');
+  var newTxt = txt;
+  var focusPos = pos;
+  if(isInWord(txt, pos)){
+    var wordPos = findWordStartEnd(txt, pos);
+    newTxt = txt.slice(0, wordPos[0]) + "[" + txt.slice(wordPos[0], wordPos[1]) + "](url)" + txt.slice(wordPos[1]);
+    focusPos = wordPos[1] + 3;
+  }else{
+    newTxt = txt.slice(0, pos) + "[](url)" + txt.slice(pos);
+    focusPos = pos + 3;
+  }
+  $(id).val(newTxt);
+  $(id).focus();
+  $(id).prop('selectionEnd', focusPos);
+}

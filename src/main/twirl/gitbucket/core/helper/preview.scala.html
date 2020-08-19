@@ -18,6 +18,15 @@
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab" id="write@uid">Write</a></li>
     <li><a href="#tab@(uid + 1)" data-toggle="tab" id="preview@uid">Preview</a></li>
+    <li class="mde-toolbar"><a id="mde-tasklist@uid"><i class="fa fa-check-square-o" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-list-ol@uid"><i class="fa fa-list-ol" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-list-ul@uid"><i class="fa fa-list-ul" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-link@uid"><i class="fa fa-link" aria-hidden="true"></i></i></a></li>
+    <li class="mde-toolbar"><a id="mde-code@uid"><i class="fa fa-code" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-quote@uid"><i class="fa fa-quote-right" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-italic@uid"><i class="fa fa-italic" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-bold@uid"><i class="fa fa-bold" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-heading@uid"><i class="fa fa-header" aria-hidden="true"></i></a></li>
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
@@ -53,6 +62,7 @@ $(function(){
 
   $('#write@uid').on('shown.bs.tab', function(){
     $('#content@uid').trigger('focus');
+    $(".mde-toolbar").show();
   });
 
   $('#preview@uid').click(function(){
@@ -68,6 +78,36 @@ $(function(){
       $('#preview-area@uid input').prop('disabled', true);
       prettyPrint();
     });
+    $(".mde-toolbar").hide();
   });
+
+  $('#mde-heading@uid').click(function(){
+    mdeDecWord('#content@uid', '###', 1);
+  });
+  $('#mde-bold@uid').click(function(){
+    mdeWrapWord('#content@uid', '**');
+  });
+  $('#mde-italic@uid').click(function(){
+    mdeWrapWord('#content@uid', '_');
+  });
+  $('#mde-quote@uid').click(function(){
+    mdeDecWordToNewLine('#content@uid', '>');
+  });
+  $('#mde-code@uid').click(function(){
+    mdeWrapWord('#content@uid', '`');
+  });
+  $('#mde-link@uid').click(function(){
+    mdeWrapWordLink('#content@uid');
+  });
+  $('#mde-list-ul@uid').click(function(){
+    mdeDecWordToNewLine('#content@uid', '-');
+  });
+  $('#mde-list-ol@uid').click(function(){
+    mdeDecWordToNewLine('#content@uid', '1.');
+  });
+  $('#mde-tasklist@uid').click(function(){
+    mdeDecWordToNewLine('#content@uid', '- [ ]');
+  });
+
 });
 </script>
