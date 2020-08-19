@@ -867,14 +867,12 @@ function mdeDecWordToNewLine(id, pattern){
   var txt = $(id).val();
   var pos = $(id).prop('selectionStart');
   var newTxt = txt;
-  var focusPos = pos;
+  var focusPos = pos + pattern.length + 3;
   if(isInWord(txt, pos)){
     var wordPos = findWordStartEnd(txt, pos);
     newTxt = txt.slice(0, wordPos[0]) + "\n\n"  + pattern + " " + txt.slice(wordPos[0]);
-    focusPos = wordPos[0] + pattern.length + 3;
   }else{
     newTxt = txt.slice(0, pos) + "\n\n" + pattern + " " + txt.slice(pos);
-    focusPos = pos + pattern.length + 3;
   }
   $(id).val(newTxt);
   $(id).focus();
@@ -896,7 +894,7 @@ function mdeWrapWord(id, pattern){
   if(isInWord(txt, pos)){
     var wordPos = findWordStartEnd(txt, pos);
     newTxt = txt.slice(0, wordPos[0]) + pattern + txt.slice(wordPos[0], wordPos[1]) + pattern + txt.slice(wordPos[1]);
-    focusPos = pos + pattern.length + (pos - wordPos[0]);
+    focusPos = wordPos[0] + pattern.length + (pos - wordPos[0]);
   }else{
     newTxt = txt.slice(0, pos) + pattern + pattern + txt.slice(pos);
     focusPos = pos + pattern.length;
