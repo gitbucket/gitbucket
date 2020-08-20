@@ -180,12 +180,14 @@ trait RepositoryCreationService {
         Database() withTransaction { implicit session =>
           val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
           val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
+          val originDefaultBranchName = repository.repository.defaultBranch
 
           insertRepository(
             repositoryName = repository.name,
             userName = accountName,
             description = repository.repository.description,
             isPrivate = repository.repository.isPrivate,
+            defaultBranch = originDefaultBranchName,
             originRepositoryName = Some(originRepositoryName),
             originUserName = Some(originUserName),
             parentRepositoryName = Some(repository.name),

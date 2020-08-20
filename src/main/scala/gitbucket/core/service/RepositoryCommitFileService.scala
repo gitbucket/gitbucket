@@ -186,6 +186,13 @@ trait RepositoryCommitFileService {
               closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
                 getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                   callIssuesWebHook("closed", repository, issue, loginAccount, settings)
+                  recordCloseIssueActivity(
+                    repository.owner,
+                    repository.name,
+                    loginAccount.userName,
+                    issue.issueId,
+                    issue.title
+                  )
                   PluginRegistry().getIssueHooks
                     .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
                 }

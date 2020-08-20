@@ -27,7 +27,11 @@
             </div>
             <div class="strong">
               @helpers.avatarLink(account.userName, 20)
-              <a href="@helpers.url(account.userName)">@account.userName</a>
+              @if(account.isRemoved){
+                @account.userName
+              } else {
+                <a href="@helpers.url(account.userName)">@account.userName</a>
+              }
               @if(account.isGroupAccount){
                 (Group)
               } else {

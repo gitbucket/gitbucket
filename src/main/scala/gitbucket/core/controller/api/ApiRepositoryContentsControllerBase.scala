@@ -42,11 +42,12 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
         case n =>
           (pathStr.take(n), pathStr.drop(n + 1))
       }
-      getFileList(git, revision, dirName).find(f => f.name.equals(fileName))
+      getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
+        .find(_.name.equals(fileName))
     }
 
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-      val fileList = getFileList(git, refStr, path)
+      val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
       if (fileList.isEmpty) { // file or NotFound
         getFileInfo(git, refStr, path)
           .flatMap { f =>

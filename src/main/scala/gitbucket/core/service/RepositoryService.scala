@@ -34,6 +34,7 @@ trait RepositoryService {
     userName: String,
     description: Option[String],
     isPrivate: Boolean,
+    defaultBranch: String = "master",
     originRepositoryName: Option[String] = None,
     originUserName: Option[String] = None,
     parentRepositoryName: Option[String] = None,
@@ -45,7 +46,7 @@ trait RepositoryService {
         repositoryName = repositoryName,
         isPrivate = isPrivate,
         description = description,
-        defaultBranch = "master",
+        defaultBranch = defaultBranch,
         registeredDate = currentDate,
         updatedDate = currentDate,
         lastActivityDate = currentDate,
@@ -339,6 +340,10 @@ trait RepositoryService {
           issues.count(_ == false),
           issues.count(_ == true),
           getForkedCount(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          ),
+          getOpenMilestones(
             repository.originUserName.getOrElse(repository.userName),
             repository.originRepositoryName.getOrElse(repository.repositoryName)
           ),
@@ -697,6 +702,14 @@ trait RepositoryService {
       (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
     }.length).first
 
+  private def getOpenMilestones(userName: String, repositoryName: String)(implicit s: Session): Int =
+    Query(
+      Milestones
+        .filter(_.byRepository(userName, repositoryName))
+        .filter(_.closedDate.isEmpty)
+        .length
+    ).first
+
   def getForkedRepositories(userName: String, repositoryName: String)(implicit s: Session): List[Repository] =
     Repositories
       .filter { t =>
@@ -728,9 +741,10 @@ trait RepositoryService {
 
     // Get template file from project root. When didn't find, will lookup default folder.
     Using.resource(Git.open(Directory.getRepositoryDir(repository.owner, repository.name))) { git =>
-      choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, "."))
+      // maxFiles = 1 means not get commit info because the only objectId and filename are necessary here
+      choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".", maxFiles = 1))
         .orElse {
-          choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".gitbucket"))
+          choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".gitbucket", maxFiles = 1))
         }
         .map { file =>
           JGitUtil.getContentFromId(git, file.id, true).collect {
@@ -749,6 +763,7 @@ object RepositoryService {
     issueCount: Int,
     pullCount: Int,
     forkedCount: Int,
+    milestoneCount: Int,
     branchList: Seq[String],
     tags: Seq[JGitUtil.TagInfo],
     managers: Seq[String]
@@ -763,15 +778,27 @@ object RepositoryService {
       issueCount: Int,
       pullCount: Int,
       forkedCount: Int,
+      milestoneCount: Int,
       managers: Seq[String]
     ) =
-      this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, repo.branchList, repo.tags, managers)
+      this(
+        repo.owner,
+        repo.name,
+        model,
+        issueCount,
+        pullCount,
+        forkedCount,
+        milestoneCount,
+        repo.branchList,
+        repo.tags,
+        managers
+      )
 
     /**
-     * Creates instance without issue and  pull request count.
+     * Creates instance without issue, pull request, and milestone count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, forkedCount: Int, managers: Seq[String]) =
-      this(repo.owner, repo.name, model, 0, 0, forkedCount, repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, 0, 0, forkedCount, 0, repo.branchList, repo.tags, managers)
 
     def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)

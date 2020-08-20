@@ -280,6 +280,25 @@
     <span class="strong">Limited</span> <span class="normal">- Show only owned repositories in sidebar.</span>
   </label>
 </fieldset>
+<!--====================================================================-->
+<!-- Repository viewer -->
+<!--====================================================================-->
+<hr>
+<label><span class="strong">Repository viewer</span></label>
+<fieldset>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="repositoryViewerMaxFiles">Max files in directory</label>
+    <div class="col-md-10">
+      <input type="text" name="repositoryViewer.maxFiles" id="repositoryViewerMaxFiles" class="form-control" value="@context.settings.repositoryViewer.maxFiles"/>
+      <span id="error-repositoryViewerMaxFiles" class="error"></span>
+      <p class="muted">
+        If the number of files in the directory is bigger than this number, GitBucket doesn't show detailed commit info on the repository viewer
+        because it can make the entire system quite heavy. 0 or negative number means no limitation.
+      </p>
+    </div>
+  </div>
+</fieldset>
+
 <script>
 $(function(){
   $('#skinName').change(function(evt) {
