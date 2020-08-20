@@ -10,7 +10,7 @@
   <div class="px-2 py-1">
     <div id="branch-control-title">
       <span>Switch branches</span>
-      <button id="branch-control-close"  class="close" data-dismiss="modal" aria-label="Close">
+      <button id="branch-control-close" class="close" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
@@ -32,7 +32,7 @@
       e.stopPropagation();
     });
     $('#branch-control-close').click(function() {
-      $('[data-toggle="dropdown"]').parent().removeClass('open');
+      $("[data-toggle="dropdown"]").dropdown('hide');
     });
     $('#branch-control-input').keyup(function() {
       var inputVal = $('#branch-control-input').val();

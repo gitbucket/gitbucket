@@ -32,7 +32,7 @@
         <div class="card-body">
     @if(pathList.isEmpty) {
       @repository.repository.description.map { description =>
-        <p class="d-none d-md-block" style="margin-bottom: 10px;">
+        <p class="d-none d-md-block mb-1">
           <span class="normal muted">@Html(helpers.decorateHtml(helpers.urlLink(description), repository))</span>
         </p>
       }

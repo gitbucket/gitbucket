@@ -38,24 +38,6 @@
     </ol>
     <span>Older</span>
   </div><!-- /.head -->
-  <div id="branchCtrlWrapper" style="display:inline;">
-  @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
-    @repository.branchList.map { x =>
-      <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName((x :: pathList).mkString("/"))">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
-    }
-  }
-  </div>
-  <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
-  @pathList.zipWithIndex.map { case (section, i) =>
-    @if(i == pathList.length - 1){
-      @section
-    } else {
-      <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
-    }
-  }
-  @if(isLfsFile){
-    <span class="label label-info">LFS</span>
-  }
 </div>
 <div class="container">
   <div class="row">
@@ -64,11 +46,37 @@
           <div class="card-header">
             <div class="row">
               <div class="col">
+                <h4>
+                  <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+                  @pathList.zipWithIndex.map { case (section, i) =>
+                    @if(i == pathList.length - 1){
+                      @section
+                    } else {
+                      <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
+                    }
+                  }
+                  @if(isLfsFile){
+                    <span class="label label-info">LFS</span>
+                  }
+                </h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
                 @helpers.avatarLink(latestCommit, 20)
                 @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
                 <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
                 <span class="label label-default">@helpers.readableSize(content.size)</span>
                 <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
+              </div><!-- /.col -->
+              <div class="col-auto">
+                <div id="branchCtrlWrapper" style="display:inline;">
+                  @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
+                    @repository.branchList.map { x =>
+                      <a class="dropdown-item" href="@helpers.url(repository)/blob/@helpers.encodeRefName((x :: pathList).mkString("/"))">@gitbucket.core.helper.html.checkicon(x == branch) @x</a>
+                    }
+                  }
+                </div>
               </div><!-- /.col -->
               <div class="col-auto">
                 <div class="btn-group float-right">
