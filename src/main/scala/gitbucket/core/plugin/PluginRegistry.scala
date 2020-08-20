@@ -57,6 +57,7 @@ class PluginRegistry {
   private val textDecorators = new ConcurrentLinkedQueue[TextDecorator]
   private val suggestionProviders = new ConcurrentLinkedQueue[SuggestionProvider]
   suggestionProviders.add(new UserNameSuggestionProvider())
+  suggestionProviders.add(new IssueSuggestionProvider())
   private val sshCommandProviders = new ConcurrentLinkedQueue[PartialFunction[String, Command]]()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins.add(pluginInfo)

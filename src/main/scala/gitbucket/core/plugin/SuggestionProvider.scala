@@ -91,7 +91,7 @@ trait SuggestionProvider {
    * If this suggestion provider needs some additional process to assemble the proposal list (e.g. It need to use Ajax
    * to get a proposal list from the server), then override this method and return any JavaScript code.
    */
-  def additionalScript(implicit context: Context): String = ""
+  def additionalScript(repository: RepositoryInfo)(implicit context: Context): String = ""
 
 }
 
@@ -99,6 +99,14 @@ class UserNameSuggestionProvider extends SuggestionProvider {
   override val id: String = "user"
   override val prefix: String = "@"
   override val context: Seq[String] = Seq("issues")
-  override def additionalScript(implicit context: Context): String =
+  override def additionalScript(repository: RepositoryInfo)(implicit context: Context): String =
     s"""$$.get('${context.path}/_user/proposals', { query: '', user: true, group: false }, function (data) { user = data.options; });"""
+}
+
+class IssueSuggestionProvider extends SuggestionProvider {
+  override val id: String = "issue"
+  override val prefix: String = "#"
+  override val context: Seq[String] = Seq("issues")
+  override def additionalScript(repository: RepositoryInfo)(implicit context: Context): String =
+    s"""$$.get('${context.path}/${repository.owner}/${repository.name}/_issue/proposals', function (data) { issue = data.options; });"""
 }
