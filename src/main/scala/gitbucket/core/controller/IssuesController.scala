@@ -425,7 +425,7 @@ trait IssuesControllerBase extends ControllerBase {
     org.json4s.jackson.Serialization.write(
       Map(
         "options" -> (
-          getAllIssues(repository.owner, repository.name)
+          getOpenIssues(repository.owner, repository.name)
             .map { t =>
               Map(
                 "label" -> s"""${if (t.isPullRequest) "<i class='octicon octicon-git-pull-request'></i>"
