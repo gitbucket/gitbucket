@@ -1128,7 +1128,7 @@ div.author-info div.committer {
 /****************************************************************************/
 /* Diff */
 /****************************************************************************/
-/*
+
 table.diff {
   font-size: 12px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
@@ -1154,7 +1154,7 @@ table.diff td.body {
 }
 
 table.diff th.line-num {
-  /*min-width: 20px;*
+  /*min-width: 20px;*/
   width: 20px;
 }
 
@@ -1228,7 +1228,7 @@ table.diff tbody tr.not-diff:hover td {
 
 .diffstat-bar {
   display: inline-block;
-  /* For IE 6/7 *
+  /* For IE 6/7 */
   *display: inline;
   *zoom: 1;
   margin-left: 3px;
@@ -1265,10 +1265,10 @@ table.diff tbody tr.not-diff:hover td {
   text-align: center;
 }
 
-/* ------- for imageDiff *
+/* ------- for imageDiff */
 .diff-image-frame {
   display: table-cell;
-  *float: left; /* for ie7 *
+  *float: left; /* for ie7 */
   vertical-align: middle;
   padding: 20px;
   background-color: #eee;
@@ -1410,9 +1410,9 @@ table.diff tbody tr.not-diff:hover td {
 }
 
 .diff-image-stack.onion .diff-silde-bar {
-  background: -ms-linear-gradient(left,  #bd2c00 0%,#55a532 100%); /* IE10+ *
+  background: -ms-linear-gradient(left,  #bd2c00 0%,#55a532 100%); /* IE10+ */
   background: linear-gradient(to right,  #bd2c00 0%,#55a532 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bd2c00', endColorstr='#55a532',GradientType=1 ); /* IE6-9 *
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bd2c00', endColorstr='#55a532',GradientType=1 ); /* IE6-9 */
 }
 
 .diff-image-stack.blink .diff-silde-bar {
@@ -1425,7 +1425,7 @@ table.diff tbody tr.not-diff:hover td {
   padding-bottom: 18px;
   text-align: center;
 }
-*/
+
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/
