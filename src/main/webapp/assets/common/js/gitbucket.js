@@ -868,7 +868,9 @@ function mdeDecWordToNewLine(id, pattern){
   var pos = $(id).prop('selectionStart');
   var newTxt = txt;
   var focusPos = pos + pattern.length + 3;
-  if(isInWord(txt, pos)){
+  if(txt.length === 0){
+    newTxt = pattern + " ";
+  }else if(isInWord(txt, pos)){
     var wordPos = findWordStartEnd(txt, pos);
     newTxt = txt.slice(0, wordPos[0]) + "\n\n"  + pattern + " " + txt.slice(wordPos[0]);
   }else{
