@@ -119,7 +119,7 @@ class MergeServiceSpec extends AnyFunSpec {
         assert(getFile(git, branch, "test.txt").content.get == "hoge")
         val requestBranchId = git.getRepository.resolve(s"refs/pull/${issueId}/head")
         val masterId = git.getRepository.resolve(branch)
-        service.mergePullRequest(git, branch, issueId, "merged", committer)
+        service.mergeWithMergeCommit(git, "user1", "repo8", branch, issueId, "merged", committer)(null)
         val lastCommitId = git.getRepository.resolve(branch)
         val commit = Using.resource(new RevWalk(git.getRepository))(_.parseCommit(lastCommitId))
         assert(commit.getCommitterIdent() == committer)

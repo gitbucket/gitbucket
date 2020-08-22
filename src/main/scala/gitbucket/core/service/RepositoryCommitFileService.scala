@@ -149,7 +149,7 @@ trait RepositoryCommitFileService {
         val receivePack = new ReceivePack(git.getRepository)
         val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
 
-        // call post commit hook
+        // call pre-commit hook
         val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
           hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName)
         }.headOption
@@ -199,7 +199,7 @@ trait RepositoryCommitFileService {
               }
             }
 
-            // call post commit hook
+            // call post-commit hook
             PluginRegistry().getReceiveHooks.foreach { hook =>
               hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName)
             }
