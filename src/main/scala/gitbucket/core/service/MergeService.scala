@@ -3,7 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Issue, PullRequest, WebHook}
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{PluginRegistry, ReceiveHook}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{JGitUtil, LockUtil}
@@ -36,7 +36,7 @@ trait MergeService {
    */
   def checkConflict(userName: String, repositoryName: String, branch: String, issueId: Int): Option[String] = {
     Using.resource(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
-      new MergeCacheInfo(git, userName, repositoryName, branch, issueId).checkConflict()
+      new MergeCacheInfo(git, userName, repositoryName, branch, issueId, Nil).checkConflict()
     }
   }
 
@@ -53,7 +53,7 @@ trait MergeService {
     issueId: Int
   ): Option[Option[String]] = {
     Using.resource(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
-      new MergeCacheInfo(git, userName, repositoryName, branch, issueId).checkConflictCache()
+      new MergeCacheInfo(git, userName, repositoryName, branch, issueId, Nil).checkConflictCache()
     }
   }
 
@@ -67,7 +67,7 @@ trait MergeService {
     message: String,
     committer: PersonIdent
   )(implicit s: Session): ObjectId = {
-    new MergeCacheInfo(git, userName, repositoryName, branch, issueId).merge(message, committer)
+    new MergeCacheInfo(git, userName, repositoryName, branch, issueId, getReceiveHooks()).merge(message, committer)
   }
 
   /** rebase to the head of the pull request branch */
@@ -80,7 +80,7 @@ trait MergeService {
     commits: Seq[RevCommit],
     committer: PersonIdent
   )(implicit s: Session): ObjectId = {
-    new MergeCacheInfo(git, userName, repositoryName, branch, issueId).rebase(committer, commits)
+    new MergeCacheInfo(git, userName, repositoryName, branch, issueId, getReceiveHooks()).rebase(committer, commits)
   }
 
   /** squash commits in the pull request and append it */
@@ -93,7 +93,7 @@ trait MergeService {
     message: String,
     committer: PersonIdent
   )(implicit s: Session): ObjectId = {
-    new MergeCacheInfo(git, userName, repositoryName, branch, issueId).squash(message, committer)
+    new MergeCacheInfo(git, userName, repositoryName, branch, issueId, getReceiveHooks()).squash(message, committer)
   }
 
   /** fetch remote branch to my repository refs/pull/{issueId}/head */
@@ -261,6 +261,10 @@ trait MergeService {
     }.toOption
   }
 
+  protected def getReceiveHooks(): Seq[ReceiveHook] = {
+    PluginRegistry().getReceiveHooks
+  }
+
   def mergePullRequest(
     repository: RepositoryInfo,
     issueId: Int,
@@ -287,7 +291,17 @@ trait MergeService {
                   )
 
                   // merge git repository
-                  mergeGitRepository(git, repository, issue, pullRequest, loginAccount, message, strategy, commits) match {
+                  mergeGitRepository(
+                    git,
+                    repository,
+                    issue,
+                    pullRequest,
+                    loginAccount,
+                    message,
+                    strategy,
+                    commits,
+                    getReceiveHooks()
+                  ) match {
                     case Some(newCommitId) =>
                       // mark issue as merged and close.
                       val commentId =
@@ -404,7 +418,8 @@ trait MergeService {
     loginAccount: Account,
     message: String,
     strategy: String,
-    commits: Seq[Seq[CommitInfo]]
+    commits: Seq[Seq[CommitInfo]],
+    receiveHooks: Seq[ReceiveHook]
   )(implicit s: Session): Option[ObjectId] = {
     val revCommits = Using
       .resource(new RevWalk(git.getRepository)) { revWalk =>
@@ -501,7 +516,14 @@ object MergeService {
     }
   }
 
-  class MergeCacheInfo(git: Git, userName: String, repositoryName: String, branch: String, issueId: Int) {
+  class MergeCacheInfo(
+    git: Git,
+    userName: String,
+    repositoryName: String,
+    branch: String,
+    issueId: Int,
+    receiveHooks: Seq[ReceiveHook]
+  ) {
     private val mergedBranchName = s"refs/pull/${issueId}/merge"
     private val conflictedBranchName = s"refs/pull/${issueId}/conflict"
 
@@ -578,7 +600,7 @@ object MergeService {
       val receiveCommand = new ReceiveCommand(currentObjectId, mergeCommitId, refName)
 
       // call pre-commit hooks
-      val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+      val error = receiveHooks.flatMap { hook =>
         hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
       }.headOption
 
@@ -590,7 +612,7 @@ object MergeService {
       val objectId = Util.updateRefs(git.getRepository, refName, mergeCommitId, false, committer, Some("merged"))
 
       // call post-commit hook
-      PluginRegistry().getReceiveHooks.foreach { hook =>
+      receiveHooks.foreach { hook =>
         hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
       }
 
@@ -632,7 +654,7 @@ object MergeService {
       val receiveCommand = new ReceiveCommand(currentObjectId, previousId, refName)
 
       // call pre-commit hooks
-      val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+      val error = receiveHooks.flatMap { hook =>
         hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
       }.headOption
 
@@ -645,7 +667,7 @@ object MergeService {
         Util.updateRefs(git.getRepository, s"refs/heads/${branch}", previousId, false, committer, Some("rebased"))
 
       // call post-commit hook
-      PluginRegistry().getReceiveHooks.foreach { hook =>
+      receiveHooks.foreach { hook =>
         hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
       }
 
@@ -682,7 +704,7 @@ object MergeService {
       val receiveCommand = new ReceiveCommand(currentObjectId, newCommitId, refName)
 
       // call pre-commit hooks
-      val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+      val error = receiveHooks.flatMap { hook =>
         hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
       }.headOption
 
@@ -704,7 +726,7 @@ object MergeService {
       )
 
       // call post-commit hook
-      PluginRegistry().getReceiveHooks.foreach { hook =>
+      receiveHooks.foreach { hook =>
         hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
       }
 

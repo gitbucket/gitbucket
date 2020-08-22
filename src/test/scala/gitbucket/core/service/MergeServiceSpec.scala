@@ -2,19 +2,22 @@ package gitbucket.core.service
 
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.GitSpecUtil._
-
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
 import org.scalatest.funspec.AnyFunSpec
-
 import java.io.File
+
+import gitbucket.core.plugin.ReceiveHook
+
 import scala.util.Using
 
 class MergeServiceSpec extends AnyFunSpec {
   val service = new MergeService with AccountService with ActivityService with IssuesService with LabelsService
   with MilestonesService with RepositoryService with PrioritiesService with PullRequestService with CommitsService
-  with WebHookPullRequestService with WebHookPullRequestReviewCommentService with RequestCache {}
+  with WebHookPullRequestService with WebHookPullRequestReviewCommentService with RequestCache {
+    override protected def getReceiveHooks(): Seq[ReceiveHook] = Nil
+  }
   val branch = "master"
   val issueId = 10
   def initRepository(owner: String, name: String): File = {
