@@ -779,7 +779,7 @@ function isInWord(txt, pos){
   }else{
     return (txt[pos - 1].match(/\s/g) === null) && (txt[pos].match(/\s/g) === null);
   }
-};
+}
 
 /**
  * helper function for markdown toolbar operation
@@ -808,7 +808,7 @@ function findWordStartEnd(txt, pos){
     end += 1;
   }
   return [start, end];
-};
+}
 
 /**
  * helper function for markdown toolbar operation
@@ -829,7 +829,41 @@ function findPreviousLineBreak(txt, pos){
     }
   }
   return start + 1;
-};
+}
+
+/**
+ * helper function for markdown toolbar operation
+ * check if target range is already wrapped by pattern
+ * @param {String} txt
+ * @param {Number} posStart
+ * @param {Number} posEnd
+ * @param {String} patternHead
+ * @param {String} patternTail
+ * @returns {Boolean}
+ */
+function isAlreadyWrapped(txt, posStart, posEnd, patternHead, patternTail){
+  if(posStart < patternHead.length || (txt.length - posEnd) < patternTail.length ) {
+    return false;
+  }else{
+    return txt.slice(posStart - patternHead.length, posStart) === patternHead
+      && txt.slice(posEnd, posEnd + patternTail.length) === patternTail;
+  }
+}
+
+/**
+ * helper function for markdown toolbar operation
+ * post process, set new txt, focus, set cursor.
+ * @param {String} id
+ * @param {String} txt
+ * @param {Number} focusPosStart
+ * @param {Number} focusPosEnd
+ */
+function mdePostProcess(id, txt, focusPosStart, focusPosEnd){
+  $(id).val(txt);
+  $(id).focus();
+  $(id).prop('selectionStart', focusPosStart);
+  $(id).prop('selectionEnd', focusPosEnd);
+}
 
 /**
  * functions for insert markdown pattern into text.
@@ -841,44 +875,74 @@ function findPreviousLineBreak(txt, pos){
  */
 function mdeDecWord(id, pattern, posOffset){
   var txt = $(id).val();
-  var pos = $(id).prop('selectionStart');
   var newTxt = txt;
-  var focusPos = pos + pattern.length;
-  if(isInWord(txt, pos)){
-    var wordPos = findWordStartEnd(txt, pos);
-    newTxt = txt.slice(0, wordPos[0]) + pattern + " " + txt.slice(wordPos[0]);
+  var posStart = $(id).prop('selectionStart');
+  var posEnd = $(id).prop('selectionEnd');
+  var focusPosStart;
+  var focusPosEnd;
+  if(posStart !== posEnd){
+    newTxt = txt.slice(0, posStart) + pattern + " ".repeat(posOffset) + txt.slice(posStart);
+    focusPosStart = posStart + pattern.length + posOffset;
+    focusPosEnd = posEnd + pattern.length + posOffset;
   }else{
-    newTxt = txt.slice(0, pos) + pattern + " " + txt.slice(pos);
+    if(isInWord(txt, posStart)){
+      var wordPos = findWordStartEnd(txt, posStart);
+      newTxt = txt.slice(0, wordPos[0]) + pattern + " ".repeat(posOffset) + txt.slice(wordPos[0]);
+    }else{
+      newTxt = txt.slice(0, posStart) + pattern + " ".repeat(posOffset) + txt.slice(posStart);
+    }
+    focusPosStart = posStart + pattern.length + posOffset;
+    focusPosEnd = focusPosStart;
   }
-  $(id).val(newTxt);
-  $(id).focus();
-  $(id).prop('selectionEnd', focusPos + posOffset);
-};
+  mdePostProcess(id, newTxt, focusPosStart, focusPosEnd);
+}
 
 /**
  * functions for insert markdown pattern into text.
  * for quote, list, task list, etc. e.g. a|bs => \n\n{pattern} a|bs
- *
  * @param {String} id
  * @param {String} pattern
  * @returns {String}
  */
 function mdeDecWordToNewLine(id, pattern){
   var txt = $(id).val();
-  var pos = $(id).prop('selectionStart');
   var newTxt = txt;
-  var focusPos = pos + pattern.length + 3;
+  var offset = 3;  // cursor offset for  "\n\n" + "\s"
+  var posStart = $(id).prop('selectionStart');
+  var posEnd = $(id).prop('selectionEnd');
+  var focusPosStart;
+  var focusPosEnd;
   if(txt.length === 0){
     newTxt = pattern + " ";
-  }else if(isInWord(txt, pos)){
-    var wordPos = findWordStartEnd(txt, pos);
-    newTxt = txt.slice(0, wordPos[0]) + "\n\n"  + pattern + " " + txt.slice(wordPos[0]);
+    focusPosStart = pattern.length + offset;
+    focusPosEnd = focusPosStart;
   }else{
-    newTxt = txt.slice(0, pos) + "\n\n" + pattern + " " + txt.slice(pos);
+    if(posStart !== posEnd){
+      if(isAlreadyWrapped(txt, posStart, posEnd, pattern + " ", "\n")) {
+        newTxt = txt.slice(0, posStart - pattern.length - 1) + txt.slice(posStart);
+        focusPosStart = posStart - pattern.length - 1;
+        focusPosEnd = posEnd - pattern.length - 1;
+      }else if(isAlreadyWrapped(txt, posStart, posEnd, "\n\n", "\n\n")){
+        newTxt = txt.slice(0, posStart) + pattern + " " + txt.slice(posStart, posEnd) + txt.slice(posEnd);
+        focusPosStart = posStart + pattern.length + 1;
+        focusPosEnd = posEnd + pattern.length + 1;
+      }else{
+        newTxt = txt.slice(0, posStart) + "\n\n" + pattern + " " + txt.slice(posStart, posEnd) + "\n\n" + txt.slice(posEnd);
+        focusPosStart = posStart + pattern.length + offset;
+        focusPosEnd = posEnd + pattern.length + offset;
+      }
+    }else{
+      if(isInWord(txt, posStart)){
+        var wordPos = findWordStartEnd(txt, posStart);
+        newTxt = txt.slice(0, wordPos[0]) + "\n\n"  + pattern + " " + txt.slice(wordPos[0]);
+      }else{
+        newTxt = txt.slice(0, posStart) + "\n\n" + pattern + " " + txt.slice(posStart);
+      }
+      focusPosStart = posStart + pattern.length + offset;
+      focusPosEnd = focusPosStart;
+    }
   }
-  $(id).val(newTxt);
-  $(id).focus();
-  $(id).prop('selectionEnd', focusPos);
+  mdePostProcess(id, newTxt, focusPosStart, focusPosEnd);
 }
 
 /**
@@ -890,43 +954,79 @@ function mdeDecWordToNewLine(id, pattern){
  */
 function mdeWrapWord(id, pattern){
   var txt = $(id).val();
-  var pos = $(id).prop('selectionStart');
   var newTxt = txt;
-  var focusPos = pos;
-  if(isInWord(txt, pos)){
-    var wordPos = findWordStartEnd(txt, pos);
-    newTxt = txt.slice(0, wordPos[0]) + pattern + txt.slice(wordPos[0], wordPos[1]) + pattern + txt.slice(wordPos[1]);
-    focusPos = wordPos[0] + pattern.length + (pos - wordPos[0]);
+  var posStart = $(id).prop('selectionStart');
+  var posEnd = $(id).prop('selectionEnd');
+  var focusPosStart;
+  var focusPosEnd;
+  if(posStart !== posEnd){
+    if(isAlreadyWrapped(txt, posStart, posEnd, pattern, pattern)){
+      newTxt = txt.slice(0, posStart - pattern.length)
+        + txt.slice(posStart, posEnd)
+        + txt.slice(posEnd + pattern.length);
+      focusPosStart = posStart - pattern.length;
+      focusPosEnd = posEnd - pattern.length;
+    }else{
+      newTxt = txt.slice(0, posStart) + pattern + txt.slice(posStart, posEnd) + pattern + txt.slice(posEnd);
+      focusPosStart = posStart + pattern.length;
+      focusPosEnd = posEnd + pattern.length;
+    }
   }else{
-    newTxt = txt.slice(0, pos) + pattern + pattern + txt.slice(pos);
-    focusPos = pos + pattern.length;
+    if(isInWord(txt, posStart)){
+      var wordPos = findWordStartEnd(txt, posStart);
+      if(isAlreadyWrapped(txt, wordPos[0] + pattern.length, wordPos[1] - pattern.length, pattern, pattern)){
+        newTxt = txt.slice(0, wordPos[0])
+          + txt.slice(wordPos[0] + pattern.length, wordPos[1] - pattern.length)
+          + txt.slice(wordPos[1]);
+        focusPosStart = posStart - pattern.length;
+        focusPosEnd = focusPosStart;
+      }else{
+        newTxt = txt.slice(0, wordPos[0])
+          + pattern + txt.slice(wordPos[0], wordPos[1])
+          + pattern + txt.slice(wordPos[1]);
+        focusPosStart = wordPos[0] + pattern.length + (posStart - wordPos[0]);
+        focusPosEnd = focusPosStart;
+      }
+    }else{
+      newTxt = txt.slice(0, posStart) + pattern + pattern + txt.slice(posStart);
+      focusPosStart = posStart + pattern.length;
+      focusPosEnd = focusPosStart;
+    }
   }
-  $(id).val(newTxt);
-  $(id).focus();
-  $(id).prop('selectionEnd', focusPos);
+  mdePostProcess(id, newTxt, focusPosStart, focusPosEnd);
 }
 
 /**
  * functions for insert markdown pattern into text.
  * for link. e.g. a|bs => [abs](|url)
  * @param {String} id
- * @param {String} pattern
  * @returns {String}
  */
 function mdeWrapWordLink(id){
   var txt = $(id).val();
-  var pos = $(id).prop('selectionStart');
   var newTxt = txt;
-  var focusPos = pos;
-  if(isInWord(txt, pos)){
-    var wordPos = findWordStartEnd(txt, pos);
-    newTxt = txt.slice(0, wordPos[0]) + "[" + txt.slice(wordPos[0], wordPos[1]) + "](url)" + txt.slice(wordPos[1]);
-    focusPos = wordPos[1] + 3;
+  var posStart = $(id).prop('selectionStart');
+  var posEnd = $(id).prop('selectionEnd');
+  var focusPosStart;
+  var focusPosEnd;
+  var offset;  // cursor offset
+  if(posStart !== posEnd){
+    offset = 1; // for  "["
+    newTxt = txt.slice(0, posStart) + "[" + txt.slice(posStart, posEnd) + "](url)" + txt.slice(posEnd);
+    focusPosStart = posStart + offset;
+    focusPosEnd = posEnd + offset;
   }else{
-    newTxt = txt.slice(0, pos) + "[](url)" + txt.slice(pos);
-    focusPos = pos + 3;
+    offset = 3; // for  "[" + "]("
+    if(isInWord(txt, posStart)){
+      var wordPos = findWordStartEnd(txt, posStart);
+      newTxt = txt.slice(0, wordPos[0]) + "[" + txt.slice(wordPos[0], wordPos[1]) + "](url)" + txt.slice(wordPos[1]);
+      focusPosStart = wordPos[1] + offset;
+      focusPosEnd = focusPosStart;
+    }else{
+      newTxt = txt.slice(0, posStart) + "[](url)" + txt.slice(posStart);
+      focusPosStart = posStart + offset;
+      focusPosEnd = focusPosStart;
+    }
   }
-  $(id).val(newTxt);
-  $(id).focus();
-  $(id).prop('selectionEnd', focusPos);
+  mdePostProcess(id, newTxt, focusPosStart, focusPosEnd);
 }
