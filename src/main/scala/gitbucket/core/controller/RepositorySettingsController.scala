@@ -177,9 +177,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Branch protection for branch */
-  get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
+  get("/:owner/:repository/settings/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
-    val branch = params("branch")
+    val branch = params("splat")
+
     if (!repository.branchList.contains(branch)) {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
