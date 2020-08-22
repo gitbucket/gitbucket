@@ -2,56 +2,68 @@
   isGroupManager: Boolean = false)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(account.userName){
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
-  @gitbucket.core.helper.html.logo()
-  <div class="sidebar">
-    <nav class="mt-2">
-      <div class="user-panel">
-        <div class="pull-left image">@helpers.avatar(account.userName, 40)</div>
-        <div class="pull-left info">
-          <p>@account.userName</p>
-          @account.fullName
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    @gitbucket.core.helper.html.logo()
+    <div class="sidebar">
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+          @helpers.avatar(account.userName, 30)
         </div>
-      </div>
-      <div style="padding-left: 10px; padding-right: 10px;">
-        @account.description.map { description =>
-          <p style="color: #999">@description</p>
-        }
-        @account.url.map { url =>
-          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <i class="octicon octicon-home"></i>
-            @if(url.startsWith("http://") || url.startsWith("https://")){
-              <a href="@url">@url</a>
-            } else {
-            <span style="color: #999">@url</span>
-            }
-          </p>
-        }
-        @if(context.settings.showMailAddress){
-          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <i class="octicon octicon-mail"></i> <a href="mailto:@account.mailAddress">@account.mailAddress</a>
-          </p>
-          @extraMailAddresses.map { mail =>
-            <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <i class="octicon octicon-mail"></i> <a href="mailto:@mail">@mail</a>
-            </p>
-          }
-        }
-        <p style="color: #999">
-          <i class="octicon octicon-clock"></i> Joined on @helpers.date(account.registeredDate)
-        </p>
-      </div>
-      @if(groupNames.nonEmpty){
-        <ul class="nav nav-pills nav-sidebar flex-column">
-          <li class="nav-item">Groups</li>
+        <div class="info">
+          <a href="#">@account.userName</a>
+        </div>
+      </div><!-- /.user-panel -->
+      <nav class="tm-2">
+        <ul class="nav nav-pills nav-sidebar" data-widget="treeview" role="menu" data-accordion="false">
+          <li class="nav-header">
+            <div>
+              <div class="font-weight-bold">@account.fullName</div>
+              @account.description.map { description =>
+              <div class="text-wrap mt-2">@description</div>
+              }
+              <div class="small mt-1">
+                @account.url.map { url =>
+                <div class="mt-1 text-truncate">
+                  @if(url.startsWith("http://") || url.startsWith("https://")){
+                  <a href="@url"><i class="octicon octicon-home"></i><span> @url</span></a>
+                  } else {
+                  <a href="#"><i class="octicon octicon-home"></i><span> @url</span></a>
+                  }
+                </div>
+                }
+                @if(context.settings.showMailAddress){
+                <div class="mt-1 text-truncate">
+                  <a href="mailto:@account.mailAddress"><i class="octicon octicon-mail"></i><span> @account.mailAddress</span></a>
+                </div>
+                @extraMailAddresses.map { mail =>
+                <div class="mt-1 text-truncate">
+                  <a href="mailto:@mail"><i class="octicon octicon-mail"></i><span> @mail</span></a>
+                </div>
+                }
+                }
+                <div class="mt-1">
+                  <i class="octicon octicon-clock"></i><span> Joined on @helpers.date(account.registeredDate)</span>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          @if(groupNames.nonEmpty){
+          <li class="nav-header">Groups</li>
           @groupNames.map { groupName =>
-            <li class="nav-item">@helpers.avatarLink(groupName, 20, tooltip = true, label = true)</li>
+          <li class="nav-item">
+            <a class="nav-link" href="@helpers.url(groupName)">
+              <i class="nav-icon">@helpers.avatar(groupName, 20, tooltip = true)</i>
+              <p>@groupName</p>
+            </a>
+          </li>
+          }
           }
         </ul>
-      }
-    </nav>
-  </div>
-</aside>
+      </nav>
+    </div>
+  </aside>
   <div class="content-wrapper">
     <div class="content body">
       <ul class="nav nav-tabs" style="margin-bottom: 5px;">
