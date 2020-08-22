@@ -440,7 +440,9 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     with WebHookService
     with AccountService
     with RepositoryService
-    with SystemSettingsService {
+    with ActivityService
+    with SystemSettingsService
+    with RequestCache {
 
   private val logger = LoggerFactory.getLogger(classOf[WikiCommitHook])
 
@@ -470,6 +472,25 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                     case diff if diff.newPath.toLowerCase.endsWith(".md") =>
                       val action = if (diff.changeType == ChangeType.ADD) "created" else "edited"
                       val fileName = diff.newPath
+                      updateLastActivityDate(owner, repository)
+                      action match {
+                        case "created" =>
+                          recordCreateWikiPageActivity(
+                            owner,
+                            repository,
+                            commit.committerName,
+                            fileName.dropRight(".md".length)
+                          )
+                        case "edited" =>
+                          recordEditWikiPageActivity(
+                            owner,
+                            repository,
+                            commit.committerName,
+                            fileName.dropRight(".md".length),
+                            commit.id
+                          )
+                        case _ =>
+                      }
                       (action, fileName, commit.id)
                   }
                 }
