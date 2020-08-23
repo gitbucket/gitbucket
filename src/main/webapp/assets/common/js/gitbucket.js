@@ -873,7 +873,7 @@ function mdePostProcess(id, txt, focusPosStart, focusPosEnd){
  * @param {Number} posOffset
  * @returns {String}
  */
-function mdeDecWord(id, pattern, posOffset){
+function mdeDecorateWord(id, pattern, posOffset){
   var txt = $(id).val();
   var newTxt = txt;
   var posStart = $(id).prop('selectionStart');
@@ -904,7 +904,7 @@ function mdeDecWord(id, pattern, posOffset){
  * @param {String} pattern
  * @returns {String}
  */
-function mdeDecWordToNewLine(id, pattern){
+function mdeDecorateWordWithNewLine(id, pattern){
   var txt = $(id).val();
   var newTxt = txt;
   var offset = 3;  // cursor offset for  "\n\n" + "\s"
