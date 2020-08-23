@@ -82,7 +82,7 @@ $(function(){
   });
 
   $('#mde-heading@uid').click(function(){
-    mdeDecWord('#content@uid', '###', 1);
+    mdeDecorateWord('#content@uid', '###', 1);
   });
   $('#mde-bold@uid').click(function(){
     mdeWrapWord('#content@uid', '**');
@@ -91,7 +91,7 @@ $(function(){
     mdeWrapWord('#content@uid', '_');
   });
   $('#mde-quote@uid').click(function(){
-    mdeDecWordToNewLine('#content@uid', '>');
+    mdeDecorateWordWithNewLine('#content@uid', '>');
   });
   $('#mde-code@uid').click(function(){
     mdeWrapWord('#content@uid', '`');
@@ -100,13 +100,13 @@ $(function(){
     mdeWrapWordLink('#content@uid');
   });
   $('#mde-list-ul@uid').click(function(){
-    mdeDecWordToNewLine('#content@uid', '-');
+    mdeDecorateWordWithNewLine('#content@uid', '-');
   });
   $('#mde-list-ol@uid').click(function(){
-    mdeDecWordToNewLine('#content@uid', '1.');
+    mdeDecorateWordWithNewLine('#content@uid', '1.');
   });
   $('#mde-tasklist@uid').click(function(){
-    mdeDecWordToNewLine('#content@uid', '- [ ]');
+    mdeDecorateWordWithNewLine('#content@uid', '- [ ]');
   });
 
 });
