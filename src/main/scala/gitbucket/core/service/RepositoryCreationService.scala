@@ -4,6 +4,8 @@ import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.repository.CreateRepositoryInfo
+import gitbucket.core.model.activity.workflow.ForkInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{FileUtil, JGitUtil, LockUtil}
 import gitbucket.core.model.{Account, Role}
@@ -160,7 +162,7 @@ trait RepositoryCreationService {
         createWikiRepository(loginAccount, owner, name)
 
         // Record activity
-        recordCreateRepositoryActivity(owner, name, loginUserName)
+        recordActivity(CreateRepositoryInfo(owner, name, loginUserName))
 
         // Call hooks
         PluginRegistry().getRepositoryHooks.foreach(_.created(owner, name))
@@ -229,7 +231,8 @@ trait RepositoryCreationService {
           }
 
           // Record activity
-          recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
+          val forkInfo = ForkInfo(repository.owner, repository.name, loginUserName, accountName)
+          recordActivity(forkInfo)
 
           // Call hooks
           PluginRegistry().getRepositoryHooks.foreach(_.forked(repository.owner, accountName, repository.name))

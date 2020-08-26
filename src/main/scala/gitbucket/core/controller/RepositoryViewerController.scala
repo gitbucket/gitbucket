@@ -7,6 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
+import gitbucket.core.model.activity.workflow.DeleteBranchInfo
 import gitbucket.core.service._
 import gitbucket.core.service.RepositoryCommitFileService.CommitFile
 import gitbucket.core.util._
@@ -833,7 +834,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     if (repository.repository.defaultBranch != branchName) {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         git.branchDelete().setForce(true).setBranchNames(branchName).call()
-        recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+        val deleteBranchInfo = DeleteBranchInfo(repository.owner, repository.name, userName, branchName)
+        recordActivity(deleteBranchInfo)
       }
     }
     redirect(s"/${repository.owner}/${repository.name}/branches")

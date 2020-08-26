@@ -8,6 +8,7 @@ import gitbucket.core.model.{Account, CommitComment}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.model.activity.comment.{CommitCommentInfo, PullRequestCommentInfo}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
@@ -80,13 +81,9 @@ trait CommitsService {
       case Some(issueId) =>
         getPullRequest(repository.owner, repository.name, issueId).foreach {
           case (issue, pullRequest) =>
-            recordCommentPullRequestActivity(
-              repository.owner,
-              repository.name,
-              loginAccount.userName,
-              issueId,
-              content
-            )
+            val pullRequestCommentInfo =
+              PullRequestCommentInfo(repository.owner, repository.name, loginAccount.userName, content, issueId)
+            recordActivity(pullRequestCommentInfo)
             PluginRegistry().getPullRequestHooks.foreach(_.addedComment(commentId, content, issue, repository))
             callPullRequestReviewCommentWebHook(
               "create",
@@ -99,13 +96,9 @@ trait CommitsService {
             )
         }
       case None =>
-        recordCommentCommitActivity(
-          repository.owner,
-          repository.name,
-          loginAccount.userName,
-          commitId,
-          content
-        )
+        val commitCommentInfo =
+          CommitCommentInfo(repository.owner, repository.name, loginAccount.userName, content, commitId)
+        recordActivity(commitCommentInfo)
     }
 
     commentId

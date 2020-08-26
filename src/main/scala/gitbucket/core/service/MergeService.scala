@@ -8,6 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{JGitUtil, LockUtil}
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.workflow.{CloseIssueInfo, MergeInfo, PushInfo}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git
@@ -200,13 +201,14 @@ trait MergeService {
           }
 
           // record activity
-          recordPushActivity(
+          val pushInfo = PushInfo(
             localUserName,
             localRepositoryName,
             loginAccount.userName,
             localBranch,
             commits
           )
+          recordActivity(pushInfo)
 
           // close issue by commit message
           if (localBranch == localRepository.repository.defaultBranch) {
@@ -215,13 +217,14 @@ trait MergeService {
                 .foreach { issueId =>
                   getIssue(localRepository.owner, localRepository.name, issueId.toString).foreach { issue =>
                     callIssuesWebHook("closed", localRepository, issue, loginAccount, settings)
-                    recordCloseIssueActivity(
+                    val closeIssueInfo = CloseIssueInfo(
                       localRepository.owner,
                       localRepository.name,
                       localUserName,
                       issue.issueId,
                       issue.title
                     )
+                    recordActivity(closeIssueInfo)
                     PluginRegistry().getIssueHooks
                       .foreach(
                         _.closedByCommitComment(issue, localRepository, commit.fullMessage, loginAccount)
@@ -277,7 +280,8 @@ trait MergeService {
                   updateClosed(repository.owner, repository.name, issueId, true)
 
                   // record activity
-                  recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, message)
+                  val mergeInfo = MergeInfo(repository.owner, repository.name, loginAccount.userName, issueId, message)
+                  recordActivity(mergeInfo)
 
                   val (commits, _) = getRequestCompareInfo(
                     repository.owner,
@@ -344,13 +348,14 @@ trait MergeService {
                           ).foreach { issueId =>
                             getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                               callIssuesWebHook("closed", repository, issue, loginAccount, context.settings)
-                              recordCloseIssueActivity(
+                              val closeIssueInfo = CloseIssueInfo(
                                 repository.owner,
                                 repository.name,
                                 loginAccount.userName,
                                 issue.issueId,
                                 issue.title
                               )
+                              recordActivity(closeIssueInfo)
                               PluginRegistry().getIssueHooks
                                 .foreach(_.closedByCommitComment(issue, repository, commit.fullMessage, loginAccount))
                             }
@@ -365,13 +370,14 @@ trait MergeService {
                         ).foreach { issueId =>
                           getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                             callIssuesWebHook("closed", repository, issue, loginAccount, context.settings)
-                            recordCloseIssueActivity(
+                            val closeIssueInfo = CloseIssueInfo(
                               repository.owner,
                               repository.name,
                               loginAccount.userName,
                               issue.issueId,
                               issue.title
                             )
+                            recordActivity(closeIssueInfo)
                             PluginRegistry().getIssueHooks
                               .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                           }
@@ -380,13 +386,14 @@ trait MergeService {
                           .foreach { issueId =>
                             getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                               callIssuesWebHook("closed", repository, issue, loginAccount, context.settings)
-                              recordCloseIssueActivity(
+                              val closeIssueInfo = CloseIssueInfo(
                                 repository.owner,
                                 repository.name,
                                 loginAccount.userName,
                                 issue.issueId,
                                 issue.title
                               )
+                              recordActivity(closeIssueInfo)
                               PluginRegistry().getIssueHooks
                                 .foreach(_.closedByCommitComment(issue, repository, issueContent, loginAccount))
                             }

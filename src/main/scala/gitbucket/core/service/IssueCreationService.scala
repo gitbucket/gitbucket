@@ -3,6 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.workflow.CreateIssueInfo
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Implicits._
@@ -51,7 +52,8 @@ trait IssueCreationService {
     }
 
     // record activity
-    recordCreateIssueActivity(owner, name, userName, issueId, title)
+    val createIssueInfo = CreateIssueInfo(owner, name, userName, issueId, title)
+    recordActivity(createIssueInfo)
 
     // extract references and create refer comment
     createReferComment(owner, name, issue, title + " " + body.getOrElse(""), loginAccount)

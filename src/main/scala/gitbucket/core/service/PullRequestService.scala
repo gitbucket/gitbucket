@@ -7,6 +7,7 @@ import difflib.{Delta, DiffUtils}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
+import gitbucket.core.model.activity.workflow.OpenPullRequestInfo
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.Directory._
@@ -135,13 +136,14 @@ trait PullRequestService {
       )
 
       // record activity
-      recordPullRequestActivity(
+      val openPullRequestInfo = OpenPullRequestInfo(
         originRepository.owner,
         originRepository.name,
         loginAccount.userName,
         issueId,
         baseIssue.title
       )
+      recordActivity(openPullRequestInfo)
 
       // call web hook
       callPullRequestWebHook("opened", originRepository, issueId, loginAccount, settings)

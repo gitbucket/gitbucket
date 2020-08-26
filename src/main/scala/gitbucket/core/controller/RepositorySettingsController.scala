@@ -13,6 +13,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.WebHookContentType
+import gitbucket.core.model.activity.repository.RenameRepositoryInfo
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
@@ -377,12 +378,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         // Update database and move git repository
         renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
         // Record activity log
-        recordRenameRepositoryActivity(
+        val renameInfo = RenameRepositoryInfo(
           repository.owner,
           form.repositoryName,
-          repository.name,
-          context.loginAccount.get.userName
+          context.loginAccount.get.userName,
+          repository.name
         )
+        recordActivity(renameInfo)
       }
       redirect(s"/${repository.owner}/${form.repositoryName}")
     } else Forbidden()
@@ -398,12 +400,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         // Update database and move git repository
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
         // Record activity log
-        recordRenameRepositoryActivity(
+        val renameInfo = RenameRepositoryInfo(
           form.newOwner,
           repository.name,
-          repository.owner,
-          context.loginAccount.get.userName
+          context.loginAccount.get.userName,
+          repository.owner
         )
+        recordActivity(renameInfo)
       }
       redirect(s"/${form.newOwner}/${repository.name}")
     } else Forbidden()
