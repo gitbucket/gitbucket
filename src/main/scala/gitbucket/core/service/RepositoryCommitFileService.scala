@@ -17,7 +17,12 @@ import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import scala.util.Using
 
 trait RepositoryCommitFileService {
-  self: AccountService with ActivityService with IssuesService with PullRequestService with WebHookPullRequestService =>
+  self: AccountService
+    with ActivityService
+    with IssuesService
+    with PullRequestService
+    with WebHookPullRequestService
+    with RepositoryService =>
   import RepositoryCommitFileService._
 
   def commitFiles(
@@ -175,6 +180,7 @@ trait RepositoryCommitFileService {
             updatePullRequests(repository.owner, repository.name, branch, loginAccount, "synchronize", settings)
 
             // record activity
+            updateLastActivityDate(repository.owner, repository.name)
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
             recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
 
