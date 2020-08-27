@@ -2,38 +2,60 @@
 @import gitbucket.core.ssh.SshUtil
 @gitbucket.core.html.main("GPG Keys"){
   @gitbucket.core.account.html.menu("gpg", context.loginAccount.get.userName, false){
-    <div class="panel panel-default">
-      <div class="panel-heading strong">GPG Keys</div>
-      <div class="panel-body">
-        @if(gpgKeys.isEmpty){
-          No keys
-        }
-        @gpgKeys.zipWithIndex.map { case (key, i) =>
-          @if(i != 0){
-            <hr>
-          }
-        <strong style="line-height: 30px;">@key.title</strong> (@key.gpgKeyId.toHexString.toUpperCase)
-        <a href="@context.path/@account.userName/_gpg/delete/@key.keyId" class="btn btn-sm btn-danger pull-right">Delete</a>
-        }
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
       </div>
     </div>
-    <form method="POST" action="@context.path/@account.userName/_gpg" validate="true" autocomplete="off">
-      <div class="panel panel-default">
-        <div class="panel-heading strong">Add a GPG Key</div>
-        <div class="panel-body">
-          <fieldset class="form-group">
-            <label for="title" class="strong">Title</label>
-            <div><span id="error-title" class="error"></span></div>
-            <input type="text" name="title" id="title" class="form-control"/>
-          </fieldset>
-          <fieldset class="form-group">
-            <label for="publicKey" class="strong">Key</label>
-            <div><span id="error-publicKey" class="error"></span></div>
-            <textarea name="publicKey" id="publicKey" class="form-control" style="height: 200px;"></textarea>
-          </fieldset>
-          <input type="submit" class="btn btn-success" value="Add"/>
+  </div>
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>GPG Keys</h4>
+          </div>
+          <div class="card-body">
+            @if(gpgKeys.isEmpty){
+            No keys
+            }
+            @gpgKeys.zipWithIndex.map { case (key, i) =>
+            @if(i != 0){
+            <hr>
+            }
+            <strong style="line-height: 30px;">@key.title</strong> (@key.gpgKeyId.toHexString.toUpperCase)
+            <a href="@context.path/@account.userName/_gpg/delete/@key.keyId" class="btn btn-sm btn-danger pull-right">Delete</a>
+            }
+          </div>
         </div>
-      </div>
-    </form>
+        <form method="POST" action="@context.path/@account.userName/_gpg" validate="true" autocomplete="off">
+          <div class="card">
+            <div class="card-header">
+              <h4>Add a GPG Key</h4>
+            </div>
+            <div class="card-body">
+              <fieldset class="form-group">
+                <label for="title" class="strong">Title</label>
+                <div><span id="error-title" class="error"></span></div>
+                <input type="text" name="title" id="title" class="form-control"/>
+              </fieldset>
+              <fieldset class="form-group">
+                <label for="publicKey" class="strong">Key</label>
+                <div><span id="error-publicKey" class="error"></span></div>
+                <textarea name="publicKey" id="publicKey" class="form-control" style="height: 200px;"></textarea>
+              </fieldset>
+              <input type="submit" class="btn btn-success" value="Add"/>
+            </div><!-- /.card-body -->
+          </div><!-- /.card -->
+        </form>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+</div><!-- /.content body -->
+
   }
 }
