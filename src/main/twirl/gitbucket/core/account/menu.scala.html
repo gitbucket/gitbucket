@@ -1,59 +1,62 @@
 @(active: String, userName: String, group: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
-<div class="main-sidebar">
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  @gitbucket.core.helper.html.logo()
   <div class="sidebar">
-    <ul class="sidebar-menu">
-      @if(group){
-        <li class="menu-item-hover @if(active=="profile"){active}">
-          <a href="@context.path/@userName/_editgroup">
-            <i class="menu-icon octicon octicon-person"></i> <span>Profile</span>
-          </a>
-        </li>
-        <li class="menu-item-hover @if(active=="hooks"){active}">
-          <a href="@context.path/@userName/_hooks">
-            <i class="menu-icon octicon octicon-zap"></i> <span>Service Hooks</span>
-          </a>
-        </li>
-      } else {
-        <li class="menu-item-hover @if(active=="profile"){active}">
-          <a href="@context.path/@userName/_edit">
-            <i class="menu-icon octicon octicon-person"></i> <span>Profile</span>
-          </a>
-        </li>
-        @if(context.settings.ssh.enabled){
-          <li class="menu-item-hover @if(active=="ssh"){active}">
-            <a href="@context.path/@userName/_ssh">
-              <i class="menu-icon octicon octicon-key"></i> <span>SSH Keys</span>
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-acording="false">
+        @if(group){
+          <li class="nav-item">
+            <a class="nav-link@if(active=="profile"){ active}" href="@context.path/@userName/_editgroup">
+              <i class="nav-icon octicon octicon-person"></i> <p>Profile</p>
             </a>
           </li>
-        }
-        <li class="menu-item-hover @if(active=="gpg"){active}">
-          <a href="@context.path/@userName/_gpg">
-            <i class="menu-icon octicon octicon-key"></i> <span>GPG Keys</span>
-          </a>
-        </li>
-        <li class="menu-item-hover @if(active=="application"){active}">
-          <a href="@context.path/@userName/_application">
-            <i class="menu-icon octicon octicon-rocket"></i> <span>Applications</span>
-          </a>
-        </li>
-        <li class="menu-item-hover @if(active=="hooks"){active}">
-          <a href="@context.path/@userName/_hooks">
-            <i class="menu-icon octicon octicon-zap"></i> <span>Service Hooks</span>
-          </a>
-        </li>
-        @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
-          @menu(context).map { link =>
-            <li class="menu-item-hover @if(active==link.id){active}">
-              <a href="@context.path/@link.path">
-                <i class="menu-icon octicon octicon-plug"></i> <span>@link.label</span>
+          <li class="nav-item">
+            <a class="nav-link@if(active=="hooks"){ active}" href="@context.path/@userName/_hooks">
+              <i class="nav-icon octicon octicon-zap"></i> <p>Service Hooks</p>
+            </a>
+          </li>
+        } else {
+          <li class="nav-item">
+            <a class="nav-link@if(active=="profile"){ active}" href="@context.path/@userName/_edit">
+              <i class="nav-icon octicon octicon-person"></i> <p>Profile</p>
+            </a>
+          </li>
+          @if(context.settings.ssh.enabled){
+            <li class="nav-item">
+              <a class="nav-link@if(active=="ssh"){ active}" href="@context.path/@userName/_ssh">
+                <i class="nav-icon octicon octicon-key"></i> <p>SSH Keys</p>
               </a>
             </li>
           }
+          <li class="nav-item">
+            <a class="nav-link@if(active=="gpg"){ active}" href="@context.path/@userName/_gpg">
+              <i class="nav-icon octicon octicon-key"></i> <p>GPG Keys</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link@if(active=="application"){ active}" href="@context.path/@userName/_application">
+              <i class="nav-icon octicon octicon-rocket"></i> <p>Applications</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link@if(active=="hooks"){ active}" href="@context.path/@userName/_hooks">
+              <i class="nav-icon octicon octicon-zap"></i> <p>Service Hooks</p>
+            </a>
+          </li>
+          @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
+            @menu(context).map { link =>
+              <li class="nav-item">
+                <a class="nav-link@if(active==link.id){ active}" href="@context.path/@link.path">
+                  <i class="nav-icon octicon octicon-plug"></i> <p>@link.label</p>
+                </a>
+              </li>
+            }
+          }
         }
-      }
-    </ul>
+      </ul>
+    </nav>
   </div>
-</div>
+</aside>
 <div class="content-wrapper">
   <div class="content body">
     @body
