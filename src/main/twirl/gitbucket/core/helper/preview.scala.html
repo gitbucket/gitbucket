@@ -82,31 +82,58 @@ $(function(){
   });
 
   $('#mde-heading@uid').click(function(){
-    mdeDecorateWord('#content@uid', '###', 1);
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '###', 1);
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-bold@uid').click(function(){
-    mdeWrapWord('#content@uid', '**');
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '**');
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-italic@uid').click(function(){
-    mdeWrapWord('#content@uid', '_');
-  });
-  $('#mde-quote@uid').click(function(){
-    mdeDecorateWordWithNewLine('#content@uid', '>');
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '_');
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-code@uid').click(function(){
-    mdeWrapWord('#content@uid', '`');
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '`');
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-link@uid').click(function(){
-    mdeWrapWordLink('#content@uid');
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWordLink(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'));
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-quote@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '>', '>');
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-list-ul@uid').click(function(){
-    mdeDecorateWordWithNewLine('#content@uid', '-');
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '-', '-');
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-list-ol@uid').click(function(){
-    mdeDecorateWordWithNewLine('#content@uid', '1.');
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '1.', "1\\.");
+    mdePostProcess(content, newTextInfo);
   });
   $('#mde-tasklist@uid').click(function(){
-    mdeDecorateWordWithNewLine('#content@uid', '- [ ]');
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '- [ ]', "-\\s\\[\\s\\]");
+    mdePostProcess(content, newTextInfo);
   });
 
 });
