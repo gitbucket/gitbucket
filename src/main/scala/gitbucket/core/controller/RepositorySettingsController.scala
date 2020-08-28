@@ -13,7 +13,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.WebHookContentType
-import gitbucket.core.model.activity.repository.RenameRepositoryInfo
+import gitbucket.core.model.activity.RenameRepositoryInfo
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git

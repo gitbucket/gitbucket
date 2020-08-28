@@ -8,7 +8,7 @@ import gitbucket.core.model.{Account, CommitComment}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
-import gitbucket.core.model.activity.comment.{CommitCommentInfo, PullRequestCommentInfo}
+import gitbucket.core.model.activity.{CommitCommentInfo, PullRequestCommentInfo}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._

@@ -7,7 +7,7 @@ import difflib.{Delta, DiffUtils}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
-import gitbucket.core.model.activity.workflow.OpenPullRequestInfo
+import gitbucket.core.model.activity.OpenPullRequestInfo
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.Directory._

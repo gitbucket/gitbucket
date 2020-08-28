@@ -1,23 +1,16 @@
-package gitbucket.core.model.activity.tag
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
-
-sealed trait TagActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-}
 
 final case class CreateTagInfo(
   userName: String,
   repositoryName: String,
   activityUserName: String,
   tagName: String,
-) extends TagActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -37,7 +30,7 @@ final case class DeleteTagInfo(
   repositoryName: String,
   activityUserName: String,
   tagName: String
-) extends TagActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(

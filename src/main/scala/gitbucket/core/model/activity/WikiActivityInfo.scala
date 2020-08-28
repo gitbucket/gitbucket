@@ -1,27 +1,16 @@
-package gitbucket.core.model.activity.wiki
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
-
-sealed trait WikiActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-  def pageName: String
-  def maybeCommitId: Option[String]
-}
 
 final case class CreateWikiPageInfo(
   userName: String,
   repositoryName: String,
   activityUserName: String,
   pageName: String
-) extends WikiActivityInfo {
-
-  override def maybeCommitId: Option[String] = None
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -42,9 +31,7 @@ final case class EditWikiPageInfo(
   activityUserName: String,
   pageName: String,
   commitId: String
-) extends WikiActivityInfo {
-
-  override def maybeCommitId: Option[String] = Some(commitId)
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(

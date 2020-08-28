@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.activity.workflow.DeleteBranchInfo
+import gitbucket.core.model.activity.DeleteBranchInfo
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService

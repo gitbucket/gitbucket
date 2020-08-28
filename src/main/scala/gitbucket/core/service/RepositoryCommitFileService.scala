@@ -1,9 +1,8 @@
 package gitbucket.core.service
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.model.{Account, WebHook}
-import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.model.activity.workflow.{CloseIssueInfo, PushInfo}
+import gitbucket.core.model.activity.{CloseIssueInfo, PushInfo}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.WebHookService.WebHookPushPayload

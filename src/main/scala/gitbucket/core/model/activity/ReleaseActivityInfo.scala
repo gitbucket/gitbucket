@@ -1,18 +1,9 @@
-package gitbucket.core.model.activity.workflow
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
-
-sealed trait ReleaseActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-  def releaseName: String
-  def tagName: String
-}
 
 final case class ReleaseInfo(
   userName: String,
@@ -20,7 +11,7 @@ final case class ReleaseInfo(
   activityUserName: String,
   releaseName: String,
   tagName: String
-) extends ReleaseActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(

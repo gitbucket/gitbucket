@@ -8,7 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.{JGitUtil, LockUtil}
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.model.activity.workflow.{CloseIssueInfo, MergeInfo, PushInfo}
+import gitbucket.core.model.activity.{CloseIssueInfo, MergeInfo, PushInfo}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git

@@ -1,18 +1,9 @@
-package gitbucket.core.model.activity.workflow
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
-
-sealed trait MergeActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-  def issueId: Int
-  def message: String
-}
 
 final case class MergeInfo(
   userName: String,
@@ -20,7 +11,7 @@ final case class MergeInfo(
   activityUserName: String,
   issueId: Int,
   message: String
-) extends MergeActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(

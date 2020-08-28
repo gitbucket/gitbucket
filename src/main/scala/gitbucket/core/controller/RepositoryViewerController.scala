@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
-import gitbucket.core.model.activity.workflow.DeleteBranchInfo
+import gitbucket.core.model.activity.DeleteBranchInfo
 import gitbucket.core.service._
 import gitbucket.core.service.RepositoryCommitFileService.CommitFile
 import gitbucket.core.util._

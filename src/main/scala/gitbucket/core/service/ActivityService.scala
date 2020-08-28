@@ -98,6 +98,6 @@ trait ActivityService {
     }
   }
 
-  def recordActivity[T <: BaseActivityInfo](info: T): Unit =
+  def recordActivity[T <: { def toActivity: Activity }](info: T): Unit =
     writeLog(info.toActivity)
 }

@@ -1,19 +1,10 @@
-package gitbucket.core.model.activity.workflow
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
 import gitbucket.core.util.JGitUtil.CommitInfo
-
-sealed trait BranchActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-  def branchName: String
-  def maybeCommits: Option[List[CommitInfo]]
-}
 
 final case class PushInfo(
   userName: String,
@@ -21,9 +12,7 @@ final case class PushInfo(
   activityUserName: String,
   branchName: String,
   commits: List[CommitInfo]
-) extends BranchActivityInfo {
-
-  override def maybeCommits: Option[List[CommitInfo]] = Some(commits)
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -49,9 +38,7 @@ final case class CreateBranchInfo(
   repositoryName: String,
   activityUserName: String,
   branchName: String
-) extends BranchActivityInfo {
-
-  override def maybeCommits: Option[List[CommitInfo]] = None
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -71,9 +58,7 @@ final case class DeleteBranchInfo(
   repositoryName: String,
   activityUserName: String,
   branchName: String
-) extends BranchActivityInfo {
-
-  override def maybeCommits: Option[List[CommitInfo]] = None
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(

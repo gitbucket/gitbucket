@@ -15,9 +15,16 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.model.activity.tag.{CreateTagInfo, DeleteTagInfo}
-import gitbucket.core.model.activity.wiki.{CreateWikiPageInfo, EditWikiPageInfo}
-import gitbucket.core.model.activity.workflow.{CloseIssueInfo, CreateBranchInfo, DeleteBranchInfo, PushInfo}
+import gitbucket.core.model.activity.{
+  CloseIssueInfo,
+  CreateBranchInfo,
+  CreateTagInfo,
+  CreateWikiPageInfo,
+  DeleteBranchInfo,
+  DeleteTagInfo,
+  EditWikiPageInfo,
+  PushInfo
+}
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
 import gitbucket.core.servlet.Database

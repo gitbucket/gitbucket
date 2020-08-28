@@ -3,7 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.model.activity.workflow.CreateIssueInfo
+import gitbucket.core.model.activity.CreateIssueInfo
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Implicits._

@@ -1,28 +1,15 @@
-package gitbucket.core.model.activity.repository
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
-
-sealed trait RepositoryActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-  def maybeOldUserName: Option[String]
-  def maybeOldRepositoryName: Option[String]
-}
 
 final case class CreateRepositoryInfo(
   userName: String,
   repositoryName: String,
   activityUserName: String
-) extends RepositoryActivityInfo {
-
-  override def maybeOldUserName: Option[String] = None
-
-  override def maybeOldRepositoryName: Option[String] = None
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -41,11 +28,7 @@ final case class DeleteRepositoryInfo(
   userName: String,
   repositoryName: String,
   activityUserName: String
-) extends RepositoryActivityInfo {
-
-  override def maybeOldUserName: Option[String] = None
-
-  override def maybeOldRepositoryName: Option[String] = None
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -65,11 +48,7 @@ final case class TransferRepositoryInfo(
   repositoryName: String,
   activityUserName: String,
   oldUserName: String
-) extends RepositoryActivityInfo {
-
-  override def maybeOldUserName: Option[String] = Some(oldUserName)
-
-  override def maybeOldRepositoryName: Option[String] = None
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -89,11 +68,7 @@ final case class RenameRepositoryInfo(
   repositoryName: String,
   activityUserName: String,
   oldRepositoryName: String
-) extends RepositoryActivityInfo {
-
-  override def maybeOldUserName: Option[String] = None
-
-  override def maybeOldRepositoryName: Option[String] = Some(oldRepositoryName)
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(

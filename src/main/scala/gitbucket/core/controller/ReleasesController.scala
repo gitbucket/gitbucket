@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import java.io.File
 
-import gitbucket.core.model.activity.workflow.ReleaseInfo
+import gitbucket.core.model.activity.ReleaseInfo
 import gitbucket.core.service.{
   AccountService,
   ActivityService,

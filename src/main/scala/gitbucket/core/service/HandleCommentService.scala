@@ -3,10 +3,11 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Issue
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.model.activity.comment.{IssueCommentInfo, PullRequestCommentInfo}
-import gitbucket.core.model.activity.workflow.{
+import gitbucket.core.model.activity.{
   CloseIssueInfo,
   ClosePullRequestInfo,
+  IssueCommentInfo,
+  PullRequestCommentInfo,
   ReopenIssueInfo,
   ReopenPullRequestInfo
 }

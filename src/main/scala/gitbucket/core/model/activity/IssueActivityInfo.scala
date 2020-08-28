@@ -1,25 +1,9 @@
-package gitbucket.core.model.activity.workflow
+package gitbucket.core.model.activity
 
 import java.util.UUID
 
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile.currentDate
-import gitbucket.core.model.activity.BaseActivityInfo
-
-/**
- * A case of unfortunate naming; GitHub issues and pull requests are
- * technically "issues", since they're given a number, e.g. #1234, etc.
- *
- * It also works well here because most actions belonging to this type
- * share the same information.
- */
-sealed trait IssueActivityInfo extends BaseActivityInfo {
-  def userName: String
-  def repositoryName: String
-  def activityUserName: String
-  def issueId: Int
-  def title: String
-}
 
 final case class CreateIssueInfo(
   userName: String,
@@ -27,7 +11,7 @@ final case class CreateIssueInfo(
   activityUserName: String,
   issueId: Int,
   title: String
-) extends IssueActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -48,7 +32,7 @@ final case class CloseIssueInfo(
   activityUserName: String,
   issueId: Int,
   title: String
-) extends IssueActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -69,7 +53,7 @@ final case class ReopenIssueInfo(
   activityUserName: String,
   issueId: Int,
   title: String
-) extends IssueActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -90,7 +74,7 @@ final case class OpenPullRequestInfo(
   activityUserName: String,
   issueId: Int,
   title: String
-) extends IssueActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -111,7 +95,7 @@ final case class ClosePullRequestInfo(
   activityUserName: String,
   issueId: Int,
   title: String
-) extends IssueActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
@@ -132,7 +116,7 @@ final case class ReopenPullRequestInfo(
   activityUserName: String,
   issueId: Int,
   title: String
-) extends IssueActivityInfo {
+) extends BaseActivityInfo {
 
   override def toActivity: Activity =
     Activity(
