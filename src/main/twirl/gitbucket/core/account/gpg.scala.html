@@ -18,40 +18,37 @@
         <div class="card">
           <div class="card-header">
             <h4>GPG Keys</h4>
-          </div>
-          <div class="card-body">
-            @if(gpgKeys.isEmpty){
-            No keys
-            }
-            @gpgKeys.zipWithIndex.map { case (key, i) =>
-            @if(i != 0){
-            <hr>
-            }
-            <strong style="line-height: 30px;">@key.title</strong> (@key.gpgKeyId.toHexString.toUpperCase)
-            <a href="@context.path/@account.userName/_gpg/delete/@key.keyId" class="btn btn-sm btn-danger pull-right">Delete</a>
-            }
-          </div>
-        </div>
-        <form method="POST" action="@context.path/@account.userName/_gpg" validate="true" autocomplete="off">
-          <div class="card">
-            <div class="card-header">
-              <h4>Add a GPG Key</h4>
-            </div>
+          </div><!-- /.card-header -->
+          <form method="POST" action="@context.path/@account.userName/_gpg" validate="true" autocomplete="off">
             <div class="card-body">
+              @if(gpgKeys.isEmpty){
+              No keys
+              }
+              @gpgKeys.zipWithIndex.map { case (key, i) =>
+              @if(i != 0){
+              <hr>
+              }
+              <strong style="line-height: 30px;">@key.title</strong> (@key.gpgKeyId.toHexString.toUpperCase)
+              <a href="@context.path/@account.userName/_gpg/delete/@key.keyId" class="btn btn-sm btn-danger pull-right">Delete</a>
+              }
+              <hr>
+              <h5 class="mt-2">Add a GPG Key</h5>
               <fieldset class="form-group">
                 <label for="title" class="strong">Title</label>
-                <div><span id="error-title" class="error"></span></div>
+                <div><span id="error-title" class="error text-danger"></span></div>
                 <input type="text" name="title" id="title" class="form-control"/>
               </fieldset>
               <fieldset class="form-group">
                 <label for="publicKey" class="strong">Key</label>
-                <div><span id="error-publicKey" class="error"></span></div>
+                <div><span id="error-publicKey" class="error text-danger"></span></div>
                 <textarea name="publicKey" id="publicKey" class="form-control" style="height: 200px;"></textarea>
               </fieldset>
-              <input type="submit" class="btn btn-success" value="Add"/>
             </div><!-- /.card-body -->
-          </div><!-- /.card -->
-        </form>
+            <div class="card-footer">
+              <input type="submit" class="btn btn-success" value="Add"/>
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
       </div><!-- /.col -->
     </div><!-- /.row -->
   </div><!-- /.container -->
