@@ -790,7 +790,7 @@ function isInWord(txt, pos){
  * @param {String} txt
  * @param {Number} pos position in 'txt'
  * @param {String} pattern e.g. ' ', '\n'
- * @returns Array[Number, Number]
+ * @returns {Array}
  */
 function findStartEnd(txt, pos, pattern){
   var start;
