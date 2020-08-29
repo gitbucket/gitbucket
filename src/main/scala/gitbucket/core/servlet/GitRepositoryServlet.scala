@@ -5,7 +5,6 @@ import java.util
 import java.util.Date
 
 import scala.util.Using
-
 import gitbucket.core.api
 import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
@@ -16,6 +15,16 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.{
+  CloseIssueInfo,
+  CreateBranchInfo,
+  CreateTagInfo,
+  CreateWikiPageInfo,
+  DeleteBranchInfo,
+  DeleteTagInfo,
+  EditWikiPageInfo,
+  PushInfo
+}
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
 import gitbucket.core.servlet.Database
@@ -322,13 +331,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
                         getIssue(owner, repository, issueId.toString).foreach { issue =>
                           callIssuesWebHook("closed", repositoryInfo, issue, pusherAccount, settings)
-                          recordCloseIssueActivity(
-                            owner,
-                            repository,
-                            pusherAccount.userName,
-                            issue.issueId,
-                            issue.title
-                          )
+                          val closeIssueInfo =
+                            CloseIssueInfo(owner, repository, pusherAccount.userName, issue.issueId, issue.title)
+                          recordActivity(closeIssueInfo)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repositoryInfo, commit.fullMessage, pusherAccount))
                         }
@@ -356,17 +361,25 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             // record activity
             if (refName(1) == "heads") {
               command.getType match {
-                case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
-                case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
-                case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
-                case _                          =>
+                case ReceiveCommand.Type.CREATE =>
+                  val createBranchInfo = CreateBranchInfo(owner, repository, pusher, branchName)
+                  recordActivity(createBranchInfo)
+                case ReceiveCommand.Type.UPDATE =>
+                  val pushInfo = PushInfo(owner, repository, pusher, branchName, newCommits)
+                  recordActivity(pushInfo)
+                case ReceiveCommand.Type.DELETE =>
+                  val deleteBranchInfo = DeleteBranchInfo(owner, repository, pusher, branchName)
+                  recordActivity(deleteBranchInfo)
+                case _ =>
               }
             } else if (refName(1) == "tags") {
               command.getType match {
                 case ReceiveCommand.Type.CREATE =>
-                  recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
+                  val createTagInfo = CreateTagInfo(owner, repository, pusher, branchName)
+                  recordActivity(createTagInfo)
                 case ReceiveCommand.Type.DELETE =>
-                  recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
+                  val deleteTagInfo = DeleteTagInfo(owner, repository, pusher, branchName)
+                  recordActivity(deleteTagInfo)
                 case _ =>
               }
             }
@@ -475,20 +488,22 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                       updateLastActivityDate(owner, repository)
                       action match {
                         case "created" =>
-                          recordCreateWikiPageActivity(
+                          val createWikiPageInfo = CreateWikiPageInfo(
                             owner,
                             repository,
                             commit.committerName,
                             fileName.dropRight(".md".length)
                           )
+                          recordActivity(createWikiPageInfo)
                         case "edited" =>
-                          recordEditWikiPageActivity(
+                          val editWikiPageInfo = EditWikiPageInfo(
                             owner,
                             repository,
                             commit.committerName,
                             fileName.dropRight(".md".length),
                             commit.id
                           )
+                          recordActivity(editWikiPageInfo)
                         case _ =>
                       }
                       (action, fileName, commit.id)

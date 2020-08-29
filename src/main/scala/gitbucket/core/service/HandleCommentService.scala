@@ -3,6 +3,14 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Issue
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.{
+  CloseIssueInfo,
+  ClosePullRequestInfo,
+  IssueCommentInfo,
+  PullRequestCommentInfo,
+  ReopenIssueInfo,
+  ReopenPullRequestInfo
+}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
@@ -29,25 +37,31 @@ trait HandleCommentService {
         case (owner, name) =>
           val userName = loginAccount.userName
 
-          val (action, actionActivity) = actionOpt
+          actionOpt.collect {
+            case "close" if !issue.closed =>
+              updateClosed(owner, name, issue.issueId, true)
+            case "reopen" if issue.closed =>
+              updateClosed(owner, name, issue.issueId, false)
+          }
+
+          val (action, _) = actionOpt
             .collect {
-              case "close" if (!issue.closed) =>
-                true ->
-                  (Some("close") -> Some(
-                    if (issue.isPullRequest) recordClosePullRequestActivity _
-                    else recordCloseIssueActivity _
-                  ))
-              case "reopen" if (issue.closed) =>
-                false ->
-                  (Some("reopen") -> Some(
-                    if (issue.isPullRequest) recordReopenPullRequestActivity _
-                    else recordReopenIssueActivity _
-                  ))
-            }
-            .map {
-              case (closed, t) =>
-                updateClosed(owner, name, issue.issueId, closed)
-                t
+              case "close" if !issue.closed =>
+                val info = if (issue.isPullRequest) {
+                  ClosePullRequestInfo(owner, name, userName, issue.issueId, issue.title)
+                } else {
+                  CloseIssueInfo(owner, name, userName, issue.issueId, issue.title)
+                }
+                recordActivity(info)
+                Some("close") -> info
+              case "reopen" if issue.closed =>
+                val info = if (issue.isPullRequest) {
+                  ReopenPullRequestInfo(owner, name, userName, issue.issueId, issue.title)
+                } else {
+                  ReopenIssueInfo(owner, name, userName, issue.issueId, issue.title)
+                }
+                recordActivity(info)
+                Some("reopen") -> info
             }
             .getOrElse(None -> None)
 
@@ -68,17 +82,17 @@ trait HandleCommentService {
               )
 
               // record comment activity
-              if (issue.isPullRequest) recordCommentPullRequestActivity(owner, name, userName, issue.issueId, content)
-              else recordCommentIssueActivity(owner, name, userName, issue.issueId, content)
+              val commentInfo = if (issue.isPullRequest) {
+                PullRequestCommentInfo(owner, name, userName, content, issue.issueId)
+              } else {
+                IssueCommentInfo(owner, name, userName, content, issue.issueId)
+              }
+              recordActivity(commentInfo)
 
               // extract references and create refer comment
               createReferComment(owner, name, issue, content, loginAccount)
 
               id
-          }
-
-          actionActivity.foreach { f =>
-            f(owner, name, userName, issue.issueId, issue.title)
           }
 
           // call web hooks
@@ -120,5 +134,4 @@ trait HandleCommentService {
       }
     }
   }
-
 }

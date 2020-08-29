@@ -1,8 +1,8 @@
 package gitbucket.core.service
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.model.{Account, WebHook}
-import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.{CloseIssueInfo, PushInfo}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.WebHookService.WebHookPushPayload
@@ -182,7 +182,8 @@ trait RepositoryCommitFileService {
             // record activity
             updateLastActivityDate(repository.owner, repository.name)
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+            val pushInfo = PushInfo(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+            recordActivity(pushInfo)
 
             // create issue comment by commit message
             createIssueComment(repository.owner, repository.name, commitInfo)
@@ -192,13 +193,14 @@ trait RepositoryCommitFileService {
               closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
                 getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
                   callIssuesWebHook("closed", repository, issue, loginAccount, settings)
-                  recordCloseIssueActivity(
+                  val closeIssueInfo = CloseIssueInfo(
                     repository.owner,
                     repository.name,
                     loginAccount.userName,
                     issue.issueId,
                     issue.title
                   )
+                  recordActivity(closeIssueInfo)
                   PluginRegistry().getIssueHooks
                     .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
                 }
