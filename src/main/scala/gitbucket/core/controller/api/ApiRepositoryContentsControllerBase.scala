@@ -13,10 +13,13 @@ import scala.util.Using
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
   self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
 
-  /*
+  /**
    * i. Get the README
    * https://developer.github.com/v3/repos/contents/#get-the-readme
    */
+  get("/api/v3/repos/:owner/:repository/readme")(referrersOnly { repository =>
+    getContents(repository, "README.md", params.getOrElse("ref", repository.repository.defaultBranch))
+  })
 
   /**
    * ii. Get contents
