@@ -381,6 +381,21 @@ trait RepositoryService {
   }
 
   /**
+   * Returns the all public repositories.
+   *
+   * @return the repository information list
+   */
+  def getPublicRepositories(withoutPhysicalInfo: Boolean = false)(implicit s: Session): List[RepositoryInfo] = {
+    Repositories
+      .filter { t1 =>
+        t1.isPrivate === false.bind
+      }
+      .sortBy(_.lastActivityDate desc)
+      .list
+      .map(createRepositoryInfo(_, withoutPhysicalInfo))
+  }
+
+  /**
    * Returns the list of repositories which are owned by the specified user.
    * This list includes group repositories if the specified user is a member of the group.
    */

@@ -300,7 +300,7 @@ trait WikiService {
   }
 
   /**
-   * Delete the wiki page.
+   * Delete the wiki page and return the commitId
    */
   def deleteWikiPage(
     owner: String,
@@ -309,7 +309,7 @@ trait WikiService {
     committer: String,
     mailAddress: String,
     message: String
-  ): Unit = {
+  ): Option[String] = {
     LockUtil.lock(s"${owner}/${repository}/wiki") {
       Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
         val builder = DirCache.newInCore.builder()
@@ -326,7 +326,7 @@ trait WikiService {
         }
         if (removed) {
           builder.finish()
-          JGitUtil.createNewCommit(
+          val newHeadId = JGitUtil.createNewCommit(
             git,
             inserter,
             headId,
@@ -336,6 +336,9 @@ trait WikiService {
             mailAddress,
             message
           )
+          Some(newHeadId.getName)
+        } else {
+          None
         }
       }
     }
