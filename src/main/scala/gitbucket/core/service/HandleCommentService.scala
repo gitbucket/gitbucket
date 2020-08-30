@@ -134,4 +134,42 @@ trait HandleCommentService {
       }
     }
   }
+
+  def updateCommentByApi(
+    repository: RepositoryService.RepositoryInfo,
+    issue: Issue,
+    commentId: String,
+    content: Option[String]
+  )(implicit context: Context, s: Session): Option[(Issue, Int)] = {
+    context.loginAccount.flatMap { loginAccount =>
+      defining(repository.owner, repository.name) {
+        case (owner, name) =>
+          val userName = loginAccount.userName
+          content match {
+            case Some(content) =>
+              // Update comment
+              val _commentId = Some(updateComment(issue.issueId, commentId.toInt, content))
+              // Record comment activity
+              val commentInfo = if (issue.isPullRequest) {
+                PullRequestCommentInfo(owner, name, userName, content, issue.issueId)
+              } else {
+                IssueCommentInfo(owner, name, userName, content, issue.issueId)
+              }
+              recordActivity(commentInfo)
+              // extract references and create refer comment
+              createReferComment(owner, name, issue, content, loginAccount)
+              // call web hooks
+              commentId foreach (callIssueCommentWebHook(repository, issue, _, loginAccount, context.settings))
+              // call hooks
+              if (issue.isPullRequest)
+                PluginRegistry().getPullRequestHooks
+                  .foreach(_.updatedComment(commentId.toInt, content, issue, repository))
+              else
+                PluginRegistry().getIssueHooks.foreach(_.updatedComment(commentId.toInt, content, issue, repository))
+              _commentId.map(issue -> _)
+            case _ => None
+          }
+      }
+    }
+  }
 }

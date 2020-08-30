@@ -65,9 +65,29 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   })
 
   /*
-   * v. Edit a comment
-   * https://developer.github.com/v3/issues/comments/#edit-a-comment
+   * v. Update an issue comment
+   * https://developer.github.com/v3/issues/comments/#update-an-issue-comment
    */
+  patch("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
+    (for {
+      commentId <- params("id").toIntOpt
+      issueComment <- getComment(repository.owner, repository.name, commentId.toString)
+      issue <- getIssue(repository.owner, repository.name, issueComment.issueId.toString)
+      body <- extractFromJsonBody[CreateAComment].map(_.body) if !body.isEmpty
+      (issue, id) <- updateCommentByApi(repository, issue, commentId.toString, Some(body))
+      issueComment <- getComment(repository.owner, repository.name, id.toString)
+    } yield {
+      JsonFormat(
+        ApiComment(
+          issueComment,
+          RepositoryName(repository),
+          issue.issueId,
+          ApiUser(context.loginAccount.get),
+          issue.isPullRequest
+        )
+      )
+    }) getOrElse NotFound()
+  })
 
   /*
    * vi. Delete a comment
