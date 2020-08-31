@@ -69,24 +69,34 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/comments/#update-an-issue-comment
    */
   patch("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
-    (for {
-      commentId <- params("id").toIntOpt
-      issueComment <- getComment(repository.owner, repository.name, commentId.toString)
-      issue <- getIssue(repository.owner, repository.name, issueComment.issueId.toString)
-      body <- extractFromJsonBody[CreateAComment].map(_.body) if !body.isEmpty
-      (issue, id) <- updateCommentByApi(repository, issue, commentId.toString, Some(body))
-      issueComment <- getComment(repository.owner, repository.name, id.toString)
-    } yield {
-      JsonFormat(
-        ApiComment(
-          issueComment,
-          RepositoryName(repository),
-          issue.issueId,
-          ApiUser(context.loginAccount.get),
-          issue.isPullRequest
-        )
-      )
-    }) getOrElse NotFound()
+    val commentId = params("id")
+    getComment(repository.owner, repository.name, commentId) match {
+      case Some(issueComment) =>
+        getIssue(repository.owner, repository.name, issueComment.issueId.toString) match {
+          case Some(issue) =>
+            if (isEditable(issue.userName, issue.repositoryName, issue.openedUserName)) {
+              val body = extractFromJsonBody[CreateAComment].map(_.body)
+              updateCommentByApi(repository, issue, issueComment.commentId.toString, body) match {
+                case Some(_) =>
+                  getComment(repository.owner, repository.name, commentId) match {
+                    case Some(issueComment) =>
+                      JsonFormat(
+                        ApiComment(
+                          issueComment,
+                          RepositoryName(repository),
+                          issue.issueId,
+                          ApiUser(context.loginAccount.get),
+                          issue.isPullRequest
+                        )
+                      )
+                  }
+              }
+            } else {
+              Unauthorized()
+            }
+        }
+      case _ => NotFound()
+    }
   })
 
   /*
