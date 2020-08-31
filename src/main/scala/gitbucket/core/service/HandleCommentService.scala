@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.Issue
+import gitbucket.core.model.{Issue, IssueComment}
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.activity.{
   CloseIssueInfo,
@@ -11,7 +11,8 @@ import gitbucket.core.model.activity.{
   ReopenIssueInfo,
   ReopenPullRequestInfo
 }
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{IssueHook, PluginRegistry}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 
@@ -132,6 +133,20 @@ trait HandleCommentService {
 
           commentId.map(issue -> _)
       }
+    }
+  }
+
+  def deleteCommentByApi(repoInfo: RepositoryInfo, comment: IssueComment, issue: Issue)(
+    implicit context: Context,
+    s: Session
+  ): Option[(Issue, Int)] = context.loginAccount.flatMap { _ =>
+    val deleteResult = deleteComment(comment.issueId, comment.commentId)
+    val registry = PluginRegistry()
+    val hooks: Seq[IssueHook] = if (issue.isPullRequest) registry.getPullRequestHooks else registry.getIssueHooks
+    hooks.foreach(_.deletedComment(comment.commentId, issue, repoInfo))
+    deleteResult match {
+      case 1 => Some(issue -> comment.commentId)
+      case _ => None
     }
   }
 }
