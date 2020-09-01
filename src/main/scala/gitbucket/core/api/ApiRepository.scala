@@ -41,7 +41,7 @@ object ApiRepository {
       `private` = repository.isPrivate,
       default_branch = repository.defaultBranch,
       owner = owner,
-      has_issues = if(repository.options.issuesOption == "DISABLE") false else true
+      has_issues = if (repository.options.issuesOption == "DISABLE") false else true
     )
 
   def apply(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
