@@ -89,11 +89,14 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
                           issue.isPullRequest
                         )
                       )
+                    case _ => NotFound()
                   }
+                case _ => NotFound()
               }
             } else {
               Unauthorized()
             }
+          case _ => NotFound()
         }
       case _ => NotFound()
     }
