@@ -73,7 +73,7 @@ trait IssuesService {
 
   def getCommentForApi(owner: String, repository: String, commentId: Int)(
     implicit s: Session
-  ): List[(IssueComment, Account, Issue)] =
+  ): Option[(IssueComment, Account, Issue)] =
     IssueComments
       .filter(_.byRepository(owner, repository))
       .filter(_.commentId === commentId)
@@ -83,7 +83,7 @@ trait IssuesService {
       .join(Issues)
       .on { case t1 ~ t2 ~ t3 => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
       .map { case t1 ~ t2 ~ t3 => (t1, t2, t3) }
-      .list
+      .firstOption
 
   def getIssueLabels(owner: String, repository: String, issueId: Int)(implicit s: Session): List[Label] = {
     IssueLabels
