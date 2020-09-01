@@ -36,7 +36,7 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
 
   /*
    * iii. Get an issue comment
-   * https://developer.github.com/v3/issues/comments/#get-an-issue-comment
+   * https://docs.github.com/en/rest/reference/issues#get-an-issue-comment
    */
   get("/api/v3/repos/:owner/:repository/issues/comments/:id")(referrersOnly { repository =>
     (for {
