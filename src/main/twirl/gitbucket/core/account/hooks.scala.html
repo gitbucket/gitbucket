@@ -4,39 +4,62 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Service Hooks"){
   @gitbucket.core.account.html.menu("hooks", account.userName, account.isGroupAccount){
-    @gitbucket.core.helper.html.information(info)
-    <div class="panel panel-default">
-      <div class="panel-heading strong">
-        Webhooks
-      </div>
-      <div class="panel-body">
-        <p>
-          These webhooks notify external services when certain events occur within any of your repositories.
-          When any of the specified events occur, GitBucket will send a POST request to all of the endpoints (URLs) you provide.
-          Learn more about this feature on the <a href="https://github.com/gitbucket/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki</a>.
-        </p>
-        <a href="@helpers.url(account.userName)/_hooks/new" class="btn btn-success pull-right" style="margin-bottom: 10px;">Add webhook</a>
-
-        <table class="table table-condensed" style="margin-bottom:0px;">
-          @webHooks.map { case (webHook, events) =>
-          <tr><td style="vertical-align: middle;">
-            <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
-              <span class="css-truncate-target">@webHook.url</span>
-            </a>
-            <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
-          </td><td>
-            <div class="btn-group pull-right">
-              <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
-                <span class="octicon octicon-pencil"></span>
-              </a>
-              <a href="@helpers.url(account.userName)/_hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
-                <span class="octicon octicon-x"></span>
-              </a>
-            </div>
-          </td></tr>
-          }
-        </table>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
       </div>
     </div>
+  </div>
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    @gitbucket.core.helper.html.information(info)
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>Webhooks</h4>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            <p>
+              These webhooks notify external services when certain events occur within any of your repositories.
+              When any of the specified events occur, GitBucket will send a POST request to all of the endpoints (URLs) you provide.
+              Learn more about this feature on the <a href="https://github.com/gitbucket/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki</a>.
+            </p>
+            <table class="table table-condensed mb-0">
+              @webHooks.map { case (webHook, events) =>
+              <tr>
+                <td style="vertical-align: middle;">
+                  <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
+                    <span class="css-truncate-target">@webHook.url</span>
+                  </a>
+                  <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
+                </td>
+                <td>
+                  <div class="btn-group float-right">
+                    <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
+                      <span class="octicon octicon-pencil"></span>
+                    </a>
+                    <a href="@helpers.url(account.userName)/_hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                      <span class="octicon octicon-x"></span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              }
+            </table>
+          </div><!-- /.card-body -->
+          <div class="card-footer">
+            <div class="float-right">
+              <a href="@helpers.url(account.userName)/_hooks/new" class="btn btn-success float-right">Add webhook</a>
+            </div>
+          </div><!-- /.card-footer -->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+</div><!-- /.content -->
   }
 }
