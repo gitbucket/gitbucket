@@ -64,6 +64,6 @@ object ApiRepository {
       `private` = false,
       default_branch = "master",
       owner = owner,
-      has_issues = false
+      has_issues = true
     )
 }
