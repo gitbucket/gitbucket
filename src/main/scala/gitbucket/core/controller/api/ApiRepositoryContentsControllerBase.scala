@@ -41,18 +41,18 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     repository: RepositoryService.RepositoryInfo,
     path: String,
     refStr: String,
-    matchByLowCase: Boolean = false
+    ignoreCase: Boolean = false
   ) = {
-    def getFileInfo(git: Git, revision: String, pathStr: String, matchByLowCase: Boolean): Option[FileInfo] = {
+    def getFileInfo(git: Git, revision: String, pathStr: String, ignoreCase: Boolean): Option[FileInfo] = {
       val (dirName, fileName) = pathStr.lastIndexOf('/') match {
         case -1 =>
           (".", pathStr)
         case n =>
           (pathStr.take(n), pathStr.drop(n + 1))
       }
-      if (matchByLowCase) {
+      if (ignoreCase) {
         getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-          .find(_.name.toLowerCase.equals(if (matchByLowCase) { fileName.toLowerCase } else fileName))
+          .find(_.name.toLowerCase.equals(fileName.toLowerCase))
       } else {
         getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
           .find(_.name.equals(fileName))
@@ -62,7 +62,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
       if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path, matchByLowCase)
+        getFileInfo(git, refStr, path, ignoreCase)
           .flatMap { f =>
             val largeFile = params.get("large_file").exists(s => s.equals("true"))
             val content = getContentFromId(git, f.id, largeFile)
