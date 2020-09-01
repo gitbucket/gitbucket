@@ -184,8 +184,7 @@ object ApiSpecModels {
     repository = repository,
     owner = apiUser,
     forkedCount = repositoryInfo.forkedCount,
-    watchers = 0,
-    issueCount = repositoryInfo.issueCount
+    watchers = 0
   )
 
   val apiLabel = ApiLabel(

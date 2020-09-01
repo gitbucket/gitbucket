@@ -30,8 +30,7 @@ object ApiRepository {
     repository: Repository,
     owner: ApiUser,
     forkedCount: Int = 0,
-    watchers: Int = 0,
-    issueCount: Int = 0
+    watchers: Int = 0
   ): ApiRepository =
     ApiRepository(
       name = repository.repositoryName,
@@ -42,15 +41,14 @@ object ApiRepository {
       `private` = repository.isPrivate,
       default_branch = repository.defaultBranch,
       owner = owner,
-      has_issues = issueCount > 0
+      has_issues = if(repository.options.issuesOption == "DISABLE") false else true
     )
 
   def apply(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
     ApiRepository(
       repositoryInfo.repository,
       owner,
-      forkedCount = repositoryInfo.forkedCount,
-      issueCount = repositoryInfo.issueCount
+      forkedCount = repositoryInfo.forkedCount
     )
 
   def apply(repositoryInfo: RepositoryInfo, owner: Account): ApiRepository =
