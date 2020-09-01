@@ -14,11 +14,11 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
   self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
 
   /**
-   * i. Get the README
-   * https://developer.github.com/v3/repos/contents/#get-the-readme
+   * i. Get a repository README
+   * https://docs.github.com/en/rest/reference/repos#get-a-repository-readme
    */
   get("/api/v3/repos/:owner/:repository/readme")(referrersOnly { repository =>
-    getContents(repository, "README.md", params.getOrElse("ref", repository.repository.defaultBranch))
+    getContents(repository, "readme.md", params.getOrElse("ref", repository.repository.defaultBranch), true)
   })
 
   /**
@@ -37,22 +37,32 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     getContents(repository, multiParams("splat").head, params.getOrElse("ref", repository.repository.defaultBranch))
   })
 
-  private def getContents(repository: RepositoryService.RepositoryInfo, path: String, refStr: String) = {
-    def getFileInfo(git: Git, revision: String, pathStr: String): Option[FileInfo] = {
+  private def getContents(
+    repository: RepositoryService.RepositoryInfo,
+    path: String,
+    refStr: String,
+    matchByLowCase: Boolean = false
+  ) = {
+    def getFileInfo(git: Git, revision: String, pathStr: String, matchByLowCase: Boolean): Option[FileInfo] = {
       val (dirName, fileName) = pathStr.lastIndexOf('/') match {
         case -1 =>
           (".", pathStr)
         case n =>
           (pathStr.take(n), pathStr.drop(n + 1))
       }
-      getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-        .find(_.name.equals(fileName))
+      if (matchByLowCase) {
+        getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
+          .find(_.name.toLowerCase.equals(if (matchByLowCase) { fileName.toLowerCase } else fileName))
+      } else {
+        getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
+          .find(_.name.equals(fileName))
+      }
     }
 
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
       if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path)
+        getFileInfo(git, refStr, path, matchByLowCase)
           .flatMap { f =>
             val largeFile = params.get("large_file").exists(s => s.equals("true"))
             val content = getContentFromId(git, f.id, largeFile)
