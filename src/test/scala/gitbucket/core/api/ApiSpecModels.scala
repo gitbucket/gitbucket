@@ -184,7 +184,8 @@ object ApiSpecModels {
     repository = repository,
     owner = apiUser,
     forkedCount = repositoryInfo.forkedCount,
-    watchers = 0
+    watchers = 0,
+    issueCount = repositoryInfo.issueCount
   )
 
   val apiLabel = ApiLabel(
@@ -444,6 +445,7 @@ object ApiSpecModels {
        |"private":false,
        |"default_branch":"master",
        |"owner":$jsonUser,
+       |"has_issues":true,
        |"id":0,
        |"forks_count":1,
        |"watchers_count":0,
