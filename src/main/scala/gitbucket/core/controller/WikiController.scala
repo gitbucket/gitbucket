@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.WebHook
-import gitbucket.core.model.activity.{CreateWikiPageInfo, EditWikiPageInfo}
+import gitbucket.core.model.activity.{CreateWikiPageInfo, DeleteWikiInfo, EditWikiPageInfo}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.WebHookService.WebHookGollumPayload
 import gitbucket.core.wiki.html
@@ -251,14 +251,13 @@ trait WikiControllerBase extends ControllerBase {
       val pageName = StringUtil.urlDecode(params("page"))
 
       defining(context.loginAccount.get) { loginAccount =>
-        deleteWikiPage(
+        val deleteWikiInfo = DeleteWikiInfo(
           repository.owner,
           repository.name,
-          pageName,
-          loginAccount.fullName,
-          loginAccount.mailAddress,
-          s"Destroyed ${pageName}"
+          loginAccount.userName,
+          pageName
         )
+        recordActivity(deleteWikiInfo)
         updateLastActivityDate(repository.owner, repository.name)
 
         redirect(s"/${repository.owner}/${repository.name}/wiki")

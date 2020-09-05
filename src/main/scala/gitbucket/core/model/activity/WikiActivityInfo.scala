@@ -45,3 +45,23 @@ final case class EditWikiPageInfo(
       UUID.randomUUID().toString
     )
 }
+
+final case class DeleteWikiInfo(
+  userName: String,
+  repositoryName: String,
+  activityUserName: String,
+  pageName: String,
+) extends BaseActivityInfo {
+
+  override def toActivity: Activity =
+    Activity(
+      userName,
+      repositoryName,
+      activityUserName,
+      "delete_wiki",
+      s"[user:$activityUserName] deleted the page [$pageName] in the [repo:$userName/$repositoryName] wiki",
+      additionalInfo = None,
+      currentDate,
+      UUID.randomUUID().toString
+    )
+}

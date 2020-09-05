@@ -16,15 +16,18 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.activity.{
+  BaseActivityInfo,
   CloseIssueInfo,
   CreateBranchInfo,
   CreateTagInfo,
   CreateWikiPageInfo,
   DeleteBranchInfo,
   DeleteTagInfo,
+  DeleteWikiInfo,
   EditWikiPageInfo,
   PushInfo
 }
+import gitbucket.core.util.JGitUtil.CommitInfo
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
 import gitbucket.core.servlet.Database
@@ -483,39 +486,22 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                   val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
                   diffs.collect {
                     case diff if diff.newPath.toLowerCase.endsWith(".md") =>
-                      val action = if (diff.changeType == ChangeType.ADD) "created" else "edited"
+                      val action = mapToAction(diff.changeType)
                       val fileName = diff.newPath
                       updateLastActivityDate(owner, repository)
-                      action match {
-                        case "created" =>
-                          val createWikiPageInfo = CreateWikiPageInfo(
-                            owner,
-                            repository,
-                            commit.committerName,
-                            fileName.dropRight(".md".length)
-                          )
-                          recordActivity(createWikiPageInfo)
-                        case "edited" =>
-                          val editWikiPageInfo = EditWikiPageInfo(
-                            owner,
-                            repository,
-                            commit.committerName,
-                            fileName.dropRight(".md".length),
-                            commit.id
-                          )
-                          recordActivity(editWikiPageInfo)
-                        case _ =>
-                      }
+                      buildWikiRecord(action, owner, repository, commit, fileName).foreach(recordActivity)
                       (action, fileName, commit.id)
                   }
                 }
               }
 
               val pages = commits
-                .groupBy { case (action, fileName, commitId) => fileName }
+                .groupBy { case (_, fileName, _) => fileName }
                 .map {
                   case (fileName, commits) =>
-                    (commits.head._1, fileName, commits.last._3)
+                    val (commitHeadAction, _, _) = commits.head
+                    val (_, _, commitLastId) = commits.last
+                    (commitHeadAction, fileName, commitLastId)
                 }
 
               callWebHookOf(owner, repository, WebHook.Gollum, settings) {
@@ -538,6 +524,32 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     }
   }
 
+  private[this] def mapToAction(changeType: ChangeType): String = changeType match {
+    case ChangeType.ADD | ChangeType.RENAME => "created"
+    case ChangeType.MODIFY                  => "edited"
+    case ChangeType.DELETE                  => "deleted"
+    case other =>
+      logger.error(s"Unsupported Wiki action: $other")
+      "unsupported action"
+  }
+
+  private[this] def buildWikiRecord(
+    action: String,
+    owner: String,
+    repo: String,
+    commit: CommitInfo,
+    fileName: String
+  ): Option[BaseActivityInfo] = {
+    val pageName = fileName.dropRight(".md".length)
+    action match {
+      case "created" => Some(CreateWikiPageInfo(owner, repo, commit.committerName, pageName))
+      case "edited"  => Some(EditWikiPageInfo(owner, repo, commit.committerName, pageName, commit.id))
+      case "deleted" => Some(DeleteWikiInfo(owner, repo, commit.committerName, pageName))
+      case other =>
+        logger.info(s"Attempted to build wiki record for unsupported action: $other")
+        None
+    }
+  }
 }
 
 object GitLfs {
