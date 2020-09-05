@@ -35,9 +35,19 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    */
 
   /*
-   * iii. Get a single comment
-   * https://developer.github.com/v3/issues/comments/#get-a-single-comment
+   * iii. Get an issue comment
+   * https://docs.github.com/en/rest/reference/issues#get-an-issue-comment
    */
+  get("/api/v3/repos/:owner/:repository/issues/comments/:id")(referrersOnly { repository =>
+    val commentId = params("id").toInt
+    getCommentForApi(repository.owner, repository.name, commentId) match {
+      case Some((issueComment, user, issue)) =>
+        JsonFormat(
+          ApiComment(issueComment, RepositoryName(repository), issue.issueId, ApiUser(user), issue.isPullRequest)
+        )
+      case _ => NotFound()
+    }
+  })
 
   /*
    * iv. Create a comment
