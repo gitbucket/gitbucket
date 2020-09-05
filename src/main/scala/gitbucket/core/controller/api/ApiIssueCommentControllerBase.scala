@@ -4,7 +4,7 @@ import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, RepositoryName}
-import org.scalatra.NoContent
+import org.scalatra.{ActionResult, NoContent}
 
 trait ApiIssueCommentControllerBase extends ControllerBase {
   self: AccountService
@@ -76,13 +76,25 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    *
    */
   delete("/api/v3/repos/{owner}/{repo}/issues/comments/:id")(readableUsersOnly { repository =>
-    (for {
-      commentId <- params("id").toIntOpt
-      comment <- getComment(repository.owner, repository.name, commentId.toString)
-      issue <- getIssue(repository.owner, repository.name, comment.issueId.toString)
-    } yield {
-      deleteCommentByApi(repository, comment, issue)
-    }).fold(NotFound())(_ => NoContent())
+    val maybeDeleteResponse: Option[Either[ActionResult, Option[Int]]] =
+      for {
+        commentId <- params("id").toIntOpt
+        comment <- getComment(repository.owner, repository.name, commentId.toString)
+        issue <- getIssue(repository.owner, repository.name, comment.issueId.toString)
+      } yield {
+        if (isEditable(repository.owner, repository.name, comment.commentedUserName)) {
+          val maybeDeletedComment = deleteCommentByApi(repository, comment, issue)
+          Right(maybeDeletedComment.map(_.commentId))
+        } else {
+          Left(Unauthorized())
+        }
+      }
+    maybeDeleteResponse
+      .map {
+        case Right(maybeDeletedCommentId) => maybeDeletedCommentId.getOrElse(NotFound())
+        case Left(err)                    => err
+      }
+      .getOrElse(NotFound())
   })
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
