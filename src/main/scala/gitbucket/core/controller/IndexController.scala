@@ -213,8 +213,10 @@ trait IndexControllerBase extends ControllerBase {
             }
             .map { t =>
               Map(
-                "label" -> s"${avatar(t.userName, 16)}<b>@${StringUtil.escapeHtml(t.userName)}</b> ${StringUtil
-                  .escapeHtml(t.fullName)}",
+                "label" -> s"${avatar(t.userName, 16)}<b>@${StringUtil.escapeHtml(
+                  StringUtil.cutTail(t.userName, 25, "...")
+                )}</b> ${StringUtil
+                  .escapeHtml(StringUtil.cutTail(t.fullName, 25, "..."))}",
                 "value" -> t.userName
               )
             }

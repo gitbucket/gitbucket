@@ -186,13 +186,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
     Html(decorateHtml(convertRefsLinks(value, repository), repository))
 
-  def cut(value: String, length: Int): String =
-    if (value.length > length) {
-      value.substring(0, length) + "..."
-    } else {
-      value
-    }
-
   import scala.util.matching.Regex._
   implicit class RegexReplaceString(private val s: String) extends AnyVal {
     def replaceAll(pattern: String)(replacer: Match => String): String = {
