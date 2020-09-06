@@ -1,6 +1,7 @@
 package gitbucket.core.controller.api
 import gitbucket.core.api.{ApiContents, ApiError, CreateAFile, JsonFormat}
 import gitbucket.core.controller.ControllerBase
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.JGitUtil.{FileInfo, getContentFromId, getFileList}
@@ -8,6 +9,7 @@ import gitbucket.core.util._
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
+
 import scala.util.Using
 
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
@@ -18,7 +20,15 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
    * https://docs.github.com/en/rest/reference/repos#get-a-repository-readme
    */
   get("/api/v3/repos/:owner/:repository/readme")(referrersOnly { repository =>
-    getContents(repository, "readme.md", params.getOrElse("ref", repository.repository.defaultBranch), true)
+    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
+      git =>
+        val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
+        val fileList = getFileList(git, refStr, ".", maxFiles = context.settings.repositoryViewer.maxFiles)
+        fileList.map(f => f.name).find(p => readmeFiles.map(_.toLowerCase).contains(p.toLowerCase)) match {
+          case Some(x) => getContents(repository = repository, path = x, refStr = refStr, ignoreCase = true)
+          case _       => NotFound()
+        }
+    }
   })
 
   /**
