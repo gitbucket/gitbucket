@@ -908,10 +908,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     lazy val isValid: Boolean = fileIds.nonEmpty
   }
 
-  private val readmeFiles = PluginRegistry().renderableExtensions.map { extension =>
-    s"readme.${extension}"
-  } ++ Seq("readme.txt", "readme")
-
   /**
    * Provides HTML of the file list.
    *
