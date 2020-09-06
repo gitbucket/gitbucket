@@ -26,7 +26,7 @@ trait IssuesService {
   self: AccountService with RepositoryService with LabelsService with PrioritiesService with MilestonesService =>
   import IssuesService._
 
-  def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =
+  def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session): Option[Issue] =
     if (isInteger(issueId))
       Issues filter (_.byPrimaryKey(owner, repository, issueId.toInt)) firstOption
     else None
@@ -34,11 +34,8 @@ trait IssuesService {
   def getOpenIssues(owner: String, repository: String)(implicit s: Session): List[Issue] =
     Issues filter (_.byRepository(owner, repository)) filterNot (_.closed) sortBy (_.issueId desc) list
 
-  def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
-    IssueComments filter (_.byIssue(owner, repository, issueId)) sortBy (_.commentId asc) list
-
   /** @return IssueComment and commentedUser and Issue */
-  def getCommentsForApi(owner: String, repository: String, issueId: Int)(
+  def getComments(owner: String, repository: String, issueId: Int)(
     implicit s: Session
   ): List[(IssueComment, Account, Issue)] =
     IssueComments
@@ -51,27 +48,7 @@ trait IssuesService {
       .map { case t1 ~ t2 ~ t3 => (t1, t2, t3) }
       .list
 
-  def getMergedComment(owner: String, repository: String, issueId: Int)(
-    implicit s: Session
-  ): Option[(IssueComment, Account)] = {
-    IssueComments
-      .filter(_.byIssue(owner, repository, issueId))
-      .filter(_.action === "merge".bind)
-      .join(Accounts)
-      .on { case t1 ~ t2 => t1.commentedUserName === t2.userName }
-      .map { case t1 ~ t2 => (t1, t2) }
-      .firstOption
-  }
-
-  def getComment(owner: String, repository: String, commentId: String)(implicit s: Session): Option[IssueComment] = {
-    if (commentId forall (_.isDigit))
-      IssueComments filter { t =>
-        t.byPrimaryKey(commentId.toInt) && t.byRepository(owner, repository)
-      } firstOption
-    else None
-  }
-
-  def getCommentForApi(owner: String, repository: String, commentId: Int)(
+  def getComment(owner: String, repository: String, commentId: Int)(
     implicit s: Session
   ): Option[(IssueComment, Account, Issue)] =
     IssueComments
@@ -84,6 +61,18 @@ trait IssuesService {
       .on { case t1 ~ t2 ~ t3 => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
       .map { case t1 ~ t2 ~ t3 => (t1, t2, t3) }
       .firstOption
+
+  def getMergedComment(owner: String, repository: String, issueId: Int)(
+    implicit s: Session
+  ): Option[(IssueComment, Account)] = {
+    IssueComments
+      .filter(_.byIssue(owner, repository, issueId))
+      .filter(_.action === "merge".bind)
+      .join(Accounts)
+      .on { case t1 ~ t2 => t1.commentedUserName === t2.userName }
+      .map { case t1 ~ t2 => (t1, t2) }
+      .firstOption
+  }
 
   def getIssueLabels(owner: String, repository: String, issueId: Int)(implicit s: Session): List[Label] = {
     IssueLabels
@@ -774,8 +763,9 @@ trait IssuesService {
       val content = s"${fromIssue.issueId}:${fromIssue.title}"
       if (getIssue(owner, repository, issueId).isDefined) {
         // Not add if refer comment already exist.
-        if (!getComments(owner, repository, issueId.toInt).exists { x =>
-              x.action == "refer" && x.content == content
+        if (!getComments(owner, repository, issueId.toInt).exists {
+              case (comment, _, _) =>
+                comment.action == "refer" && comment.content == content
             }) {
           createComment(owner, repository, loginAccount.userName, issueId.toInt, content, "refer")
         }

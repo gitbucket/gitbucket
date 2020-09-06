@@ -520,21 +520,21 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, WebHook.IssueComment, settings) {
       for {
-        issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
+        (comment, _, _) <- getComment(repository.owner, repository.name, issueCommentId)
         users = getAccountsByUserNames(
-          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName) ++ issue.assignedUserName,
+          Set(issue.openedUserName, repository.owner, comment.commentedUserName) ++ issue.assignedUserName,
           Set(sender)
         )
         issueUser <- users.get(issue.openedUserName)
         repoOwner <- users.get(repository.owner)
-        commenter <- users.get(issueComment.commentedUserName)
+        commenter <- users.get(comment.commentedUserName)
         assignedUser = issue.assignedUserName.flatMap(users.get(_))
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
       } yield {
         WebHookIssueCommentPayload(
           issue = issue,
           issueUser = issueUser,
-          comment = issueComment,
+          comment = comment,
           commentUser = commenter,
           repository = repository,
           repositoryUser = repoOwner,

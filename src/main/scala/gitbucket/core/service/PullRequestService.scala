@@ -430,7 +430,7 @@ trait PullRequestService {
   ): Seq[Comment] = {
     (commits
       .map(commit => getCommitComments(userName, repositoryName, commit.id, true))
-      .flatten ++ getComments(userName, repositoryName, issueId))
+      .flatten ++ (getComments(userName, repositoryName, issueId)).map(_._1))
       .groupBy {
         case x: IssueComment                        => (Some(x.commentId), None, None, None)
         case x: CommitComment if x.fileName.isEmpty => (Some(x.commentId), None, None, None)

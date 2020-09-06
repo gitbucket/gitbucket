@@ -20,11 +20,11 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
     (for {
       issueId <- params("id").toIntOpt
-      comments = getCommentsForApi(repository.owner, repository.name, issueId)
+      comments = getComments(repository.owner, repository.name, issueId)
     } yield {
       JsonFormat(comments.map {
-        case (issueComment, user, issue) =>
-          ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest)
+        case (comment, user, issue) =>
+          ApiComment(comment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest)
       })
     }) getOrElse NotFound()
   })
@@ -40,10 +40,10 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repository/issues/comments/:id")(referrersOnly { repository =>
     val commentId = params("id").toInt
-    getCommentForApi(repository.owner, repository.name, commentId) match {
-      case Some((issueComment, user, issue)) =>
+    getComment(repository.owner, repository.name, commentId) match {
+      case Some((comment, user, issue)) =>
         JsonFormat(
-          ApiComment(issueComment, RepositoryName(repository), issue.issueId, ApiUser(user), issue.isPullRequest)
+          ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(user), issue.isPullRequest)
         )
       case _ => NotFound()
     }
@@ -60,14 +60,14 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
       body <- extractFromJsonBody[CreateAComment].map(_.body) if !body.isEmpty
       action = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
       (issue, id) <- handleComment(issue, Some(body), repository, action)
-      issueComment <- getComment(repository.owner, repository.name, id.toString())
+      (comment, user, _) <- getComment(repository.owner, repository.name, id)
     } yield {
       JsonFormat(
         ApiComment(
-          issueComment,
+          comment,
           RepositoryName(repository),
           issueId,
-          ApiUser(context.loginAccount.get),
+          ApiUser(user),
           issue.isPullRequest
         )
       )
