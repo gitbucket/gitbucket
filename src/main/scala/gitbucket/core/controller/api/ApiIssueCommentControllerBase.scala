@@ -66,39 +66,37 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
 
   /*
    * v. Update an issue comment
-   * https://developer.github.com/v3/issues/comments/#update-an-issue-comment
+   * https://docs.github.com/en/rest/reference/issues#update-an-issue-comment
    */
   patch("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
     val commentId = params("id")
-    getComment(repository.owner, repository.name, commentId) match {
-      case Some(issueComment) =>
-        getIssue(repository.owner, repository.name, issueComment.issueId.toString) match {
-          case Some(issue) =>
-            if (isEditable(issue.userName, issue.repositoryName, issue.openedUserName)) {
-              val body = extractFromJsonBody[CreateAComment].map(_.body)
-              updateCommentByApi(repository, issue, issueComment.commentId.toString, body) match {
-                case Some(_) =>
-                  getComment(repository.owner, repository.name, commentId) match {
-                    case Some(issueComment) =>
-                      JsonFormat(
-                        ApiComment(
-                          issueComment,
-                          RepositoryName(repository),
-                          issue.issueId,
-                          ApiUser(context.loginAccount.get),
-                          issue.isPullRequest
-                        )
-                      )
-                    case _ => NotFound()
-                  }
-                case _ => NotFound()
-              }
-            } else {
-              Unauthorized()
-            }
-          case _ => NotFound()
+    val result = for {
+      issueComment <- getComment(repository.owner, repository.name, commentId)
+      issue <- getIssue(repository.owner, repository.name, issueComment.issueId.toString)
+    } yield {
+      if (isEditable(repository.owner, repository.name, issueComment.commentedUserName)) {
+        val body = extractFromJsonBody[CreateAComment].map(_.body)
+        updateCommentByApi(repository, issue, issueComment.commentId.toString, body)
+        getComment(repository.owner, repository.name, commentId) match {
+          case Some(issueComment) =>
+            JsonFormat(
+              ApiComment(
+                issueComment,
+                RepositoryName(repository),
+                issue.issueId,
+                ApiUser(context.loginAccount.get),
+                issue.isPullRequest
+              )
+            )
+          case _ =>
         }
-      case _ => NotFound()
+      } else {
+        Unauthorized()
+      }
+    }
+    result match {
+      case Some(response) => response
+      case None           => NotFound()
     }
   })
 
