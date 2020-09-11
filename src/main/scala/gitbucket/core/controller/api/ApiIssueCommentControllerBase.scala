@@ -36,9 +36,19 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    */
 
   /*
-   * iii. Get a single comment
-   * https://developer.github.com/v3/issues/comments/#get-a-single-comment
+   * iii. Get an issue comment
+   * https://docs.github.com/en/rest/reference/issues#get-an-issue-comment
    */
+  get("/api/v3/repos/:owner/:repository/issues/comments/:id")(referrersOnly { repository =>
+    val commentId = params("id").toInt
+    getCommentForApi(repository.owner, repository.name, commentId) match {
+      case Some((issueComment, user, issue)) =>
+        JsonFormat(
+          ApiComment(issueComment, RepositoryName(repository), issue.issueId, ApiUser(user), issue.isPullRequest)
+        )
+      case _ => NotFound()
+    }
+  })
 
   /*
    * iv. Create a comment
@@ -66,9 +76,40 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   })
 
   /*
-   * v. Edit a comment
-   * https://developer.github.com/v3/issues/comments/#edit-a-comment
+   * v. Update an issue comment
+   * https://docs.github.com/en/rest/reference/issues#update-an-issue-comment
    */
+  patch("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
+    val commentId = params("id")
+    val result = for {
+      issueComment <- getComment(repository.owner, repository.name, commentId)
+      issue <- getIssue(repository.owner, repository.name, issueComment.issueId.toString)
+    } yield {
+      if (isEditable(repository.owner, repository.name, issueComment.commentedUserName)) {
+        val body = extractFromJsonBody[CreateAComment].map(_.body)
+        updateCommentByApi(repository, issue, issueComment.commentId.toString, body)
+        getComment(repository.owner, repository.name, commentId) match {
+          case Some(issueComment) =>
+            JsonFormat(
+              ApiComment(
+                issueComment,
+                RepositoryName(repository),
+                issue.issueId,
+                ApiUser(context.loginAccount.get),
+                issue.isPullRequest
+              )
+            )
+          case _ =>
+        }
+      } else {
+        Unauthorized()
+      }
+    }
+    result match {
+      case Some(response) => response
+      case None           => NotFound()
+    }
+  })
 
   /*
    * vi. Delete a comment

@@ -22,3 +22,12 @@ case class ApiBranchForList(
   name: String,
   commit: ApiBranchCommit
 )
+
+/**
+ * https://docs.github.com/en/rest/reference/repos#list-branches-for-head-commit
+ */
+case class ApiBranchForHeadCommit(
+  name: String,
+  commit: ApiBranchCommit,
+  `protected`: Boolean
+)

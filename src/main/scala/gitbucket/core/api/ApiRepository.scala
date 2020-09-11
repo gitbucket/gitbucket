@@ -12,7 +12,8 @@ case class ApiRepository(
   forks: Int,
   `private`: Boolean,
   default_branch: String,
-  owner: ApiUser
+  owner: ApiUser,
+  has_issues: Boolean
 ) {
   val id = 0 // dummy id
   val forks_count = forks
@@ -39,11 +40,16 @@ object ApiRepository {
       forks = forkedCount,
       `private` = repository.isPrivate,
       default_branch = repository.defaultBranch,
-      owner = owner
+      owner = owner,
+      has_issues = if (repository.options.issuesOption == "DISABLE") false else true
     )
 
   def apply(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
-    ApiRepository(repositoryInfo.repository, owner, forkedCount = repositoryInfo.forkedCount)
+    ApiRepository(
+      repositoryInfo.repository,
+      owner,
+      forkedCount = repositoryInfo.forkedCount
+    )
 
   def apply(repositoryInfo: RepositoryInfo, owner: Account): ApiRepository =
     this(repositoryInfo, ApiUser(owner))
@@ -57,6 +63,7 @@ object ApiRepository {
       forks = 0,
       `private` = false,
       default_branch = "master",
-      owner = owner
+      owner = owner,
+      has_issues = true
     )
 }

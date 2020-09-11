@@ -444,6 +444,7 @@ object ApiSpecModels {
        |"private":false,
        |"default_branch":"master",
        |"owner":$jsonUser,
+       |"has_issues":true,
        |"id":0,
        |"forks_count":1,
        |"watchers_count":0,

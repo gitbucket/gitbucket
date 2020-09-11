@@ -186,13 +186,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
     Html(decorateHtml(convertRefsLinks(value, repository), repository))
 
-  def cut(value: String, length: Int): String =
-    if (value.length > length) {
-      value.substring(0, length) + "..."
-    } else {
-      value
-    }
-
   import scala.util.matching.Regex._
   implicit class RegexReplaceString(private val s: String) extends AnyVal {
     def replaceAll(pattern: String)(replacer: Match => String): String = {
@@ -208,15 +201,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     Html(
       message
         .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"){ m =>
-          if (getRepositoryInfoFromCache(m.group(1), m.group(2)).isDefined) {
-            s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/issues/${m.group(3)}">${m.group(1)}/${m.group(2)}#${m.group(3)}</a>"""
+          val issue = getIssueFromCache(m.group(1), m.group(2), m.group(3))
+          if (issue.isDefined) {
+            s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/issues/${m.group(3)}" title="${issue.get.title}">${m.group(1)}/${m.group(2)}#${m.group(3)}</a>"""
           } else {
             s"${m.group(1)}/${m.group(2)}#${m.group(3)}"
           }
         }
         .replaceAll("\\[pullreq:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"){ m =>
-          if (getRepositoryInfoFromCache(m.group(1), m.group(2)).isDefined) {
-            s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/pull/${m.group(3)}">${m.group(1)}/${m.group(2)}#${m.group(3)}</a>"""
+          val pullreq = getIssueFromCache(m.group(1), m.group(2), m.group(3))
+          if (pullreq.isDefined) {
+            s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/pull/${m.group(3)}" title="${pullreq.get.title}">${m.group(1)}/${m.group(2)}#${m.group(3)}</a>"""
           } else {
             s"${m.group(1)}/${m.group(2)}#${m.group(3)}"
           }
