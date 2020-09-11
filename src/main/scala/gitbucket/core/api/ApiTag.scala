@@ -23,7 +23,7 @@ object ApiTag {
     ApiTag(
       name = tagName,
       commit = ApiTagCommit(sha = commitId, url = ApiPath(s"/${repositoryName.fullName}/commits/${commitId}")),
-      zipball_url = ApiPath(s"/${repositoryName.fullName}/zipball/${tagName}"),
-      tarball_url = ApiPath(s"/${repositoryName.fullName}/tarball/${tagName}")
+      zipball_url = ApiPath(s"/${repositoryName.fullName}/archive/${tagName}.zip"),
+      tarball_url = ApiPath(s"/${repositoryName.fullName}/archive/${tagName}.tar.gz")
     )
 }
