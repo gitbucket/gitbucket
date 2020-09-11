@@ -23,7 +23,7 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
     val owner = repository.owner
     val name = repository.name
     // TODO: The following parameters need to be implemented. [:path, :author, :since, :until]
-    val sha = if (request.body.nonEmpty) (parse(request.body) \ "sha").extract[String] else "refs/heads/master";
+    val sha = params.getOrElse("sha", "refs/heads/master")
     Using.resource(Git.open(getRepositoryDir(owner, name))) {
       git =>
         val repo = git.getRepository
