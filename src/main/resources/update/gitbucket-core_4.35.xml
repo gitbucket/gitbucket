@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT"/>
+  <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK"/>
+  <dropPrimaryKey tableName="WEB_HOOK" constraintName="IDX_WEB_HOOK_PK"/>
+  <addColumn tableName="WEB_HOOK">
+    <column name="HOOK_ID" type="int" nullable="false" unique="true"/>
+  </addColumn>
+  <addPrimaryKey constraintName="IDX_WEB_HOOK_PK" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL, HOOK_ID"/>
+  <addUniqueConstraint constraintName="IDX_WEB_HOOK_1" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addAutoIncrement columnName="HOOK_ID" columnDataType="int" tableName="WEB_HOOK"/>
+</changeSet>
