@@ -9,6 +9,7 @@
   style: String = "",
   styleClass: String = "",
   placeholder: String = "Leave a comment",
+  ariaLabel: String = "Comment body",
   elastic: Boolean = false,
   focus: Boolean = false,
   tabIndex: Int = -2,
@@ -23,7 +24,7 @@
     <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
       <span id="error-content" class="error"></span>
       @textarea = {
-        <textarea id="content@uid" class="form-control" name="content" placeholder="@placeholder" style="resize: vertical; @style"
+        <textarea id="content@uid" class="form-control" name="content" placeholder="@placeholder" style="resize: vertical; @style" aria-label="@ariaLabel"
           @if(tabIndex > -2){ tabindex="@tabIndex"}
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
       }

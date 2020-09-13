@@ -17,14 +17,14 @@
       }
     </fieldset>
     <fieldset class="form-group">
-      <label class="strong">URL (Optional)</label>
+      <label class="strong" for="url">URL (Optional)</label>
       <div>
         <span id="error-url" class="error"></span>
       </div>
       <input type="text" name="url" id="url" class="form-control" value="@account.map(_.url)"/>
     </fieldset>
     <fieldset class="form-group">
-      <label for="groupDescription" class="strong">Description (Optional)</label>
+      <label for="description" class="strong">Description (Optional)</label>
       <div>
         <textarea name="description" id="description" class="form-control">@account.map(_.description)</textarea>
       </div>

@@ -12,7 +12,7 @@
     <div>
       <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right">
         <div class="input-group">
-          <input type="text" class="form-control" name="q" placeholder="Search..."/>
+          <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all pages"/>
           <input type="hidden" name="type" value="wiki"/>
           <span class="input-group-btn">
             <button type="submit" id="search-btn" class="btn btn-default"><i class="fa fa-search"></i></button>
@@ -72,7 +72,7 @@
         <strong>Clone this wiki locally</strong>
       </div>
       @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", WikiService.wikiHttpUrl(repository)){
-        <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
+        <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly aria-label="repository-url">
       }
       @if(WikiService.wikiSshUrl(repository).isDefined) {
         <div class="small">

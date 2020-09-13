@@ -26,7 +26,7 @@
   <thead>
     <tr>
       <th style="background-color: #eee;">
-        <input type="checkbox"/>
+        <input type="checkbox" aria-label="Select all issues"/>
         <span id="table-issues-control">
           @gitbucket.core.helper.html.dropdown("Author", filter = ("author", "Find Author...")) {
             @collaborators.map { collaborator =>
@@ -210,7 +210,7 @@
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
           @if(isManageable){
-            <input type="checkbox" value="@issue.issueId"/>
+            <input type="checkbox" value="@issue.issueId" aria-labelledby="issue_@(issue.issueId)_link"/>
           }
           @*
           <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened")" style="margin-right: 3px;"></i>
@@ -219,9 +219,9 @@
             <a href="@context.path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
           }
           @if(target == "issues"){
-            <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
+            <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
           } else {
-            <a href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+            <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
           }
           @gitbucket.core.issues.html.commitstatus(issue, commitStatus)
           @labels.map { label =>
