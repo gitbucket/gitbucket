@@ -9,7 +9,7 @@ import java.util.Date
  */
 case class ApiMilestone(
   url: ApiPath,
-//  html_url: ApiPath,
+  html_url: ApiPath,
 //  label_url: ApiPath,
   id: Int,
   number: Int,
@@ -36,7 +36,7 @@ object ApiMilestone {
   ): ApiMilestone =
     ApiMilestone(
       url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone_number}"),
-//      html_url = ApiPath(s"/${RepositoryName(repository).fullName}/milestones/${milestone.title}"),
+      html_url = ApiPath(s"/${RepositoryName(repository).fullName}/issues?milestone=${milestone.title}&state=open"),
 //      label_url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone_number}/labels"),
       id = milestone.milestoneId,
       number = milestone_number,
