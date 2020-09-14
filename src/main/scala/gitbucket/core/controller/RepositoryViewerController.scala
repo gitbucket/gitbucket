@@ -45,6 +45,7 @@ class RepositoryViewerController
     with RepositoryService
     with RepositoryCommitFileService
     with AccountService
+    with AccountHighlighterService
     with ActivityService
     with IssuesService
     with WebHookService
@@ -70,6 +71,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService
     with RepositoryCommitFileService
     with AccountService
+    with AccountHighlighterService
     with ActivityService
     with IssuesService
     with WebHookService
@@ -516,6 +518,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   val blobRoute = get("/:owner/:repository/blob/*")(referrersOnly { repository =>
     val (id, path) = repository.splitPath(multiParams("splat").head)
     val raw = params.get("raw").getOrElse("false").toBoolean
+    val theme = getSyntaxHighlighterTheme()
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
@@ -535,12 +538,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",
                 isLfsFile = isLfsFile(git, objectId),
-                tabSize = info.tabSize
+                tabSize = info.tabSize,
+                theme = theme
               )
             }
         } getOrElse NotFound()
     }
   })
+
+  private def getSyntaxHighlighterTheme()(implicit context: Context): String = {
+    context.loginAccount match {
+      case Some(account) =>
+        getAccountHighlighter(account.userName) match {
+          case Some(x) => x.theme
+          case _       => "github-v2"
+        }
+      case _ => "github-v2"
+    }
+  }
 
   private def isLfsFile(git: Git, objectId: ObjectId): Boolean = {
     JGitUtil.getObjectLoaderFromId(git, objectId)(JGitUtil.isLfsPointer).getOrElse(false)

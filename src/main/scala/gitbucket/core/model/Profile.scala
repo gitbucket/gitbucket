@@ -70,5 +70,6 @@ trait CoreProfile
     with ReleaseTagComponent
     with ReleaseAssetComponent
     with AccountExtraMailAddressComponent
+    with AccountHighlighterComponent
 
 object Profile extends CoreProfile

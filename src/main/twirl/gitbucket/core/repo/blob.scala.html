@@ -6,9 +6,10 @@
   hasWritePermission: Boolean,
   isBlame: Boolean,
   isLfsFile: Boolean,
-  tabSize: Int)(implicit context: gitbucket.core.controller.Context)
+  tabSize: Int,
+  theme: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
+@gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}", Some(repository), theme) {
   @gitbucket.core.html.menu("files", repository){
     <style>
       .prettyprint {
@@ -233,11 +234,20 @@ var scrolling = false;
  */
 function updateHighlighting(){
   var hash = location.hash;
+  var isDark = @{theme.contains("dark").toString};
   if(hash.match(/#L\d+(-L\d+)?/)){
-    $('li.highlight').removeClass('highlight');
+    if(isDark){
+      $('li.highlight').removeClass('highlight-dark');
+    }else{
+      $('li.highlight').removeClass('highlight');
+    }
     var lines = hash.substr(1).split('-');
     if(lines.length == 1){
-      $('#' + lines[0]).addClass('highlight');
+      if(isDark){
+        $('#' + lines[0]).addClass('highlight-dark');
+      }else{
+        $('#' + lines[0]).addClass('highlight');
+      }
       if(!scrolling){
         $(window).scrollTop($('#' + lines[0]).offset().top - 40);
       }
@@ -245,7 +255,11 @@ function updateHighlighting(){
       var start = parseInt(lines[0].substr(1));
       var end   = parseInt(lines[1].substr(1));
       for(var i = start; i <= end; i++){
-        $('#L' + i).addClass('highlight');
+        if(isDark){
+          $('#L' + i).addClass('highlight-dark');
+        }else{
+          $('#L' + i).addClass('highlight');
+        }
       }
       if(!scrolling){
         $(window).scrollTop($('#L' + start).offset().top - 40);
