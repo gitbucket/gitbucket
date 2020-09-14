@@ -705,7 +705,7 @@ var imageDiff ={
 function addExtraMailAddress() {
   var fieldset = $('#extraMailAddresses');
   var count = $('.extraMailAddress').length;
-  var html =   '<input type="text" name="extraMailAddresses[' + count + ']" id="extraMailAddresses[' + count + ']" class="form-control extraMailAddress"/>'
+  var html =   '<input type="text" name="extraMailAddresses[' + count + ']" id="extraMailAddresses[' + count + ']" class="form-control extraMailAddress" aria-label="Additional mail address"/>'
   + '<span id="error-extraMailAddresses_' + count + '" class="error"></span>';
   fieldset.append(html);
 }

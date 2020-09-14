@@ -2,10 +2,10 @@
 @import gitbucket.core.plugin.PluginRegistry
 @import gitbucket.core.view.helpers
 <!DOCTYPE html>
-<html prefix="og: http://ogp.me/ns#">
+<html prefix="og: http://ogp.me/ns#" lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>@title</title>
     <meta property="og:title" content="@title" />
@@ -78,7 +78,7 @@
           }
           <form id="search" action="@context.path/search" method="GET" class="pc navbar-form navbar-left" role="search">
             <div class="form-group">
-              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Find a repository"/>
+              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Find a repository" aria-label="Search"/>
             </div>
           </form>
           <ul class="pc nav navbar-nav">
@@ -96,7 +96,7 @@
             <ul class="nav navbar-nav">
               @if(context.loginAccount.isDefined){
                 <li class="dropdown notifications-menu">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" aria-label="Create new…">
                     <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
                   <ul class="dropdown-menu pull-right" style="width: auto;">

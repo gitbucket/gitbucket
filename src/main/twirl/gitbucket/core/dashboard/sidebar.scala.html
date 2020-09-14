@@ -7,7 +7,7 @@
     @if(recentRepositories.isEmpty){
       <li>No repositories</li>
     } else {
-      <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find a repository"/></form></li>
+      <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find a repository" aria-label="Search"/></form></li>
       @recentRepositories.zipWithIndex.map { case (repository, i) =>
         <li class="repo-link menu-item-hover">
           <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span>@repository.owner/<span class="strong">@repository.name</span></span></a>
