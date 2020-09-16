@@ -2,97 +2,132 @@
 isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Create a New Repository"){
-<div class="content-wrapper main-center">
-  <div class="content body">
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark"></h1>
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+  </div><!-- /.content-header -->
+  <div class="content-body">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-header">
+              <h4>Create a new repository</h4>
+            </div><!-- /.card-header -->
+            <form id="form" method="post" action="@context.path/new" validate="true" autocomplete="off">
+              <div class="card-body">
+                <p class="text-muted">A repository contains all your project's files, including revision history.</p>
+                <div class="form-row">
+                  <div class="form-group col-md-auto">
+                    <label for="ownerDropdown">Owner</label>
+                    <div>
+                      <div class="btn-group" id="owner-dropdown">
+                        <button class="btn dropdown-toggle btn-default" data-toggle="dropdown" id="ownerDropdown">
+                          <span class="strong">@helpers.avatar(context.loginAccount.get.userName, 20) @context.loginAccount.get.userName</span>
+                          <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li><a href="javascript:void(0);" data-name="@context.loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@helpers.avatar(context.loginAccount.get.userName, 20) @context.loginAccount.get.userName</span></a></li>
+                          @groupNames.map { groupName =>
+                          <li><a href="javascript:void(0);" data-name="@groupName"><i class="octicon"></i> <span>@helpers.avatar(groupName, 20) @groupName</span></a></li>
+                          }
+                        </ul>
+                        <input type="hidden" name="owner" id="owner" value="@context.loginAccount.get.userName"/>
+                      </div>
+                    </div>
+                  </div><!-- /.form-group col -->
+                  <div class="form-group col-md-auto">
+                    <label>&nbsp;</label>
+                    <div class="pt-2">/</div>
+                  </div><!-- /.form-group col -->
+                  <div class="form-group col-md-6">
+                    <label for="name" >Repository name</label>
+                    <div>
+                      <input type="text" name="name" id="name" class="form-control" autofocus/>
+                      <span id="error-name" class="error text-danger"></span>
+                    </div>
+                  </div><!-- /.form-group col -->
+                </div>
+                <div class="form-group">
+                  <label for="description" class="strong">Description (optional):</label>
+                  <input type="text" name="description" id="description" class="form-control" />
+                </div>
+                <hr>
+                <div class="form-group">
+                  <div class="form-check">
+                    <input type="radio" class="form-check-input" name="isPrivate" value="false" id="isPrivateFalse" @if(isCreateRepoOptionPublic){checked}>
+                    <label for="isPrivateFalse" class="form-check-label"><i class="octicon octicon-repo"></i></i> Public</label>
+                    <div class="small text-muted">
+                      Anyone can see this repository. You choose who can commit.
+                    </div>
+                  </div><!-- /.form-check -->
+                  <div class="form-check">
+                    <input type="radio" class="form-check-input" name="isPrivate" value="true" id="isPrivateTrue" @if(!isCreateRepoOptionPublic){checked}>
+                    <label for="isPrivateTrue" class="form-check-label"><i class="octicon octicon-lock"></i></i> Private</label>
+                    <div class="small text-muted">
+                      You choose who can see and commit to this repository.
+                    </div>
+                  </div><!-- /.form-check -->
+                </div><!-- /.form-group -->
+                <hr>
+                <div class="form-group">
+                  <div class="form-check">
+                    <input type="radio" class="form-check-input" name="initOption" value="EMPTY" id="initOptionEmpty" checked/>
+                    <label for="initOptionEmpty" class="form-check-label">Create an empty repository</label>
+                    <div class="small text-muted">
+                      Create an empty repository. You must initialize it yourself.
+                    </div>
+                  </div><!-- /.form-check -->
+                  <div class="form-check">
+                    <input type="radio" class="form-check-input" name="initOption" value="EMPTY_COMMIT" id="initOptionEmptyCommit"/>
+                    <label for="initOptionEmptyCommit" class="form-check-label">Initialize this repository with an empty commit</label>
+                    <div class="small text-muted">
+                      Create an empty repository with an empty commit. You can clone the repository immediately.
+                    </div>
+                  </div><!-- /.form-check -->
+                  <div class="form-check">
+                    <input type="radio" class="form-check-input" name="initOption" value="README" id="initOptionReadme"/>
+                    <label for="initOptionReadme" class="form-check-label">Initialize this repository with a README</label>
+                    <div class="small text-muted">
+                      Create a repository and commit README.md. You can clone the repository immediately.
+                    </div>
+                  </div><!-- /.form-check -->
+                  <div class="form-check">
+                    <input type="radio" class="form-check-input" name="initOption" value="COPY" id="initOptionCopy"/>
+                    <label for="initOptionCopy" class="form-check-label">Copy existing git repository</label>
+                    <div class="small text-muted">
+                      Create a new repository by cloning an existing git repository.
+                    </div>
+                  </div><!-- /.form-check -->
+                  <div class="mt-3">
+                    <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
+                    <span id="error-sourceUrl" class="error text-danger"></span>
+                  </div>
+                </div><!-- /.form-group -->
+              </div><!-- /.card-body -->
+              <div class="card-footer">
+                <input type="submit" class="btn btn-success" value="Create repository"/>
+              </div><!-- /.card-footer -->
+            </form>
+          </div><!-- /.card -->
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container -->
+  </div><!-- /.content-body -->
+</div><!-- /.content-wrapper -->
+
+
     <h2>Create a new repository</h2>
     <p class="muted">
       A repository contains all your project's files, including revision history.
     </p>
-    <form id="form" method="post" action="@context.path/new" validate="true" autocomplete="off">
-      <fieldset class="border-top form-group">
-        <dl style="float: left;">
-          <dt>Owner</dt>
-          <dd style="margin-left: 0px;">
-            <div class="btn-group" id="owner-dropdown">
-              <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
-                <span class="strong">@helpers.avatar(context.loginAccount.get.userName, 20) @context.loginAccount.get.userName</span>
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a href="javascript:void(0);" data-name="@context.loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@helpers.avatar(context.loginAccount.get.userName, 20) @context.loginAccount.get.userName</span></a></li>
-                @groupNames.map { groupName =>
-                  <li><a href="javascript:void(0);" data-name="@groupName"><i class="octicon"></i> <span>@helpers.avatar(groupName, 20) @groupName</span></a></li>
-                }
-              </ul>
-              <input type="hidden" name="owner" id="owner" value="@context.loginAccount.get.userName"/>
-            </div>
-          </dd>
-        </dl>
-        <span class="slash" style="float: left; margin-left: 10px; margin-right: 10px; margin-top: 15px;">/</span>
-        <dl>
-          <dt>Repository name</dt>
-          <dd style="margin-left: 0px;">
-            <input type="text" name="name" id="name" class="form-control" style="width: 300px; display: inline;" autofocus/>
-            <span id="error-name" class="error"></span>
-          </dd>
-        </dl>
-      </fieldset>
-      <fieldset class="form-group">
-        <label for="description" class="strong">Description (optional):</label>
-        <input type="text" name="description" id="description" class="form-control" />
-      </fieldset>
-      <fieldset class="border-top">
-        <label class="radio">
-          <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
-          <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span>
-          <div class="normal muted">
-            Anyone can see this repository. You choose who can commit.
-          </div>
-        </label>
-        <label class="radio">
-          <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
-          <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span>
-          <div class="normal muted">
-            You choose who can see and commit to this repository.
-          </div>
-        </label>
-      </fieldset>
-      <fieldset class="border-top">
-        <label class="radio">
-          <input type="radio" name="initOption" value="EMPTY" checked/>
-          <span class="strong">Create an empty repository</span>
-          <div class="normal muted">
-            Create an empty repository. You must initialize it yourself.
-          </div>
-        </label>
-        <label class="radio">
-          <input type="radio" name="initOption" value="EMPTY_COMMIT"/>
-          <span class="strong">Initialize this repository with an empty commit</span>
-          <div class="normal muted">
-            Create an empty repository with an empty commit. You can clone the repository immediately.
-          </div>
-        </label>
-        <label class="radio">
-          <input type="radio" name="initOption" value="README"/>
-          <span class="strong">Initialize this repository with a README</span>
-          <div class="normal muted">
-            Create a repository and commit README.md. You can clone the repository immediately.
-          </div>
-        </label>
-        <label class="radio">
-          <input type="radio" name="initOption" value="COPY"/>
-          <span class="strong">Copy existing git repository</span>
-          <div class="normal muted">
-            Create a new repository by cloning an existing git repository.
-          </div>
-        </label>
-        <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
-        <span id="error-sourceUrl" class="error"></span>
-      </fieldset>
-      <fieldset class="border-top form-actions">
-        <input type="submit" class="btn btn-success" value="Create repository"/>
-      </fieldset>
-    </form>
+
   </div>
 </div>
 }
