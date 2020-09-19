@@ -30,16 +30,15 @@ object ApiMilestone {
     repository: Repository,
     milestone: Milestone,
     user: ApiUser,
-    milestone_number: Int,
     open_issue_count: Int = 0,
     closed_issue_count: Int = 0
   ): ApiMilestone =
     ApiMilestone(
-      url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone_number}"),
+      url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone.milestoneId}"),
       html_url = ApiPath(s"/${RepositoryName(repository).fullName}/issues?milestone=${milestone.title}&state=open"),
 //      label_url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone_number}/labels"),
       id = milestone.milestoneId,
-      number = milestone_number,
+      number = milestone.milestoneId, // use milestoneId as number
       state = if (milestone.closedDate.isDefined) "closed" else "open",
       title = milestone.title,
       description = milestone.description.getOrElse(""),
