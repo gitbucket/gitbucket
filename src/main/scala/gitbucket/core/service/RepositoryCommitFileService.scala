@@ -116,11 +116,6 @@ trait RepositoryCommitFileService {
     }
   }
 
-  def readmeFiles: Seq[String] =
-    PluginRegistry().renderableExtensions.map { extension =>
-      s"readme.${extension}"
-    } ++ Seq("readme.txt", "readme")
-
   private def _commitFile(
     repository: RepositoryService.RepositoryInfo,
     branch: String,

@@ -839,4 +839,9 @@ object RepositoryService {
     } else None
   def openRepoUrl(openUrl: String)(implicit context: Context): String =
     s"github-${context.platform}://openRepo/${openUrl}"
+
+  def readmeFiles: Seq[String] =
+    PluginRegistry().renderableExtensions.map { extension =>
+      s"readme.${extension}"
+    } ++ Seq("readme.txt", "readme")
 }

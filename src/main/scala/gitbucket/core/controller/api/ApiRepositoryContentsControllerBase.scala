@@ -23,9 +23,12 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
       git =>
         val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
-        val fileList = getFileList(git, refStr, ".", maxFiles = context.settings.repositoryViewer.maxFiles)
-        fileList.map(f => f.name).find(p => readmeFiles.map(_.toLowerCase).contains(p.toLowerCase)) match {
-          case Some(x) => getContents(repository = repository, path = x, refStr = refStr, ignoreCase = true)
+        val files = getFileList(git, refStr, ".", maxFiles = context.settings.repositoryViewer.maxFiles)
+        files // files should be sorted alphabetically.
+          .find { file =>
+            !file.isDirectory && RepositoryService.readmeFiles.contains(file.name.toLowerCase)
+          } match {
+          case Some(x) => getContents(repository = repository, path = x.name, refStr = refStr, ignoreCase = true)
           case _       => NotFound()
         }
     }
