@@ -522,7 +522,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val url = params("url")
     val token = Some(params("token"))
     val ctype = WebHookContentType.valueOf(params("ctype"))
-    val dummyWebHookInfo = RepositoryWebHook(userName, "dummy", url, ctype, token)
+    val dummyWebHookInfo =
+      RepositoryWebHook(userName = userName, repositoryName = "dummy", url = url, ctype = ctype, token = token)
     val dummyPayload = {
       val ownerAccount = getAccountByUserName(userName).get
       WebHookPushPayload.createDummyPayload(ownerAccount)

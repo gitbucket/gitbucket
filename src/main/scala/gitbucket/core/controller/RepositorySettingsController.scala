@@ -228,7 +228,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = RepositoryWebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
+    val webhook = RepositoryWebHook(
+      userName = repository.owner,
+      repositoryName = repository.name,
+      url = "",
+      ctype = WebHookContentType.FORM,
+      token = None
+    )
     html.edithook(webhook, Set(WebHook.Push), repository, true)
   })
 
@@ -271,7 +277,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         val url = params("url")
         val token = Some(params("token"))
         val ctype = WebHookContentType.valueOf(params("ctype"))
-        val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
+        val dummyWebHookInfo = RepositoryWebHook(
+          userName = repository.owner,
+          repositoryName = repository.name,
+          url = url,
+          ctype = ctype,
+          token = token
+        )
         val dummyPayload = {
           val ownerAccount = getAccountByUserName(repository.owner).get
           val commits =
