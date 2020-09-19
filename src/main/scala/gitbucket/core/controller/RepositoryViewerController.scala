@@ -938,10 +938,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 context.settings.repositoryViewer.maxFiles
               )
               val parentPath = if (path == ".") Nil else path.split("/").toList
-              // process README.md or README.markdown
-              val readme = files
+              // process README
+              val readme = files // files should be sorted alphabetically.
                 .find { file =>
-                  !file.isDirectory && readmeFiles.contains(file.name.toLowerCase)
+                  !file.isDirectory && RepositoryService.readmeFiles.contains(file.name.toLowerCase)
                 }
                 .map { file =>
                   val path = (file.name :: parentPath.reverse).reverse
