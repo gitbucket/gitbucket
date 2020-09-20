@@ -7,9 +7,9 @@
   isBlame: Boolean,
   isLfsFile: Boolean,
   tabSize: Int,
-  theme: String)(implicit context: gitbucket.core.controller.Context)
+  highlighterTheme: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}", Some(repository), theme) {
+@gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}", Some(repository), highlighterTheme) {
   @gitbucket.core.html.menu("files", repository){
     <style>
       .prettyprint {
@@ -234,7 +234,7 @@ var scrolling = false;
  */
 function updateHighlighting(){
   var hash = location.hash;
-  var isDark = @{theme.contains("dark").toString};
+  var isDark = @{highlighterTheme.contains("dark").toString};
   if(hash.match(/#L\d+(-L\d+)?/)){
     if(isDark){
       $('li.highlight').removeClass('highlight-dark');

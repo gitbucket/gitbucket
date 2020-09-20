@@ -21,7 +21,6 @@ import org.scalatra.Forbidden
 class AccountController
     extends AccountControllerBase
     with AccountService
-    with AccountHighlighterService
     with RepositoryService
     with ActivityService
     with WikiService
@@ -40,7 +39,6 @@ class AccountController
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService
-    with AccountHighlighterService
     with RepositoryService
     with ActivityService
     with WikiService
@@ -455,8 +453,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   get("/:userName/_preferences")(oneselfOnly {
     val userName = params("userName")
-    val currentTheme = getAccountHighlighter(userName) match {
-      case Some(accountHighlighter) => accountHighlighter.theme
+    val currentTheme = getAccountPreference(userName) match {
+      case Some(accountHighlighter) => accountHighlighter.highlighterTheme
       case _                        => "github-v2"
     }
     getAccountByUserName(userName).map { x =>
@@ -469,7 +467,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   post("/:userName/_preferences/highlighter", syntaxHighlighterThemeForm)(oneselfOnly { form =>
     val userName = params("userName")
-    addOrUpdateAccountHighlighter(userName, form.theme)
+    addOrUpdateAccountPreference(userName, form.theme)
     redirect(s"/${userName}/_preferences")
   })
 
