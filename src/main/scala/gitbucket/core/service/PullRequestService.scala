@@ -14,7 +14,7 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, getBranches}
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
@@ -57,6 +57,15 @@ trait PullRequestService {
       .filter(_.byPrimaryKey(owner, repository, issueId))
       .map(pr => pr.isDraft)
       .update(false)
+
+  def updateBaseBranch(owner: String, repository: String, issueId: Int, baseBranch: String, commitIdTo: String)(
+    implicit s: Session
+  ): Unit = {
+    PullRequests
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map(pr => pr.branch -> pr.commitIdTo)
+      .update((baseBranch, commitIdTo))
+  }
 
   def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])(
     implicit s: Session
@@ -290,6 +299,56 @@ trait PullRequestService {
           settings
         )
       }
+    }
+  }
+
+  def updatePullRequestsByApi(
+    repository: RepositoryInfo,
+    issueId: Int,
+    loginAccount: Account,
+    settings: SystemSettings,
+    title: Option[String],
+    body: Option[String],
+    state: Option[String],
+    base: Option[String]
+  )(
+    implicit s: Session,
+    c: JsonFormat.Context
+  ): Unit = {
+    getPullRequest(repository.owner, repository.name, issueId).foreach {
+      case (issue, pr) =>
+        if (Repositories.filter(_.byRepository(pr.userName, pr.repositoryName)).exists.run) {
+          // Update base branch
+          base.foreach { _base =>
+            Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+              getBranches(git, repository.repository.defaultBranch, origin = true)
+                .find(_.name == _base)
+                .foreach(br => updateBaseBranch(repository.owner, repository.name, issueId, br.name, br.commitId))
+            }
+          }
+          // Update title and content
+          title.foreach(
+            _title => updateIssue(repository.owner, repository.name, issueId, _title, body)
+          )
+          // Update state
+          val action = (state, issue.closed) match {
+            case (Some("open"), true) =>
+              updateClosed(repository.owner, repository.name, issueId, closed = false)
+              "reopened"
+            case (Some("closed"), false) =>
+              updateClosed(repository.owner, repository.name, issueId, closed = true)
+              "closed"
+            case _ => "edited"
+          }
+          // Call web hook
+          callPullRequestWebHookByRequestBranch(
+            action,
+            getRepository(repository.owner, repository.name).get,
+            pr.requestBranch,
+            loginAccount,
+            settings
+          )
+        }
     }
   }
 
