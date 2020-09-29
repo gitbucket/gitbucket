@@ -320,16 +320,36 @@ trait PullRequestService {
         if (Repositories.filter(_.byRepository(pr.userName, pr.repositoryName)).exists.run) {
           // Update base branch
           base.foreach { _base =>
-            Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-              getBranches(git, repository.repository.defaultBranch, origin = true)
-                .find(_.name == _base)
-                .foreach(br => updateBaseBranch(repository.owner, repository.name, issueId, br.name, br.commitId))
+            if (pr.branch != _base) {
+              Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+                getBranches(git, repository.repository.defaultBranch, origin = true)
+                  .find(_.name == _base)
+                  .foreach(br => updateBaseBranch(repository.owner, repository.name, issueId, br.name, br.commitId))
+              }
+              createComment(
+                repository.owner,
+                repository.name,
+                loginAccount.userName,
+                issue.issueId,
+                pr.branch + "\r\n" + _base,
+                "change_base_branch"
+              )
             }
           }
           // Update title and content
-          title.foreach(
-            _title => updateIssue(repository.owner, repository.name, issueId, _title, body)
-          )
+          title.foreach { _title =>
+            updateIssue(repository.owner, repository.name, issueId, _title, body)
+            if (issue.title != _title) {
+              createComment(
+                repository.owner,
+                repository.name,
+                loginAccount.userName,
+                issue.issueId,
+                issue.title + "\r\n" + _title,
+                "change_title"
+              )
+            }
+          }
           // Update state
           val action = (state, issue.closed) match {
             case (Some("open"), true) =>
