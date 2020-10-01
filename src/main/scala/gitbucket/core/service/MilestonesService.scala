@@ -13,8 +13,8 @@ trait MilestonesService {
     title: String,
     description: Option[String],
     dueDate: Option[java.util.Date]
-  )(implicit s: Session): Unit =
-    Milestones insert Milestone(
+  )(implicit s: Session): Int = {
+    Milestones returning Milestones.map(_.milestoneId) insert Milestone(
       userName = owner,
       repositoryName = repository,
       title = title,
@@ -22,6 +22,7 @@ trait MilestonesService {
       dueDate = dueDate,
       closedDate = None
     )
+  }
 
   def updateMilestone(milestone: Milestone)(implicit s: Session): Unit =
     Milestones
