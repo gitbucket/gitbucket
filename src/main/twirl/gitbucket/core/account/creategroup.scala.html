@@ -1,14 +1,35 @@
 @(members: List[gitbucket.core.model.GroupMember])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Create group"){
-  <div class="content-wrapper main-center">
-    <div class="content body">
-      <h2>Create group</h2>
-      <form id="form" method="post" action="@context.path/groups/new" validate="true">
-        @gitbucket.core.account.html.groupform(None, members, false)
-        <fieldset class="border-top">
-          <input type="submit" class="btn btn-success" value="Create group"/>
-        </fieldset>
-      </form>
-    </div>
-  </div>
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark"></h1>
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+  </div><!-- /.content-header -->
+  <div class="content-body">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-header">
+              <h4>Create group</h4>
+            </div><!-- /.card-header -->
+            <form id="form" method="post" action="@context.path/groups/new" validate="true">
+              <div class="card-body">
+                @gitbucket.core.account.html.groupform(None, members, false)
+              </div><!-- /.card-body"-->
+              <div class="card-footer">
+                <input type="submit" class="btn btn-success" value="Create group"/>
+              </div><!-- /.card-footer -->
+            </form>
+          </div><!-- /.card -->
+        </div><!-- /.cold -->
+      </div><!-- /.row -->
+    </div><!-- /container -->
+  </div><!-- /.content-body -->
+</div><!-- /.content-wrapper -->
 }
