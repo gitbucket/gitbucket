@@ -25,14 +25,14 @@
             </h4>
           </div><!-- /.card-header -->
           <div class="card-body">
-            <label for="includeRemoved">
-              <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
-              Include removed users
-            </label>
-            <label for="includeGroups">
-              <input type="checkbox" id="includeGroups" name="includeGroups" @if(includeGroups){checked}/>
-              Include group accounts
-            </label>
+            <div class="form-check form-check-inline">
+              <input type="checkbox" class="form-check-input" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
+              <label for="includeRemoved" class="form-check-label">Include removed users</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input type="checkbox" class="form-check-input" id="includeGroups" name="includeGroups" @if(includeGroups){checked}/>
+              <label for="includeGroups" class="form-check-label">Include group accounts</label>
+            </div>
             <table class="table table-bordered table-hover">
               @users.map { account =>
               <tr>
