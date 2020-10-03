@@ -1,8 +1,7 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
-  @gitbucket.core.helper.html.logo
-
+  @gitbucket.core.helper.html.logo()
 <div class="sidebar">
   <nav class="mt-2">
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-acording="false">
@@ -38,7 +37,7 @@
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
         @menu(context).map { link =>
       <li class="nav-item@if(active==link.id){ active}">
-        <a class="nav-link"href="@context.path/@link.path">
+        <a class="nav-link" href="@context.path/@link.path">
               <i class="nav-icon octicon octicon-@link.icon.getOrElse("plug")"></i>
               <p>@link.label</p>
             </a>
@@ -50,7 +49,5 @@
 </div>
 </aside>
 <div class="content-wrapper">
-  <div class="content body">
-    @body
-  </div>
+  @body
 </div>
