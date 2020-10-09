@@ -331,6 +331,7 @@ object ApiSpecModels {
     info = ProtectedBranchInfo(
       owner = repo1Name.owner,
       repository = repo1Name.name,
+      branch = "master",
       enabled = true,
       contexts = Seq("continuous-integration/travis-ci"),
       includeAdministrators = true
