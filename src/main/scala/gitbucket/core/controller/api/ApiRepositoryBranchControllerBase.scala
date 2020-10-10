@@ -148,6 +148,16 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * xv. Get status checks protection
    * https://docs.github.com/en/rest/reference/repos#get-status-checks-protection
    */
+  get("/api/v3/repos/:owner/:repository/branches/:branch/protection/required_status_checks")(referrersOnly {
+    repository =>
+      val branch = params("branch")
+      if (repository.branchList.contains(branch)) {
+        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+        JsonFormat(
+          ApiBranchProtection(protection).required_status_checks
+        )
+      } else { NotFound() }
+  })
 
   /*
    * xvi. Update status check protection
