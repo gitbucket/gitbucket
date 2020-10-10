@@ -103,16 +103,6 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * vi. Get admin branch protection
    * https://docs.github.com/en/rest/reference/repos#get-admin-branch-protection
    */
-  get("/api/v3/repos/:owner/:repository/branches/:branch/protection/required_status_checks/contexts")(referrersOnly {
-    repository =>
-      val branch = params("branch")
-      if (repository.branchList.contains(branch)) {
-        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
-        if (protection.enabled) {
-          protection.contexts.toList
-        } else NotFound()
-      } else NotFound()
-  })
 
   /*
    * vii. Set admin branch protection
@@ -173,6 +163,16 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * xviii. Get all status check contexts
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-all-status-check-contexts
    */
+  get("/api/v3/repos/:owner/:repository/branches/:branch/protection/required_status_checks/contexts")(referrersOnly {
+    repository =>
+      val branch = params("branch")
+      if (repository.branchList.contains(branch)) {
+        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+        if (protection.enabled) {
+          protection.contexts.toList
+        } else NotFound()
+      } else NotFound()
+  })
 
   /*
    * xix. Add status check contexts
