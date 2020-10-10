@@ -7,6 +7,8 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil.getBranches
 import org.eclipse.jgit.api.Git
+import org.scalatra.NoContent
+
 import scala.util.Using
 
 trait ApiRepositoryBranchControllerBase extends ControllerBase {
@@ -67,6 +69,15 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * iii. Get branch protection
    * https://docs.github.com/en/rest/reference/repos#get-branch-protection
    */
+  get("/api/v3/repos/:owner/:repository/branches/:branch/protection")(referrersOnly { repository =>
+    val branch = params("branch")
+    if (repository.branchList.contains(branch)) {
+      val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      JsonFormat(
+        ApiBranchProtection(protection)
+      )
+    } else { NotFound() }
+  })
 
   /*
    * iv. Update branch protection
@@ -77,6 +88,16 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * v. Delete branch protection
    * https://docs.github.com/en/rest/reference/repos#delete-branch-protection
    */
+  delete("/api/v3/repos/:owner/:repository/branches/:branch/protection")(writableUsersOnly { repository =>
+    val branch = params("branch")
+    if (repository.branchList.contains(branch)) {
+      val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      if (protection.enabled) {
+        disableBranchProtection(repository.owner, repository.name, branch)
+        NoContent()
+      } else NotFound()
+    } else NotFound()
+  })
 
   /*
    * vi. Get admin branch protection

@@ -4,7 +4,10 @@ import gitbucket.core.service.ProtectedBranchService
 import org.json4s._
 
 /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
-case class ApiBranchProtection(enabled: Boolean, required_status_checks: Option[ApiBranchProtection.Status]) {
+case class ApiBranchProtection(
+  enabled: Boolean,
+  required_status_checks: Option[ApiBranchProtection.Status]
+) {
   def status: ApiBranchProtection.Status = required_status_checks.getOrElse(ApiBranchProtection.statusNone)
 }
 
