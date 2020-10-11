@@ -1,8 +1,10 @@
 package gitbucket.core
 
 import java.net.InetSocketAddress
+import java.nio.file.Files
+import java.io.File
 
-import gitbucket.core.util.HttpClientUtil
+import gitbucket.core.util.{FileUtil, HttpClientUtil}
 import org.apache.http.client.methods.HttpGet
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.{Handler, Server}
@@ -10,9 +12,13 @@ import org.eclipse.jetty.webapp.WebAppContext
 
 class TestingGitBucketServer(port: Int = 8080) extends AutoCloseable {
   private var server: Server = null
+  private var dir: File = null
 
   def start(): Unit = {
     System.setProperty("java.awt.headless", "true")
+
+    dir = Files.createTempDirectory("gitbucket-test-").toFile
+    System.setProperty("gitbucket.home", dir.getAbsolutePath)
 
     val address = new InetSocketAddress(port)
     server = new Server(address)
@@ -47,5 +53,6 @@ class TestingGitBucketServer(port: Int = 8080) extends AutoCloseable {
 
   def close(): Unit = {
     server.stop()
+    FileUtil.deleteIfExists(dir)
   }
 }
