@@ -11,9 +11,9 @@ import org.apache.http.entity.StringEntity
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Using
-
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.kohsuke.github.GitHub
 
 class ApiIntegrationTest extends AnyFunSuite {
 
@@ -24,62 +24,48 @@ class ApiIntegrationTest extends AnyFunSuite {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       server.start()
 
-      HttpClientUtil.withHttpClient(None) { httpClient => // Create a repository
+      val github = GitHub.connectToEnterprise(s"http://localhost:${server.port}/api/v3", "root", "root")
+
       {
-        val request = new HttpPost(s"http://localhost:${server.port}/api/v3/user/repos")
-        request.addHeader("Authorization", AuthHeaderValue)
-        request.addHeader("Content-Type", "application/json")
-        request.setEntity(new StringEntity("""{
-                |"name": "test",
-                |"description": "test repository",
-                |"private": false,
-                |"auto_init": true
-                |}""".stripMargin))
-        val response = httpClient.execute(request)
-        assert(response.getStatusLine.getStatusCode == 200)
+        val repository = github
+          .createRepository("test")
+          .description("test repository")
+          .private_(false)
+          .autoInit(true)
+          .create()
 
-        val json = parse(IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8))
-        assert((json \ "name").values == "test")
-        assert((json \ "description").values == "test repository")
-        assert((json \ "watchers").values == 0)
-        assert((json \ "forks").values == 0)
-        assert((json \ "private").values == false)
-        assert((json \ "default_branch").values == "master")
-        assert((json \ "owner" \ "login").values == "root")
-        assert((json \ "has_issues").values == true)
-        assert((json \ "forks_count").values == 0)
-        assert((json \ "watchers_count").values == 0)
-        assert((json \ "url").values == s"http://localhost:${server.port}/api/v3/repos/root/test")
-        assert((json \ "http_url").values == s"http://localhost:${server.port}/git/root/test.git")
-        assert((json \ "clone_url").values == s"http://localhost:${server.port}/git/root/test.git")
-        assert((json \ "html_url").values == s"http://localhost:${server.port}/root/test")
+        assert(repository.getName == "test")
+        assert(repository.getDescription == "test repository")
+        assert(repository.getDefaultBranch == "master")
+        assert(repository.getWatchers == 0)
+        assert(repository.getWatchersCount == 0)
+        assert(repository.getForks == 0)
+        assert(repository.getForksCount == 0)
+        assert(repository.isPrivate == false)
+        assert(repository.getOwner.getLogin == "root")
+        assert(repository.hasIssues == true)
+        assert(repository.getUrl.toString == s"http://localhost:${server.port}/api/v3/repos/root/test")
+        assert(repository.getHttpTransportUrl == s"http://localhost:${server.port}/git/root/test.git")
+        assert(repository.getHtmlUrl.toString == s"http://localhost:${server.port}/root/test")
       }
-
-      // List repositories
       {
-        val request = new HttpGet("http://localhost:19999/api/v3/user/repos")
-        request.addHeader("Authorization", AuthHeaderValue)
-        val response = httpClient.execute(request)
-        assert(response.getStatusLine.getStatusCode == 200)
+        val repositories = github.getUser("root").listRepositories().toList
+        assert(repositories.size() == 1)
 
-        val json = parse(IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8)).asInstanceOf[JArray]
-        assert(json.arr.length == 1)
-        assert((json(0) \ "name").values == "test")
-        assert((json(0) \ "full_name").values == "root/test")
-        assert((json(0) \ "description").values == "test repository")
-        assert((json(0) \ "watchers").values == 0)
-        assert((json(0) \ "forks").values == 0)
-        assert((json(0) \ "private").values == false)
-        assert((json(0) \ "default_branch").values == "master")
-        assert((json(0) \ "owner" \ "login").values == "root")
-        assert((json(0) \ "has_issues").values == true)
-        assert((json(0) \ "forks_count").values == 0)
-        assert((json(0) \ "watchers_count").values == 0)
-        assert((json(0) \ "url").values == s"http://localhost:${server.port}/api/v3/repos/root/test")
-        assert((json(0) \ "http_url").values == s"http://localhost:${server.port}/git/root/test.git")
-        assert((json(0) \ "clone_url").values == s"http://localhost:${server.port}/git/root/test.git")
-        assert((json(0) \ "html_url").values == s"http://localhost:${server.port}/root/test")
-      }
+        val repository = repositories.get(0)
+        assert(repository.getName == "test")
+        assert(repository.getDescription == "test repository")
+        assert(repository.getDefaultBranch == "master")
+        assert(repository.getWatchers == 0)
+        assert(repository.getWatchersCount == 0)
+        assert(repository.getForks == 0)
+        assert(repository.getForksCount == 0)
+        assert(repository.isPrivate == false)
+        assert(repository.getOwner.getLogin == "root")
+        assert(repository.hasIssues == true)
+        assert(repository.getUrl.toString == s"http://localhost:${server.port}/api/v3/repos/root/test")
+        assert(repository.getHttpTransportUrl == s"http://localhost:${server.port}/git/root/test.git")
+        assert(repository.getHtmlUrl.toString == s"http://localhost:${server.port}/root/test")
       }
     }
   }
