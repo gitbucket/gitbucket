@@ -10,7 +10,7 @@ import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.{Handler, Server}
 import org.eclipse.jetty.webapp.WebAppContext
 
-class TestingGitBucketServer(port: Int = 8080) extends AutoCloseable {
+class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   private var server: Server = null
   private var dir: File = null
 
@@ -38,7 +38,7 @@ class TestingGitBucketServer(port: Int = 8080) extends AutoCloseable {
       var launched = false
       while (!launched) {
         Thread.sleep(500)
-        val res = httpClient.execute(new HttpGet("http://localhost:8080/"))
+        val res = httpClient.execute(new HttpGet("http://localhost:19999/"))
         launched = res.getStatusLine.getStatusCode == 200
       }
     }

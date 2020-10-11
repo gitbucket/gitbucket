@@ -21,12 +21,12 @@ class ApiIntegrationTest extends AnyFunSuite {
     s"Basic ${new String(Base64.getEncoder.encode("root:root".getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)}"
 
   test("API integration test") {
-    Using.resource(new TestingGitBucketServer(8080)) { server =>
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
       server.start()
 
       HttpClientUtil.withHttpClient(None) { httpClient => // Create a repository
       {
-        val request = new HttpPost("http://localhost:8080/api/v3/user/repos")
+        val request = new HttpPost("http://localhost:19999/api/v3/user/repos")
         request.addHeader("Authorization", AuthHeaderValue)
         request.addHeader("Content-Type", "application/json")
         request.setEntity(new StringEntity("""{
@@ -49,17 +49,19 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert((json \ "has_issues").values == true)
         assert((json \ "forks_count").values == 0)
         assert((json \ "watchers_count").values == 0)
-        assert((json \ "url").values == "http://localhost:8080/api/v3/repos/root/test")
-        assert((json \ "http_url").values == "http://localhost:8080/git/root/test.git")
-        assert((json \ "clone_url").values == "http://localhost:8080/git/root/test.git")
-        assert((json \ "html_url").values == "http://localhost:8080/root/test")
+        assert((json \ "url").values == "http://localhost:19999/api/v3/repos/root/test")
+        assert((json \ "http_url").values == "http://localhost:19999/git/root/test.git")
+        assert((json \ "clone_url").values == "http://localhost:19999/git/root/test.git")
+        assert((json \ "html_url").values == "http://localhost:19999/root/test")
       }
 
       // List repositories
       {
-        val request = new HttpGet("http://localhost:8080/api/v3/user/repos")
+        val request = new HttpGet("http://localhost:19999/api/v3/user/repos")
         request.addHeader("Authorization", AuthHeaderValue)
         val response = httpClient.execute(request)
+        assert(response.getStatusLine.getStatusCode == 200)
+
         val json = parse(IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8)).asInstanceOf[JArray]
         assert(json.arr.length == 1)
         assert((json(0) \ "name").values == "test")
@@ -73,10 +75,10 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert((json(0) \ "has_issues").values == true)
         assert((json(0) \ "forks_count").values == 0)
         assert((json(0) \ "watchers_count").values == 0)
-        assert((json(0) \ "url").values == "http://localhost:8080/api/v3/repos/root/test")
-        assert((json(0) \ "http_url").values == "http://localhost:8080/git/root/test.git")
-        assert((json(0) \ "clone_url").values == "http://localhost:8080/git/root/test.git")
-        assert((json(0) \ "html_url").values == "http://localhost:8080/root/test")
+        assert((json(0) \ "url").values == "http://localhost:19999/api/v3/repos/root/test")
+        assert((json(0) \ "http_url").values == "http://localhost:19999/git/root/test.git")
+        assert((json(0) \ "clone_url").values == "http://localhost:19999/git/root/test.git")
+        assert((json(0) \ "html_url").values == "http://localhost:19999/root/test")
       }
       }
     }
