@@ -26,7 +26,7 @@ class ApiIntegrationTest extends AnyFunSuite {
 
       HttpClientUtil.withHttpClient(None) { httpClient => // Create a repository
       {
-        val request = new HttpPost("http://localhost:19999/api/v3/user/repos")
+        val request = new HttpPost(s"http://localhost:${server.port}/api/v3/user/repos")
         request.addHeader("Authorization", AuthHeaderValue)
         request.addHeader("Content-Type", "application/json")
         request.setEntity(new StringEntity("""{
@@ -49,10 +49,10 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert((json \ "has_issues").values == true)
         assert((json \ "forks_count").values == 0)
         assert((json \ "watchers_count").values == 0)
-        assert((json \ "url").values == "http://localhost:19999/api/v3/repos/root/test")
-        assert((json \ "http_url").values == "http://localhost:19999/git/root/test.git")
-        assert((json \ "clone_url").values == "http://localhost:19999/git/root/test.git")
-        assert((json \ "html_url").values == "http://localhost:19999/root/test")
+        assert((json \ "url").values == s"http://localhost:${server.port}/api/v3/repos/root/test")
+        assert((json \ "http_url").values == s"http://localhost:${server.port}/git/root/test.git")
+        assert((json \ "clone_url").values == s"http://localhost:${server.port}/git/root/test.git")
+        assert((json \ "html_url").values == s"http://localhost:${server.port}/root/test")
       }
 
       // List repositories
@@ -75,10 +75,10 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert((json(0) \ "has_issues").values == true)
         assert((json(0) \ "forks_count").values == 0)
         assert((json(0) \ "watchers_count").values == 0)
-        assert((json(0) \ "url").values == "http://localhost:19999/api/v3/repos/root/test")
-        assert((json(0) \ "http_url").values == "http://localhost:19999/git/root/test.git")
-        assert((json(0) \ "clone_url").values == "http://localhost:19999/git/root/test.git")
-        assert((json(0) \ "html_url").values == "http://localhost:19999/root/test")
+        assert((json(0) \ "url").values == s"http://localhost:${server.port}/api/v3/repos/root/test")
+        assert((json(0) \ "http_url").values == s"http://localhost:${server.port}/git/root/test.git")
+        assert((json(0) \ "clone_url").values == s"http://localhost:${server.port}/git/root/test.git")
+        assert((json(0) \ "html_url").values == s"http://localhost:${server.port}/root/test")
       }
       }
     }

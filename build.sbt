@@ -120,6 +120,12 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-util"         % JettyVersion % "executable"
 )
 
+// Run package task before test to generate target/webapp for integration test
+test in Test := {
+  _root_.sbt.Keys.`package`.value
+  (test in Test).value
+}
+
 val executableKey = TaskKey[File]("executable")
 executableKey := {
   import java.util.jar.Attributes.{Name => AttrName}

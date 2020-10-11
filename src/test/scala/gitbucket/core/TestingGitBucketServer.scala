@@ -36,10 +36,12 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
 
     HttpClientUtil.withHttpClient(None) { httpClient =>
       var launched = false
-      while (!launched) {
+      var count = 0
+      while (!launched && count < 10) {
         Thread.sleep(500)
-        val res = httpClient.execute(new HttpGet("http://localhost:19999/"))
+        val res = httpClient.execute(new HttpGet(s"http://localhost:${port}/"))
         launched = res.getStatusLine.getStatusCode == 200
+        count += 1
       }
     }
   }
