@@ -449,7 +449,6 @@ object ApiSpecModels {
        |"forks_count":1,
        |"watchers_count":0,
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World",
-       |"http_url":"http://gitbucket.exmple.com/git/octocat/Hello-World.git",
        |"clone_url":"http://gitbucket.exmple.com/git/octocat/Hello-World.git",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World"
        |}""".stripMargin
