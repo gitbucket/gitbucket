@@ -13,6 +13,7 @@ class ApiController
     with ApiIssueCommentControllerBase
     with ApiIssueControllerBase
     with ApiIssueLabelControllerBase
+    with ApiIssueMilestoneControllerBase
     with ApiOrganizationControllerBase
     with ApiPullRequestControllerBase
     with ApiReleaseControllerBase
@@ -22,6 +23,7 @@ class ApiController
     with ApiRepositoryContentsControllerBase
     with ApiRepositoryControllerBase
     with ApiRepositoryStatusControllerBase
+    with ApiRepositoryWebhookControllerBase
     with ApiUserControllerBase
     with RepositoryService
     with AccountService

@@ -14,7 +14,7 @@ $(function(){
       var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
         Map("value" -> value, "label" -> label)
       }));
-      @Html(provider.additionalScript)
+      @Html(provider.additionalScript(repository))
     }
   }
   $('#@textareaId').textcomplete([

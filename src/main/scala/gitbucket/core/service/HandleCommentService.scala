@@ -1,9 +1,18 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.Issue
+import gitbucket.core.model.{Issue, IssueComment}
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.model.activity.{
+  CloseIssueInfo,
+  ClosePullRequestInfo,
+  IssueCommentInfo,
+  PullRequestCommentInfo,
+  ReopenIssueInfo,
+  ReopenPullRequestInfo
+}
+import gitbucket.core.plugin.{IssueHook, PluginRegistry}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 
@@ -29,25 +38,31 @@ trait HandleCommentService {
         case (owner, name) =>
           val userName = loginAccount.userName
 
-          val (action, actionActivity) = actionOpt
+          actionOpt.collect {
+            case "close" if !issue.closed =>
+              updateClosed(owner, name, issue.issueId, true)
+            case "reopen" if issue.closed =>
+              updateClosed(owner, name, issue.issueId, false)
+          }
+
+          val (action, _) = actionOpt
             .collect {
-              case "close" if (!issue.closed) =>
-                true ->
-                  (Some("close") -> Some(
-                    if (issue.isPullRequest) recordClosePullRequestActivity _
-                    else recordCloseIssueActivity _
-                  ))
-              case "reopen" if (issue.closed) =>
-                false ->
-                  (Some("reopen") -> Some(
-                    if (issue.isPullRequest) recordReopenPullRequestActivity _
-                    else recordReopenIssueActivity _
-                  ))
-            }
-            .map {
-              case (closed, t) =>
-                updateClosed(owner, name, issue.issueId, closed)
-                t
+              case "close" if !issue.closed =>
+                val info = if (issue.isPullRequest) {
+                  ClosePullRequestInfo(owner, name, userName, issue.issueId, issue.title)
+                } else {
+                  CloseIssueInfo(owner, name, userName, issue.issueId, issue.title)
+                }
+                recordActivity(info)
+                Some("close") -> info
+              case "reopen" if issue.closed =>
+                val info = if (issue.isPullRequest) {
+                  ReopenPullRequestInfo(owner, name, userName, issue.issueId, issue.title)
+                } else {
+                  ReopenIssueInfo(owner, name, userName, issue.issueId, issue.title)
+                }
+                recordActivity(info)
+                Some("reopen") -> info
             }
             .getOrElse(None -> None)
 
@@ -68,17 +83,17 @@ trait HandleCommentService {
               )
 
               // record comment activity
-              if (issue.isPullRequest) recordCommentPullRequestActivity(owner, name, userName, issue.issueId, content)
-              else recordCommentIssueActivity(owner, name, userName, issue.issueId, content)
+              val commentInfo = if (issue.isPullRequest) {
+                PullRequestCommentInfo(owner, name, userName, content, issue.issueId)
+              } else {
+                IssueCommentInfo(owner, name, userName, content, issue.issueId)
+              }
+              recordActivity(commentInfo)
 
               // extract references and create refer comment
               createReferComment(owner, name, issue, content, loginAccount)
 
               id
-          }
-
-          actionActivity.foreach { f =>
-            f(owner, name, userName, issue.issueId, issue.title)
           }
 
           // call web hooks
@@ -121,4 +136,59 @@ trait HandleCommentService {
     }
   }
 
+  def deleteCommentByApi(repoInfo: RepositoryInfo, comment: IssueComment, issue: Issue)(
+    implicit context: Context,
+    s: Session
+  ): Option[IssueComment] = context.loginAccount.flatMap { _ =>
+    comment.action match {
+      case "comment" =>
+        val deleteResult = deleteComment(comment.issueId, comment.commentId)
+        val registry = PluginRegistry()
+        val hooks: Seq[IssueHook] = if (issue.isPullRequest) registry.getPullRequestHooks else registry.getIssueHooks
+        hooks.foreach(_.deletedComment(comment.commentId, issue, repoInfo))
+        deleteResult match {
+          case n if n > 0 => Some(comment)
+          case _          => None
+        }
+      case _ => None
+    }
+  }
+
+  def updateCommentByApi(
+    repository: RepositoryService.RepositoryInfo,
+    issue: Issue,
+    commentId: String,
+    content: Option[String]
+  )(implicit context: Context, s: Session): Option[(Issue, Int)] = {
+    context.loginAccount.flatMap { loginAccount =>
+      defining(repository.owner, repository.name) {
+        case (owner, name) =>
+          val userName = loginAccount.userName
+          content match {
+            case Some(content) =>
+              // Update comment
+              val _commentId = Some(updateComment(issue.issueId, commentId.toInt, content))
+              // Record comment activity
+              val commentInfo = if (issue.isPullRequest) {
+                PullRequestCommentInfo(owner, name, userName, content, issue.issueId)
+              } else {
+                IssueCommentInfo(owner, name, userName, content, issue.issueId)
+              }
+              recordActivity(commentInfo)
+              // extract references and create refer comment
+              createReferComment(owner, name, issue, content, loginAccount)
+              // call web hooks
+              commentId foreach (callIssueCommentWebHook(repository, issue, _, loginAccount, context.settings))
+              // call hooks
+              if (issue.isPullRequest)
+                PluginRegistry().getPullRequestHooks
+                  .foreach(_.updatedComment(commentId.toInt, content, issue, repository))
+              else
+                PluginRegistry().getIssueHooks.foreach(_.updatedComment(commentId.toInt, content, issue, repository))
+              _commentId.map(issue -> _)
+            case _ => None
+          }
+      }
+    }
+  }
 }

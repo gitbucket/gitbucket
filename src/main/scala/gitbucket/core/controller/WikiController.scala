@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.WebHook
+import gitbucket.core.model.activity.{CreateWikiPageInfo, DeleteWikiInfo, EditWikiPageInfo}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.WebHookService.WebHookGollumPayload
 import gitbucket.core.wiki.html
@@ -13,6 +14,7 @@ import gitbucket.core.util.Directory._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
+
 import scala.util.Using
 
 class WikiController
@@ -185,13 +187,9 @@ trait WikiControllerBase extends ControllerBase {
           ).foreach {
             commitId =>
               updateLastActivityDate(repository.owner, repository.name)
-              recordEditWikiPageActivity(
-                repository.owner,
-                repository.name,
-                loginAccount.userName,
-                form.pageName,
-                commitId
-              )
+              val wikiEditInfo =
+                EditWikiPageInfo(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+              recordActivity(wikiEditInfo)
               callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
                 getAccountByUserName(repository.owner).map { repositoryUser =>
                   WebHookGollumPayload("edited", form.pageName, commitId, repository, repositoryUser, loginAccount)
@@ -229,7 +227,9 @@ trait WikiControllerBase extends ControllerBase {
           ).foreach {
             commitId =>
               updateLastActivityDate(repository.owner, repository.name)
-              recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+              val createWikiPageInfo =
+                CreateWikiPageInfo(repository.owner, repository.name, loginAccount.userName, form.pageName)
+              recordActivity(createWikiPageInfo)
               callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
                 getAccountByUserName(repository.owner).map { repositoryUser =>
                   WebHookGollumPayload("created", form.pageName, commitId, repository, repositoryUser, loginAccount)
@@ -251,14 +251,13 @@ trait WikiControllerBase extends ControllerBase {
       val pageName = StringUtil.urlDecode(params("page"))
 
       defining(context.loginAccount.get) { loginAccount =>
-        deleteWikiPage(
+        val deleteWikiInfo = DeleteWikiInfo(
           repository.owner,
           repository.name,
-          pageName,
-          loginAccount.fullName,
-          loginAccount.mailAddress,
-          s"Destroyed ${pageName}"
+          loginAccount.userName,
+          pageName
         )
+        recordActivity(deleteWikiInfo)
         updateLastActivityDate(repository.owner, repository.name)
 
         redirect(s"/${repository.owner}/${repository.name}/wiki")

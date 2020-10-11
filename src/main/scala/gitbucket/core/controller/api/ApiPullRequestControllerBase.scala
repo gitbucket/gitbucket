@@ -161,8 +161,28 @@ trait ApiPullRequestControllerBase extends ControllerBase {
 
   /*
    * v. Update a pull request
-   * https://developer.github.com/v3/pulls/#update-a-pull-request
+   * https://docs.github.com/en/rest/reference/pulls#update-a-pull-request
    */
+  patch("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      account <- context.loginAccount
+      settings = context.settings
+      data <- extractFromJsonBody[UpdateAPullRequest]
+    } yield {
+      updatePullRequestsByApi(
+        repository,
+        issueId,
+        account,
+        settings,
+        data.title,
+        data.body,
+        data.state,
+        data.base
+      )
+      JsonFormat(getApiPullRequest(repository, issueId))
+    }) getOrElse NotFound()
+  })
 
   /*
    * vi. List commits on a pull request

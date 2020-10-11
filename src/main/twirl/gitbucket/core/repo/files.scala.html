@@ -42,7 +42,7 @@
       <div class="float-right ml-1">
         <div class="btn-group btn-group-sm">
           <a href="@{helpers.url(repository)}/archive@if(pathList.length > 0){/@pathList.map(helpers.urlEncode).mkString("/")}/@{helpers.urlEncode(branch)}.zip" class="btn btn-default d-none d-md-block"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
-          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
+          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-default" data-hotkey="t" title="Search files"><i class="octicon octicon-search" aria-label="Search files"></i></a>
           <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
         </div>
         <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
@@ -52,7 +52,7 @@
         <div class="float-right ml-1 d-none d-md-block">
           <div class="btn-group btn-group-sm">
             @if(context.platform != "linux" && context.platform != null){
-              <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-default"><i class="octicon octicon-desktop-download"></i></a>
+              <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-default" title="Open with GitHub Desktop"><i class="octicon octicon-desktop-download" aria-label="Open with GitHub Desktop"></i></a>
             }
           </div>
         </div>
@@ -76,11 +76,10 @@
                   </div>
                 </div><!--/.input-group-->
               }
-              <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control" readonly>
+              <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control" readonly aria-label="repository-url">
             }
           </div>
         </div>
-
         }
       </div>
       <div>
@@ -219,7 +218,7 @@
                 @filePath.last
                 @if(hasWritePermission){
                 <div class="btn-group pull-right">
-                  <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil"></i></a>
+                  <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
                 </div>
                 }
               </div>

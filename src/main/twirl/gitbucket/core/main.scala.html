@@ -3,10 +3,10 @@
 @import gitbucket.core.view.helpers
 @hasSidebar = @{body.toString.contains("main-sidebar")}
 <!DOCTYPE html>
-<html prefix="og: http://ogp.me/ns#">
+<html prefix="og: http://ogp.me/ns#" lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>@title</title>
     <meta property="og:title" content="@title" />
@@ -108,7 +108,7 @@
         <!-- Search -->
         <form id="search" action="@context.path/search" method="GET" class="form-inline ml-3" role="search">
           <div class="input-group input-group-sm">
-            <input type="text" name="query" id="navbar-search-input" class="form-control form-control-sm form-control-navbar" placeholder="Find a repository"/>
+            <input type="text" name="query" id="navbar-search-input" class="form-control form-control-sm form-control-navbar" placeholder="Find a repository" aria-label="Search"/>
             <div class="input-group-append">
               <button class="btn btn-sm btn-navbar" type="submit">
                 <i class="fas fa-search"></i>
@@ -131,7 +131,7 @@
         <ul class="navbar-nav ml-auto">
           @if(context.loginAccount.isDefined){
           <li class="nav-item dropdown">
-            <a class="nav-link" href="#" id="navbarDropdown" data-toggle="dropdown">
+            <a class="nav-link" href="#" id="navbarDropdown" data-toggle="dropdown" aria-label="Create new…">
               <i class="octicon octicon-plus"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right">

@@ -28,4 +28,8 @@ project/plugins/project/
 # Metals specific
 .metals
 .bloop
-project/metals.sbt
+**/metals.sbt
+
+# Visual Studio Code specific
+.vscode
+

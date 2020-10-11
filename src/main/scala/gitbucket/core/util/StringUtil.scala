@@ -182,4 +182,11 @@ object StringUtil {
     }
   }
 
+  def cutTail(txt: String, limit: Int, suffix: String = ""): String = {
+    txt.length match {
+      case x if x > limit => txt.substring(0, limit).concat(suffix)
+      case _              => txt
+    }
+  }
+
 }

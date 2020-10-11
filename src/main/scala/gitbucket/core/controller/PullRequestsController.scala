@@ -1,5 +1,6 @@
 package gitbucket.core.controller
 
+import gitbucket.core.model.activity.DeleteBranchInfo
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
@@ -272,7 +273,8 @@ trait PullRequestsControllerBase extends ControllerBase {
           val userName = context.loginAccount.get.userName
           Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
             git.branchDelete().setForce(true).setBranchNames(pullreq.requestBranch).call()
-            recordDeleteBranchActivity(repository.owner, repository.name, userName, pullreq.requestBranch)
+            val deleteBranchInfo = DeleteBranchInfo(repository.owner, repository.name, userName, pullreq.requestBranch)
+            recordActivity(deleteBranchInfo)
           }
           createComment(
             baseRepository.owner,

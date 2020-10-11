@@ -38,10 +38,10 @@
             <div class="col">
               <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline float-right" autocomplete="off">
                 <div class="input-group input-group-sm">
-                  <input type="text" class="form-control" name="q" placeholder="Search..."/>
+                  <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all issues"/>
                   <input type="hidden" name="type" value="@target"/>
                   <span class="input-group-append">
-                    <button type="submit" id="search-btn" class="btn btn-default"><i class="fa fa-search"></i></button>
+                    <button type="submit" id="search-btn" class="btn btn-default" aria-label="Search all issues"><i class="fa fa-search"></i></button>
                   </span>
                 </div>
                 @if(isEditable){

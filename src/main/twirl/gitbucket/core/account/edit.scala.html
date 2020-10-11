@@ -49,7 +49,7 @@
                   <fieldset class="form-group" id="extraMailAddresses">
                     <label>Additional Mail Address:</label>
                     @extraMailAddresses.zipWithIndex.map { case (mail, idx) =>
-                    <input type="text" name="extraMailAddresses[@idx]" id="extraMailAddresses[@idx]" class="form-control extraMailAddress" value="@mail"/>
+                    <input type="text" name="extraMailAddresses[@idx]" id="extraMailAddresses[@idx]" class="form-control extraMailAddress" value="@mail"  aria-label="Additional mail address"/>
                     <span id="error-extraMailAddresses_@idx" class="error text-danger"></span>
                     }
                   </fieldset>

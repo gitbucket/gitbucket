@@ -10,7 +10,7 @@
     <hr style="margin-top: 12px; margin-bottom: 18px;" class="fill-width"/>
     <form method="POST" action="@helpers.url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true" autocomplete="off">
       <fieldset class="form-group">
-        <input type="text" id="title" name="title" class="form-control" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title"/>
+        <input type="text" id="title" name="title" class="form-control" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title" aria-label="Title"/>
         <span id="error-title" class="error"></span>
       </fieldset>
       <fieldset class="form-group">

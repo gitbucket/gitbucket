@@ -7,6 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
+import gitbucket.core.model.activity.DeleteBranchInfo
 import gitbucket.core.service._
 import gitbucket.core.service.RepositoryCommitFileService.CommitFile
 import gitbucket.core.util._
@@ -833,7 +834,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     if (repository.repository.defaultBranch != branchName) {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         git.branchDelete().setForce(true).setBranchNames(branchName).call()
-        recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+        val deleteBranchInfo = DeleteBranchInfo(repository.owner, repository.name, userName, branchName)
+        recordActivity(deleteBranchInfo)
       }
     }
     redirect(s"/${repository.owner}/${repository.name}/branches")
@@ -906,10 +908,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     lazy val isValid: Boolean = fileIds.nonEmpty
   }
 
-  private val readmeFiles = PluginRegistry().renderableExtensions.map { extension =>
-    s"readme.${extension}"
-  } ++ Seq("readme.txt", "readme")
-
   /**
    * Provides HTML of the file list.
    *
@@ -940,10 +938,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 context.settings.repositoryViewer.maxFiles
               )
               val parentPath = if (path == ".") Nil else path.split("/").toList
-              // process README.md or README.markdown
-              val readme = files
+              // process README
+              val readme = files // files should be sorted alphabetically.
                 .find { file =>
-                  !file.isDirectory && readmeFiles.contains(file.name.toLowerCase)
+                  !file.isDirectory && RepositoryService.readmeFiles.contains(file.name.toLowerCase)
                 }
                 .map { file =>
                   val path = (file.name :: parentPath.reverse).reverse

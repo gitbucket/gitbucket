@@ -15,3 +15,11 @@ case class CreateAPullRequestAlt(
   base: String,
   maintainer_can_modify: Option[Boolean]
 )
+
+case class UpdateAPullRequest(
+  title: Option[String],
+  body: Option[String],
+  state: Option[String],
+  base: Option[String],
+  maintainer_can_modify: Option[Boolean],
+)

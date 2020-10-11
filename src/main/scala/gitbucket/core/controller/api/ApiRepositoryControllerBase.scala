@@ -54,11 +54,15 @@ trait ApiRepositoryControllerBase extends ControllerBase {
     })
   }
 
-  /*
+  /**
    * iv. List all public repositories
-   * https://developer.github.com/v3/repos/#list-all-public-repositories
-   * Not implemented
+   * https://developer.github.com/v3/repos/#list-public-repositories
    */
+  get("/api/v3/repositories") {
+    JsonFormat(getPublicRepositories().map { r =>
+      ApiRepository(r, getAccountByUserName(r.owner).get)
+    })
+  }
 
   /*
    * v. Create
@@ -174,9 +178,14 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    */
 
   /*
-   * xiii. List tags
-   * https://developer.github.com/v3/repos/#list-tags
+   * xiii. List repository tags
+   * https://docs.github.com/en/rest/reference/repos#list-repository-tags
    */
+  get("/api/v3/repos/:owner/:repository/tags")(referrersOnly { repository =>
+    JsonFormat(
+      repository.tags.map(tagInfo => ApiTag(tagInfo.name, RepositoryName(repository), tagInfo.id))
+    )
+  })
 
   /*
    * xiv. Delete a repository

@@ -22,9 +22,9 @@
         <td style="padding-top: 12px; padding-bottom: 12px;">
           <a href="@context.path/@issue.userName/@issue.repositoryName">@issue.userName/@issue.repositoryName</a>&nbsp;&#xFF65;
           @if(issue.isPullRequest){
-            <a href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+            <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
           } else {
-            <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
+            <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
           }
           @gitbucket.core.issues.html.commitstatus(issue, commitStatus)
           @labels.map { label =>

@@ -31,10 +31,10 @@
               <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline float-lg-right">
                 <div class="form-row">
                   <div class="input-group mr-1 mb-1">
-                    <input type="text" class="form-control" name="q" placeholder="Search..."/>
+                    <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all pages"/>
                     <input type="hidden" name="type" value="wiki"/>
                     <div class="input-group-append">
-                      <button type="submit" id="search-btn" class="btn btn-default"><i class="fa fa-search"></i></button>
+                      <button type="submit" id="search-btn" class="btn btn-default" aria-label="Search all pages"><i class="fa fa-search"></i></button>
                     </div>
                   </div>
                   <a class="btn btn-default mr-1 mb-1" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
@@ -139,7 +139,7 @@
         <strong>Clone this wiki locally</strong>
       </div>
       @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", WikiService.wikiHttpUrl(repository)){
-      <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
+      <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly aria-label="repository-url">
       }
       @if(WikiService.wikiSshUrl(repository).isDefined) {
       <div class="small">

@@ -1,19 +1,20 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiCommits, JsonFormat}
+import gitbucket.core.api.{ApiBranchCommit, ApiBranchForHeadCommit, ApiCommits, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.model.Account
-import gitbucket.core.service.{AccountService, CommitsService}
+import gitbucket.core.service.{AccountService, CommitsService, ProtectedBranchService}
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.JGitUtil.CommitInfo
+import gitbucket.core.util.JGitUtil.{CommitInfo, getBranches, getBranchesOfCommit}
 import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, RepositoryName}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
+
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 trait ApiRepositoryCommitControllerBase extends ControllerBase {
-  self: AccountService with CommitsService with ReferrerAuthenticator =>
+  self: AccountService with CommitsService with ProtectedBranchService with ReferrerAuthenticator =>
   /*
    * i. List commits on a repository
    * https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository
@@ -22,7 +23,7 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
     val owner = repository.owner
     val name = repository.name
     // TODO: The following parameters need to be implemented. [:path, :author, :since, :until]
-    val sha = if (request.body.nonEmpty) (parse(request.body) \ "sha").extract[String] else "refs/heads/master";
+    val sha = params.getOrElse("sha", "refs/heads/master")
     Using.resource(Git.open(getRepositoryDir(owner, name))) {
       git =>
         val repo = git.getRepository
@@ -107,7 +108,25 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
    */
 
   /*
- * v. Commit signature verification
- * https://developer.github.com/v3/repos/commits/#commit-signature-verification
- */
+   * v. Commit signature verification
+   * https://developer.github.com/v3/repos/commits/#commit-signature-verification
+   */
+
+  /*
+   * vi. List branches for HEAD commit
+   * https://docs.github.com/en/rest/reference/repos#list-branches-for-head-commit
+   */
+  get("/api/v3/repos/:owner/:repository/commits/:sha/branches-where-head")(referrersOnly { repository =>
+    val sha = params("sha")
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val apiBranchForCommits = for {
+        branch <- getBranchesOfCommit(git, sha)
+        br <- getBranches(git, branch, repository.repository.originUserName.isEmpty).find(_.name == branch)
+      } yield {
+        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+        ApiBranchForHeadCommit(branch, ApiBranchCommit(br.commitId), protection.enabled)
+      }
+      JsonFormat(apiBranchForCommits)
+    }
+  })
 }

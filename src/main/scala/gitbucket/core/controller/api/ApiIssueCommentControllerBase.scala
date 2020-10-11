@@ -4,6 +4,7 @@ import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, RepositoryName}
+import org.scalatra.{ActionResult, NoContent}
 
 trait ApiIssueCommentControllerBase extends ControllerBase {
   self: AccountService
@@ -35,9 +36,19 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    */
 
   /*
-   * iii. Get a single comment
-   * https://developer.github.com/v3/issues/comments/#get-a-single-comment
+   * iii. Get an issue comment
+   * https://docs.github.com/en/rest/reference/issues#get-an-issue-comment
    */
+  get("/api/v3/repos/:owner/:repository/issues/comments/:id")(referrersOnly { repository =>
+    val commentId = params("id").toInt
+    getCommentForApi(repository.owner, repository.name, commentId) match {
+      case Some((issueComment, user, issue)) =>
+        JsonFormat(
+          ApiComment(issueComment, RepositoryName(repository), issue.issueId, ApiUser(user), issue.isPullRequest)
+        )
+      case _ => NotFound()
+    }
+  })
 
   /*
    * iv. Create a comment
@@ -65,14 +76,67 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   })
 
   /*
-   * v. Edit a comment
-   * https://developer.github.com/v3/issues/comments/#edit-a-comment
+   * v. Update an issue comment
+   * https://docs.github.com/en/rest/reference/issues#update-an-issue-comment
    */
+  patch("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
+    val commentId = params("id")
+    val result = for {
+      issueComment <- getComment(repository.owner, repository.name, commentId)
+      issue <- getIssue(repository.owner, repository.name, issueComment.issueId.toString)
+    } yield {
+      if (isEditable(repository.owner, repository.name, issueComment.commentedUserName)) {
+        val body = extractFromJsonBody[CreateAComment].map(_.body)
+        updateCommentByApi(repository, issue, issueComment.commentId.toString, body)
+        getComment(repository.owner, repository.name, commentId) match {
+          case Some(issueComment) =>
+            JsonFormat(
+              ApiComment(
+                issueComment,
+                RepositoryName(repository),
+                issue.issueId,
+                ApiUser(context.loginAccount.get),
+                issue.isPullRequest
+              )
+            )
+          case _ =>
+        }
+      } else {
+        Unauthorized()
+      }
+    }
+    result match {
+      case Some(response) => response
+      case None           => NotFound()
+    }
+  })
 
   /*
    * vi. Delete a comment
-   * https://developer.github.com/v3/issues/comments/#delete-a-comment
+   * https://docs.github.com/en/rest/reference/issues#delete-an-issue-comment
+   *
    */
+  delete("/api/v3/repos/{owner}/{repo}/issues/comments/:id")(readableUsersOnly { repository =>
+    val maybeDeleteResponse: Option[Either[ActionResult, Option[Int]]] =
+      for {
+        commentId <- params("id").toIntOpt
+        comment <- getComment(repository.owner, repository.name, commentId.toString)
+        issue <- getIssue(repository.owner, repository.name, comment.issueId.toString)
+      } yield {
+        if (isEditable(repository.owner, repository.name, comment.commentedUserName)) {
+          val maybeDeletedComment = deleteCommentByApi(repository, comment, issue)
+          Right(maybeDeletedComment.map(_.commentId))
+        } else {
+          Left(Unauthorized())
+        }
+      }
+    maybeDeleteResponse
+      .map {
+        case Right(maybeDeletedCommentId) => maybeDeletedCommentId.getOrElse(NotFound())
+        case Left(err)                    => err
+      }
+      .getOrElse(NotFound())
+  })
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName

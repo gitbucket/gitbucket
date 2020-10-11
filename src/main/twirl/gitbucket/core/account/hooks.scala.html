@@ -26,7 +26,7 @@
             <p>
               These webhooks notify external services when certain events occur within any of your repositories.
               When any of the specified events occur, GitBucket will send a POST request to all of the endpoints (URLs) you provide.
-              Learn more about this feature on the <a href="https://github.com/gitbucket/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki</a>.
+              Learn more about this feature on the <a href="https://github.com/gitbucket/gitbucket/wiki/API-WebHook" target="_blank" rel="noopener>GitBucket Wiki</a>.
             </p>
             <table class="table table-condensed mb-0">
               @webHooks.map { case (webHook, events) =>
@@ -40,10 +40,10 @@
                 <td>
                   <div class="btn-group float-right">
                     <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
-                      <span class="octicon octicon-pencil"></span>
+                      <span class="octicon octicon-pencil" aria-label="Edit hook"></span>
                     </a>
                     <a href="@helpers.url(account.userName)/_hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
-                      <span class="octicon octicon-x"></span>
+                      <span class="octicon octicon-x" aria-label="Remove hook"></span>
                     </a>
                   </div>
                 </td>

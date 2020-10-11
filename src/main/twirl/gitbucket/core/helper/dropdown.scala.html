@@ -6,8 +6,7 @@
   filter: (String, String)  = ("",""))(body: Html)
 @defining(if(filter._1.isEmpty) "" else filter._1 + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
   <div class="btn-group" @if(style.nonEmpty){style="@style"}>
-    <button id = "test"
-        class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
+    <button class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
       @if(value.isEmpty){
         <i class="octicon octicon-gear"></i>
       } else {
