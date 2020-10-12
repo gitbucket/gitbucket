@@ -1,7 +1,6 @@
 package gitbucket.core.controller.api
 import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
-import gitbucket.core.model.Repository
 import gitbucket.core.service.MilestonesService
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
@@ -24,7 +23,6 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
         ApiMilestone(
           repository.repository,
           milestoneWithIssue._1,
-          ApiUser(context.loginAccount.get),
           milestoneWithIssue._2,
           milestoneWithIssue._3
         )
@@ -112,7 +110,6 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
           ApiMilestone(
             repository.repository,
             milestoneWithIssue._1,
-            ApiUser(context.loginAccount.get),
             milestoneWithIssue._2,
             milestoneWithIssue._3
         )
