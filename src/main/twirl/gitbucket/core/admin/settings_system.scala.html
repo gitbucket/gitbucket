@@ -35,14 +35,14 @@
 <!-- Base URL -->
 <!--====================================================================-->
 <hr>
-<label for="baseUrl"><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
+<label for="baseUrl">Base URL (e.g. <code>http://example.com/gitbucket</code>)</label>
 <fieldset>
     <div class="controls">
       <input type="text" name="baseUrl" id="baseUrl" class="form-control" value="@context.settings.baseUrl"/>
-      <span id="error-baseUrl" class="error"></span>
+      <span id="error-baseUrl" class="error text-danger"></span>
     </div>
 </fieldset>
-<p class="muted">
+<p class="text-muted">
   The base URL is used for redirects, notification emails, git repository URL boxes, and more.
   If the base URL is empty, GitBucket generates the URL from the request information.
   You can use this property to adjust to URL differences between a reverse proxy and GitBucket.
@@ -51,7 +51,7 @@
 <!-- Information -->
 <!--====================================================================-->
 <hr>
-<label for="information"><span class="strong">Site notification</span> (Supports HTML)</label>
+<label for="information">Site notification (Supports HTML)</label>
 <fieldset>
   <textarea id="information" name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
 </fieldset>
@@ -59,9 +59,9 @@
 <!-- AdminLTE SkinName -->
 <!--====================================================================-->
 <hr>
-<label class="strong">
+<h5>
   AdminLTE skin name
-</label>
+</h5>
 <div class="form-group">
   <label class="control-label col-md-2" for="skinName">Skin name</label>
   <div class="col-md-10">
@@ -97,7 +97,7 @@
 <!-- User-defined CSS -->
 <!--====================================================================-->
 <hr>
-<label for="userDefinedCss"><span class="strong">User-defined CSS</span></label>
+<label for="userDefinedCss">User-defined CSS</label>
 <fieldset>
   <textarea id="userDefinedCss" name="userDefinedCss" class="form-control" style="height: 100px;">@context.settings.userDefinedCss</textarea>
 </fieldset>
@@ -105,163 +105,163 @@
 <!-- Account registration -->
 <!--====================================================================-->
 <hr>
-<label class="strong">Account registration</label>
-<fieldset>
-  <label class="radio">
-    <input type="radio" name="allowAccountRegistration" value="true"@if(context.settings.allowAccountRegistration){ checked}>
-    <span class="strong">Allow</span> <span class="normal">- Users can create accounts by themselves.</span>
-  </label>
-  <label class="radio">
-    <input type="radio" name="allowAccountRegistration" value="false"@if(!context.settings.allowAccountRegistration){ checked}>
-    <span class="strong">Deny</span> <span class="normal">- Only administrators can create accounts.</span>
-  </label>
-</fieldset>
+<h5>Account registration</h5>
+<div class="form-group">
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="allowAccountRegistration.allow" name="allowAccountRegistration" value="true"@if(context.settings.allowAccountRegistration){ checked}>
+    <label class="form-check-label" for="allowAccountRegistration.allow">Allow</label> <span class="text-muted">- Users can create accounts by themselves.</span>
+  </div>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="allowAccountRegistration.deny" name="allowAccountRegistration" value="false"@if(!context.settings.allowAccountRegistration){ checked}>
+    <label class="form-check-label" for="allowAccountRegistration.deny">Deny</label> <span class="text-muted">- Only administrators can create accounts.</span>
+  </div>
+</div>
 <!--====================================================================-->
 <!-- Repository operations -->
 <!--====================================================================-->
 <hr>
-<label class="strong">Repository operation</label>
+<h5 class="strong">Repository operation</h5>
 <fieldset>
   <div class="form-group">
-    <label class="control-label col-md-2">Create</label>
+    <h6>Create</h6>
     <div class="col-md-10">
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.create" value="true"@if(context.settings.repositoryOperation.create){ checked}>
-        <span class="strong">All users</span> <span class="normal">- All users can create repository.</span>
-      </label>
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.create" value="false"@if(!context.settings.repositoryOperation.create){ checked}>
-        <span class="strong">Admin only</span> <span class="normal">- Only administrators can create repository.</span>
-      </label>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.create.all" name="repositoryOperation.create" value="true"@if(context.settings.repositoryOperation.create){ checked}>
+        <label class="form-check-label" for="repositoryOperation.create.all">All users</label> <span class="text-muted">- All users can create repository.</span>
+      </div>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.create.admin" name="repositoryOperation.create" value="false"@if(!context.settings.repositoryOperation.create){ checked}>
+        <label class="form-check-label" for="repositoryOperation.create.admin">Admin only</label> <span class="text-muted">- Only administrators can create repository.</span>
+      </div>
     </div>
   </div>
   <div class="form-group">
-    <label class="control-label col-md-2">Delete</label>
+    <h6>Delete</h6>
     <div class="col-md-10">
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.delete" value="true"@if(context.settings.repositoryOperation.delete){ checked}>
-        <span class="strong">All users</span> <span class="normal">- All users can delete repository.</span>
-      </label>
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.delete" value="false"@if(!context.settings.repositoryOperation.delete){ checked}>
-        <span class="strong">Admin only</span> <span class="normal">- Only administrators can delete repository.</span>
-      </label>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.delete.all" name="repositoryOperation.delete" value="true"@if(context.settings.repositoryOperation.delete){ checked}>
+        <label class="form-check-label" for="repositoryOperation.delete.all">All users</label> <span class="text-muted">- All users can delete repository.</span>
+      </div>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.delete.admin" name="repositoryOperation.delete" value="false"@if(!context.settings.repositoryOperation.delete){ checked}>
+        <label class="form-check-label" for="repositoryOperation.delete.admin">Admin only</label> <span class="text-muted">- Only administrators can delete repository.</span>
+      </div>
     </div>
   </div>
   <div class="form-group">
-    <label class="control-label col-md-2">Rename</label>
+    <h6>Rename</h6>
     <div class="col-md-10">
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.rename" value="true"@if(context.settings.repositoryOperation.rename){ checked}>
-        <span class="strong">All users</span> <span class="normal">- All users can rename repository.</span>
-      </label>
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.rename" value="false"@if(!context.settings.repositoryOperation.rename){ checked}>
-        <span class="strong">Admin only</span> <span class="normal">- Only administrators can rename repository.</span>
-      </label>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.rename.all" name="repositoryOperation.rename" value="true"@if(context.settings.repositoryOperation.rename){ checked}>
+        <label class="form-check-label" for="repositoryOperation.rename.all">All users</label> <span class="text-muted">- All users can rename repository.</span>
+      </div>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.rename.admin" name="repositoryOperation.rename" value="false"@if(!context.settings.repositoryOperation.rename){ checked}>
+        <label class="form-check-label" for="repositoryOperation.rename.admin">Admin only</label> <span class="text-muted">- Only administrators can rename repository.</span>
+      </div>
     </div>
   </div>
   <div class="form-group">
-    <label class="control-label col-md-2">Transfer</label>
+    <h6>Transfer</h6>
     <div class="col-md-10">
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.transfer" value="true"@if(context.settings.repositoryOperation.transfer){ checked}>
-        <span class="strong">All users</span> <span class="normal">- All users can transfer repository.</span>
-      </label>
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.transfer" value="false"@if(!context.settings.repositoryOperation.transfer){ checked}>
-        <span class="strong">Admin only</span> <span class="normal">- Only administrators can transfer repository.</span>
-      </label>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.transfer.all" name="repositoryOperation.transfer" value="true"@if(context.settings.repositoryOperation.transfer){ checked}>
+        <label class="form-check-label" for="repositoryOperation.transfer.all">All users</label> <span class="text-muted">- All users can transfer repository.</span>
+      </div>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.transfer.admin" name="repositoryOperation.transfer" value="false"@if(!context.settings.repositoryOperation.transfer){ checked}>
+        <label class="form-check-label" for="repositoryOperation.transfer.admin">Admin only</label> <span class="text-muted">- Only administrators can transfer repository.</span>
+      </div>
     </div>
   </div>
   <div class="form-group">
-    <label class="control-label col-md-2">Fork</label>
+    <h6>Fork</h6>
     <div class="col-md-10">
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.fork" value="true"@if(context.settings.repositoryOperation.fork){ checked}>
-        <span class="strong">All users</span> <span class="normal">- All users can fork repository.</span>
-      </label>
-      <label class="radio">
-        <input type="radio" name="repositoryOperation.fork" value="false"@if(!context.settings.repositoryOperation.fork){ checked}>
-        <span class="strong">Admin only</span> <span class="normal">- Only administrators can fork repository.</span>
-      </label>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.fork.all" name="repositoryOperation.fork" value="true"@if(context.settings.repositoryOperation.fork){ checked}>
+        <label class="form-check-label" for="repositoryOperation.fork.all">All users</label> <span class="text-muted">- All users can fork repository.</span>
+      </div>
+      <div class="form-check">
+        <input type="radio" class="form-check-input" id="repositoryOperation.fork.admin" name="repositoryOperation.fork" value="false"@if(!context.settings.repositoryOperation.fork){ checked}>
+        <label class="form-check-label" for="repositoryOperation.fork.admin">Admin only</label> <span class="text-muted">- Only administrators can fork repository.</span>
+      </div>
     </div>
   </div>
 </fieldset>
 <hr>
-<label class="strong">Default visibility when creating a new repository</label>
+<h5>Default visibility when creating a new repository</h5>
 <fieldset>
-  <label class="radio">
-    <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
-    <span class="strong">Public</span> <span class="normal">- All users and guests can read the repository.</span>
-  </label>
-  <label class="radio">
-    <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
-    <span class="strong">Private</span> <span class="normal">- Only collaborators can read the repository.</span>
-  </label>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="isCreateRepoOptionPublic.public" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
+    <label class="form-check-label" for="isCreateRepoOptionPublic.public">Public</label> <span class="text-muted">- All users and guests can read the repository.</span>
+  </div>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="isCreateRepoOptionPublic.private" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
+    <label class="form-check-label" for="isCreateRepoOptionPublic.private">Private</label> <span class="text-muted">- Only collaborators can read the repository.</span>
+  </div>
 </fieldset>
 <!--====================================================================-->
 <!-- Anonymous access -->
 <!--====================================================================-->
 <hr>
-<label class="strong">Anonymous access</label>
+<h5>Anonymous access</h5>
 <fieldset>
-  <label class="radio">
-    <input type="radio" name="allowAnonymousAccess" value="true"@if(context.settings.allowAnonymousAccess){ checked}>
-    <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories and user/group profiles.</span>
-  </label>
-  <label class="radio">
-    <input type="radio" name="allowAnonymousAccess" value="false"@if(!context.settings.allowAnonymousAccess){ checked}>
-    <span class="strong">Deny</span> <span class="normal">- Users must authenticate before viewing any information.</span>
-  </label>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="allowAnonymousAccess.allow" name="allowAnonymousAccess" value="true"@if(context.settings.allowAnonymousAccess){ checked}>
+    <label class="form-check-label" for="allowAnonymousAccess.allow">Allow</label> <span class="text-muted">- Anyone can view public repositories and user/group profiles.</span>
+  </div>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="allowAnonymousAccess.deny" name="allowAnonymousAccess" value="false"@if(!context.settings.allowAnonymousAccess){ checked}>
+    <label class="form-check-label" for="allowAnonymousAccess.deny">Deny</label> <span class="text-muted">- Users must authenticate before viewing any information.</span>
+  </div>
 </fieldset>
 <!--====================================================================-->
 <!-- Show mail address -->
 <!--====================================================================-->
 <hr>
-<label class="strong">Show mail address</label>
+<h5>Show mail address</h5>
 <fieldset>
-  <label class="radio">
-    <input type="radio" name="showMailAddress" value="true"@if(context.settings.showMailAddress){ checked}>
-    <span class="strong">Show</span> <span class="normal">- Anyone can view mail address by user's profile page.</span>
-  </label>
-  <label class="radio">
-    <input type="radio" name="showMailAddress" value="false"@if(!context.settings.showMailAddress){ checked}>
-    <span class="strong">Hide</span> <span class="normal">- Hide mail address in user's profile page.</span>
-  </label>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="showMailAddress.show" name="showMailAddress" value="true"@if(context.settings.showMailAddress){ checked}>
+    <label class="form-check-label" for="showMailAddress.show">Show</label> <span class="text-muted">- Anyone can view mail address by user's profile page.</span>
+  </div>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="showMailAddress.hide" name="showMailAddress" value="false"@if(!context.settings.showMailAddress){ checked}>
+    <label class="form-check-label" for="showMailAddress.hide">Hide</label> <span class="text-muted">- Hide mail address in user's profile page.</span>
+  </div>
 </fieldset>
 <!--====================================================================-->
 <!-- File upload -->
 <!--====================================================================-->
 <hr>
-<label class="strong">File upload</label>
+<h5>File upload</h5>
 <fieldset>
   <div class="form-group">
     <label class="control-label col-md-2" for="uploadMaxFileSize">Max size</label>
     <div class="col-md-10">
       <input type="text" id="uploadMaxFileSize" name="upload.maxFileSize" class="form-control input-mini" value="@context.settings.upload.maxFileSize"/>
-      <span id="error-upload_maxFileSize" class="error"></span>
+      <span id="error-upload_maxFileSize" class="error text-danger"></span>
     </div>
   </div>
   <div class="form-group">
     <label class="control-label col-md-2" for="uploadTimeout">Timeout</label>
     <div class="col-md-10">
       <input type="text" id="uploadTimeout" name="upload.timeout" class="form-control input-mini" value="@context.settings.upload.timeout"/>
-      <span id="error-upload_timeout" class="error"></span>
+      <span id="error-upload_timeout" class="error text-danger"></span>
     </div>
   </div>
   <div class="form-group">
     <label class="control-label col-md-2" for="uploadLargeMaxFileSize">Max size for large files</label>
     <div class="col-md-10">
       <input type="text" id="uploadLargeMaxFileSize" name="upload.largeMaxFileSize" class="form-control input-mini" value="@context.settings.upload.largeMaxFileSize"/>
-      <span id="error-upload_largeMaxFileSize" class="error"></span>
+      <span id="error-upload_largeMaxFileSize" class="error text-danger"></span>
     </div>
   </div>
   <div class="form-group">
     <label class="control-label col-md-2" for="uploadLargeTimeout">Timeout for large files</label>
     <div class="col-md-10">
       <input type="text" id="uploadLargeTimeout" name="upload.largeTimeout" class="form-control input-mini" value="@context.settings.upload.largeTimeout"/>
-      <span id="error-upload_largeTimeout" class="error"></span>
+      <span id="error-upload_largeTimeout" class="error text-danger"></span>
     </div>
   </div>
 </fieldset>
@@ -269,33 +269,33 @@
 <!-- Sidebar -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">Show repositories in sidebar</span></label>
+<h5>Show repositories in sidebar</h5>
 <fieldset>
-  <label class="radio">
-    <input type="radio" name="limitVisibleRepositories" value="false"@if(!context.settings.limitVisibleRepositories){ checked}>
-    <span class="strong">All</span> <span class="normal">- Show all visible repositories in sidebar.</span>
-  </label>
-  <label class="radio">
-    <input type="radio" name="limitVisibleRepositories" value="true"@if(context.settings.limitVisibleRepositories){ checked}>
-    <span class="strong">Limited</span> <span class="normal">- Show only owned repositories in sidebar.</span>
-  </label>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="limitVisibleRepositories.all" name="limitVisibleRepositories" value="false"@if(!context.settings.limitVisibleRepositories){ checked}>
+    <label class="form-check-label" for="limitVisibleRepositories.all">All</label> <span class="text-muted">- Show all visible repositories in sidebar.</span>
+  </div>
+  <div class="form-check">
+    <input type="radio" class="form-check-input" id="limitVisibleRepositories.limited" name="limitVisibleRepositories" value="true"@if(context.settings.limitVisibleRepositories){ checked}>
+    <label class="form-check-label" for="limitVisibleRepositories.limited">Limited</label> <span class="text-muted">- Show only owned repositories in sidebar.</span>
+  </div>
 </fieldset>
 <!--====================================================================-->
 <!-- Repository viewer -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">Repository viewer</span></label>
+<h5>Repository viewer</h5>
 <fieldset>
   <div class="form-group">
-    <label class="control-label col-md-2" for="repositoryViewerMaxFiles">Max files in directory</label>
-    <div class="col-md-10">
-      <input type="text" name="repositoryViewer.maxFiles" id="repositoryViewerMaxFiles" class="form-control" value="@context.settings.repositoryViewer.maxFiles"/>
-      <span id="error-repositoryViewerMaxFiles" class="error"></span>
-      <p class="muted">
-        If the number of files in the directory is bigger than this number, GitBucket doesn't show detailed commit info on the repository viewer
-        because it can make the entire system quite heavy. 0 or negative number means no limitation.
-      </p>
-    </div>
+    <label for="repositoryViewerMaxFiles">Max files in directory</label>
+  <div class="col-md-10">
+    <input type="text" name="repositoryViewer.maxFiles" id="repositoryViewerMaxFiles" class="form-control" value="@context.settings.repositoryViewer.maxFiles"/>
+    <span id="error-repositoryViewerMaxFiles" class="error text-danger"></span>
+    <p class="text-muted">
+      If the number of files in the directory is bigger than this number, GitBucket doesn't show detailed commit info on the repository viewer
+      because it can make the entire system quite heavy. 0 or negative number means no limitation.
+    </p>
+  </div>
   </div>
 </fieldset>
 
