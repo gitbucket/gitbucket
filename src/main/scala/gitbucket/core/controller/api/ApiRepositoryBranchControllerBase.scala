@@ -7,6 +7,8 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil.getBranches
 import org.eclipse.jgit.api.Git
+import org.scalatra.NoContent
+
 import scala.util.Using
 
 trait ApiRepositoryBranchControllerBase extends ControllerBase {
@@ -22,7 +24,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
 
   /**
    * i. List branches
-   * https://developer.github.com/v3/repos/branches/#list-branches
+   * https://docs.github.com/en/rest/reference/repos#list-branches
    */
   get("/api/v3/repos/:owner/:repository/branches")(referrersOnly { repository =>
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
@@ -41,8 +43,8 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
   })
 
   /**
-   * ii. Get branch
-   * https://developer.github.com/v3/repos/branches/#get-branch
+   * ii. Get a branch
+   * https://docs.github.com/en/rest/reference/repos#get-a-branch
    */
   get("/api/v3/repos/:owner/:repository/branches/*")(referrersOnly { repository =>
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
@@ -65,147 +67,206 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
 
   /*
    * iii. Get branch protection
-   * https://developer.github.com/v3/repos/branches/#get-branch-protection
+   * https://docs.github.com/en/rest/reference/repos#get-branch-protection
    */
+  get("/api/v3/repos/:owner/:repository/branches/:branch/protection")(referrersOnly { repository =>
+    val branch = params("branch")
+    if (repository.branchList.contains(branch)) {
+      val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      JsonFormat(
+        ApiBranchProtection(protection)
+      )
+    } else { NotFound() }
+  })
 
   /*
    * iv. Update branch protection
-   * https://developer.github.com/v3/repos/branches/#update-branch-protection
+   * https://docs.github.com/en/rest/reference/repos#update-branch-protection
    */
 
   /*
-   * v. Remove branch protection
-   * https://developer.github.com/v3/repos/branches/#remove-branch-protection
+   * v. Delete branch protection
+   * https://docs.github.com/en/rest/reference/repos#delete-branch-protection
+   */
+  delete("/api/v3/repos/:owner/:repository/branches/:branch/protection")(writableUsersOnly { repository =>
+    val branch = params("branch")
+    if (repository.branchList.contains(branch)) {
+      val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      if (protection.enabled) {
+        disableBranchProtection(repository.owner, repository.name, branch)
+        NoContent()
+      } else NotFound()
+    } else NotFound()
+  })
+
+  /*
+   * vi. Get admin branch protection
+   * https://docs.github.com/en/rest/reference/repos#get-admin-branch-protection
    */
 
   /*
-   * vi. Get required status checks of protected branch
-   * https://developer.github.com/v3/repos/branches/#get-required-status-checks-of-protected-branch
+   * vii. Set admin branch protection
+   * https://docs.github.com/en/rest/reference/repos#set-admin-branch-protection
    */
 
   /*
-   * vii. Update required status checks of protected branch
-   * https://developer.github.com/v3/repos/branches/#update-required-status-checks-of-protected-branch
+   * viii. Delete admin branch protection
+   * https://docs.github.com/en/rest/reference/repos#delete-admin-branch-protection
    */
 
   /*
-   * viii. Remove required status checks of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-required-status-checks-of-protected-branch
+   * ix. Get pull request review protection
+   * https://docs.github.com/en/rest/reference/repos#get-pull-request-review-protection
    */
 
   /*
-   * ix. List required status checks contexts of protected branch
-   * https://developer.github.com/v3/repos/branches/#list-required-status-checks-contexts-of-protected-branch
+   * x. Update pull request review protection
+   * https://docs.github.com/en/rest/reference/repos#update-pull-request-review-protection
    */
 
   /*
-   * x. Replace required status checks contexts of protected branch
-   * https://developer.github.com/v3/repos/branches/#replace-required-status-checks-contexts-of-protected-branch
+   * xi. Delete pull request review protection
+   * https://docs.github.com/en/rest/reference/repos#delete-pull-request-review-protection
    */
 
   /*
-   * xi. Add required status checks contexts of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-required-status-checks-contexts-of-protected-branch
+   * xii. Get commit signature protection
+   * https://docs.github.com/en/rest/reference/repos#get-commit-signature-protection
    */
 
   /*
-   * xii. Remove required status checks contexts of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-required-status-checks-contexts-of-protected-branch
+   * xiii. Create commit signature protection
+   * https://docs.github.com/en/rest/reference/repos#create-commit-signature-protection
    */
 
   /*
-   * xiii. Get pull request review enforcement of protected branch
-   * https://developer.github.com/v3/repos/branches/#get-pull-request-review-enforcement-of-protected-branch
+   * xiv. Delete commit signature protection
+   * https://docs.github.com/en/rest/reference/repos#delete-commit-signature-protection
    */
 
   /*
-   * xiv. Update pull request review enforcement of protected branch
-   * https://developer.github.com/v3/repos/branches/#update-pull-request-review-enforcement-of-protected-branch
+   * xv. Get status checks protection
+   * https://docs.github.com/en/rest/reference/repos#get-status-checks-protection
+   */
+  get("/api/v3/repos/:owner/:repository/branches/:branch/protection/required_status_checks")(referrersOnly {
+    repository =>
+      val branch = params("branch")
+      if (repository.branchList.contains(branch)) {
+        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+        JsonFormat(
+          ApiBranchProtection(protection).required_status_checks
+        )
+      } else { NotFound() }
+  })
+
+  /*
+   * xvi. Update status check protection
+   * https://docs.github.com/en/rest/reference/repos#update-status-check-protection
    */
 
   /*
-   * xv. Remove pull request review enforcement of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-pull-request-review-enforcement-of-protected-branch
+   * xvii. Remove status check protection
+   * https://docs.github.com/en/rest/reference/repos#remove-status-check-protection
    */
 
   /*
-   * xvi. Get required signatures of protected branch
-   * https://developer.github.com/v3/repos/branches/#get-required-signatures-of-protected-branch
+   * xviii. Get all status check contexts
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-all-status-check-contexts
+   */
+  get("/api/v3/repos/:owner/:repository/branches/:branch/protection/required_status_checks/contexts")(referrersOnly {
+    repository =>
+      val branch = params("branch")
+      if (repository.branchList.contains(branch)) {
+        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+        if (protection.enabled) {
+          protection.contexts.toList
+        } else NotFound()
+      } else NotFound()
+  })
+
+  /*
+   * xix. Add status check contexts
+   * https://docs.github.com/en/rest/reference/repos#add-status-check-contexts
    */
 
   /*
-   * xvii. Add required signatures of protected branch
-   * https://developer.github.com/v3/repos/branches/#add-required-signatures-of-protected-branch
+   * xx. Set status check contexts
+   * https://docs.github.com/en/rest/reference/repos#set-status-check-contexts
    */
 
   /*
-   * xviii. Remove required signatures of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-required-signatures-of-protected-branch
+   * xxi. Remove status check contexts
+   * https://docs.github.com/en/rest/reference/repos#remove-status-check-contexts
    */
 
   /*
-   * xix. Get admin enforcement of protected branch
-   * https://developer.github.com/v3/repos/branches/#get-admin-enforcement-of-protected-branch
+   * xxii. Get access restrictions
+   * https://docs.github.com/en/rest/reference/repos#get-access-restrictions
    */
 
   /*
-   * xx. Add admin enforcement of protected branch
-   * https://developer.github.com/v3/repos/branches/#add-admin-enforcement-of-protected-branch
+   * xxiii. Delete access restrictions
+   * https://docs.github.com/en/rest/reference/repos#delete-access-restrictions
    */
 
   /*
-   * xxi. Remove admin enforcement of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-admin-enforcement-of-protected-branch
+   * xxiv. Get apps with access to the protected branch
+   * https://docs.github.com/en/rest/reference/repos#get-apps-with-access-to-the-protected-branch
    */
 
   /*
-   * xxii. Get restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#get-restrictions-of-protected-branch
+   * xxv. Add app access restrictions
+   * https://docs.github.com/en/rest/reference/repos#add-app-access-restrictions
    */
 
   /*
-   * xxiii. Remove restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-restrictions-of-protected-branch
+   * xxvi. Set app access restrictions
+   * https://docs.github.com/en/rest/reference/repos#set-app-access-restrictions
    */
 
   /*
-   * xxiv. List team restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#list-team-restrictions-of-protected-branch
+   * xxvii. Remove app access restrictions
+   * https://docs.github.com/en/rest/reference/repos#remove-app-access-restrictions
    */
 
   /*
-   * xxv. Replace team restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#replace-team-restrictions-of-protected-branch
+   * xxviii. Get teams with access to the protected branch
+   * https://docs.github.com/en/rest/reference/repos#get-teams-with-access-to-the-protected-branch
    */
 
   /*
-   * xxvi. Add team restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#add-team-restrictions-of-protected-branch
+   * xxix. Add team access restrictions
+   * https://docs.github.com/en/rest/reference/repos#add-team-access-restrictions
    */
 
   /*
-   * xxvii. Remove team restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-team-restrictions-of-protected-branch
+   * xxx. Set team access restrictions
+   * https://docs.github.com/en/rest/reference/repos#set-team-access-restrictions
    */
 
   /*
-   * xxviii. List user restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#list-user-restrictions-of-protected-branch
+   * xxxi. Remove team access restrictions
+   * https://docs.github.com/en/rest/reference/repos#remove-team-access-restrictions
    */
 
   /*
-   * xxix. Replace user restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#replace-user-restrictions-of-protected-branch
+   * xxxii. Get users with access to the protected branch
+   * https://docs.github.com/en/rest/reference/repos#get-users-with-access-to-the-protected-branch
    */
 
   /*
-   * xxx. Add user restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#add-user-restrictions-of-protected-branch
+   * xxxiii. Add user access restrictions
+   * https://docs.github.com/en/rest/reference/repos#add-user-access-restrictions
    */
 
   /*
-   * xxxi. Remove user restrictions of protected branch
-   * https://developer.github.com/v3/repos/branches/#remove-user-restrictions-of-protected-branch
+   * xxxiv. Set user access restrictions
+   * https://docs.github.com/en/rest/reference/repos#set-user-access-restrictions
+   */
+
+  /*
+   * xxxv. Remove user access restrictions
+   * https://docs.github.com/en/rest/reference/repos#remove-user-access-restrictions
    */
 
   /**

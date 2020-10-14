@@ -24,13 +24,15 @@ trait ProtectedBranchService {
       }
       .map {
         case (t1, contexts) =>
-          new ProtectedBranchInfo(t1.userName, t1.repositoryName, true, contexts, t1.statusCheckAdmin)
+          new ProtectedBranchInfo(t1.userName, t1.repositoryName, t1.branch, true, contexts, t1.statusCheckAdmin)
       }
 
   def getProtectedBranchInfo(owner: String, repository: String, branch: String)(
     implicit session: Session
   ): ProtectedBranchInfo =
-    getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(ProtectedBranchInfo.disabled(owner, repository))
+    getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(
+      ProtectedBranchInfo.disabled(owner, repository, branch)
+    )
 
   def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] =
     ProtectedBranches.filter(_.byRepository(owner, repository)).map(_.branch).list
@@ -91,6 +93,7 @@ object ProtectedBranchService {
   case class ProtectedBranchInfo(
     owner: String,
     repository: String,
+    branch: String,
     enabled: Boolean,
     /**
      * Require status checks to pass before merging
@@ -165,7 +168,7 @@ object ProtectedBranchService {
     }
   }
   object ProtectedBranchInfo {
-    def disabled(owner: String, repository: String): ProtectedBranchInfo =
-      ProtectedBranchInfo(owner, repository, false, Nil, false)
+    def disabled(owner: String, repository: String, branch: String): ProtectedBranchInfo =
+      ProtectedBranchInfo(owner, repository, branch, false, Nil, false)
   }
 }

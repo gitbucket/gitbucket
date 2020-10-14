@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.34.0"
 val ScalatraVersion = "2.7.0"
-val JettyVersion = "9.4.30.v20200611"
+val JettyVersion = "9.4.32.v20200930"
 val JgitVersion = "5.9.0.202009080501-r"
 
 lazy val root = (project in file("."))
@@ -37,19 +37,19 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"              % "3.6.10",
-  "commons-io"                      % "commons-io"                   % "2.7",
+  "commons-io"                      % "commons-io"                   % "2.8.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.20",
   "org.apache.commons"              % "commons-email"                % "1.5",
-  "commons-net"                     % "commons-net"                  % "3.6",
+  "commons-net"                     % "commons-net"                  % "3.7",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.12",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "1.24.1",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.6.0",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.0",
   "org.postgresql"                  % "postgresql"                   % "42.2.6",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "3.4.5",
@@ -57,7 +57,7 @@ libraryDependencies ++= Seq(
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
-  "net.coobird"                     % "thumbnailator"                % "0.4.11",
+  "net.coobird"                     % "thumbnailator"                % "0.4.12",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
