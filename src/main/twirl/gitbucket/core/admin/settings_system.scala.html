@@ -62,8 +62,8 @@
 <h5>
   AdminLTE skin name
 </h5>
-<div class="form-group">
-  <label class="control-label col-md-2" for="skinName">Skin name</label>
+<div class="form-group row">
+  <label class="col-md-2 col-form-label" for="skinName">Skin name</label>
   <div class="col-md-10">
     <select id="skinName" name="skinName" class="form-control">
       <optgroup label="Dark">
@@ -122,8 +122,8 @@
 <hr>
 <h5 class="strong">Repository operation</h5>
 <fieldset>
-  <div class="form-group">
-    <h6>Create</h6>
+  <div class="form-group row">
+    <legend class="col-md-2 col-form-label">Create</legend>
     <div class="col-md-10">
       <div class="form-check">
         <input type="radio" class="form-check-input" id="repositoryOperation.create.all" name="repositoryOperation.create" value="true"@if(context.settings.repositoryOperation.create){ checked}>
@@ -135,8 +135,8 @@
       </div>
     </div>
   </div>
-  <div class="form-group">
-    <h6>Delete</h6>
+  <div class="form-group row">
+    <legend class="col-md-2 col-form-label">Delete</legend>
     <div class="col-md-10">
       <div class="form-check">
         <input type="radio" class="form-check-input" id="repositoryOperation.delete.all" name="repositoryOperation.delete" value="true"@if(context.settings.repositoryOperation.delete){ checked}>
@@ -148,8 +148,8 @@
       </div>
     </div>
   </div>
-  <div class="form-group">
-    <h6>Rename</h6>
+  <div class="form-group row">
+    <legend class="col-md-2 col-form-label">Rename</legend>
     <div class="col-md-10">
       <div class="form-check">
         <input type="radio" class="form-check-input" id="repositoryOperation.rename.all" name="repositoryOperation.rename" value="true"@if(context.settings.repositoryOperation.rename){ checked}>
@@ -161,8 +161,8 @@
       </div>
     </div>
   </div>
-  <div class="form-group">
-    <h6>Transfer</h6>
+  <div class="form-group row">
+    <legend class="col-md-2 col-form-label">Transfer</legend>
     <div class="col-md-10">
       <div class="form-check">
         <input type="radio" class="form-check-input" id="repositoryOperation.transfer.all" name="repositoryOperation.transfer" value="true"@if(context.settings.repositoryOperation.transfer){ checked}>
@@ -174,8 +174,8 @@
       </div>
     </div>
   </div>
-  <div class="form-group">
-    <h6>Fork</h6>
+  <div class="form-group row">
+    <legend class="col-md-2 col-form-label">Fork</legend>
     <div class="col-md-10">
       <div class="form-check">
         <input type="radio" class="form-check-input" id="repositoryOperation.fork.all" name="repositoryOperation.fork" value="true"@if(context.settings.repositoryOperation.fork){ checked}>
@@ -236,29 +236,29 @@
 <hr>
 <h5>File upload</h5>
 <fieldset>
-  <div class="form-group">
-    <label class="control-label col-md-2" for="uploadMaxFileSize">Max size</label>
+  <div class="form-group row">
+    <label class="col-md-2 col-form-label" for="uploadMaxFileSize">Max size</label>
     <div class="col-md-10">
       <input type="text" id="uploadMaxFileSize" name="upload.maxFileSize" class="form-control input-mini" value="@context.settings.upload.maxFileSize"/>
       <span id="error-upload_maxFileSize" class="error text-danger"></span>
     </div>
   </div>
-  <div class="form-group">
-    <label class="control-label col-md-2" for="uploadTimeout">Timeout</label>
+  <div class="form-group row">
+    <label class="col-md-2 col-form-label" for="uploadTimeout">Timeout</label>
     <div class="col-md-10">
       <input type="text" id="uploadTimeout" name="upload.timeout" class="form-control input-mini" value="@context.settings.upload.timeout"/>
       <span id="error-upload_timeout" class="error text-danger"></span>
     </div>
   </div>
-  <div class="form-group">
-    <label class="control-label col-md-2" for="uploadLargeMaxFileSize">Max size for large files</label>
+  <div class="form-group row">
+    <label class="col-md-2 col-form-label" for="uploadLargeMaxFileSize">Max size for large files</label>
     <div class="col-md-10">
       <input type="text" id="uploadLargeMaxFileSize" name="upload.largeMaxFileSize" class="form-control input-mini" value="@context.settings.upload.largeMaxFileSize"/>
       <span id="error-upload_largeMaxFileSize" class="error text-danger"></span>
     </div>
   </div>
-  <div class="form-group">
-    <label class="control-label col-md-2" for="uploadLargeTimeout">Timeout for large files</label>
+  <div class="form-group row">
+    <label class="col-md-2 col-form-label" for="uploadLargeTimeout">Timeout for large files</label>
     <div class="col-md-10">
       <input type="text" id="uploadLargeTimeout" name="upload.largeTimeout" class="form-control input-mini" value="@context.settings.upload.largeTimeout"/>
       <span id="error-upload_largeTimeout" class="error text-danger"></span>
@@ -286,16 +286,16 @@
 <hr>
 <h5>Repository viewer</h5>
 <fieldset>
-  <div class="form-group">
-    <label for="repositoryViewerMaxFiles">Max files in directory</label>
-  <div class="col-md-10">
-    <input type="text" name="repositoryViewer.maxFiles" id="repositoryViewerMaxFiles" class="form-control" value="@context.settings.repositoryViewer.maxFiles"/>
-    <span id="error-repositoryViewerMaxFiles" class="error text-danger"></span>
-    <p class="text-muted">
-      If the number of files in the directory is bigger than this number, GitBucket doesn't show detailed commit info on the repository viewer
-      because it can make the entire system quite heavy. 0 or negative number means no limitation.
-    </p>
-  </div>
+  <div class="form-group row">
+    <label class="col-md-2 col-form-label" for="repositoryViewerMaxFiles">Max files in directory</label>
+    <div class="col-md-10">
+      <input type="text" name="repositoryViewer.maxFiles" id="repositoryViewerMaxFiles" class="form-control" value="@context.settings.repositoryViewer.maxFiles"/>
+      <span id="error-repositoryViewerMaxFiles" class="error text-danger"></span>
+      <p class="text-muted">
+        If the number of files in the directory is bigger than this number, GitBucket doesn't show detailed commit info on the repository viewer
+        because it can make the entire system quite heavy. 0 or negative number means no limitation.
+      </p>
+    </div>
   </div>
 </fieldset>
 
