@@ -57,7 +57,7 @@ libraryDependencies ++= Seq(
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
-  "net.coobird"                     % "thumbnailator"                % "0.4.11",
+  "net.coobird"                     % "thumbnailator"                % "0.4.12",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
