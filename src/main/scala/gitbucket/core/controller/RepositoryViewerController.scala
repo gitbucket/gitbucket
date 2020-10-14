@@ -563,7 +563,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   private def getNewBranchName(repository: RepositoryInfo): String = {
-    var i = 0
+    var i = 1
     while (repository.branchList.exists(p => p.contains(s"pr-patch-$i"))) {
       i += 1
     }
