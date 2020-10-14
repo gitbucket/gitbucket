@@ -15,8 +15,8 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator =>
   /*
-   * i. List comments on an issue
-   * https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
+   * i. List issue comments for a repository
+   * https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository
    */
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
     (for {
@@ -31,12 +31,7 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   })
 
   /*
-   * ii. List comments in a repository
-   * https://developer.github.com/v3/issues/comments/#list-comments-in-a-repository
-   */
-
-  /*
-   * iii. Get an issue comment
+   * ii. Get an issue comment
    * https://docs.github.com/en/rest/reference/issues#get-an-issue-comment
    */
   get("/api/v3/repos/:owner/:repository/issues/comments/:id")(referrersOnly { repository =>
@@ -51,32 +46,7 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   })
 
   /*
-   * iv. Create a comment
-   * https://developer.github.com/v3/issues/comments/#create-a-comment
-   */
-  post("/api/v3/repos/:owner/:repository/issues/:id/comments")(readableUsersOnly { repository =>
-    (for {
-      issueId <- params("id").toIntOpt
-      issue <- getIssue(repository.owner, repository.name, issueId.toString)
-      body <- extractFromJsonBody[CreateAComment].map(_.body) if !body.isEmpty
-      action = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
-      (issue, id) <- handleComment(issue, Some(body), repository, action)
-      issueComment <- getComment(repository.owner, repository.name, id.toString())
-    } yield {
-      JsonFormat(
-        ApiComment(
-          issueComment,
-          RepositoryName(repository),
-          issueId,
-          ApiUser(context.loginAccount.get),
-          issue.isPullRequest
-        )
-      )
-    }) getOrElse NotFound()
-  })
-
-  /*
-   * v. Update an issue comment
+   * iii. Update an issue comment
    * https://docs.github.com/en/rest/reference/issues#update-an-issue-comment
    */
   patch("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
@@ -112,9 +82,8 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
   })
 
   /*
-   * vi. Delete a comment
+   * iv. Delete a comment
    * https://docs.github.com/en/rest/reference/issues#delete-an-issue-comment
-   *
    */
   delete("/api/v3/repos/{owner}/{repo}/issues/comments/:id")(readableUsersOnly { repository =>
     val maybeDeleteResponse: Option[Either[ActionResult, Option[Int]]] =
@@ -136,6 +105,36 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
         case Left(err)                    => err
       }
       .getOrElse(NotFound())
+  })
+
+  /*
+   * v. List issue comments
+   * https://docs.github.com/en/rest/reference/issues#list-issue-comments
+   */
+
+  /*
+   * vi. Create an issue comment
+   * https://docs.github.com/en/rest/reference/issues#create-an-issue-comment
+   */
+  post("/api/v3/repos/:owner/:repository/issues/:id/comments")(readableUsersOnly { repository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      issue <- getIssue(repository.owner, repository.name, issueId.toString)
+      body <- extractFromJsonBody[CreateAComment].map(_.body) if !body.isEmpty
+      action = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      (issue, id) <- handleComment(issue, Some(body), repository, action)
+      issueComment <- getComment(repository.owner, repository.name, id.toString())
+    } yield {
+      JsonFormat(
+        ApiComment(
+          issueComment,
+          RepositoryName(repository),
+          issueId,
+          ApiUser(context.loginAccount.get),
+          issue.isPullRequest
+        )
+      )
+    }) getOrElse NotFound()
   })
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
