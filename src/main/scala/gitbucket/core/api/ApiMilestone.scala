@@ -16,7 +16,7 @@ case class ApiMilestone(
   state: String,
   title: String,
   description: String,
-  creator: ApiUser,
+//  creator: ApiUser,  // MILESTONE table does not have created user column
   open_issues: Int,
   closed_issues: Int,
 //  created_at: Option[Date],
@@ -29,7 +29,6 @@ object ApiMilestone {
   def apply(
     repository: Repository,
     milestone: Milestone,
-    user: ApiUser,
     open_issue_count: Int = 0,
     closed_issue_count: Int = 0
   ): ApiMilestone =
@@ -42,7 +41,6 @@ object ApiMilestone {
       state = if (milestone.closedDate.isDefined) "closed" else "open",
       title = milestone.title,
       description = milestone.description.getOrElse(""),
-      creator = user,
       open_issues = open_issue_count,
       closed_issues = closed_issue_count,
       closed_at = milestone.closedDate,
