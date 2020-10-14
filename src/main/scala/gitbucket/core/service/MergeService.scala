@@ -282,6 +282,7 @@ trait MergeService {
                   // record activity
                   val mergeInfo = MergeInfo(repository.owner, repository.name, loginAccount.userName, issueId, message)
                   recordActivity(mergeInfo)
+                  updateLastActivityDate(repository.owner, repository.name)
 
                   val (commits, _) = getRequestCompareInfo(
                     repository.owner,
