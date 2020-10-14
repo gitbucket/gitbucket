@@ -564,10 +564,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def getNewBranchName(repository: RepositoryInfo): String = {
     var i = 1
-    while (repository.branchList.exists(p => p.contains(s"pr-patch-$i"))) {
+    val branchNamePrefix = cutTail(context.loginAccount.get.userName.replaceAll("[^a-zA-Z0-9-_]", "-"), 25)
+    while (repository.branchList.exists(p => p.contains(s"$branchNamePrefix-patch-$i"))) {
       i += 1
     }
-    s"pr-patch-$i"
+    s"$branchNamePrefix-patch-$i"
   }
 
   private def createNewBranchForPullRequest(repository: RepositoryInfo, baseBranchName: String): String = {
@@ -601,7 +602,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       originRepository = repository,
       issueId = issueId,
       originBranch = baseBranch,
-      requestUserName = context.loginAccount.get.userName,
+      requestUserName = repository.owner,
       requestRepositoryName = repository.name,
       requestBranch = requestBranch,
       commitIdFrom = commitIdFrom,
