@@ -11,17 +11,17 @@
     <form method="POST" action="@helpers.url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true" autocomplete="off">
       <fieldset class="form-group">
         <input type="text" id="title" name="title" class="form-control" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title" aria-label="Title"/>
-        <span id="error-title" class="error"></span>
+        <span id="error-title" class="error text-danger"></span>
       </fieldset>
       <fieldset class="form-group">
         <label for="description" class="strong">Description</label>
         <textarea id="description" name="description" class="form-control" style="width: 500px; height: 150px;">@milestone.map(_.description)</textarea>
-        <span id="error-description" class="error"></span>
+        <span id="error-description" class="error text-danger"></span>
       </fieldset>
       <fieldset class="form-group">
         <label for="dueDate" class="strong">Due Date</label>
         @gitbucket.core.helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
-        <span id="error-dueDate" class="error"></span>
+        <span id="error-dueDate" class="error text-danger"></span>
       </fieldset>
       <hr>
       <div class="pull-right">

@@ -20,8 +20,8 @@
     <div class="col-12">
       <div class="card">
         <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true" autocomplete="off">
-          <span class="error" id="error-newFileName"></span>
-          <span class="error" id="error-commit"></span>
+          <span class="error text-danger" id="error-newFileName"></span>
+          <span class="error text-danger" id="error-commit"></span>
           <div class="card-header">
             <h4>
               <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /

@@ -18,7 +18,7 @@
       <div class="form-group">
         <label for="url">Payload URL</label>
         <div>
-          <span class="error" id="error-url"></span>
+          <span class="error text-danger" id="error-url"></span>
         </div>
         @if(create){
           <input type="text" name="url" id="url" value="@webHook.url" class="form-control form-control-sm" style="display: inline; width: 500px; vertical-align: middle;" required />
@@ -44,7 +44,7 @@
       <hr />
       <label>Which events would you like to trigger this webhook?</label>
       <div>
-        <span class="error" id="error-events"></span>
+        <span class="error text-danger" id="error-events"></span>
       </div>
       <div class="form-group">
         <!--

@@ -26,7 +26,7 @@
         </div>
         <form action="@helpers.url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true" autocomplete="off">
           <div class="card-body">
-            <span id="error-pageName" class="error"></span>
+            <span id="error-pageName" class="error text-danger"></span>
             <input type="text" name="pageName" value="@pageName" class="form-control" placeholder="Input a page name." aria-label="Page name"/>
             <div class="muted attachable">
               @gitbucket.core.helper.html.preview(
