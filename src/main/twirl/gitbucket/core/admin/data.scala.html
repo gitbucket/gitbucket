@@ -1,31 +1,56 @@
 @(tableNames: Seq[String])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Data export / import"){
   @gitbucket.core.admin.html.menu("data") {
-    <div class="panel panel-default">
-      <div class="panel-heading strong">Export</div>
-      <div class="panel-body">
-        <form class="form form-horizontal" action="@context.path/admin/export" method="POST">
-          @tableNames.map { tableName =>
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" name="tableNames" id="@tableName" value="@tableName" checked/> @tableName
-              </label>
-            </div>
-          }
-          <input type="submit" class="btn btn-success pull-right" value="Export">
-        </form>
-      </div>
-    </div>
 
-    <div class="panel panel-default">
-      <div class="panel-heading strong">Import</div>
-      <div class="panel-body">
-        <form class="form form-horizontal" action="@context.path/upload/import" method="POST" enctype="multipart/form-data" id="import-form">
-          <input type="file" name="file" id="file" aria-label="Upload file">
-          <input type="submit" class="btn btn-success pull-right" value="Import" id="import">
-        </form>
-      </div>
-    </div>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>Export</h4>
+          </div><!-- /.card-header -->
+          <form class="form form-horizontal" action="@context.path/admin/export" method="POST">
+            <div class="card-body">
+                @tableNames.map { tableName =>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" name="tableNames" id="@tableName" value="@tableName" checked/>
+                  <label class="form-check-label" for="@tableName">@tableName</label>
+                </div>
+                }
+            </div><!-- /.card-body"-->
+            <div class="card-footer">
+              <input type="submit" class="btn btn-success float-right" value="Export">
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
+
+        <div class="card">
+          <div class="card-header">
+            <h4>Import</h4>
+          </div><!-- /.card-header -->
+          <form class="form form-horizontal" action="@context.path/upload/import" method="POST" enctype="multipart/form-data" id="import-form">
+            <div class="card-body">
+              <input type="file" name="file" id="file" aria-label="Upload file">
+            </div><!-- /.card-body"-->
+            <div class="card-footer">
+              <input type="submit" class="btn btn-success float-right" value="Import" id="import">
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
 <script>
