@@ -1,46 +1,78 @@
 @(plugins: List[gitbucket.core.plugin.PluginInfoBase], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
     @gitbucket.core.helper.html.information(info)
-    <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
-      <input type="submit" value="Reload plugins" class="btn btn-default">
-    </form>
-    <h1 class="system-settings-title">Plugins</h1>
-    @if(plugins.size > 0) {
-      <ul>
-        @plugins.map { plugin =>
-          <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
-        }
-      </ul>
-
-      @plugins.map { plugin =>
-        <div class="panel panel-default">
-          <div class="panel-heading strong" id="@plugin.pluginId">
-            <form method="POST" class="pull-right">
-              <input type="submit" value="Uninstall" class="btn btn-danger btn-sm uninstall-plugin" style="position: relative; top: -5px; left: 10px;"
-                     data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall">
-            </form>
-            @plugin.pluginName
-          </div>
-          <div class="panel-body">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
             <div class="row">
-              <label class="col-md-2">Id</label>
-              <span class="col-md-10">@plugin.pluginId</span>
+              <div class="col">
+                <h4>Plugins</h4>
+              </div><!-- /.col -->
+              <div class="col float-right">
+                <form action="@context.path/admin/plugins/_reload" method="POST" class="float-right">
+                  <input type="submit" value="Reload plugins" class="btn btn-default">
+                </form>
+              </div><!-- /.col -->
             </div>
-            <div class="row">
-              <label class="col-md-2">Version</label>
-              <span class="col-md-10">@plugin.pluginVersion</span>
-            </div>
-            <div class="row">
-              <label class="col-md-2">Description</label>
-              <span class="col-md-10 muted">@plugin.description</span>
-            </div>
-          </div>
-        </div>
-      }
-    } else {
-      <p>No plugin detected on your gitbucket installation.</p>
-    }
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            @if(plugins.size > 0) {
+              <ul>
+                @plugins.map { plugin =>
+                  <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
+                }
+              </ul>
+              @plugins.map { plugin =>
+                <div class="callout callout-info">
+                  <div class="row">
+                    <div class="col">
+                      <h5 id="@plugin.pluginId">
+                        @plugin.pluginName
+                      </h5>
+                    </div><!-- /.col -->
+                    <div class="col float-right">
+                      <form method="POST" class="float-right">
+                        <input type="submit" value="Uninstall" class="btn btn-danger btn-sm uninstall-plugin"
+                               data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall">
+                      </form>
+                    </div><!-- /.col -->
+                  </div><!-- /.row -->
+                  <div class="row">
+                    <label class="col-md-2">Id</label>
+                    <span class="col-md-10">@plugin.pluginId</span>
+                  </div><!-- /.row -->
+                  <div class="row">
+                    <label class="col-md-2">Version</label>
+                    <span class="col-md-10">@plugin.pluginVersion</span>
+                  </div><!-- /.row -->
+                  <div class="row">
+                    <label class="col-md-2">Description</label>
+                    <span class="col-md-10 muted">@plugin.description</span>
+                  </div><!-- /.row -->
+                </div>
+              }
+            } else {
+              <p>No plugin detected on your gitbucket installation.</p>
+            }
+          </div><!-- /.card-body"-->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
 <script>
