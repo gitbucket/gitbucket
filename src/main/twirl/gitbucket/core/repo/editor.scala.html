@@ -126,10 +126,16 @@
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
+
+  if(typeof localStorage.getItem('gitbucket:editor:theme') == "string"){
+    $('#theme').val(localStorage.getItem('gitbucket:editor:theme'));
+  }
+
   editor.setTheme("ace/theme/" + $('#theme').val());
 
   $('#theme').change(function(){
     editor.setTheme("ace/theme/" + $('#theme').val());
+    localStorage.setItem('gitbucket:editor:theme', $('#theme').val());
   });
 
   if(localStorage.getItem('gitbucket:editor:wrap') == 'true'){
