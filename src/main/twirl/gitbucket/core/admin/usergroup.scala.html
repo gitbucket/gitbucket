@@ -2,17 +2,41 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(if(account.isEmpty) "New group" else "Update group"){
   @gitbucket.core.admin.html.menu("users"){
-    <form id="form" method="post" action="@context.path/admin/users/@(account.map(x => s"${x.userName}/_editgroup").getOrElse("_newgroup"))" validate="true" autocomplete="off">
-      @gitbucket.core.account.html.groupform(account, members, true)
-      <fieldset class="border-top">
-        @if(account.isDefined){
-          <div class="pull-right">
-            <a href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
-          </div>
-        }
-        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create group} else {Update group}"/>
-        <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
-      </fieldset>
-    </form>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>Group settings</h4>
+          </div><!-- /.card-header -->
+          <form id="form" method="post" action="@context.path/admin/users/@(account.map(x => s"${x.userName}/_editgroup").getOrElse("_newgroup"))" validate="true" autocomplete="off">
+            <div class="card-body">
+              @gitbucket.core.account.html.groupform(account, members, true)
+            </div><!-- /.card-body"-->
+            <div class="card-footer">
+              <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create group} else {Update group}"/>
+              <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
+              @if(account.isDefined){
+              <div class="float-right">
+                <a href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
+              </div>
+              }
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
