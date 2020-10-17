@@ -2,36 +2,73 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Database viewer") {
   @gitbucket.core.admin.html.menu("dbviewer") {
-    <div class="container">
-      <div class="col-md-3">
-        <div id="table-tree">
-          <ul>
-          @tables.map { table =>
-            <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}' data-table="@table.name">@table.name
-              <ul>
-              @table.columns.map { column =>
-                <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}' data-table="@table.name" data-column="@column.name">
-                  @column.name @if(column.primaryKey){ (PK) }
-                </li>
-              }
-              </ul>
-            </li>
-          }
-          </ul>
-        </div>
-      </div>
-      <div class="col-md-9">
-        <div id="editor" style="width: 100%; height: 300px;"></div>
-        <div class="block">
-          <input type="button" value="Run query" id="run-query" class="btn btn-success">
-          <input type="button" value="Clear" id="clear-query" class="btn btn-default">
-          <label for="autorun">
-            <input type="checkbox" id="autorun" name="autorun"/> Auto Run Query
-          </label>
-        </div>
-        <div id="result"></div>
-      </div>
-    </div>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>Database viewer</h4>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-3">
+                <div id="table-tree">
+                  <ul>
+                    @tables.map { table =>
+                    <li data-jstree='{"icon":"@context.path/assets/common/images/table.gif"}' data-table="@table.name">@table.name
+                      <ul>
+                        @table.columns.map { column =>
+                        <li data-jstree='{"icon":"@context.path/assets/common/images/column.gif"}' data-table="@table.name" data-column="@column.name">
+                          @column.name @if(column.primaryKey){ (PK) }
+                        </li>
+                        }
+                      </ul>
+                    </li>
+                    }
+                  </ul>
+                </div><!-- /#table-tree -->
+              </div><!-- /.col-md-3 -->
+              <div class="col-md-9">
+                <div id="editor" style="width: 100%; height: 300px;"></div>
+                <div class="form-row my-1">
+                  <div class="col-auto">
+                    <input type="button" value="Run query" id="run-query" class="btn btn-success">
+                  </div><!-- /.col-auto -->
+                  <div class="col-auto">
+                    <input type="button" value="Clear" id="clear-query" class="btn btn-default">
+                  </div><!-- /.col-auto -->
+                </div><!-- /.form-row -->
+                <div class="row">
+                  <div class="col">
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="autorun" name="autorun"/>
+                      <label class="form-check-label" for="autorun">Auto Run Query</label>
+                    </div><!-- /.form-check -->
+                  </div><!-- /.col -->
+                </div><!-- /.row -->
+                <div class="row mt-3">
+                  <div class="col" style="overflow:auto;">
+                    <div id="result"></div>
+                  </div><!-- /.col -->
+                </div><!-- /.row -->
+              </div><!-- /.col-md-9 -->
+            </div><!-- /.row -->
+          </div><!-- /.card-body"-->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
 <script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
