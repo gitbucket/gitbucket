@@ -1,59 +1,80 @@
 @()(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Create your account"){
 <div class="content-wrapper main-center">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark">Create your account</h1>
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+  </div><!-- /.content-header -->
   <div class="content body">
-    <h2>Create your account</h2>
-    <form action="@context.path/register" method="POST" validate="true" autocomplete="off">
+    <div class="container">
       <div class="row">
-        <div class="col-md-6">
-          <fieldset>
-            <label for="userName" class="strong">Username:</label>
-            <input type="text" name="userName" id="userName" value="" class="form-control" autofocus/>
-            <span id="error-userName" class="error text-danger"></span>
-          </fieldset>
-          <fieldset>
-            <label for="password" class="strong">
-              Password:
-            </label>
-            <input type="password" name="password" id="password" class="form-control" value=""/>
-            <span id="error-password" class="error text-danger"></span>
-          </fieldset>
-          <fieldset>
-            <label for="fullName" class="strong">Full Name:</label>
-            <input type="text" name="fullName" id="fullName" class="form-control" value=""/>
-            <span id="error-fullName" class="error text-danger"></span>
-          </fieldset>
-          <fieldset>
-            <label for="mailAddress" class="strong">Mail Address:</label>
-            <input type="text" name="mailAddress" id="mailAddress" class="form-control" value=""/>
-            <span id="error-mailAddress" class="error text-danger"></span>
-          </fieldset>
-          <div id="extraMailAddresses">
-            <span class="strong">Additional Mail Address:</span>
-          </div>
-          <fieldset>
-            <label for="url" class="strong">URL (optional):</label>
-            <input type="text" name="url" id="url" class="form-control" value=""/>
-            <span id="error-url" class="error text-danger"></span>
-          </fieldset>
-          <fieldset>
-            <label for="description" class="strong">Bio (optional):</label>
-            <textarea name="description" id="description" class="form-control"></textarea>
-            <span id="error-description" class="error text-danger"></span>
-          </fieldset>
-        </div>
-        <div class="col-md-6">
-          <fieldset>
-            <label for="avatar" class="strong">Image (optional):</label>
-            @gitbucket.core.helper.html.uploadavatar(None)
-          </fieldset>
-        </div>
-      </div>
-      <fieldset class="border-top">
-        <input type="submit" class="btn btn-success" value="Create account"/>
-      </fieldset>
-    </form>
-  </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-header">
+              <h4>Profile</h4>
+            </div><!-- /.card-header -->
+            <form action="@context.path/register" method="POST" validate="true" autocomplete="off">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <fieldset class="form-group">
+                      <label for="userName">Username:</label>
+                      <input type="text" name="userName" id="userName" value="" class="form-control" autofocus/>
+                      <span id="error-userName" class="error text-danger"></span>
+                    </fieldset>
+                    <fieldset class="form-group">
+                      <label for="password">
+                        Password:
+                      </label>
+                      <input type="password" name="password" id="password" class="form-control" value=""/>
+                      <span id="error-password" class="error text-danger"></span>
+                    </fieldset>
+                    <fieldset class="form-group">
+                      <label for="fullName">Full Name:</label>
+                      <input type="text" name="fullName" id="fullName" class="form-control" value=""/>
+                      <span id="error-fullName" class="error text-danger"></span>
+                    </fieldset>
+                    <fieldset class="form-group">
+                      <label for="mailAddress">Mail Address:</label>
+                      <input type="text" name="mailAddress" id="mailAddress" class="form-control" value=""/>
+                      <span id="error-mailAddress" class="error text-danger"></span>
+                    </fieldset>
+                    <div class="form-group" id="extraMailAddresses">
+                      <label>Additional Mail Address:</label>
+                    </div>
+                    <fieldset class="form-group">
+                      <label for="url">URL (optional):</label>
+                      <input type="text" name="url" id="url" class="form-control" value=""/>
+                      <span id="error-url" class="error text-danger"></span>
+                    </fieldset>
+                    <fieldset class="form-group">
+                      <label for="description">Bio (optional):</label>
+                      <textarea name="description" id="description" class="form-control"></textarea>
+                      <span id="error-description" class="error text-danger"></span>
+                    </fieldset>
+                  </div>
+                  <div class="col-md-6">
+                    <fieldset class="form-group">
+                      <label for="avatar">Image (optional):</label>
+                      @gitbucket.core.helper.html.uploadavatar(None)
+                    </fieldset>
+                  </div>
+                </div>
+              </div><!-- /.card-body"-->
+              <div class="card-footer">
+                <input type="submit" class="btn btn-success" value="Create account"/>
+              </div><!-- /.card-footer -->
+            </form>
+          </div><!-- /.card -->
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /container -->
+  </div><!-- /.content-body -->
 </div>
 <script>
   $(function() {
