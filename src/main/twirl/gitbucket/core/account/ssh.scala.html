@@ -2,38 +2,60 @@
 @import gitbucket.core.ssh.SshUtil
 @gitbucket.core.html.main("SSH Keys"){
   @gitbucket.core.account.html.menu("ssh", context.loginAccount.get.userName, false){
-    <div class="panel panel-default">
-      <div class="panel-heading strong">SSH Keys</div>
-      <div class="panel-body">
-        @if(sshKeys.isEmpty){
-          No keys
-        }
-        @sshKeys.zipWithIndex.map { case (key, i) =>
-          @if(i != 0){
-            <hr>
-          }
-          <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
-          <a href="@context.path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
-        }
-      </div>
-    </div>
-    <form method="POST" action="@context.path/@account.userName/_ssh" validate="true" autocomplete="off">
-      <div class="panel panel-default">
-        <div class="panel-heading strong">Add a public SSH Key</div>
-        <div class="panel-body">
-          <fieldset class="form-group">
-            <label for="title" class="strong">Title</label>
-            <div><span id="error-title" class="error text-danger"></span></div>
-            <input type="text" name="title" id="title" class="form-control"/>
-          </fieldset>
-          <fieldset class="form-group">
-            <label for="publicKey" class="strong">Key</label>
-            <div><span id="error-publicKey" class="error text-danger"></span></div>
-            <textarea name="publicKey" id="publicKey" class="form-control" style="height: 200px;"></textarea>
-          </fieldset>
-          <input type="submit" class="btn btn-success" value="Add"/>
-        </div>
-      </div>
-    </form>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>SSH Keys</h4>
+          </div><!-- /.card-header -->
+          <form method="POST" action="@context.path/@account.userName/_ssh" validate="true" autocomplete="off">
+            <div class="card-body">
+              <div>
+                @if(sshKeys.isEmpty){
+                No keys
+                }
+                @sshKeys.zipWithIndex.map { case (key, i) =>
+                @if(i != 0){
+                <hr>
+                }
+                <span class="font-weight-bold">@key.title</span> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
+                <a href="@context.path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-sm btn-danger float-right">Delete</a>
+                }
+              </div>
+              <hr>
+              <div>
+                <h5>Add a public SSH Key</h5>
+                <fieldset class="form-group">
+                  <label for="title" class="strong">Title</label>
+                  <div><span id="error-title" class="error text-danger"></span></div>
+                  <input type="text" name="title" id="title" class="form-control"/>
+                </fieldset>
+                <fieldset class="form-group">
+                  <label for="publicKey" class="strong">Key</label>
+                  <div><span id="error-publicKey" class="error text-danger"></span></div>
+                  <textarea name="publicKey" id="publicKey" class="form-control" style="height: 200px;"></textarea>
+                </fieldset>
+              </div>
+            </div><!-- /.card-body"-->
+            <div class="card-footer">
+              <input type="submit" class="btn btn-success" value="Add"/>
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
