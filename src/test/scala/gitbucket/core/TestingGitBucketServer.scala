@@ -9,12 +9,15 @@ import org.apache.http.client.methods.HttpGet
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.{Handler, Server}
 import org.eclipse.jetty.webapp.WebAppContext
+import org.kohsuke.github.GitHub
 
 class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   private var server: Server = null
   private var dir: File = null
 
-  def start(): Unit = {
+  start()
+
+  private def start(): Unit = {
     System.setProperty("java.awt.headless", "true")
 
     dir = Files.createTempDirectory("gitbucket-test-").toFile
@@ -45,6 +48,9 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
       }
     }
   }
+
+  def client(login: String, password: String): GitHub =
+    GitHub.connectToEnterprise(s"http://localhost:${port}/api/v3", login, password)
 
   private def addStatisticsHandler(handler: Handler) = { // The graceful shutdown is implemented via the statistics handler.
     // See the following: https://bugs.eclipse.org/bugs/show_bug.cgi?id=420142

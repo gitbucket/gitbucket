@@ -1,30 +1,16 @@
 package gitbucket.core.api
 
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-
 import gitbucket.core.TestingGitBucketServer
-import gitbucket.core.util.HttpClientUtil
-import org.apache.commons.io.IOUtils
-import org.apache.http.client.methods.{HttpGet, HttpPost}
-import org.apache.http.entity.StringEntity
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Using
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import org.kohsuke.github.GitHub
+import org.kohsuke.github.{GHCommitState, GitHub}
 
 class ApiIntegrationTest extends AnyFunSuite {
 
-  private val AuthHeaderValue =
-    s"Basic ${new String(Base64.getEncoder.encode("root:root".getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)}"
-
-  test("API integration test") {
+  test("create repository") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
-      server.start()
-
-      val github = GitHub.connectToEnterprise(s"http://localhost:${server.port}/api/v3", "root", "root")
+      val github = server.client("root", "root")
 
       {
         val repository = github
@@ -66,6 +52,83 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(repository.getUrl.toString == s"http://localhost:${server.port}/api/v3/repos/root/test")
         assert(repository.getHttpTransportUrl == s"http://localhost:${server.port}/git/root/test.git")
         assert(repository.getHtmlUrl.toString == s"http://localhost:${server.port}/root/test")
+      }
+    }
+  }
+
+  test("commit status") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+
+      val repo = github.createRepository("create_status_test").autoInit(true).create()
+      val sha1 = repo.getBranch("master").getSHA1
+
+      {
+        val status = repo.getLastCommitStatus(sha1)
+        assert(status == null)
+      }
+      {
+        val statusList = repo.listCommitStatuses(sha1).toList
+        assert(statusList.size() == 0)
+      }
+      {
+        val status =
+          repo.createCommitStatus(sha1, GHCommitState.SUCCESS, "http://localhost/target", "description", "context")
+        assert(status.getState == GHCommitState.SUCCESS)
+        assert(status.getTargetUrl == "http://localhost/target")
+        assert(status.getDescription == "description")
+        assert(status.getContext == "context")
+        assert(
+          status.getUrl.toString == s"http://localhost:19999/api/v3/repos/root/create_status_test/commits/${sha1}/statuses"
+        )
+      }
+      {
+        val status = repo.getLastCommitStatus(sha1)
+        assert(status.getState == GHCommitState.SUCCESS)
+        assert(status.getTargetUrl == "http://localhost/target")
+        assert(status.getDescription == "description")
+        assert(status.getContext == "context")
+        assert(
+          status.getUrl.toString == s"http://localhost:19999/api/v3/repos/root/create_status_test/commits/${sha1}/statuses"
+        )
+      }
+      {
+        val statusList = repo.listCommitStatuses(sha1).toList
+        assert(statusList.size() == 1)
+
+        val status = repo.getLastCommitStatus(sha1)
+        assert(status.getState == GHCommitState.SUCCESS)
+        assert(status.getTargetUrl == "http://localhost/target")
+        assert(status.getDescription == "description")
+        assert(status.getContext == "context")
+        assert(
+          status.getUrl.toString == s"http://localhost:19999/api/v3/repos/root/create_status_test/commits/${sha1}/statuses"
+        )
+      }
+      {
+        // Update the status
+        repo.createCommitStatus(sha1, GHCommitState.FAILURE, "http://localhost/target", "description", "context")
+
+        val status = repo.getLastCommitStatus(sha1)
+        assert(status.getState == GHCommitState.FAILURE)
+
+        val statusList = repo.listCommitStatuses(sha1).toList
+        assert(statusList.size() == 1)
+        assert(statusList.get(0).getState == GHCommitState.FAILURE)
+      }
+      {
+        // Add status in a different context
+        repo.createCommitStatus(sha1, GHCommitState.ERROR, "http://localhost/target", "description", "context2")
+
+        val status = repo.getLastCommitStatus(sha1)
+        assert(status.getState == GHCommitState.ERROR)
+
+        val statusList = repo.listCommitStatuses(sha1).toList
+        assert(statusList.size() == 2)
+        assert(statusList.get(0).getState == GHCommitState.ERROR)
+        assert(statusList.get(0).getContext == "context2")
+        assert(statusList.get(1).getState == GHCommitState.FAILURE)
+        assert(statusList.get(1).getContext == "context")
       }
     }
   }
