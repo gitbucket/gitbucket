@@ -114,7 +114,7 @@ trait IssuesService {
   def countIssue(condition: IssueSearchCondition, onlyPullRequest: Boolean, repos: (String, String)*)(
     implicit s: Session
   ): Int = {
-    Query(searchIssueQuery(repos, condition, onlyPullRequest).length).first
+    Query(searchIssueQuery(repos, condition, Some(onlyPullRequest)).length).first
   }
 
   /**
@@ -132,7 +132,7 @@ trait IssuesService {
     filterUser: Map[String, String]
   )(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), Some(false))
       .join(IssueLabels)
       .on {
         case t1 ~ t2 =>
@@ -170,7 +170,7 @@ trait IssuesService {
     filterUser: Map[String, String]
   )(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), Some(false))
       .join(Priorities)
       .on {
         case t1 ~ t2 =>
@@ -231,7 +231,7 @@ trait IssuesService {
    */
   def searchIssue(
     condition: IssueSearchCondition,
-    pullRequest: Boolean,
+    pullRequest: Option[Boolean],
     offset: Int,
     limit: Int,
     repos: (String, String)*
@@ -288,7 +288,7 @@ trait IssuesService {
     implicit s: Session
   ): List[(Issue, Account, Option[Account])] = {
     // get issues and comment count and labels
-    searchIssueQueryBase(condition, false, offset, limit, repos)
+    searchIssueQueryBase(condition, Some(false), offset, limit, repos)
       .join(Accounts)
       .on { case t1 ~ t2 ~ i ~ t3 => t3.userName === t1.openedUserName }
       .joinLeft(Accounts)
@@ -305,7 +305,7 @@ trait IssuesService {
     implicit s: Session
   ): List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] = {
     // get issues and comment count and labels
-    searchIssueQueryBase(condition, true, offset, limit, repos)
+    searchIssueQueryBase(condition, Some(true), offset, limit, repos)
       .join(PullRequests)
       .on { case t1 ~ t2 ~ i ~ t3 => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
       .join(Repositories)
@@ -323,7 +323,7 @@ trait IssuesService {
 
   private def searchIssueQueryBase(
     condition: IssueSearchCondition,
-    pullRequest: Boolean,
+    pullRequest: Option[Boolean],
     offset: Int,
     limit: Int,
     repos: Seq[(String, String)]
@@ -366,7 +366,11 @@ trait IssuesService {
   /**
    * Assembles query for conditional issue searching.
    */
-  private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, pullRequest: Boolean)(
+  private def searchIssueQuery(
+    repos: Seq[(String, String)],
+    condition: IssueSearchCondition,
+    pullRequest: Option[Boolean]
+  )(
     implicit s: Session
   ) =
     Issues filter { t1 =>
@@ -380,7 +384,7 @@ trait IssuesService {
       (t1.priorityId.? isEmpty, condition.priority == Some(None)) &&
       (t1.assignedUserName.? isEmpty, condition.assigned == Some(None)) &&
       (t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
-      (t1.pullRequest === pullRequest.bind) &&
+      (t1.pullRequest === pullRequest.get.bind, pullRequest.isDefined) &&
       // Milestone filter
       (Milestones filter { t2 =>
         (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
@@ -910,6 +914,27 @@ object IssuesService {
           case "none" => None
           case x      => Some(x)
         },
+        param(request, "priority").map {
+          case "none" => None
+          case x      => Some(x)
+        },
+        param(request, "author"),
+        param(request, "assigned").map {
+          case "none" => None
+          case x      => Some(x)
+        },
+        param(request, "mentioned"),
+        param(request, "state", Seq("open", "closed")).getOrElse("open"),
+        param(request, "sort", Seq("created", "comments", "updated", "priority")).getOrElse("created"),
+        param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
+        param(request, "visibility"),
+        param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
+      )
+
+    def apply(request: HttpServletRequest, milestone: String): IssueSearchCondition =
+      IssueSearchCondition(
+        param(request, "labels").map(_.split(",").toSet).getOrElse(Set.empty),
+        Some(Some(milestone)),
         param(request, "priority").map {
           case "none" => None
           case x      => Some(x)

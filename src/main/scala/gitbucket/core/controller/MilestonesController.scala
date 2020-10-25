@@ -1,10 +1,12 @@
 package gitbucket.core.controller
 
 import gitbucket.core.issues.milestones.html
+import gitbucket.core.service.IssuesService.{IssueLimit, IssueSearchCondition}
 import gitbucket.core.service.{AccountService, MilestonesService, RepositoryService}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.view.helpers.{getAssignableUserNames, getLabels, getPriorities, searchIssue}
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 
@@ -31,6 +33,31 @@ trait MilestonesControllerBase extends ControllerBase {
     html.list(
       params.getOrElse("state", "open"),
       getMilestonesWithIssueCount(repository.owner, repository.name),
+      repository,
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+    )
+  })
+
+  get("/:owner/:repository/milestone/:id")(referrersOnly { repository =>
+    val milestone = getMilestone(repository.owner, repository.name, params("id").toInt)
+    val page = IssueSearchCondition.page(request)
+    val condition = IssueSearchCondition(
+      request,
+      milestone.get.title
+    )
+    val tmp = searchIssue(condition, None, (page - 1) * IssueLimit, IssueLimit, repository.owner -> repository.name)
+    println(s"length: ${tmp.length}")
+    println(s"condition: ${condition}")
+    html.milestone(
+      condition.state,
+      tmp,
+      page,
+      getAssignableUserNames(repository.owner, repository.name),
+      getPriorities(repository.owner, repository.name),
+      getLabels(repository.owner, repository.name),
+      condition,
+      getMilestonesWithIssueCount(repository.owner, repository.name)
+        .filter(p => p._1.milestoneId == milestone.get.milestoneId),
       repository,
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
     )

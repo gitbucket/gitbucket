@@ -88,7 +88,7 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     html.issues(
-      searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      searchIssue(condition, Some(false), (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
       page,
       countIssue(condition.copy(state = "open"), false, userRepos: _*),
       countIssue(condition.copy(state = "closed"), false, userRepos: _*),
@@ -118,7 +118,7 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     html.pulls(
-      searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+      searchIssue(condition, Some(true), (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
       page,
       countIssue(condition.copy(state = "open"), true, allRepos: _*),
       countIssue(condition.copy(state = "closed"), true, allRepos: _*),

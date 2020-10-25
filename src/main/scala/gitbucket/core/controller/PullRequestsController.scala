@@ -643,7 +643,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         gitbucket.core.issues.html.list(
           "pulls",
-          searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
+          searchIssue(condition, Some(true), (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
