@@ -45,12 +45,9 @@ trait MilestonesControllerBase extends ControllerBase {
       request,
       milestone.get.title
     )
-    val tmp = searchIssue(condition, None, (page - 1) * IssueLimit, IssueLimit, repository.owner -> repository.name)
-    println(s"length: ${tmp.length}")
-    println(s"condition: ${condition}")
     html.milestone(
       condition.state,
-      tmp,
+      searchIssue(condition, None, (page - 1) * IssueLimit, IssueLimit, repository.owner -> repository.name),
       page,
       getAssignableUserNames(repository.owner, repository.name),
       getPriorities(repository.owner, repository.name),
