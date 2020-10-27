@@ -1,4 +1,4 @@
-@(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None, showHeaderContents: Boolean = true)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.plugin.PluginRegistry
 @import gitbucket.core.view.helpers
 <!DOCTYPE html>
@@ -70,8 +70,9 @@
           </span>
         </a>
         <nav class="navbar navbar-static-top" role="navigation">
-          <!-- Sidebar toggle button-->
-          @if(body.toString.contains("main-sidebar")){
+        @if(showHeaderContents) {
+            <!-- Sidebar toggle button-->
+          @if(body.toString.contains("main-sidebar")) {
             <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" title="Toggle navigation">
               <span class="sr-only">Toggle navigation</span>
             </a>
@@ -82,7 +83,7 @@
             </div>
           </form>
           <ul class="pc nav navbar-nav">
-            @if(context.loginAccount.isDefined){
+            @if(context.loginAccount.isDefined) {
               <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
               <li><a href="@context.path/dashboard/issues">Issues</a></li>
             }
@@ -94,46 +95,50 @@
           </ul>
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
-              @if(context.loginAccount.isDefined){
-                <li class="dropdown notifications-menu">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" aria-label="Create new…">
-                    <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
-                  </a>
-                  <ul class="dropdown-menu pull-right" style="width: auto;">
-                    <li>
-                      <ul class="menu">
-                        @if(context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin){
-                          <li><a href="@context.path/new">New repository</a></li>
-                        }
-                        <li><a href="@context.path/groups/new">New group</a></li>
-                      </ul>
-                    </li>
-                  </ul>
-                </li>
-                <li class="dropdown notifications-menu">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
-                    @helpers.avatar(context.loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
-                  </a>
-                  <ul class="dropdown-menu pull-right" style="width: auto;">
-                    <li>
-                      <ul class="menu">
-                        <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
-                        <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
-                        @if(context.loginAccount.get.isAdmin){
-                          <li><a href="@context.path/admin/users">System administration</a></li>
-                        }
-                        <li><a href="@context.path/signout">Sign out</a></li>
-                      </ul>
-                    </li>
-                  </ul>
-                </li>
-              } else {
-                <li>
-                  <a href="@context.path/signin?redirect=@helpers.urlEncode(context.currentPath)" class="pull-right" id="signin">Sign in</a>
-                </li>
-              }
+            @if(context.loginAccount.isDefined) {
+              <li class="dropdown notifications-menu">
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" aria-label="Create new…">
+                  <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black;
+                  vertical-align: middle;"></span>
+                </a>
+                <ul class="dropdown-menu pull-right" style="width: auto;">
+                  <li>
+                    <ul class="menu">
+                      @if(context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin) {
+                        <li><a href="@context.path/new">New repository</a></li>
+                      }
+                      <li><a href="@context.path/groups/new">New group</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="dropdown notifications-menu">
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
+                  @helpers.avatar(context.loginAccount.get.userName, 16) <span class="caret" style="color: black;
+                  vertical-align: middle;"></span>
+                </a>
+                <ul class="dropdown-menu pull-right" style="width: auto;">
+                  <li>
+                    <ul class="menu">
+                      <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
+                      <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
+                      @if(context.loginAccount.get.isAdmin) {
+                        <li><a href="@context.path/admin/users">System administration</a></li>
+                      }
+                      <li><a href="@context.path/signout">Sign out</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            } else {
+              <li>
+                <a href="@context.path/signin?redirect=@helpers.urlEncode(context.currentPath)" class="pull-right" id="signin">
+                  Sign in</a>
+              </li>
+            }
             </ul>
           </div>
+        }
         </nav>
       </header>
       @body
