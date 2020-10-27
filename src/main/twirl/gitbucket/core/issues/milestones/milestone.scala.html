@@ -12,7 +12,7 @@
 @gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("milestones", repository){
     @milestones.map { case (milestone, openCount, closedCount) =>
-      <table class="table table-bordered table-hover table-issues">
+      <table class="table table-issues">
       <tbody>
         <tr>
           <td style="padding-top: 15px; padding-bottom: 15px;">
