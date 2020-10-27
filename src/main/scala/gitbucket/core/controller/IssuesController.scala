@@ -112,6 +112,7 @@ trait IssuesControllerBase extends ControllerBase {
                 getLabels(owner, name),
                 isIssueEditable(repository),
                 isIssueManageable(repository),
+                isIssueCommentManageable(repository),
                 repository
               )
             }
