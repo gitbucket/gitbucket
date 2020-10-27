@@ -240,7 +240,7 @@ trait IssuesControllerBase extends ControllerBase {
       case (owner, name) =>
         getComment(owner, name, params("id")).map { comment =>
           if (isEditableContent(owner, name, comment.commentedUserName)) {
-            Ok(deleteComment(comment.issueId, comment.commentId))
+            Ok(deleteComment(repository.owner, repository.name, comment.issueId, comment.commentId))
           } else Unauthorized()
         } getOrElse NotFound()
     }

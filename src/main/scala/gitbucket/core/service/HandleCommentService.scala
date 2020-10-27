@@ -142,7 +142,7 @@ trait HandleCommentService {
   ): Option[IssueComment] = context.loginAccount.flatMap { _ =>
     comment.action match {
       case "comment" =>
-        val deleteResult = deleteComment(comment.issueId, comment.commentId)
+        val deleteResult = deleteComment(repoInfo.owner, repoInfo.name, comment.issueId, comment.commentId)
         val registry = PluginRegistry()
         val hooks: Seq[IssueHook] = if (issue.isPullRequest) registry.getPullRequestHooks else registry.getIssueHooks
         hooks.foreach(_.deletedComment(comment.commentId, issue, repoInfo))
