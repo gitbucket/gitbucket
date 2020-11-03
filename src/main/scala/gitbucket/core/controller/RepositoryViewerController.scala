@@ -631,6 +631,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   val blobRoute = get("/:owner/:repository/blob/*")(referrersOnly { repository =>
     val (id, path) = repository.splitPath(multiParams("splat").head)
     val raw = params.get("raw").getOrElse("false").toBoolean
+    val highlighterTheme = getSyntaxHighlighterTheme()
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
@@ -650,12 +651,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",
                 isLfsFile = isLfsFile(git, objectId),
-                tabSize = info.tabSize
+                tabSize = info.tabSize,
+                highlighterTheme = highlighterTheme
               )
             }
         } getOrElse NotFound()
     }
   })
+
+  private def getSyntaxHighlighterTheme()(implicit context: Context): String = {
+    context.loginAccount match {
+      case Some(account) =>
+        getAccountPreference(account.userName) match {
+          case Some(x) => x.highlighterTheme
+          case _       => "github-v2"
+        }
+      case _ => "github-v2"
+    }
+  }
 
   private def isLfsFile(git: Git, objectId: ObjectId): Boolean = {
     JGitUtil.getObjectLoaderFromId(git, objectId)(JGitUtil.isLfsPointer).getOrElse(false)
