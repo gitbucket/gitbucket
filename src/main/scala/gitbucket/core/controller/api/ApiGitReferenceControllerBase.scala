@@ -20,7 +20,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
 
   /*
    * i. Get a reference
-   * https://developer.github.com/v3/git/refs/#get-a-reference
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#get-a-reference
    */
   get("/api/v3/repos/:owner/:repository/git/ref/*")(referrersOnly { repository =>
     getRef()
@@ -58,12 +58,12 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
 
   /*
    * ii. Get all references
-   * https://developer.github.com/v3/git/refs/#get-all-references
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#list-matching-references
    */
 
   /*
    * iii. Create a reference
-   * https://developer.github.com/v3/git/refs/#create-a-reference
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-reference
    */
   post("/api/v3/repos/:owner/:repository/git/refs")(referrersOnly { _ =>
     extractFromJsonBody[CreateARef].map {
@@ -87,7 +87,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
 
   /*
    * iv. Update a reference
-   * https://developer.github.com/v3/git/refs/#update-a-reference
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#update-a-reference
    */
   patch("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { _ =>
     val refName = multiParams("splat").mkString("/")
@@ -114,7 +114,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
 
   /*
    * v. Delete a reference
-   * https://developer.github.com/v3/git/refs/#delete-a-reference
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#delete-a-reference
    */
   delete("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { _ =>
     val refName = multiParams("splat").mkString("/")

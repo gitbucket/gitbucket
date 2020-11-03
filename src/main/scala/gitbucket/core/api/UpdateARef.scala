@@ -1,7 +1,7 @@
 package gitbucket.core.api
 
 /**
- * https://developer.github.com/v3/git/refs/#update-a-reference
+ * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#update-a-reference
  * api form
  */
 case class UpdateARef(sha: String, force: Boolean)
