@@ -472,14 +472,14 @@ trait IssuesControllerBase extends ControllerBase {
 
         html.list(
           "issues",
-          searchIssue(condition, Some(false), (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
           getPriorities(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
+          countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, owner -> repoName),
           condition,
           repository,
           isIssueEditable(repository),

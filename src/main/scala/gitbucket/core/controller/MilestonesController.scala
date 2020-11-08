@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.milestones.html
 import gitbucket.core.service.IssuesService.{IssueLimit, IssueSearchCondition}
-import gitbucket.core.service.{AccountService, MilestonesService, RepositoryService}
+import gitbucket.core.service.{AccountService, IssueSearchOption, MilestonesService, RepositoryService}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.SyntaxSugars._
@@ -47,7 +47,13 @@ trait MilestonesControllerBase extends ControllerBase {
     )
     html.milestone(
       condition.state,
-      searchIssue(condition, None, (page - 1) * IssueLimit, IssueLimit, repository.owner -> repository.name),
+      searchIssue(
+        condition,
+        IssueSearchOption.Both,
+        (page - 1) * IssueLimit,
+        IssueLimit,
+        repository.owner -> repository.name
+      ),
       page,
       getAssignableUserNames(repository.owner, repository.name),
       getPriorities(repository.owner, repository.name),

@@ -88,10 +88,10 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     html.issues(
-      searchIssue(condition, Some(false), (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
       page,
-      countIssue(condition.copy(state = "open"), false, userRepos: _*),
-      countIssue(condition.copy(state = "closed"), false, userRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, userRepos: _*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, userRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
@@ -118,10 +118,16 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     html.pulls(
-      searchIssue(condition, Some(true), (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+      searchIssue(
+        condition,
+        IssueSearchOption.PullRequests,
+        (page - 1) * PullRequestLimit,
+        PullRequestLimit,
+        allRepos: _*
+      ),
       page,
-      countIssue(condition.copy(state = "open"), true, allRepos: _*),
-      countIssue(condition.copy(state = "closed"), true, allRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, allRepos: _*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, allRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))

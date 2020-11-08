@@ -643,14 +643,20 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         gitbucket.core.issues.html.list(
           "pulls",
-          searchIssue(condition, Some(true), (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
+          searchIssue(
+            condition,
+            IssueSearchOption.PullRequests,
+            (page - 1) * PullRequestLimit,
+            PullRequestLimit,
+            owner -> repoName
+          ),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
           getPriorities(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), true, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), true, owner -> repoName),
+          countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, owner -> repoName),
           condition,
           repository,
           isEditable(repository),
