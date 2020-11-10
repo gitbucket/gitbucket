@@ -104,7 +104,7 @@ trait IssuesControllerBase extends ControllerBase {
             } else {
               html.issue(
                 issue,
-                getComments(owner, name, issueId.toInt),
+                getComments(owner, name, issueId.toInt).map(_._1),
                 getIssueLabels(owner, name, issueId.toInt),
                 getAssignableUserNames(owner, name),
                 getMilestonesWithIssueCount(owner, name),
@@ -225,11 +225,12 @@ trait IssuesControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
     defining(repository.owner, repository.name) {
       case (owner, name) =>
-        getComment(owner, name, params("id")).map { comment =>
-          if (isEditableContent(owner, name, comment.commentedUserName)) {
-            updateComment(comment.issueId, comment.commentId, form.content)
-            redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
-          } else Unauthorized()
+        getComment(owner, name, params("id").toInt).map {
+          case (comment, _, _) =>
+            if (isEditableContent(owner, name, comment.commentedUserName)) {
+              updateComment(comment.issueId, comment.commentId, form.content)
+              redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
+            } else Unauthorized()
         } getOrElse NotFound()
     }
   })
@@ -237,10 +238,11 @@ trait IssuesControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/issue_comments/delete/:id")(readableUsersOnly { repository =>
     defining(repository.owner, repository.name) {
       case (owner, name) =>
-        getComment(owner, name, params("id")).map { comment =>
-          if (isEditableContent(owner, name, comment.commentedUserName)) {
-            Ok(deleteComment(comment.issueId, comment.commentId))
-          } else Unauthorized()
+        getComment(owner, name, params("id").toInt).map {
+          case (comment, _, _) =>
+            if (isEditableContent(owner, name, comment.commentedUserName)) {
+              Ok(deleteComment(comment.issueId, comment.commentId))
+            } else Unauthorized()
         } getOrElse NotFound()
     }
   })
@@ -275,17 +277,17 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxGet("/:owner/:repository/issue_comments/_data/:id")(readableUsersOnly { repository =>
-    getComment(repository.owner, repository.name, params("id")) map {
-      x =>
-        if (isEditableContent(x.userName, x.repositoryName, x.commentedUserName)) {
+    getComment(repository.owner, repository.name, params("id").toInt) map {
+      case (comment, _, _) =>
+        if (isEditableContent(comment.userName, comment.repositoryName, comment.commentedUserName)) {
           params.get("dataType") collect {
-            case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
+            case t if t == "html" => html.editcomment(comment.content, comment.commentId, repository)
           } getOrElse {
             contentType = formats("json")
             org.json4s.jackson.Serialization.write(
               Map(
                 "content" -> view.Markdown.toHtml(
-                  markdown = x.content,
+                  markdown = comment.content,
                   repository = repository,
                   branch = repository.repository.defaultBranch,
                   enableWikiLink = false,

@@ -20,12 +20,14 @@ trait CommitsService {
 
   def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(
     implicit s: Session
-  ) =
+  ): List[CommitComment] =
     CommitComments filter { t =>
       t.byCommit(owner, repository, commitId) && (t.issueId.isEmpty || includePullRequest)
     } list
 
-  def getCommitComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
+  def getCommitComment(owner: String, repository: String, commentId: String)(
+    implicit s: Session
+  ): Option[CommitComment] =
     if (commentId forall (_.isDigit))
       CommitComments filter { t =>
         t.byPrimaryKey(commentId.toInt) && t.byRepository(owner, repository)
