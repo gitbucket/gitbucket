@@ -26,6 +26,7 @@ class WikiController
     with WebHookService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
+    with UnarchivedAuthenticator
     with RequestCache
 
 trait WikiControllerBase extends ControllerBase {
@@ -35,7 +36,8 @@ trait WikiControllerBase extends ControllerBase {
     with ActivityService
     with WebHookService
     with ReadableUsersAuthenticator
-    with ReferrerAuthenticator =>
+    with ReferrerAuthenticator
+    with UnarchivedAuthenticator =>
 
   case class WikiPageEditForm(
     pageName: String,
@@ -171,38 +173,41 @@ trait WikiControllerBase extends ControllerBase {
     } else Unauthorized()
   })
 
-  post("/:owner/:repository/wiki/_edit", editForm)(readableUsersOnly { (form, repository) =>
-    if (isEditable(repository)) {
-      defining(context.loginAccount.get) {
-        loginAccount =>
-          saveWikiPage(
-            repository.owner,
-            repository.name,
-            form.currentPageName,
-            form.pageName,
-            appendNewLine(convertLineSeparator(form.content, "LF"), "LF"),
-            loginAccount,
-            form.message.getOrElse(""),
-            Some(form.id)
-          ).foreach {
-            commitId =>
-              updateLastActivityDate(repository.owner, repository.name)
-              val wikiEditInfo =
-                EditWikiPageInfo(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
-              recordActivity(wikiEditInfo)
-              callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
-                getAccountByUserName(repository.owner).map { repositoryUser =>
-                  WebHookGollumPayload("edited", form.pageName, commitId, repository, repositoryUser, loginAccount)
-                }
+  post("/:owner/:repository/wiki/_edit", editForm)(unarchivedRepositoryOnly {
+    readableUsersOnly {
+      (form, repository) =>
+        if (isEditable(repository)) {
+          defining(context.loginAccount.get) {
+            loginAccount =>
+              saveWikiPage(
+                repository.owner,
+                repository.name,
+                form.currentPageName,
+                form.pageName,
+                appendNewLine(convertLineSeparator(form.content, "LF"), "LF"),
+                loginAccount,
+                form.message.getOrElse(""),
+                Some(form.id)
+              ).foreach {
+                commitId =>
+                  updateLastActivityDate(repository.owner, repository.name)
+                  val wikiEditInfo =
+                    EditWikiPageInfo(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+                  recordActivity(wikiEditInfo)
+                  callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
+                    getAccountByUserName(repository.owner).map { repositoryUser =>
+                      WebHookGollumPayload("edited", form.pageName, commitId, repository, repositoryUser, loginAccount)
+                    }
+                  }
+              }
+              if (notReservedPageName(form.pageName)) {
+                redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+              } else {
+                redirect(s"/${repository.owner}/${repository.name}/wiki")
               }
           }
-          if (notReservedPageName(form.pageName)) {
-            redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
-          } else {
-            redirect(s"/${repository.owner}/${repository.name}/wiki")
-          }
-      }
-    } else Unauthorized()
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/_new")(readableUsersOnly { repository =>
@@ -211,39 +216,42 @@ trait WikiControllerBase extends ControllerBase {
     } else Unauthorized()
   })
 
-  post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnly { (form, repository) =>
-    if (isEditable(repository)) {
-      defining(context.loginAccount.get) {
-        loginAccount =>
-          saveWikiPage(
-            repository.owner,
-            repository.name,
-            form.currentPageName,
-            form.pageName,
-            form.content,
-            loginAccount,
-            form.message.getOrElse(""),
-            None
-          ).foreach {
-            commitId =>
-              updateLastActivityDate(repository.owner, repository.name)
-              val createWikiPageInfo =
-                CreateWikiPageInfo(repository.owner, repository.name, loginAccount.userName, form.pageName)
-              recordActivity(createWikiPageInfo)
-              callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
-                getAccountByUserName(repository.owner).map { repositoryUser =>
-                  WebHookGollumPayload("created", form.pageName, commitId, repository, repositoryUser, loginAccount)
-                }
+  post("/:owner/:repository/wiki/_new", newForm)(unarchivedRepositoryOnly {
+    readableUsersOnly {
+      (form, repository) =>
+        if (isEditable(repository)) {
+          defining(context.loginAccount.get) {
+            loginAccount =>
+              saveWikiPage(
+                repository.owner,
+                repository.name,
+                form.currentPageName,
+                form.pageName,
+                form.content,
+                loginAccount,
+                form.message.getOrElse(""),
+                None
+              ).foreach {
+                commitId =>
+                  updateLastActivityDate(repository.owner, repository.name)
+                  val createWikiPageInfo =
+                    CreateWikiPageInfo(repository.owner, repository.name, loginAccount.userName, form.pageName)
+                  recordActivity(createWikiPageInfo)
+                  callWebHookOf(repository.owner, repository.name, WebHook.Gollum, context.settings) {
+                    getAccountByUserName(repository.owner).map { repositoryUser =>
+                      WebHookGollumPayload("created", form.pageName, commitId, repository, repositoryUser, loginAccount)
+                    }
+                  }
+              }
+
+              if (notReservedPageName(form.pageName)) {
+                redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+              } else {
+                redirect(s"/${repository.owner}/${repository.name}/wiki")
               }
           }
-
-          if (notReservedPageName(form.pageName)) {
-            redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
-          } else {
-            redirect(s"/${repository.owner}/${repository.name}/wiki")
-          }
-      }
-    } else Unauthorized()
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/:page/_delete")(readableUsersOnly { repository =>

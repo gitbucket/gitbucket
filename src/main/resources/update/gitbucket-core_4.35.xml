@@ -18,4 +18,8 @@
   </createTable>
   <addPrimaryKey constraintName="IDX_ACCOUNT_PREFERENCE_PK" tableName="ACCOUNT_PREFERENCE" columnNames="USER_NAME"/>
   <addForeignKeyConstraint constraintName="IDX_ACCOUNT_PREFERENCE_FK0" baseTableName="ACCOUNT_PREFERENCE" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <addColumn tableName="REPOSITORY">
+    <column name="ARCHIVED" type="boolean" nullable="false"/>
+  </addColumn>
 </changeSet>

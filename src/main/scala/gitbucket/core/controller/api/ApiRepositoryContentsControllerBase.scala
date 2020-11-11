@@ -13,7 +13,10 @@ import org.eclipse.jgit.api.Git
 import scala.util.Using
 
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
+  self: ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with RepositoryCommitFileService
+    with UnarchivedAuthenticator =>
 
   /**
    * i. Get a repository README
@@ -135,37 +138,43 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
    * requested #2112
    */
 
-  put("/api/v3/repos/:owner/:repository/contents/*")(writableUsersOnly { repository =>
-    JsonFormat(for {
-      data <- extractFromJsonBody[CreateAFile]
-    } yield {
-      val branch = data.branch.getOrElse(repository.repository.defaultBranch)
-      val commit = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
-        revCommit.name
-      }
-      val paths = multiParams("splat").head.split("/")
-      val path = paths.take(paths.size - 1).toList.mkString("/")
-      if (data.sha.isDefined && data.sha.get != commit) {
-        ApiError("The blob SHA is not matched.", Some("https://developer.github.com/v3/repos/contents/#update-a-file"))
-      } else {
-        val objectId = commitFile(
-          repository,
-          branch,
-          path,
-          Some(paths.last),
-          data.sha.map(_ => paths.last),
-          StringUtil.base64Decode(data.content),
-          data.message,
-          commit,
-          context.loginAccount.get,
-          data.committer.map(_.name).getOrElse(context.loginAccount.get.fullName),
-          data.committer.map(_.email).getOrElse(context.loginAccount.get.mailAddress),
-          context.settings
-        )
-        ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
-      }
-    })
+  put("/api/v3/repos/:owner/:repository/contents/*")(unarchivedRepositoryOnly {
+    writableUsersOnly {
+      repository =>
+        JsonFormat(for {
+          data <- extractFromJsonBody[CreateAFile]
+        } yield {
+          val branch = data.branch.getOrElse(repository.repository.defaultBranch)
+          val commit = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+            val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+            revCommit.name
+          }
+          val paths = multiParams("splat").head.split("/")
+          val path = paths.take(paths.size - 1).toList.mkString("/")
+          if (data.sha.isDefined && data.sha.get != commit) {
+            ApiError(
+              "The blob SHA is not matched.",
+              Some("https://developer.github.com/v3/repos/contents/#update-a-file")
+            )
+          } else {
+            val objectId = commitFile(
+              repository,
+              branch,
+              path,
+              Some(paths.last),
+              data.sha.map(_ => paths.last),
+              StringUtil.base64Decode(data.content),
+              data.message,
+              commit,
+              context.loginAccount.get,
+              data.committer.map(_.name).getOrElse(context.loginAccount.get.fullName),
+              data.committer.map(_.email).getOrElse(context.loginAccount.get.mailAddress),
+              context.settings
+            )
+            ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
+          }
+        })
+    }
   })
 
   /*

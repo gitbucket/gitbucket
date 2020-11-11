@@ -10,7 +10,12 @@
       <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find a repository" aria-label="Search"/></form></li>
       @recentRepositories.zipWithIndex.map { case (repository, i) =>
         <li class="repo-link menu-item-hover">
-          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span>@repository.owner/<span class="strong">@repository.name</span></span></a>
+          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false)
+          <span>@repository.owner/<span class="strong">@repository.name</span></span>
+            @if(repository.repository.isArchived){
+              <span class="badge badge-achive-sidebar">Archived</span>
+            }
+          </a>
         </li>
       }
     }

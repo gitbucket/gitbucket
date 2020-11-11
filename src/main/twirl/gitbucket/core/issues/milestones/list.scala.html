@@ -5,10 +5,12 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("milestones", repository){
-    @if(context.loginAccount.isDefined){
-      <div class="pull-right" style="margin-bottom: 10px;">
-        <a class="btn btn-success" href="@helpers.url(repository)/issues/milestones/new">New milestone</a>
-      </div>
+    @if(!repository.repository.isArchived){
+      @if(context.loginAccount.isDefined){
+        <div class="pull-right" style="margin-bottom: 10px;">
+          <a class="btn btn-success" href="@helpers.url(repository)/issues/milestones/new">New milestone</a>
+        </div>
+      }
     }
     <table class="table table-bordered table-hover table-issues">
       <thead>
@@ -63,14 +65,16 @@
                       @closedCount <span class="muted">closed</span>
                     </div>
                     <div class="milestone-menu">
-                      @if(hasWritePermission){
-                        <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
-                        @if(milestone.closedDate.isDefined){
-                          <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
-                        } else {
-                          <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
+                      @if(!repository.repository.isArchived){
+                        @if(hasWritePermission){
+                          <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
+                          @if(milestone.closedDate.isDefined){
+                            <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
+                          } else {
+                            <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
+                          }
+                          <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                         }
-                        <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                       }
                     </div>
                   </div>
@@ -95,8 +99,10 @@
           <tr>
             <td style="padding: 20px; background-color: #eee; text-align: center;">
               No milestones to show.
-              @if(hasWritePermission){
-                <a href="@helpers.url(repository)/issues/milestones/new">Create a new milestone.</a>
+              @if(!repository.repository.isArchived){
+                @if(hasWritePermission){
+                  <a href="@helpers.url(repository)/issues/milestones/new">Create a new milestone.</a>
+                }
               }
             </td>
           </tr>

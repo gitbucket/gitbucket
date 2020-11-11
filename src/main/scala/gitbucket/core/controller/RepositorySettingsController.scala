@@ -13,7 +13,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.WebHookContentType
-import gitbucket.core.model.activity.RenameRepositoryInfo
+import gitbucket.core.model.activity.{ArchiveRepositoryInfo, RenameRepositoryInfo, UnarchiveRepositoryInfo}
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
@@ -34,6 +34,7 @@ class RepositorySettingsController
     with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator
+    with UnarchivedAuthenticator
     with RequestCache
 
 trait RepositorySettingsControllerBase extends ControllerBase {
@@ -45,7 +46,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     with DeployKeyService
     with ActivityService
     with OwnerAuthenticator
-    with UsersAuthenticator =>
+    with UsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   // for repository options
   case class OptionsForm(
@@ -137,21 +139,39 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Save the repository options.
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
-    saveRepositoryOptions(
-      repository.owner,
-      repository.name,
-      form.description,
-      repository.repository.parentUserName.map { _ =>
-        repository.repository.isPrivate
-      } getOrElse form.isPrivate,
-      form.issuesOption,
-      form.externalIssuesUrl,
-      form.wikiOption,
-      form.externalWikiUrl,
-      form.allowFork,
-      form.mergeOptions,
-      form.defaultMergeOption
-    )
+    if (repository.repository.isArchived) {
+      saveRepositoryOptions(
+        repository.owner,
+        repository.name,
+        repository.repository.description,
+        repository.repository.parentUserName.map { _ =>
+          repository.repository.isPrivate
+        } getOrElse form.isPrivate,
+        repository.repository.options.issuesOption,
+        repository.repository.options.externalIssuesUrl,
+        repository.repository.options.wikiOption,
+        repository.repository.options.externalWikiUrl,
+        repository.repository.options.allowFork,
+        repository.repository.options.mergeOptions.split(","),
+        repository.repository.options.defaultMergeOption
+      )
+    } else {
+      saveRepositoryOptions(
+        repository.owner,
+        repository.name,
+        form.description,
+        repository.repository.parentUserName.map { _ =>
+          repository.repository.isPrivate
+        } getOrElse form.isPrivate,
+        form.issuesOption,
+        form.externalIssuesUrl,
+        form.wikiOption,
+        form.externalWikiUrl,
+        form.allowFork,
+        form.mergeOptions,
+        form.defaultMergeOption
+      )
+    }
     flash.update("info", "Repository settings has been updated.")
     redirect(s"/${repository.owner}/${repository.name}/settings/options")
   })
@@ -163,17 +183,16 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Update default branch */
-  post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
-    if (!repository.branchList.contains(form.defaultBranch)) {
-      redirect(s"/${repository.owner}/${repository.name}/settings/options")
-    } else {
-      saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
-      // Change repository HEAD
-      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
-      }
-      flash.update("info", "Repository default branch has been updated.")
-      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
+  post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(unarchivedRepositoryOnly {
+    ownerOnly {
+      (form, repository) =>
+        saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
+        // Change repository HEAD
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
+        }
+        flash.update("info", "Repository default branch has been updated.")
+        redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     }
   })
 
@@ -207,14 +226,17 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     )
   })
 
-  post("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
-    val collaborators = params("collaborators")
-    removeCollaborators(repository.owner, repository.name)
-    collaborators.split(",").withFilter(_.nonEmpty).foreach { collaborator =>
-      val userName :: role :: Nil = collaborator.split(":").toList
-      addCollaborator(repository.owner, repository.name, userName, role)
+  post("/:owner/:repository/settings/collaborators")(unarchivedRepositoryOnly {
+    ownerOnly {
+      repository =>
+        val collaborators = params("collaborators")
+        removeCollaborators(repository.owner, repository.name)
+        collaborators.split(",").withFilter(_.nonEmpty).foreach { collaborator =>
+          val userName :: role :: Nil = collaborator.split(":").toList
+          addCollaborator(repository.owner, repository.name, userName, role)
+        }
+        redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
     }
-    redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
   /**
@@ -241,10 +263,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Add the web hook URL.
    */
-  post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnly { (form, repository) =>
-    addWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
-    flash.update("info", s"Webhook ${form.url} created")
-    redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+  post("/:owner/:repository/settings/hooks/new", webHookForm(false))(unarchivedRepositoryOnly {
+    ownerOnly { (form, repository) =>
+      addWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
+      flash.update("info", s"Webhook ${form.url} created")
+      redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+    }
   })
 
   /**
@@ -368,10 +392,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Update web hook settings.
    */
-  post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnly { (form, repository) =>
-    updateWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
-    flash.update("info", s"webhook ${form.url} updated")
-    redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+  post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(unarchivedRepositoryOnly {
+    ownerOnly { (form, repository) =>
+      updateWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
+      flash.update("info", s"webhook ${form.url} updated")
+      redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+    }
   })
 
   /**
@@ -384,22 +410,25 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Rename repository.
    */
-  post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
-    if (context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin) {
-      if (repository.name != form.repositoryName) {
-        // Update database and move git repository
-        renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-        // Record activity log
-        val renameInfo = RenameRepositoryInfo(
-          repository.owner,
-          form.repositoryName,
-          context.loginAccount.get.userName,
-          repository.name
-        )
-        recordActivity(renameInfo)
-      }
-      redirect(s"/${repository.owner}/${form.repositoryName}")
-    } else Forbidden()
+  post("/:owner/:repository/settings/rename", renameForm)(unarchivedRepositoryOnly {
+    ownerOnly {
+      (form, repository) =>
+        if (context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin) {
+          if (repository.name != form.repositoryName) {
+            // Update database and move git repository
+            renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+            // Record activity log
+            val renameInfo = RenameRepositoryInfo(
+              repository.owner,
+              form.repositoryName,
+              context.loginAccount.get.userName,
+              repository.name
+            )
+            recordActivity(renameInfo)
+          }
+          redirect(s"/${repository.owner}/${form.repositoryName}")
+        } else Forbidden()
+    }
   })
 
   /**
@@ -436,6 +465,42 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /**
+   * Archive the repository.
+   */
+  post("/:owner/:repository/settings/archive")(ownerOnly { repository =>
+    if (context.settings.repositoryOperation.archive || context.loginAccount.get.isAdmin) {
+      archiveRepository(repository.owner, repository.name)
+      // Record activity log
+      val archiveInfo = ArchiveRepositoryInfo(
+        repository.owner,
+        repository.name,
+        context.loginAccount.get.userName
+      )
+      recordActivity(archiveInfo)
+      updateLastActivityDate(repository.owner, repository.name)
+      redirect(s"/${repository.owner}/${repository.name}/settings/danger")
+    } else Forbidden()
+  })
+
+  /**
+   * Unarchive the repository.
+   */
+  post("/:owner/:repository/settings/unarchive")(ownerOnly { repository =>
+    if (context.settings.repositoryOperation.archive || context.loginAccount.get.isAdmin) {
+      unarchiveRepository(repository.owner, repository.name)
+      // Record activity log
+      val unarchiveInfo = UnarchiveRepositoryInfo(
+        repository.owner,
+        repository.name,
+        context.loginAccount.get.userName
+      )
+      recordActivity(unarchiveInfo)
+      updateLastActivityDate(repository.owner, repository.name)
+      redirect(s"/${repository.owner}/${repository.name}/settings/danger")
+    } else Forbidden()
+  })
+
+  /**
    * Run GC
    */
   post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
@@ -454,9 +519,11 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Register a deploy key */
-  post("/:owner/:repository/settings/deploykey", deployKeyForm)(ownerOnly { (form, repository) =>
-    addDeployKey(repository.owner, repository.name, form.title, form.publicKey, form.allowWrite)
-    redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
+  post("/:owner/:repository/settings/deploykey", deployKeyForm)(unarchivedRepositoryOnly {
+    ownerOnly { (form, repository) =>
+      addDeployKey(repository.owner, repository.name, form.title, form.publicKey, form.allowWrite)
+      redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
+    }
   })
 
   /** Delete a deploy key */

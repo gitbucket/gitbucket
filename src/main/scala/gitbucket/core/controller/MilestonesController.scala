@@ -10,7 +10,7 @@ import gitbucket.core.service.{
   RepositoryService
 }
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.view.helpers.{getAssignableUserNames, getLabels, getPriorities, searchIssue}
 import org.scalatra.forms._
@@ -24,13 +24,15 @@ class MilestonesController
     with CommitStatusService
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
 
 trait MilestonesControllerBase extends ControllerBase {
   self: MilestonesService
     with RepositoryService
     with CommitStatusService
     with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 
@@ -88,9 +90,11 @@ trait MilestonesControllerBase extends ControllerBase {
     html.edit(None, _)
   })
 
-  post("/:owner/:repository/issues/milestones/new", milestoneForm)(writableUsersOnly { (form, repository) =>
-    createMilestone(repository.owner, repository.name, form.title, form.description, form.dueDate)
-    redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+  post("/:owner/:repository/issues/milestones/new", milestoneForm)(unarchivedRepositoryOnly {
+    writableUsersOnly { (form, repository) =>
+      createMilestone(repository.owner, repository.name, form.title, form.description, form.dueDate)
+      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+    }
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/edit")(writableUsersOnly { repository =>
@@ -99,14 +103,15 @@ trait MilestonesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(writableUsersOnly {
-    (form, repository) =>
+  post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(unarchivedRepositoryOnly {
+    writableUsersOnly { (form, repository) =>
       params("milestoneId").toIntOpt.flatMap { milestoneId =>
         getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
           updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
           redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
         }
       } getOrElse NotFound()
+    }
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/close")(writableUsersOnly { repository =>

@@ -34,6 +34,7 @@ trait RepositoryService {
     userName: String,
     description: Option[String],
     isPrivate: Boolean,
+    isArchived: Boolean = false,
     defaultBranch: String = "master",
     originRepositoryName: Option[String] = None,
     originUserName: Option[String] = None,
@@ -45,6 +46,7 @@ trait RepositoryService {
         userName = userName,
         repositoryName = repositoryName,
         isPrivate = isPrivate,
+        isArchived = isArchived,
         description = description,
         defaultBranch = defaultBranch,
         registeredDate = currentDate,
@@ -299,6 +301,28 @@ trait RepositoryService {
             .map(x => (x.parentUserName ?, x.parentRepositoryName ?))
             .update(None, None)
       }
+  }
+
+  def archiveRepository(owner: String, repository: String)(
+    implicit s: Session
+  ): Unit = {
+    Repositories
+      .filter(_.byRepository(owner, repository))
+      .map { t =>
+        t.isArchived
+      }
+      .update(true)
+  }
+
+  def unarchiveRepository(owner: String, repository: String)(
+    implicit s: Session
+  ): Unit = {
+    Repositories
+      .filter(_.byRepository(owner, repository))
+      .map { t =>
+        t.isArchived
+      }
+      .update(false)
   }
 
   /**

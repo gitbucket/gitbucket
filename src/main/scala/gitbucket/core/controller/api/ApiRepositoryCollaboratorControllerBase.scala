@@ -3,11 +3,15 @@ import gitbucket.core.api.{AddACollaborator, ApiRepositoryCollaborator, ApiUser,
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{OwnerAuthenticator, ReferrerAuthenticator}
+import gitbucket.core.util.{OwnerAuthenticator, ReferrerAuthenticator, UnarchivedAuthenticator}
 import org.scalatra.NoContent
 
 trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with ReferrerAuthenticator with OwnerAuthenticator =>
+  self: RepositoryService
+    with AccountService
+    with ReferrerAuthenticator
+    with OwnerAuthenticator
+    with UnarchivedAuthenticator =>
 
   /*
    * i. List repository collaborators
@@ -55,12 +59,14 @@ trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#add-a-repository-collaborator
    * requested #1586
    */
-  put("/api/v3/repos/:owner/:repository/collaborators/:userName")(ownerOnly { repository =>
-    for {
-      data <- extractFromJsonBody[AddACollaborator]
-    } yield {
-      addCollaborator(repository.owner, repository.name, params("userName"), data.role)
-      NoContent()
+  put("/api/v3/repos/:owner/:repository/collaborators/:userName")(unarchivedRepositoryOnly {
+    ownerOnly { repository =>
+      for {
+        data <- extractFromJsonBody[AddACollaborator]
+      } yield {
+        addCollaborator(repository.owner, repository.name, params("userName"), data.role)
+        NoContent()
+      }
     }
   })
 
@@ -69,8 +75,10 @@ trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#remove-a-repository-collaborator
    * requested #1586
    */
-  delete("/api/v3/repos/:owner/:repository/collaborators/:userName")(ownerOnly { repository =>
-    removeCollaborator(repository.owner, repository.name, params("userName"))
-    NoContent()
+  delete("/api/v3/repos/:owner/:repository/collaborators/:userName")(unarchivedRepositoryOnly {
+    ownerOnly { repository =>
+      removeCollaborator(repository.owner, repository.name, params("userName"))
+      NoContent()
+    }
   })
 }

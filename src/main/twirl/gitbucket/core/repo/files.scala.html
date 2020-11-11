@@ -90,11 +90,13 @@
           }
         }
       </div>
-      @if(hasWritePermission){
-        <div class="btn-group pull-left" style="margin-left: 4px;">
-          <a href="@helpers.url(repository)/new/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Create a new file"><i class="octicon octicon-plus"></i></a>
-          <a href="@helpers.url(repository)/upload/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Upload files"><i class="octicon octicon-cloud-upload"></i></a>
-        </div>
+      @if(!repository.repository.isArchived){
+        @if(hasWritePermission){
+          <div class="btn-group pull-left" style="margin-left: 4px;">
+            <a href="@helpers.url(repository)/new/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Create a new file"><i class="octicon octicon-plus"></i></a>
+            <a href="@helpers.url(repository)/upload/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Upload files"><i class="octicon octicon-cloud-upload"></i></a>
+          </div>
+        }
       }
     </div>
     <table class="table table-hover">
@@ -210,10 +212,12 @@
         <div class="strong" style="line-height: 28px;">
           <i class="octicon octicon-file"></i>
           @filePath.last
-          @if(hasWritePermission){
-            <div class="btn-group pull-right">
-              <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
-            </div>
+          @if(!repository.repository.isArchived){
+            @if(hasWritePermission){
+              <div class="btn-group pull-right">
+                <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+              </div>
+            }
           }
         </div>
       </div>

@@ -2,19 +2,19 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.labels.html
 import gitbucket.core.service.{
-  RepositoryService,
   AccountService,
   IssuesService,
   LabelsService,
   MilestonesService,
-  PrioritiesService
+  PrioritiesService,
+  RepositoryService
 }
-import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
-import org.scalatra.Ok
+import org.scalatra.{Forbidden, Ok}
 
 class LabelsController
     extends LabelsControllerBase
@@ -26,13 +26,15 @@ class LabelsController
     with MilestonesService
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
   self: LabelsService
     with IssuesService
     with RepositoryService
     with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 
@@ -54,15 +56,18 @@ trait LabelsControllerBase extends ControllerBase {
     html.edit(None, repository)
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(writableUsersOnly { (form, repository) =>
-    val labelId = createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
-    html.label(
-      getLabel(repository.owner, repository.name, labelId).get,
-      // TODO futility
-      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
-      repository,
-      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-    )
+  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(unarchivedRepositoryOnly {
+    writableUsersOnly {
+      (form, repository) =>
+        val labelId = createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
+        html.label(
+          getLabel(repository.owner, repository.name, labelId).get,
+          // TODO futility
+          countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+          repository,
+          hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+        )
+    }
   })
 
   ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(writableUsersOnly { repository =>
@@ -71,15 +76,18 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(writableUsersOnly { (form, repository) =>
-    updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
-    html.label(
-      getLabel(repository.owner, repository.name, params("labelId").toInt).get,
-      // TODO futility
-      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
-      repository,
-      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-    )
+  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(unarchivedRepositoryOnly {
+    writableUsersOnly {
+      (form, repository) =>
+        updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
+        html.label(
+          getLabel(repository.owner, repository.name, params("labelId").toInt).get,
+          // TODO futility
+          countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+          repository,
+          hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+        )
+    }
   })
 
   ajaxPost("/:owner/:repository/issues/labels/:labelId/delete")(writableUsersOnly { repository =>

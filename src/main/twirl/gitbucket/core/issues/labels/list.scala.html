@@ -5,10 +5,12 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Labels - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("labels", repository){
-    @if(context.loginAccount.isDefined){
-      <div class="pull-right" style="margin-bottom: 10px;">
-        <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
-      </div>
+    @if(!repository.repository.isArchived) {
+      @if(context.loginAccount.isDefined){
+        <div class="pull-right" style="margin-bottom: 10px;">
+          <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
+        </div>
+      }
     }
     <table class="table table-bordered table-hover table-issues" id="new-label-table" style="display: none;">
       <tr><td></td></tr>
@@ -27,8 +29,10 @@
           <tr>
             <td style="padding: 20px; background-color: #eee; text-align: center;">
               No labels to show.
-              @if(hasWritePermission){
-                Click on the "New Label" button above to create one.
+              @if(!repository.repository.isArchived) {
+                @if(hasWritePermission) {
+                  Click on the "New Label" button above to create one.
+                }
               }
             </td>
           </tr>
@@ -37,35 +41,37 @@
     </table>
   }
 }
-<script>
-$(function(){
-  $('#new-label-button').click(function(e){
-    if($('#edit-label-area-new').length != 0){
-      $('div#edit-label-area-new').remove();
-      $('#new-label-table').hide();
-    } else {
-      $.get('@helpers.url(repository)/issues/labels/new',
-        function(data){
-          $('#new-label-table').show().find('tr td').append(data);
+@if(!repository.repository.isArchived){
+  <script>
+    $(function(){
+      $('#new-label-button').click(function(e){
+        if($('#edit-label-area-new').length != 0){
+          $('div#edit-label-area-new').remove();
+          $('#new-label-table').hide();
+        } else {
+          $.get('@helpers.url(repository)/issues/labels/new',
+                  function(data){
+                    $('#new-label-table').show().find('tr td').append(data);
+                  }
+          );
         }
+      });
+    });
+
+    function deleteLabel(labelId){
+      if(confirm('Once you delete this label, there is no going back.\nAre you sure?')){
+        $.post('@helpers.url(repository)/issues/labels/' + labelId + '/delete', function(){
+          $('tr#label-row-' + labelId).remove();
+        });
+      }
+    }
+
+    function editLabel(labelId){
+      $.get('@helpers.url(repository)/issues/labels/' + labelId + '/edit',
+              function(data){
+                $('#label-' + labelId).hide().parent().append(data);
+              }
       );
     }
-  });
-});
-
-function deleteLabel(labelId){
-  if(confirm('Once you delete this label, there is no going back.\nAre you sure?')){
-    $.post('@helpers.url(repository)/issues/labels/' + labelId + '/delete', function(){
-      $('tr#label-row-' + labelId).remove();
-    });
-  }
+  </script>
 }
-
-function editLabel(labelId){
-  $.get('@helpers.url(repository)/issues/labels/' + labelId + '/edit',
-    function(data){
-      $('#label-' + labelId).hide().parent().append(data);
-    }
-  );
-}
-</script>

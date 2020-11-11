@@ -171,3 +171,26 @@ trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
     }
   }
 }
+
+/**
+ * Allow action on only unarchived repository
+ */
+trait UnarchivedAuthenticator { self: ControllerBase with RepositoryService =>
+  protected def unarchivedRepositoryOnly(action: => Any) = { authenticate(action) }
+  protected def unarchivedRepositoryOnly[T](action: T => Any) = (form: T) => {
+    authenticate(action(form))
+  }
+
+  private def authenticate(action: => Any) = {
+    val userName = params("owner")
+    val repoName = params("repository")
+
+    getRepository(userName, repoName).map { repository =>
+      if (repository.repository.isArchived) {
+        Unauthorized()
+      } else {
+        action
+      }
+    } getOrElse NotFound()
+  }
+}

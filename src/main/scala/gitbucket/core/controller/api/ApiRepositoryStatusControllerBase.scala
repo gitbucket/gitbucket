@@ -4,37 +4,44 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.model.CommitState
 import gitbucket.core.service.{AccountService, CommitStatusService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 
 trait ApiRepositoryStatusControllerBase extends ControllerBase {
-  self: AccountService with CommitStatusService with ReferrerAuthenticator with WritableUsersAuthenticator =>
+  self: AccountService
+    with CommitStatusService
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   /*
    * i. Create a status
    * https://developer.github.com/v3/repos/statuses/#create-a-status
    */
-  post("/api/v3/repos/:owner/:repository/statuses/:sha")(writableUsersOnly { repository =>
-    (for {
-      ref <- params.get("sha")
-      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
-      data <- extractFromJsonBody[CreateAStatus] if data.isValid
-      creator <- context.loginAccount
-      state <- CommitState.valueOf(data.state)
-      statusId = createCommitStatus(
-        repository.owner,
-        repository.name,
-        sha,
-        data.context.getOrElse("default"),
-        state,
-        data.target_url,
-        data.description,
-        new java.util.Date(),
-        creator
-      )
-      status <- getCommitStatus(repository.owner, repository.name, statusId)
-    } yield {
-      JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
-    }) getOrElse NotFound()
+  post("/api/v3/repos/:owner/:repository/statuses/:sha")(unarchivedRepositoryOnly {
+    writableUsersOnly {
+      repository =>
+        (for {
+          ref <- params.get("sha")
+          sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+          data <- extractFromJsonBody[CreateAStatus] if data.isValid
+          creator <- context.loginAccount
+          state <- CommitState.valueOf(data.state)
+          statusId = createCommitStatus(
+            repository.owner,
+            repository.name,
+            sha,
+            data.context.getOrElse("default"),
+            state,
+            data.target_url,
+            data.description,
+            new java.util.Date(),
+            creator
+          )
+          status <- getCommitStatus(repository.owner, repository.name, statusId)
+        } yield {
+          JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
+        }) getOrElse NotFound()
+    }
   })
 
   /*

@@ -14,18 +14,20 @@
 @gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("pulls", repository) {
       <div>
-        <div class="show-title pull-right">
-          @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)) {
-            <a class="btn btn-default" href="#" id="edit">Edit</a>
-          }
-          @if(context.loginAccount.isDefined) {
-            <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
-          }
-        </div>
-        <div class="edit-title pull-right" style="display: none;">
-          <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">
-          Cancel</a>
-        </div>
+        @if(!repository.repository.isArchived){
+          <div class="show-title pull-right">
+            @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)) {
+              <a class="btn btn-default" href="#" id="edit">Edit</a>
+            }
+            @if(context.loginAccount.isDefined) {
+              <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
+            }
+          </div>
+          <div class="edit-title pull-right" style="display: none;">
+            <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">
+            Cancel</a>
+          </div>
+        }
         <h1 class="body-title">
           <span class="show-title">
             <span id="show-title">@issue.title</span>

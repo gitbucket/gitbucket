@@ -23,7 +23,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
     with MergeService
     with ReferrerAuthenticator
     with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   /*
    * i. Link Relations
@@ -81,107 +82,112 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * https://developer.github.com/v3/pulls/#create-a-pull-request
    * requested #1843
    */
-  post("/api/v3/repos/:owner/:repository/pulls")(readableUsersOnly { repository =>
-    (for {
-      data <- extractFromJsonBody[Either[CreateAPullRequest, CreateAPullRequestAlt]]
-    } yield {
-      data match {
-        case Left(createPullReq) =>
-          val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReq.head, repository.owner)
-          getRepository(reqOwner, repository.name)
-            .flatMap {
-              forkedRepository =>
-                getPullRequestCommitFromTo(repository, forkedRepository, createPullReq.base, reqBranch) match {
-                  case (Some(commitIdFrom), Some(commitIdTo)) =>
-                    val issueId = insertIssue(
-                      owner = repository.owner,
-                      repository = repository.name,
-                      loginUser = context.loginAccount.get.userName,
-                      title = createPullReq.title,
-                      content = createPullReq.body,
-                      assignedUserName = None,
-                      milestoneId = None,
-                      priorityId = None,
-                      isPullRequest = true
-                    )
+  post("/api/v3/repos/:owner/:repository/pulls")(unarchivedRepositoryOnly {
+    readableUsersOnly {
+      repository =>
+        (for {
+          data <- extractFromJsonBody[Either[CreateAPullRequest, CreateAPullRequestAlt]]
+        } yield {
+          data match {
+            case Left(createPullReq) =>
+              val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReq.head, repository.owner)
+              getRepository(reqOwner, repository.name)
+                .flatMap {
+                  forkedRepository =>
+                    getPullRequestCommitFromTo(repository, forkedRepository, createPullReq.base, reqBranch) match {
+                      case (Some(commitIdFrom), Some(commitIdTo)) =>
+                        val issueId = insertIssue(
+                          owner = repository.owner,
+                          repository = repository.name,
+                          loginUser = context.loginAccount.get.userName,
+                          title = createPullReq.title,
+                          content = createPullReq.body,
+                          assignedUserName = None,
+                          milestoneId = None,
+                          priorityId = None,
+                          isPullRequest = true
+                        )
 
-                    createPullRequest(
-                      originRepository = repository,
-                      issueId = issueId,
-                      originBranch = createPullReq.base,
-                      requestUserName = reqOwner,
-                      requestRepositoryName = repository.name,
-                      requestBranch = reqBranch,
-                      commitIdFrom = commitIdFrom.getName,
-                      commitIdTo = commitIdTo.getName,
-                      isDraft = createPullReq.draft.getOrElse(false),
-                      loginAccount = context.loginAccount.get,
-                      settings = context.settings
-                    )
-                    getApiPullRequest(repository, issueId).map(JsonFormat(_))
-                  case _ =>
-                    None
+                        createPullRequest(
+                          originRepository = repository,
+                          issueId = issueId,
+                          originBranch = createPullReq.base,
+                          requestUserName = reqOwner,
+                          requestRepositoryName = repository.name,
+                          requestBranch = reqBranch,
+                          commitIdFrom = commitIdFrom.getName,
+                          commitIdTo = commitIdTo.getName,
+                          isDraft = createPullReq.draft.getOrElse(false),
+                          loginAccount = context.loginAccount.get,
+                          settings = context.settings
+                        )
+                        getApiPullRequest(repository, issueId).map(JsonFormat(_))
+                      case _ =>
+                        None
+                    }
                 }
-            }
-            .getOrElse {
-              NotFound()
-            }
-        case Right(createPullReqAlt) =>
-          val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReqAlt.head, repository.owner)
-          getRepository(reqOwner, repository.name)
-            .flatMap {
-              forkedRepository =>
-                getPullRequestCommitFromTo(repository, forkedRepository, createPullReqAlt.base, reqBranch) match {
-                  case (Some(commitIdFrom), Some(commitIdTo)) =>
-                    changeIssueToPullRequest(repository.owner, repository.name, createPullReqAlt.issue)
-                    createPullRequest(
-                      originRepository = repository,
-                      issueId = createPullReqAlt.issue,
-                      originBranch = createPullReqAlt.base,
-                      requestUserName = reqOwner,
-                      requestRepositoryName = repository.name,
-                      requestBranch = reqBranch,
-                      commitIdFrom = commitIdFrom.getName,
-                      commitIdTo = commitIdTo.getName,
-                      isDraft = false,
-                      loginAccount = context.loginAccount.get,
-                      settings = context.settings
-                    )
-                    getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
-                  case _ =>
-                    None
+                .getOrElse {
+                  NotFound()
                 }
-            }
-            .getOrElse {
-              NotFound()
-            }
-      }
-    })
+            case Right(createPullReqAlt) =>
+              val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReqAlt.head, repository.owner)
+              getRepository(reqOwner, repository.name)
+                .flatMap {
+                  forkedRepository =>
+                    getPullRequestCommitFromTo(repository, forkedRepository, createPullReqAlt.base, reqBranch) match {
+                      case (Some(commitIdFrom), Some(commitIdTo)) =>
+                        changeIssueToPullRequest(repository.owner, repository.name, createPullReqAlt.issue)
+                        createPullRequest(
+                          originRepository = repository,
+                          issueId = createPullReqAlt.issue,
+                          originBranch = createPullReqAlt.base,
+                          requestUserName = reqOwner,
+                          requestRepositoryName = repository.name,
+                          requestBranch = reqBranch,
+                          commitIdFrom = commitIdFrom.getName,
+                          commitIdTo = commitIdTo.getName,
+                          isDraft = false,
+                          loginAccount = context.loginAccount.get,
+                          settings = context.settings
+                        )
+                        getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
+                      case _ =>
+                        None
+                    }
+                }
+                .getOrElse {
+                  NotFound()
+                }
+          }
+        })
+    }
   })
 
   /*
    * v. Update a pull request
    * https://docs.github.com/en/rest/reference/pulls#update-a-pull-request
    */
-  patch("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
-    (for {
-      issueId <- params("id").toIntOpt
-      account <- context.loginAccount
-      settings = context.settings
-      data <- extractFromJsonBody[UpdateAPullRequest]
-    } yield {
-      updatePullRequestsByApi(
-        repository,
-        issueId,
-        account,
-        settings,
-        data.title,
-        data.body,
-        data.state,
-        data.base
-      )
-      JsonFormat(getApiPullRequest(repository, issueId))
-    }) getOrElse NotFound()
+  patch("/api/v3/repos/:owner/:repository/pulls/:id")(unarchivedRepositoryOnly {
+    referrersOnly { repository =>
+      (for {
+        issueId <- params("id").toIntOpt
+        account <- context.loginAccount
+        settings = context.settings
+        data <- extractFromJsonBody[UpdateAPullRequest]
+      } yield {
+        updatePullRequestsByApi(
+          repository,
+          issueId,
+          account,
+          settings,
+          data.title,
+          data.body,
+          data.state,
+          data.base
+        )
+        JsonFormat(getApiPullRequest(repository, issueId))
+      }) getOrElse NotFound()
+    }
   })
 
   /*
@@ -239,69 +245,72 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * ix. Merge a pull request (Merge Button)
    * https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request
    */
-  put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
-    (for {
-      //TODO: crash when body is empty
-      //TODO: Implement sha parameter
-      data <- extractFromJsonBody[MergeAPullRequest]
-      issueId <- params("id").toIntOpt
-      (issue, pullReq) <- getPullRequest(repository.owner, repository.name, issueId)
-    } yield {
-      if (checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
-        Conflict(
-          JsonFormat(
-            FailToMergePrResponse(
-              message = "Head branch was modified. Review and try the merge again.",
-              documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
-            )
-          )
-        )
-      } else {
-        if (issue.closed) {
-          MethodNotAllowed(
-            JsonFormat(
-              FailToMergePrResponse(
-                message = "Pull Request is not mergeable, Closed",
-                documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
-              )
-            )
-          )
-        } else {
-          val strategy =
-            if (data.merge_method.getOrElse("merge-commit") == "merge") "merge-commit"
-            else data.merge_method.getOrElse("merge-commit")
-          mergePullRequest(
-            repository,
-            issueId,
-            context.loginAccount.get,
-            data.commit_message.getOrElse(""), //TODO: Implement commit_title
-            strategy,
-            pullReq.isDraft,
-            context.settings
-          ) match {
-            case Right(objectId) =>
-              Ok(
-                JsonFormat(
-                  SuccessToMergePrResponse(
-                    sha = objectId.toString,
-                    merged = true,
-                    message = "Pull Request successfully merged"
-                  )
+  put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(unarchivedRepositoryOnly {
+    referrersOnly {
+      repository =>
+        (for {
+          //TODO: crash when body is empty
+          //TODO: Implement sha parameter
+          data <- extractFromJsonBody[MergeAPullRequest]
+          issueId <- params("id").toIntOpt
+          (issue, pullReq) <- getPullRequest(repository.owner, repository.name, issueId)
+        } yield {
+          if (checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
+            Conflict(
+              JsonFormat(
+                FailToMergePrResponse(
+                  message = "Head branch was modified. Review and try the merge again.",
+                  documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
                 )
               )
-            case Left(message) =>
+            )
+          } else {
+            if (issue.closed) {
               MethodNotAllowed(
                 JsonFormat(
                   FailToMergePrResponse(
-                    message = "Pull Request is not mergeable",
+                    message = "Pull Request is not mergeable, Closed",
                     documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
                   )
                 )
               )
+            } else {
+              val strategy =
+                if (data.merge_method.getOrElse("merge-commit") == "merge") "merge-commit"
+                else data.merge_method.getOrElse("merge-commit")
+              mergePullRequest(
+                repository,
+                issueId,
+                context.loginAccount.get,
+                data.commit_message.getOrElse(""), //TODO: Implement commit_title
+                strategy,
+                pullReq.isDraft,
+                context.settings
+              ) match {
+                case Right(objectId) =>
+                  Ok(
+                    JsonFormat(
+                      SuccessToMergePrResponse(
+                        sha = objectId.toString,
+                        merged = true,
+                        message = "Pull Request successfully merged"
+                      )
+                    )
+                  )
+                case Left(message) =>
+                  MethodNotAllowed(
+                    JsonFormat(
+                      FailToMergePrResponse(
+                        message = "Pull Request is not mergeable",
+                        documentation_url = "https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request",
+                      )
+                    )
+                  )
+              }
+            }
           }
-        }
-      }
-    })
+        })
+    }
   })
 
   /*
