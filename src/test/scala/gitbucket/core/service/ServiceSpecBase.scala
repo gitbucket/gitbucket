@@ -40,7 +40,8 @@ trait ServiceSpecBase {
         delete = true,
         rename = true,
         transfer = true,
-        fork = true
+        fork = true,
+        archive = true
       ),
       gravatar = false,
       notification = false,
