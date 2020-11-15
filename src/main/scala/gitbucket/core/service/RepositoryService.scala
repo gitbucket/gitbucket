@@ -325,6 +325,15 @@ trait RepositoryService {
       .update(false)
   }
 
+  def isArchivedRepository(owner: String, repository: String)(implicit s: Session): Boolean =
+    getRepository(owner, repository).exists { repository =>
+      if (repository.repository.isArchived) {
+        true
+      } else {
+        false
+      }
+    }
+
   /**
    * Returns the repository names of the specified user.
    *
