@@ -7,12 +7,14 @@ import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{PluginRegistry, ReceiveHook}
 import gitbucket.core.util.Directory.{getRepositoryDir, getRepositoryFilesDir, getTemporaryDir, getWikiRepositoryDir}
 import gitbucket.core.util.JGitUtil.FileInfo
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Repository => _, _}
+import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
+
 import scala.util.Using
 
 trait RepositoryService {
@@ -325,13 +327,15 @@ trait RepositoryService {
       .update(false)
   }
 
-  def isArchivedRepository(owner: String, repository: String)(implicit s: Session): Boolean =
-    getRepository(owner, repository).exists { repository =>
-      if (repository.repository.isArchived) {
-        true
-      } else {
-        false
-      }
+  def isArchivedRepository(owner: String, repository: String)(implicit s: Session): Option[Boolean] =
+    getRepository(owner, repository) match {
+      case Some(repository) =>
+        if (repository.repository.isArchived) {
+          Some(true)
+        } else {
+          Some(false)
+        }
+      case _ => None
     }
 
   /**
@@ -877,4 +881,20 @@ object RepositoryService {
     PluginRegistry().renderableExtensions.map { extension =>
       s"readme.${extension}"
     } ++ Seq("readme.txt", "readme")
+
+  class ArchivedRepositoryReceiveHook extends ReceiveHook with RepositoryService with AccountService {
+    override def preReceive(
+      owner: String,
+      repository: String,
+      receivePack: ReceivePack,
+      command: ReceiveCommand,
+      pusher: String
+    )(implicit session: Session): Option[String] = {
+      isArchivedRepository(owner, repository) match {
+        case Some(true)  => Some("This repository was archived so it is read-only.")
+        case Some(false) => None
+        case _           => None
+      }
+    }
+  }
 }
