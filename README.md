@@ -55,7 +55,7 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.33.x
+What's New in 4.34.x
 -------------
 ### 4.34.0 - 26 Jul 2020
 
