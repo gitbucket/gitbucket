@@ -1,9 +1,11 @@
 package gitbucket.core.api
 
+import org.json4s.jackson.JsonMethods
 import org.scalatest.funsuite.AnyFunSuite
 
 class JsonFormatSpec extends AnyFunSuite {
   import ApiSpecModels._
+  implicit val format = JsonFormat.jsonFormats
 
   private def expected(json: String) = json.replaceAll("\n", "")
 
@@ -43,8 +45,11 @@ class JsonFormatSpec extends AnyFunSuite {
   test("apiPullRequestReviewComment") {
     assert(JsonFormat(apiPullRequestReviewComment) == expected(jsonPullRequestReviewComment))
   }
-  test("apiBranchProtection") {
-    assert(JsonFormat(apiBranchProtection) == expected(jsonBranchProtection))
+  test("serialize apiBranchProtection") {
+    assert(JsonFormat(apiBranchProtectionOutput) == expected(jsonBranchProtectionOutput))
+  }
+  test("deserialize apiBranchProtection") {
+    assert(JsonMethods.parse(jsonBranchProtectionInput).extract[ApiBranchProtection] == apiBranchProtectionInput)
   }
   test("apiBranch") {
     assert(JsonFormat(apiBranch) == expected(jsonBranch))

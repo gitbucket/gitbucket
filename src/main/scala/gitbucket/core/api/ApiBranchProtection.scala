@@ -5,7 +5,7 @@ import org.json4s._
 
 /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
 case class ApiBranchProtection(
-  url: Option[ApiPath],
+  url: Option[ApiPath], // for output
   enabled: Boolean,
   required_status_checks: Option[ApiBranchProtection.Status]
 ) {
@@ -27,19 +27,28 @@ object ApiBranchProtection {
       enabled = info.enabled,
       required_status_checks = Some(
         Status(
-          ApiPath(
-            s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection/required_status_checks"
+          Some(
+            ApiPath(
+              s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection/required_status_checks"
+            )
           ),
           EnforcementLevel(info.enabled && info.contexts.nonEmpty, info.includeAdministrators),
           info.contexts,
-          ApiPath(
-            s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection/required_status_checks/contexts"
+          Some(
+            ApiPath(
+              s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection/required_status_checks/contexts"
+            )
           )
         )
       )
     )
-  val statusNone = Status(ApiPath(""), Off, Seq.empty, ApiPath(""))
-  case class Status(url: ApiPath, enforcement_level: EnforcementLevel, contexts: Seq[String], contexts_url: ApiPath)
+  val statusNone = Status(None, Off, Seq.empty, None)
+  case class Status(
+    url: Option[ApiPath], // for output
+    enforcement_level: EnforcementLevel,
+    contexts: Seq[String],
+    contexts_url: Option[ApiPath] // for output
+  )
   sealed class EnforcementLevel(val name: String)
   case object Off extends EnforcementLevel("off")
   case object NonAdmins extends EnforcementLevel("non_admins")
