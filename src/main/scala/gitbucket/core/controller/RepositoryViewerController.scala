@@ -263,17 +263,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branchName, path) = repository.splitPath(multiParams("splat").head)
     val page = params.get("page").flatMap(_.toIntOpt).getOrElse(1)
 
-    def getStatuses(sha: String): List[CommitStatus] = {
-      getCommitStatues(repository.owner, repository.name, sha)
-    }
-
-    def getSummary(statuses: List[CommitStatus]): (CommitState, String) = {
-      val stateMap = statuses.groupBy(_.state)
-      val state = CommitState.combine(stateMap.keySet)
-      val summary = stateMap.map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")
-      state -> summary
-    }
-
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
         def getTags(sha: String): List[String] = {
@@ -313,14 +302,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               page,
               hasNext,
               hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-              getStatuses,
-              getSummary,
+              getCommitStatus(repository) _,
               getTags
             )
           case Left(_) => NotFound()
         }
     }
   })
+
+  private def getCommitStatus(
+    repository: RepositoryInfo
+  )(sha: String): Option[(CommitState, List[CommitStatus])] = {
+    val statuses = getCommitStatues(repository.owner, repository.name, sha)
+    if (statuses.isEmpty) {
+      None
+    } else {
+      val summary = CommitState.combine(statuses.groupBy(_.state).keySet)
+      Some((summary, statuses))
+    }
+  }
 
   get("/:owner/:repository/new/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
@@ -1085,6 +1085,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 repository,
                 if (path == ".") Nil else path.split("/").toList, // current path
                 new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
+                getCommitStatus(repository)(lastModifiedCommit.getName),
                 commitCount,
                 files,
                 readme,
