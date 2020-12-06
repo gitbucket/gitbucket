@@ -54,12 +54,14 @@ trait LinkConverter { self: RequestCache =>
       .replaceBy(("(?<=(^|\\W))([a-zA-Z0-9\\-_]+)/([a-zA-Z0-9\\-_\\.]+)" + issueIdPrefix + "([0-9]+)(?=(\\W|$))").r) {
         m =>
           getIssueFromCache(m.group(2), m.group(3), m.group(4)) match {
-            case Some(issue) if (issue.isPullRequest) =>
-              Some(s"""<a href="${context.path}/${m.group(2)}/${m.group(3)}/pull/${m.group(4)}">${m.group(2)}/${m.group(
+            case Some(pull) if (pull.isPullRequest) =>
+              Some(s"""<a href="${context.path}/${m.group(2)}/${m.group(3)}/pull/${m
+                .group(4)}" title="${pull.title}">${m.group(2)}/${m.group(
                 3
               )}#${m.group(4)}</a>""")
-            case Some(_) =>
-              Some(s"""<a href="${context.path}/${m.group(2)}/${m.group(3)}/issues/${m.group(4)}">${m.group(2)}/${m
+            case Some(issue) =>
+              Some(s"""<a href="${context.path}/${m.group(2)}/${m.group(3)}/issues/${m
+                .group(4)}" title="${issue.title}">${m.group(2)}/${m
                 .group(3)}#${m.group(4)}</a>""")
             case None =>
               Some(s"""${m.group(2)}/${m.group(3)}#${m.group(4)}""")
@@ -93,11 +95,13 @@ trait LinkConverter { self: RequestCache =>
       .replaceBy(("(?<=(^|\\W))(GH-|(?<!&)" + issueIdPrefix + ")([0-9]+)(?=(\\W|$))").r) { m =>
         val prefix = if (m.group(2) == "issue:") "#" else m.group(2)
         getIssueFromCache(repository.owner, repository.name, m.group(3)) match {
-          case Some(issue) if (issue.isPullRequest) =>
-            Some(s"""<a href="${context.path}/${repository.owner}/${repository.name}/pull/${m.group(3)}">${prefix}${m
+          case Some(pull) if (pull.isPullRequest) =>
+            Some(s"""<a href="${context.path}/${repository.owner}/${repository.name}/pull/${m
+              .group(3)}" title="${pull.title}">${prefix}${m
               .group(3)}</a>""")
-          case Some(_) =>
-            Some(s"""<a href="${context.path}/${repository.owner}/${repository.name}/issues/${m.group(3)}">${prefix}${m
+          case Some(issue) =>
+            Some(s"""<a href="${context.path}/${repository.owner}/${repository.name}/issues/${m
+              .group(3)}"  title="${issue.title}">${prefix}${m
               .group(3)}</a>""")
           case None =>
             Some(s"""${m.group(2)}${m.group(3)}""")

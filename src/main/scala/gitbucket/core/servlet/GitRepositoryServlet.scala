@@ -5,7 +5,6 @@ import java.util
 import java.util.Date
 
 import scala.util.Using
-
 import gitbucket.core.api
 import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
@@ -16,6 +15,19 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.activity.{
+  BaseActivityInfo,
+  CloseIssueInfo,
+  CreateBranchInfo,
+  CreateTagInfo,
+  CreateWikiPageInfo,
+  DeleteBranchInfo,
+  DeleteTagInfo,
+  DeleteWikiInfo,
+  EditWikiPageInfo,
+  PushInfo
+}
+import gitbucket.core.util.JGitUtil.CommitInfo
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
 import gitbucket.core.servlet.Database
@@ -322,13 +334,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
                         getIssue(owner, repository, issueId.toString).foreach { issue =>
                           callIssuesWebHook("closed", repositoryInfo, issue, pusherAccount, settings)
-                          recordCloseIssueActivity(
-                            owner,
-                            repository,
-                            pusherAccount.userName,
-                            issue.issueId,
-                            issue.title
-                          )
+                          val closeIssueInfo =
+                            CloseIssueInfo(owner, repository, pusherAccount.userName, issue.issueId, issue.title)
+                          recordActivity(closeIssueInfo)
                           PluginRegistry().getIssueHooks
                             .foreach(_.closedByCommitComment(issue, repositoryInfo, commit.fullMessage, pusherAccount))
                         }
@@ -356,17 +364,25 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             // record activity
             if (refName(1) == "heads") {
               command.getType match {
-                case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
-                case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
-                case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
-                case _                          =>
+                case ReceiveCommand.Type.CREATE =>
+                  val createBranchInfo = CreateBranchInfo(owner, repository, pusher, branchName)
+                  recordActivity(createBranchInfo)
+                case ReceiveCommand.Type.UPDATE =>
+                  val pushInfo = PushInfo(owner, repository, pusher, branchName, newCommits)
+                  recordActivity(pushInfo)
+                case ReceiveCommand.Type.DELETE =>
+                  val deleteBranchInfo = DeleteBranchInfo(owner, repository, pusher, branchName)
+                  recordActivity(deleteBranchInfo)
+                case _ =>
               }
             } else if (refName(1) == "tags") {
               command.getType match {
                 case ReceiveCommand.Type.CREATE =>
-                  recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
+                  val createTagInfo = CreateTagInfo(owner, repository, pusher, branchName)
+                  recordActivity(createTagInfo)
                 case ReceiveCommand.Type.DELETE =>
-                  recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
+                  val deleteTagInfo = DeleteTagInfo(owner, repository, pusher, branchName)
+                  recordActivity(deleteTagInfo)
                 case _ =>
               }
             }
@@ -440,7 +456,9 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     with WebHookService
     with AccountService
     with RepositoryService
-    with SystemSettingsService {
+    with ActivityService
+    with SystemSettingsService
+    with RequestCache {
 
   private val logger = LoggerFactory.getLogger(classOf[WikiCommitHook])
 
@@ -468,18 +486,22 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                   val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
                   diffs.collect {
                     case diff if diff.newPath.toLowerCase.endsWith(".md") =>
-                      val action = if (diff.changeType == ChangeType.ADD) "created" else "edited"
+                      val action = mapToAction(diff.changeType)
                       val fileName = diff.newPath
+                      updateLastActivityDate(owner, repository)
+                      buildWikiRecord(action, owner, repository, commit, fileName).foreach(recordActivity)
                       (action, fileName, commit.id)
                   }
                 }
               }
 
               val pages = commits
-                .groupBy { case (action, fileName, commitId) => fileName }
+                .groupBy { case (_, fileName, _) => fileName }
                 .map {
                   case (fileName, commits) =>
-                    (commits.head._1, fileName, commits.last._3)
+                    val (commitHeadAction, _, _) = commits.head
+                    val (_, _, commitLastId) = commits.last
+                    (commitHeadAction, fileName, commitLastId)
                 }
 
               callWebHookOf(owner, repository, WebHook.Gollum, settings) {
@@ -502,6 +524,32 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     }
   }
 
+  private[this] def mapToAction(changeType: ChangeType): String = changeType match {
+    case ChangeType.ADD | ChangeType.RENAME => "created"
+    case ChangeType.MODIFY                  => "edited"
+    case ChangeType.DELETE                  => "deleted"
+    case other =>
+      logger.error(s"Unsupported Wiki action: $other")
+      "unsupported action"
+  }
+
+  private[this] def buildWikiRecord(
+    action: String,
+    owner: String,
+    repo: String,
+    commit: CommitInfo,
+    fileName: String
+  ): Option[BaseActivityInfo] = {
+    val pageName = fileName.dropRight(".md".length)
+    action match {
+      case "created" => Some(CreateWikiPageInfo(owner, repo, commit.committerName, pageName))
+      case "edited"  => Some(EditWikiPageInfo(owner, repo, commit.committerName, pageName, commit.id))
+      case "deleted" => Some(DeleteWikiInfo(owner, repo, commit.committerName, pageName))
+      case other =>
+        logger.info(s"Attempted to build wiki record for unsupported action: $other")
+        None
+    }
+  }
 }
 
 object GitLfs {

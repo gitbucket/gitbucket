@@ -35,7 +35,7 @@
 <!-- Base URL -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
+<label for="baseUrl"><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
 <fieldset>
     <div class="controls">
       <input type="text" name="baseUrl" id="baseUrl" class="form-control" value="@context.settings.baseUrl"/>
@@ -51,9 +51,9 @@
 <!-- Information -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">Site notification</span> (Supports HTML)</label>
+<label for="information"><span class="strong">Site notification</span> (Supports HTML)</label>
 <fieldset>
-  <textarea name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
+  <textarea id="information" name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
 </fieldset>
 <!--====================================================================-->
 <!-- AdminLTE SkinName -->
@@ -97,9 +97,9 @@
 <!-- User-defined CSS -->
 <!--====================================================================-->
 <hr>
-<label><span class="strong">User-defined CSS</span></label>
+<label for="userDefinedCss"><span class="strong">User-defined CSS</span></label>
 <fieldset>
-  <textarea name="userDefinedCss" class="form-control" style="height: 100px;">@context.settings.userDefinedCss</textarea>
+  <textarea id="userDefinedCss" name="userDefinedCss" class="form-control" style="height: 100px;">@context.settings.userDefinedCss</textarea>
 </fieldset>
 <!--====================================================================-->
 <!-- Account registration -->

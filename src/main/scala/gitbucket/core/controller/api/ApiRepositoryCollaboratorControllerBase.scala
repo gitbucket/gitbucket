@@ -1,5 +1,5 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{AddACollaborator, ApiUser, JsonFormat}
+import gitbucket.core.api.{AddACollaborator, ApiRepositoryCollaborator, ApiUser, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.Implicits._
@@ -10,8 +10,8 @@ trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ReferrerAuthenticator with OwnerAuthenticator =>
 
   /*
-   * i. List collaborators
-   * https://developer.github.com/v3/repos/collaborators/#list-collaborators
+   * i. List repository collaborators
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-repository-collaborators
    */
   get("/api/v3/repos/:owner/:repository/collaborators")(referrersOnly { repository =>
     // TODO Should ApiUser take permission? getCollaboratorUserNames does not return owner group members.
@@ -19,19 +19,40 @@ trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
       getCollaboratorUserNames(params("owner"), params("repository")).map(u => ApiUser(getAccountByUserName(u).get))
     )
   })
+
   /*
    * ii. Check if a user is a collaborator
-   * https://developer.github.com/v3/repos/collaborators/#check-if-a-user-is-a-collaborator
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#check-if-a-user-is-a-repository-collaborator
    */
+  get("/api/v3/repos/:owner/:repository/collaborators/:userName")(referrersOnly { repository =>
+    (for (account <- getAccountByUserName(params("userName"))) yield {
+      if (getCollaboratorUserNames(repository.owner, repository.name).contains(account.userName)) {
+        NoContent()
+      } else {
+        NotFound()
+      }
+    }) getOrElse NotFound()
+  })
 
   /*
-   * iii. Review a user's permission level
-   * https://developer.github.com/v3/repos/collaborators/#review-a-users-permission-level
+   * iii. Get repository permissions for a user
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-repository-permissions-for-a-user
    */
+  get("/api/v3/repos/:owner/:repository/collaborators/:userName/permission")(referrersOnly { repository =>
+    (for {
+      account <- getAccountByUserName(params("userName"))
+      collaborator <- getCollaborators(repository.owner, repository.name)
+        .find(p => p._1.collaboratorName == account.userName)
+    } yield {
+      JsonFormat(
+        ApiRepositoryCollaborator(collaborator._1.role, ApiUser(account))
+      )
+    }) getOrElse NotFound()
+  })
 
   /*
-   * iv. Add user as a collaborator
-   * https://developer.github.com/v3/repos/collaborators/#add-user-as-a-collaborator
+   * iv. Add a repository collaborator
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#add-a-repository-collaborator
    * requested #1586
    */
   put("/api/v3/repos/:owner/:repository/collaborators/:userName")(ownerOnly { repository =>
@@ -44,8 +65,8 @@ trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
   })
 
   /*
-   * v. Remove user as a collaborator
-   * https://developer.github.com/v3/repos/collaborators/#remove-user-as-a-collaborator
+   * v. Remove a repository collaborator
+   * https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#remove-a-repository-collaborator
    * requested #1586
    */
   delete("/api/v3/repos/:owner/:repository/collaborators/:userName")(ownerOnly { repository =>

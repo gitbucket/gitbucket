@@ -331,6 +331,7 @@ object ApiSpecModels {
     info = ProtectedBranchInfo(
       owner = repo1Name.owner,
       repository = repo1Name.name,
+      branch = "master",
       enabled = true,
       contexts = Seq("continuous-integration/travis-ci"),
       includeAdministrators = true
@@ -444,6 +445,7 @@ object ApiSpecModels {
        |"private":false,
        |"default_branch":"master",
        |"owner":$jsonUser,
+       |"has_issues":true,
        |"id":0,
        |"forks_count":1,
        |"watchers_count":0,
@@ -647,8 +649,13 @@ object ApiSpecModels {
 
   val jsonBranchProtection =
     """{
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master/protection",
        |"enabled":true,
-       |"required_status_checks":{"enforcement_level":"everyone","contexts":["continuous-integration/travis-ci"]}
+       |"required_status_checks":{
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master/protection/required_status_checks",
+         |"enforcement_level":"everyone",
+         |"contexts":["continuous-integration/travis-ci"],
+         |"contexts_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master/protection/required_status_checks/contexts"}
        |}""".stripMargin
 
   val jsonBranch = s"""{

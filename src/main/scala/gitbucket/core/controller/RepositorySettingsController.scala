@@ -13,6 +13,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.WebHookContentType
+import gitbucket.core.model.activity.RenameRepositoryInfo
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
@@ -177,9 +178,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Branch protection for branch */
-  get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
+  get("/:owner/:repository/settings/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
-    val branch = params("branch")
+    val branch = params("splat")
+
     if (!repository.branchList.contains(branch)) {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
@@ -226,7 +228,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = RepositoryWebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
+    val webhook = RepositoryWebHook(
+      userName = repository.owner,
+      repositoryName = repository.name,
+      url = "",
+      ctype = WebHookContentType.FORM,
+      token = None
+    )
     html.edithook(webhook, Set(WebHook.Push), repository, true)
   })
 
@@ -269,7 +277,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         val url = params("url")
         val token = Some(params("token"))
         val ctype = WebHookContentType.valueOf(params("ctype"))
-        val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
+        val dummyWebHookInfo = RepositoryWebHook(
+          userName = repository.owner,
+          repositoryName = repository.name,
+          url = url,
+          ctype = ctype,
+          token = token
+        )
         val dummyPayload = {
           val ownerAccount = getAccountByUserName(repository.owner).get
           val commits =
@@ -376,12 +390,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         // Update database and move git repository
         renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
         // Record activity log
-        recordRenameRepositoryActivity(
+        val renameInfo = RenameRepositoryInfo(
           repository.owner,
           form.repositoryName,
-          repository.name,
-          context.loginAccount.get.userName
+          context.loginAccount.get.userName,
+          repository.name
         )
+        recordActivity(renameInfo)
       }
       redirect(s"/${repository.owner}/${form.repositoryName}")
     } else Forbidden()
@@ -397,12 +412,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         // Update database and move git repository
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
         // Record activity log
-        recordRenameRepositoryActivity(
+        val renameInfo = RenameRepositoryInfo(
           form.newOwner,
           repository.name,
-          repository.owner,
-          context.loginAccount.get.userName
+          context.loginAccount.get.userName,
+          repository.owner
         )
+        recordActivity(renameInfo)
       }
       redirect(s"/${form.newOwner}/${repository.name}")
     } else Forbidden()

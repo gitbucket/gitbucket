@@ -77,10 +77,12 @@ function displayErrors(data, elem){
  */
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
   var old = $('#' + oldTextId), head = $('#' + newTextId);
+  old.is("textarea") ? (oldTextValue = old.data('val')) : (oldTextValue = old.attr('data-val'));
+  head.is("textarea") ? (headTextvalue = head.data('val')) : (headTextValue = head.attr('data-val'));
   var render = new JsDiffRender({
-    oldText    : old.data('val'),
+    oldText    : oldTextValue,
     oldTextName: old.data('file-name'),
-    newText    : head.data('val'),
+    newText    : headTextValue,
     newTextName: head.data('file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
@@ -705,7 +707,7 @@ var imageDiff ={
 function addExtraMailAddress() {
   var fieldset = $('#extraMailAddresses');
   var count = $('.extraMailAddress').length;
-  var html =   '<input type="text" name="extraMailAddresses[' + count + ']" id="extraMailAddresses[' + count + ']" class="form-control extraMailAddress"/>'
+  var html =   '<input type="text" name="extraMailAddresses[' + count + ']" id="extraMailAddresses[' + count + ']" class="form-control extraMailAddress" aria-label="Additional mail address"/>'
   + '<span id="error-extraMailAddresses_' + count + '" class="error"></span>';
   fieldset.append(html);
 }

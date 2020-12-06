@@ -13,6 +13,14 @@ trait IssueHook {
     implicit session: Session,
     context: Context
   ): Unit = ()
+  def deletedComment(commentId: Int, issue: Issue, repository: RepositoryInfo)(
+    implicit session: Session,
+    context: Context
+  ): Unit = ()
+  def updatedComment(commentId: Int, content: String, issue: Issue, repository: RepositoryInfo)(
+    implicit session: Session,
+    context: Context
+  ): Unit = ()
   def closed(issue: Issue, repository: RepositoryInfo)(implicit session: Session, context: Context): Unit = ()
   def reopened(issue: Issue, repository: RepositoryInfo)(implicit session: Session, context: Context): Unit = ()
   def assigned(

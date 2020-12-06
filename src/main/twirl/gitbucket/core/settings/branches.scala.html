@@ -21,7 +21,7 @@
             <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made (unless you specify a different branch).</p>
             <form id="form" method="post" action="@helpers.url(repository)/settings/update_default_branch" validate="true" class="form-inline">
               <span class="error" id="error-defaultBranch"></span>
-              <select name="defaultBranch" id="defaultBranch" class="form-control">
+              <select name="defaultBranch" id="defaultBranch" class="form-control" aria-label="Default branch">
                 @repository.branchList.map { branch =>
                   <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
                 }
@@ -36,7 +36,7 @@
           <div class="panel-body">
             <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally, require status checks before merging.
               <form class="form-inline">
-                <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control">
+                <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control" aria-label="Protect branch">
                   <option>Choose a branch...</option>
                   @repository.branchList.map { branch =>
                     <option value="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)">@branch</option>

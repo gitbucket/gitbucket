@@ -1,0 +1,82 @@
+@(account: gitbucket.core.model.Account, currentTheme: String)(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Preferences", highlighterTheme = currentTheme){
+  @gitbucket.core.account.html.menu("preferences", context.loginAccount.get.userName, false){
+    <form method="POST" action="@context.path/@account.userName/_preferences/highlighter" validate="true" autocomplete="off">
+      <div class="panel panel-default">
+        <div class="panel-heading strong">Syntax Highlighter Theme</div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-4">
+              <fieldset class="form-group">
+                <label for="highlighterTheme" class="strong">Theme</label>
+                <select id="highlighterTheme" name="highlighterTheme" class="form-control">
+                @Seq(
+                  ("atelier-cave-dark", "Atelier Cave Dark"),
+                  ("atelier-cave-light", "Atelier Cave Light"),
+                  ("atelier-dune-dark", "Atelier Dune Dark"),
+                  ("atelier-dune-light", "Atelier Dune Light"),
+                  ("atelier-estuary-dark", "Atelier Estuary Dark"),
+                  ("atelier-estuary-light", "Atelier Estuary Light"),
+                  ("atelier-forest-dark", "Atelier Forest Dark"),
+                  ("atelier-forest-light", "Atelier Forest Light"),
+                  ("atelier-heath-dark", "Atelier Heath Dark"),
+                  ("atelier-heath-light", "Atelier Heath Light"),
+                  ("atelier-lakeside-dark", "Atelier Lakeside Dark"),
+                  ("atelier-lakeside-light", "Atelier Lakeside Light"),
+                  ("atelier-plateau-dark", "Atelier Plateau Dark"),
+                  ("atelier-plateau-light", "Atelier Plateau Light"),
+                  ("atelier-savanna-dark", "Atelier Savanna Dark"),
+                  ("atelier-savanna-light", "Atelier Savanna Light"),
+                  ("atelier-seaside-dark", "Atelier Seaside Dark"),
+                  ("atelier-seaside-light", "Atelier Seaside Light"),
+                  ("atelier-sulphurpool-dark", "Atelier Sulphurpool Dark"),
+                  ("atelier-sulphurpool-light", "Atelier Sulphurpool Light"),
+                  ("github", "GitHub"),
+                  ("github-v2", "GitHub v2"),
+                  ("hemisu-dark", "Hemisu Dark"),
+                  ("hemisu-light", "Hemisu Light"),
+                  ("tomorrow", "Tomorrow"),
+                  ("tomorrow-night", "Tomorrow Night"),
+                  ("tomorrow-night-blue", "Tomorrow Night Blue"),
+                  ("tomorrow-night-bright", "Tomorrow Night Bright"),
+                  ("tomorrow-night-eighties", "Tomorrow Night Eighties"),
+                  ("vibrant-ink", "Vibrant Ink")
+                ).map{ theme =>
+                  <option value="@theme._1"@if(theme._1 == currentTheme){ selected=""}>@theme._2</option>
+                }
+                </select>
+              </fieldset>
+              <input type="submit" class="btn btn-success" value="Save"/>
+            </div>
+            <div class="col-md-8">
+              <div style="margin: 5px">
+                <pre class="prettyprint linenums">@{
+                  """#include <iostream>
+                    |
+                    |using namespace std;
+                    |
+                    |int main(){
+                    |  cout << 'Hello world.' << endl;
+                    |  return 0;
+                    |}""".stripMargin}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <script>
+            $(function(){
+              $('#highlighterTheme').change(function(evt) {
+                var that = $(evt.target);
+                var themeCss = $('link[rel="stylesheet"][href*="color-themes-for-google-code-prettify"]');
+                var oldVal = new RegExp('color-themes-for-google-code-prettify/(.*?).min.css').exec(themeCss.attr('href'))[1];
+                themeCss.attr('href', themeCss.attr('href').replace(oldVal, that.val()));
+                $(document.body).removeClass(oldVal).addClass(that.val());
+              });
+              prettyPrint();
+            });
+    </script>
+  }
+}

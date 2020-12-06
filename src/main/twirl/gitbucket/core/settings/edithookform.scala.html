@@ -16,7 +16,7 @@
   <div class="panel-body">
     <form method="POST" validate="true" autocomplete="off">
       <fieldset class="form-group">
-        <label class="strong">Payload URL</label>
+        <label class="strong" for="url">Payload URL</label>
         <div>
           <span class="error" id="error-url"></span>
         </div>
@@ -29,15 +29,15 @@
         <button class="btn btn-default" id="test-hook">Test Hook</button>
       </fieldset>
       <fieldset class="form-group">
-        <label class="strong">Content type</label>
+        <label class="strong" for="ctype">Content type</label>
         <div></div>
-        <select name="ctype" class="form-control" style="width: 500px;">
+        <select name="ctype" id="ctype" class="form-control" style="width: 500px;">
           <option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>
           <option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>
         </select>
       </fieldset>
       <fieldset class="form-group">
-        <label class="strong">Security Token</label>
+        <label class="strong" for="token">Security Token</label>
         <div></div>
         <input type="text" name="token" id="token" placeholder="leave blank for no X-Hub-Signature usage" value="@webHook.token" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" />
       </fieldset>

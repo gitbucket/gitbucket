@@ -10,6 +10,7 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+.bsp/
 
 # Scala-IDE specific
 .scala_dependencies
@@ -28,4 +29,8 @@ project/plugins/project/
 # Metals specific
 .metals
 .bloop
-project/metals.sbt
+**/metals.sbt
+
+# Visual Studio Code specific
+.vscode
+

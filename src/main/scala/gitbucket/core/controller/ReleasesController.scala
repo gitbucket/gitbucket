@@ -2,6 +2,7 @@ package gitbucket.core.controller
 
 import java.io.File
 
+import gitbucket.core.model.activity.ReleaseInfo
 import gitbucket.core.service.{
   AccountService,
   ActivityService,
@@ -127,7 +128,8 @@ trait ReleaseControllerBase extends ControllerBase {
         createReleaseAsset(repository.owner, repository.name, tagName, fileId, fileName, size, loginAccount)
     }
 
-    recordReleaseActivity(repository.owner, repository.name, loginAccount.userName, form.name, tagName)
+    val releaseInfo = ReleaseInfo(repository.owner, repository.name, loginAccount.userName, form.name, tagName)
+    recordActivity(releaseInfo)
 
     redirect(s"/${repository.owner}/${repository.name}/releases/${tagName}")
   })

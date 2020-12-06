@@ -430,7 +430,8 @@ trait IssuesControllerBase extends ControllerBase {
               Map(
                 "label" -> s"""${if (t.isPullRequest) "<i class='octicon octicon-git-pull-request'></i>"
                 else "<i class='octicon octicon-issue-opened'></i>"}<b> #${StringUtil
-                  .escapeHtml(t.issueId.toString)} ${StringUtil.escapeHtml(t.title)}</b>""",
+                  .escapeHtml(t.issueId.toString)} ${StringUtil
+                  .escapeHtml(StringUtil.cutTail(t.title, 50, "..."))}</b>""",
                 "value" -> t.issueId.toString
               )
             }
