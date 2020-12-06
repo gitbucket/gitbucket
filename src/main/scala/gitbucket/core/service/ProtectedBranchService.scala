@@ -68,7 +68,22 @@ object ProtectedBranchService {
       repository: String,
       receivePack: ReceivePack,
       command: ReceiveCommand,
-      pusher: String
+      pusher: String,
+      mergePullRequest: Boolean
+    )(implicit session: Session): Option[String] = {
+      if (mergePullRequest == true) {
+        None
+      } else {
+        checkBranchProtection(owner, repository, receivePack, command, pusher)
+      }
+    }
+
+    private def checkBranchProtection(
+      owner: String,
+      repository: String,
+      receivePack: ReceivePack,
+      command: ReceiveCommand,
+      pusher: String,
     )(implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if (branch != command.getRefName) {

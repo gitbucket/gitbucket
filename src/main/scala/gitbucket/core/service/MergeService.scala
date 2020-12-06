@@ -610,7 +610,7 @@ object MergeService {
 
       // call pre-commit hooks
       val error = receiveHooks.flatMap { hook =>
-        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
+        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
       }.headOption
 
       error.foreach { error =>
@@ -622,7 +622,7 @@ object MergeService {
 
       // call post-commit hook
       receiveHooks.foreach { hook =>
-        hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
+        hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
       }
 
       objectId
@@ -664,7 +664,7 @@ object MergeService {
 
       // call pre-commit hooks
       val error = receiveHooks.flatMap { hook =>
-        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
+        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
       }.headOption
 
       error.foreach { error =>
@@ -677,7 +677,7 @@ object MergeService {
 
       // call post-commit hook
       receiveHooks.foreach { hook =>
-        hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
+        hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
       }
 
       objectId
@@ -714,7 +714,7 @@ object MergeService {
 
       // call pre-commit hooks
       val error = receiveHooks.flatMap { hook =>
-        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
+        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
       }.headOption
 
       error.foreach { error =>
@@ -736,7 +736,7 @@ object MergeService {
 
       // call post-commit hook
       receiveHooks.foreach { hook =>
-        hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName)
+        hook.postReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
       }
 
       objectId
