@@ -112,6 +112,7 @@ trait IssuesControllerBase extends ControllerBase {
                 getLabels(owner, name),
                 isIssueEditable(repository),
                 isIssueManageable(repository),
+                isIssueCommentManageable(repository),
                 repository
               )
             }
@@ -238,8 +239,8 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name) {
       case (owner, name) =>
         getComment(owner, name, params("id")).map { comment =>
-          if (isEditableContent(owner, name, comment.commentedUserName)) {
-            Ok(deleteComment(comment.issueId, comment.commentId))
+          if (isDeletableComment(owner, name, comment.commentedUserName)) {
+            Ok(deleteComment(repository.owner, repository.name, comment.issueId, comment.commentId))
           } else Unauthorized()
         } getOrElse NotFound()
     }
@@ -495,5 +496,14 @@ trait IssuesControllerBase extends ControllerBase {
     implicit context: Context
   ): Boolean = {
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+  }
+
+  /**
+   * Tests whether an issue comment is deletable by a logged-in user.
+   */
+  private def isDeletableComment(owner: String, repository: String, author: String)(
+    implicit context: Context
+  ): Boolean = {
+    hasOwnerRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
   }
 }

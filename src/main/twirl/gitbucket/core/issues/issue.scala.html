@@ -7,6 +7,7 @@
   labels: List[gitbucket.core.model.Label],
   isEditable: Boolean,
   isManageable: Boolean,
+  isCommentManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${issue.title} - Issue #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
@@ -51,7 +52,7 @@
     <hr>
     <div style="margin-top: 15px;">
       <div class="col-md-9">
-        @gitbucket.core.issues.html.commentlist(Some(issue), comments, isManageable, repository)
+        @gitbucket.core.issues.html.commentlist(Some(issue), comments, isCommentManageable, repository)
         @gitbucket.core.issues.html.commentform(issue, true, isEditable, isManageable, repository)
       </div>
       <div class="col-md-3">

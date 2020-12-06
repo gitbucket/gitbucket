@@ -660,7 +660,10 @@ trait IssuesService {
     IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).update(content, currentDate)
   }
 
-  def deleteComment(issueId: Int, commentId: Int)(implicit s: Session): Int = {
+  def deleteComment(owner: String, repository: String, issueId: Int, commentId: Int)(
+    implicit context: Context,
+    s: Session
+  ): Int = {
     Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
     IssueComments.filter(_.byPrimaryKey(commentId)).firstOption match {
       case Some(c) if c.action == "reopen_comment" =>
@@ -669,6 +672,16 @@ trait IssuesService {
         IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Close", "close")
       case Some(_) =>
         IssueComments.filter(_.byPrimaryKey(commentId)).delete
+        IssueComments insert IssueComment(
+          userName = owner,
+          repositoryName = repository,
+          issueId = issueId,
+          action = "delete_comment",
+          commentedUserName = context.loginAccount.map(_.userName).getOrElse("Unknown user"),
+          content = s"",
+          registeredDate = currentDate,
+          updatedDate = currentDate
+        )
     }
   }
 
