@@ -107,14 +107,14 @@ trait IssuesService {
    * Returns the count of the search result against  issues.
    *
    * @param condition the search condition
-   * @param onlyPullRequest if true then counts only pull request, false then counts both of issue and pull request.
+   * @param searchOption if true then counts only pull request, false then counts both of issue and pull request.
    * @param repos Tuple of the repository owner and the repository name
    * @return the count of the search result
    */
-  def countIssue(condition: IssueSearchCondition, onlyPullRequest: Boolean, repos: (String, String)*)(
+  def countIssue(condition: IssueSearchCondition, searchOption: IssueSearchOption, repos: (String, String)*)(
     implicit s: Session
   ): Int = {
-    Query(searchIssueQuery(repos, condition, onlyPullRequest).length).first
+    Query(searchIssueQuery(repos, condition, searchOption).length).first
   }
 
   /**
@@ -132,7 +132,7 @@ trait IssuesService {
     filterUser: Map[String, String]
   )(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), IssueSearchOption.Issues)
       .join(IssueLabels)
       .on {
         case t1 ~ t2 =>
@@ -170,7 +170,7 @@ trait IssuesService {
     filterUser: Map[String, String]
   )(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), IssueSearchOption.Issues)
       .join(Priorities)
       .on {
         case t1 ~ t2 =>
@@ -223,7 +223,7 @@ trait IssuesService {
    * Returns the search result against issues.
    *
    * @param condition the search condition
-   * @param pullRequest if true then returns only pull requests, false then returns only issues.
+   * @param searchOption if true then returns only pull requests, false then returns only issues.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
    * @param repos Tuple of the repository owner and the repository name
@@ -231,13 +231,13 @@ trait IssuesService {
    */
   def searchIssue(
     condition: IssueSearchCondition,
-    pullRequest: Boolean,
+    searchOption: IssueSearchOption,
     offset: Int,
     limit: Int,
     repos: (String, String)*
   )(implicit s: Session): List[IssueInfo] = {
     // get issues and comment count and labels
-    val result = searchIssueQueryBase(condition, pullRequest, offset, limit, repos)
+    val result = searchIssueQueryBase(condition, searchOption, offset, limit, repos)
       .joinLeft(IssueLabels)
       .on { case t1 ~ t2 ~ i ~ t3 => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
       .joinLeft(Labels)
@@ -288,7 +288,7 @@ trait IssuesService {
     implicit s: Session
   ): List[(Issue, Account, Option[Account])] = {
     // get issues and comment count and labels
-    searchIssueQueryBase(condition, false, offset, limit, repos)
+    searchIssueQueryBase(condition, IssueSearchOption.Issues, offset, limit, repos)
       .join(Accounts)
       .on { case t1 ~ t2 ~ i ~ t3 => t3.userName === t1.openedUserName }
       .joinLeft(Accounts)
@@ -305,7 +305,7 @@ trait IssuesService {
     implicit s: Session
   ): List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] = {
     // get issues and comment count and labels
-    searchIssueQueryBase(condition, true, offset, limit, repos)
+    searchIssueQueryBase(condition, IssueSearchOption.PullRequests, offset, limit, repos)
       .join(PullRequests)
       .on { case t1 ~ t2 ~ i ~ t3 => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
       .join(Repositories)
@@ -323,12 +323,12 @@ trait IssuesService {
 
   private def searchIssueQueryBase(
     condition: IssueSearchCondition,
-    pullRequest: Boolean,
+    searchOption: IssueSearchOption,
     offset: Int,
     limit: Int,
     repos: Seq[(String, String)]
   )(implicit s: Session) =
-    searchIssueQuery(repos, condition, pullRequest)
+    searchIssueQuery(repos, condition, searchOption)
       .join(IssueOutline)
       .on { (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
@@ -366,7 +366,11 @@ trait IssuesService {
   /**
    * Assembles query for conditional issue searching.
    */
-  private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, pullRequest: Boolean)(
+  private def searchIssueQuery(
+    repos: Seq[(String, String)],
+    condition: IssueSearchCondition,
+    searchOption: IssueSearchOption
+  )(
     implicit s: Session
   ) =
     Issues filter { t1 =>
@@ -380,7 +384,11 @@ trait IssuesService {
       (t1.priorityId.? isEmpty, condition.priority == Some(None)) &&
       (t1.assignedUserName.? isEmpty, condition.assigned == Some(None)) &&
       (t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
-      (t1.pullRequest === pullRequest.bind) &&
+      (searchOption match {
+        case IssueSearchOption.Issues       => t1.pullRequest === false
+        case IssueSearchOption.PullRequests => t1.pullRequest === true
+        case IssueSearchOption.Both         => t1.pullRequest === false || t1.pullRequest === true
+      }) &&
       // Milestone filter
       (Milestones filter { t2 =>
         (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
@@ -927,6 +935,27 @@ object IssuesService {
         param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
       )
 
+    def apply(request: HttpServletRequest, milestone: String): IssueSearchCondition =
+      IssueSearchCondition(
+        param(request, "labels").map(_.split(",").toSet).getOrElse(Set.empty),
+        Some(Some(milestone)),
+        param(request, "priority").map {
+          case "none" => None
+          case x      => Some(x)
+        },
+        param(request, "author"),
+        param(request, "assigned").map {
+          case "none" => None
+          case x      => Some(x)
+        },
+        param(request, "mentioned"),
+        param(request, "state", Seq("open", "closed")).getOrElse("open"),
+        param(request, "sort", Seq("created", "comments", "updated", "priority")).getOrElse("created"),
+        param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
+        param(request, "visibility"),
+        param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
+      )
+
     def page(request: HttpServletRequest) = {
       PaginationHelper.page(param(request, "page"))
     }
@@ -950,4 +979,12 @@ object IssuesService {
     status: Option[CommitStatusInfo]
   )
 
+}
+
+sealed trait IssueSearchOption
+
+object IssueSearchOption {
+  case object Issues extends IssueSearchOption
+  case object PullRequests extends IssueSearchOption
+  case object Both extends IssueSearchOption
 }

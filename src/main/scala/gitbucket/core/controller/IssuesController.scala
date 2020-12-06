@@ -369,6 +369,9 @@ trait IssuesControllerBase extends ControllerBase {
             }
           case _ => BadRequest()
         }
+        if (params("uri").nonEmpty) {
+          redirect(params("uri"))
+        }
     }
   })
 
@@ -377,6 +380,9 @@ trait IssuesControllerBase extends ControllerBase {
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
           registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
+          if (params("uri").nonEmpty) {
+            redirect(params("uri"))
+          }
         }
       }
     } getOrElse NotFound()
@@ -386,6 +392,9 @@ trait IssuesControllerBase extends ControllerBase {
     defining(assignedUserName("value")) { value =>
       executeBatch(repository) {
         updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      }
+      if (params("uri").nonEmpty) {
+        redirect(params("uri"))
       }
     }
   })
@@ -449,6 +458,7 @@ trait IssuesControllerBase extends ControllerBase {
     params("from") match {
       case "issues" => redirect(s"/${repository.owner}/${repository.name}/issues")
       case "pulls"  => redirect(s"/${repository.owner}/${repository.name}/pulls")
+      case _        =>
     }
   }
 
@@ -462,14 +472,14 @@ trait IssuesControllerBase extends ControllerBase {
 
         html.list(
           "issues",
-          searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
           getPriorities(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
+          countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, owner -> repoName),
           condition,
           repository,
           isIssueEditable(repository),
