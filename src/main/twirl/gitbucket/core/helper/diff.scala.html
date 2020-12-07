@@ -9,53 +9,82 @@
 @import gitbucket.core.view.helpers
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @if(showIndex){
-  <div class="pull-right" style="margin-bottom: 10px;">
-    @if(oldCommitId.isEmpty && newCommitId.isDefined) {
-      <a href="@helpers.url(repository)/patch/@newCommitId" class="btn btn-default">Patch</a>
-    }
-    @if(oldCommitId.isDefined && newCommitId.isDefined) {
-      <a href="@helpers.url(repository)/patch/@oldCommitId...@newCommitId" class="btn btn-default">Patch</a>
-    }
-    <div class="btn-group">
-      <a href="javascript:changeDisplaySetting('diff', 'unified');" id="btn-unified" class="btn btn-default">Unified</a>
-      <a href="javascript:changeDisplaySetting('diff', 'split');" id="btn-split" class="btn btn-default">Split</a>
-    </div>
-  </div>
-  Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
-  <ul id="commit-file-list" style="display: none;">
-  @diffs.zipWithIndex.map { case (diff, i) =>
-    <li class="border">
-      <span class="pull-right diffstat" data-diff-id="@i"></span>
-      <a href="#diff-@i">
-        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <i class="octicon octicon-diff-renamed"></i> @diff.oldPath -> @diff.newPath
+<div class="container">
+  <div class="row my-2">
+    <div class="col-sm">
+      Showing <a href="#commit-file-list" id="toggle-file-list" data-toggle="collapse" data-target="#commit-file-list" aria-expanded="false" aria-controls="commit-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
+    </div><!-- .col -->
+    <div class="col-sm">
+      <div class="float-sm-right mb-2">
+        @if(oldCommitId.isEmpty && newCommitId.isDefined) {
+        <a href="@helpers.url(repository)/patch/@newCommitId" class="btn btn-default">Patch</a>
         }
-        @if(diff.changeType == ChangeType.ADD){
-          <i class="octicon octicon-diff-added"></i> @diff.newPath
+        @if(oldCommitId.isDefined && newCommitId.isDefined) {
+        <a href="@helpers.url(repository)/patch/@oldCommitId...@newCommitId" class="btn btn-default">Patch</a>
         }
-        @if(diff.changeType == ChangeType.MODIFY){
-          <i class="octicon octicon-diff-modified"></i> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.DELETE){
-          <i class="octicon octicon-diff-removed"></i> @diff.oldPath
-        }
-      </a>
-    </li>
-    }
-  </ul>
+        <div class="btn-group">
+          <a href="javascript:changeDisplaySetting('diff', 'unified');" id="btn-unified" class="btn btn-default">Unified</a>
+          <a href="javascript:changeDisplaySetting('diff', 'split');" id="btn-split" class="btn btn-default">Split</a>
+        </div>
+      </div>
+    </div><!-- .col -->
+  </div><!-- .row -->
+  <div class="row my-2">
+    <div class="col">
+      <div class="collapse" id="commit-file-list">
+        <ul class="list-group">
+          @diffs.zipWithIndex.map { case (diff, i) =>
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-sm">
+                <a href="#diff-@i">
+                  @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+                  <i class="octicon octicon-diff-renamed"></i> @diff.oldPath -> @diff.newPath
+                  }
+                  @if(diff.changeType == ChangeType.ADD){
+                  <i class="octicon octicon-diff-added"></i> @diff.newPath
+                  }
+                  @if(diff.changeType == ChangeType.MODIFY){
+                  <i class="octicon octicon-diff-modified"></i> @diff.newPath
+                  }
+                  @if(diff.changeType == ChangeType.DELETE){
+                  <i class="octicon octicon-diff-removed"></i> @diff.oldPath
+                  }
+                </a>
+              </div><!-- .col -->
+              <div class="col-sm">
+                <span class="float-right diffstat" data-diff-id="@i"></span>
+              </div><!-- .col -->
+            </div><!-- .row -->
+          </li>
+          }
+        </ul>
+      </div>
+    </div><!-- .col -->
+  </div><!-- .row -->
+</div><!-- .container -->
 }
+<div id="diff-container">
 @diffs.zipWithIndex.map { case (diff, i) =>
   <a name="diff-@i"></a>
   <table class="table table-bordered diff-outside" commitId="@newCommitId" fileName="@diff.newPath" data-diff-id="@i">
     <tr>
-      <th style="font-weight: normal;" class="box-header">
-        <i class="fa fa-chevron-down rotate" data-toggle="collapse" data-target=".diff-collapse-@i" aria-hidden="true" style="cursor: pointer; font-size: 12px"></i>
+      <th class="box-header">
+        <a class="accordion-toggle" data-toggle="collapse" href="#diff-collapse-@i" aria-hidden="true" style="cursor: pointer;"></a>
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @if(newCommitId.isDefined){
-            <div class="pull-right align-right">
-              <label class="no-margin"><input type="checkbox" class="ignore-whitespace" value="1"/> Ignore Space</label>
-              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
-              <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            <div class="float-right align-right">
+              <div class="form-inline">
+                <div class="form-check mr-3">
+                  <input type="checkbox" class="form-check-input ignore-whitespace" id="ignore-whitespace" value="1"/>
+                  <label class="form-check-label" for="ignore-whitespace">Ignore Space</label>
+                </div>
+                <div class="form-check mr-3">
+                  <input type="checkbox" class="form-check-input toggle-notes" id="toggle-notes" checked>
+                  <label class="form-check-label" for="toggle-notes">Show notes</label>
+                </div>
+                <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+              </div>
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
@@ -63,10 +92,18 @@
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @if(newCommitId.isDefined){
-            <div class="pull-right align-right">
-              <label class="no-margin"><input type="checkbox" class="ignore-whitespace" value="1"/> Ignore Space</label>
-              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
-              <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            <div class="float-right align-right">
+              <div class="form-inline">
+                <div class="form-check mr-3">
+                  <input type="checkbox" class="form-check-input ignore-whitespace" id="ignore-whitespace2" value="1"/>
+                  <label class="form-check-label" for="ignore-whitespace2">Ignore Space</label>
+                </div>
+                <div class="form-check mr-3">
+                  <input type="checkbox" class="form-check-input toggle-notes" id="toggle-notes2" checked>
+                  <label class="form-check-label" for="toggle-notes2">Show notes</label>
+                </div>
+                <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+              </div>
             </div>
           }
           <span class="diffstat">
@@ -80,9 +117,14 @@
         }
         @if(diff.changeType == ChangeType.DELETE){
           @if(oldCommitId.isDefined){
-            <div class="pull-right align-right">
-              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
-              <a href="@helpers.url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-default btn-sm" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            <div class="float-right align-right">
+              <div class="form-inline">
+                <div class="form-check mr-3">
+                  <input type="checkbox" class="form-check-input toggle-notes" id="toggle-notes3" checked>
+                  <label class="form-check-label" for="toggle-notes3">Show notes</label>
+                </div>
+                <a href="@helpers.url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-default btn-sm" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+              </div>
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
@@ -93,8 +135,8 @@
         }
       </th>
     </tr>
-    <tr class="diff-collapse-@i collapse in">
-      <td style="padding: 0;">
+    <tr id="diff-collapse-@i" class="collapse show">
+      <td class="p-0">
         @if(diff.oldObjectId == diff.newObjectId){
           @if(diff.oldPath != diff.newPath){
             <div class="diff-same">File renamed without changes</div>
@@ -113,22 +155,22 @@
                 <div class="diff-image-frame diff-old"><img src="@helpers.url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
                 @if(diff.changeType != ChangeType.ADD){
-                  <div style="padding: 12px;">Not supported</div>
+                  <div class="p-2">Not supported</div>
                 }
               }
               @if(newCommitId.isDefined && diff.newIsImage){
                 <div class="diff-image-frame diff-new"><img src="@helpers.url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
                 @if(diff.changeType != ChangeType.DELETE){
-                  <div style="padding: 12px;">Not supported</div>
+                  <div class="p-2">Not supported</div>
                 }
               }
               </div>
             } else {
               @if(diff.tooLarge){
-                <div style="padding: 12px;">Too large</div>
+                <div class="p-2">Too large</div>
               } else {
-                <div style="padding: 12px;">Not supported</div>
+                <div class="p-2">Not supported</div>
               }
             }
           }
@@ -137,6 +179,8 @@
     </tr>
   </table>
 }
+</div>
+
 <script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
 <link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
 <script>
@@ -152,17 +196,6 @@ $(".rotate").click(function(){
 });
 
 $(function(){
-  @if(showIndex){
-    $('#toggle-file-list').click(function(){
-      $('#commit-file-list').toggle();
-      if($(this).val() == 'Show file list'){
-        $(this).val('Hide file list');
-      } else {
-        $(this).val('Show file list');
-      }
-    });
-  }
-
   window.params = {};
 
   // Render diffs as unified mode initially
@@ -174,9 +207,11 @@ $(function(){
     window.viewType = 0;
     $('#btn-split').addClass('active');
     window.params['diff'] = 'split';
+    $('#diff-container').attr('class', '')
   } else {
     window.viewType = 1;
     $('#btn-unified').addClass('active');
+    $('#diff-container').attr('class', 'container')
   }
   renderDiffs();
 
