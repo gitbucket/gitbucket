@@ -33,7 +33,7 @@
     @if(pathList.isEmpty) {
       @repository.repository.description.map { description =>
         <p class="d-none d-md-block mb-1">
-          <span class="normal muted">@Html(helpers.decorateHtml(helpers.urlLink(description), repository))</span>
+          <span class="normal text-muted">@Html(helpers.decorateHtml(helpers.urlLink(description), repository))</span>
         </p>
       }
     }
