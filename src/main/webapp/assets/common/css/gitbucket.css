@@ -986,7 +986,7 @@ pre.reset.discussion-item-content-text{
 /****************************************************************************/
 /* Pull request */
 /****************************************************************************/
-/*
+
 div.pullreq-info {
   border: 1px solid #ddd;
   background-color: #f8f8f8;
@@ -999,7 +999,11 @@ div.pullreq-info {
   transition: none;
   display: none;
 }
-*/
+
+.create-pullreq{
+  background-color: #fff9ea
+}
+
 /****************************************************************************/
 /* Wiki */
 /****************************************************************************/
@@ -1133,6 +1137,7 @@ table.diff {
   font-size: 12px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
   width: 100%;
+  border: 0;
 }
 
 table.diff thead {
@@ -1156,6 +1161,10 @@ table.diff td.body {
 table.diff th.line-num {
   /*min-width: 20px;*/
   width: 20px;
+}
+
+table.diff tbody tr th, table.diff tbody tr td{
+  border-width: 0;
 }
 
 table.diff .add-comment {
@@ -1424,6 +1433,16 @@ table.diff tbody tr.not-diff:hover td {
 .diff-image-stack.difference {
   padding-bottom: 18px;
   text-align: center;
+}
+
+.accordion-toggle:after {
+  font-family: 'Font Awesome 5 Free';
+  content: "\f107";
+  font-weight: 900;
+}
+
+.accordion-toggle.collapsed:after {
+  content: "\f105";
 }
 
 /****************************************************************************/
