@@ -114,31 +114,37 @@ trait MilestonesControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/issues/milestones/:milestoneId/close")(writableUsersOnly { repository =>
-    params("milestoneId").toIntOpt.flatMap { milestoneId =>
-      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
-        closeMilestone(milestone)
-        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
-      }
-    } getOrElse NotFound()
+  get("/:owner/:repository/issues/milestones/:milestoneId/close")(unarchivedRepositoryOnly {
+    writableUsersOnly { repository =>
+      params("milestoneId").toIntOpt.flatMap { milestoneId =>
+        getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+          closeMilestone(milestone)
+          redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+        }
+      } getOrElse NotFound()
+    }
   })
 
-  get("/:owner/:repository/issues/milestones/:milestoneId/open")(writableUsersOnly { repository =>
-    params("milestoneId").toIntOpt.flatMap { milestoneId =>
-      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
-        openMilestone(milestone)
-        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
-      }
-    } getOrElse NotFound()
+  get("/:owner/:repository/issues/milestones/:milestoneId/open")(unarchivedRepositoryOnly {
+    writableUsersOnly { repository =>
+      params("milestoneId").toIntOpt.flatMap { milestoneId =>
+        getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+          openMilestone(milestone)
+          redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+        }
+      } getOrElse NotFound()
+    }
   })
 
-  get("/:owner/:repository/issues/milestones/:milestoneId/delete")(writableUsersOnly { repository =>
-    params("milestoneId").toIntOpt.flatMap { milestoneId =>
-      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
-        deleteMilestone(repository.owner, repository.name, milestone.milestoneId)
-        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
-      }
-    } getOrElse NotFound()
+  get("/:owner/:repository/issues/milestones/:milestoneId/delete")(unarchivedRepositoryOnly {
+    writableUsersOnly { repository =>
+      params("milestoneId").toIntOpt.flatMap { milestoneId =>
+        getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+          deleteMilestone(repository.owner, repository.name, milestone.milestoneId)
+          redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+        }
+      } getOrElse NotFound()
+    }
   })
 
   private def uniqueMilestone: Constraint = new Constraint() {
