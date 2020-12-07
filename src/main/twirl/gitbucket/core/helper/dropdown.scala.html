@@ -13,7 +13,7 @@
         @if(prefix.nonEmpty){
           <span class="muted">@prefix:</span>
         }
-        <span class="strong"
+        <span class="font-weight-bold"
               @if(maxValueWidth.nonEmpty){style="display:inline-block; vertical-align:bottom; overflow-x:hidden; max-width:@maxValueWidth; text-overflow:ellipsis"}>
           @value
         </span>
@@ -22,7 +22,8 @@
     </button>
     <div class="dropdown-menu px-2@if(right){ dropdown-menu-right}">
       @if(filterId.nonEmpty) {
-        <input id="@filterId-input" type="text" class="form-control form-control-sm dropdown-filter-input" placeholder="@filter._2"/>
+      <input id="@filterId-input" type="text" class="form-control form-control-sm dropdown-filter-input" placeholder="@filter._2"/>
+      <div class="dropdown-divider"></div>
       }
       @body
     </div>
