@@ -1,7 +1,8 @@
 @(branch: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
-  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
+  protectedBranch: Boolean,
+  commit: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.util.FileUtil
 @gitbucket.core.html.main(s"Upload Files at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
@@ -37,10 +38,27 @@
           <div class="form-group">
             <input type="text" name="message" class="form-control"/>
           </div>
+          <div class="form-group">
+            <div class="col-md-12">
+              <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" id="newBranch-false" name="newBranch" value="false" checked>
+                <label for="newBranch-false" class="form-check-label">
+                  <i class='octicon octicon-git-commit'></i><span>Commit directly to the <strong style="background-color: lightblue; font-family: Consolas">@branch</strong> branch.</span>
+                </label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" id="newBranch-true" name="newBranch" value="true">
+                <label for="newBranch-true" class="form-check-label">
+                  <i class='octicon octicon-git-pull-request'></i><span>Create a <strong>new branch</strong> for this commit and start a pull request.</span>
+                </label>
+              </div>
+            </div>
+          </div>
           <div style="text-align: right;">
             <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.mkString("/"))" class="btn btn-default">Cancel</a>
             <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
             <input type="hidden" id="upload-files-data" name="uploadFiles" value=""/>
+            <input type="hidden" id="commit" name="commit" value="@commit"/>
           </div>
         </div>
       </div>

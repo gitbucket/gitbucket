@@ -105,6 +105,22 @@
                 <div class="form-group">
                   <input type="text" id="message" name="message" class="form-control"/>
                 </div>
+                <div class="form-group">
+                  <div class="col-md-12">
+                    <div class="form-check form-check-inline">
+                      <input type="radio" class="form-check-input" id="newBranch-false" name="newBranch" value="false" checked>
+                      <label for="newBranch-false" class="form-check-label">
+                        <i class='octicon octicon-git-commit'></i><span>Commit directly to the <strong style="background-color: lightblue; font-family: Consolas">@branch</strong> branch.</span>
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="radio" class="form-check-input" id="newBranch-true" name="newBranch" value="true">
+                      <label for="newBranch-true" class="form-check-label">
+                        <i class='octicon octicon-git-pull-request'></i><span>Create a <strong>new branch</strong> for this commit and start a pull request.</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div><!-- /row -->
           </div><!-- /card-body -->
@@ -139,10 +155,16 @@
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
+
+  if(typeof localStorage.getItem('gitbucket:editor:theme') == "string"){
+    $('#theme').val(localStorage.getItem('gitbucket:editor:theme'));
+  }
+
   editor.setTheme("ace/theme/" + $('#theme').val());
 
   $('#theme').change(function(){
     editor.setTheme("ace/theme/" + $('#theme').val());
+    localStorage.setItem('gitbucket:editor:theme', $('#theme').val());
   });
 
   if(localStorage.getItem('gitbucket:editor:wrap') == 'true'){

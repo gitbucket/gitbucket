@@ -45,6 +45,22 @@
           <div class="form-group">
             <input type="text" name="message" class="form-control"/>
           </div>
+          <div class="form-group">
+            <div class="col-md-12">
+              <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" id="newBranch-false" name="newBranch" value="false" checked>
+                <label for="newBranch-false" class="form-check-label">
+                  <i class='octicon octicon-git-commit'></i><span>Commit directly to the <strong style="background-color: lightblue; font-family: Consolas">@branch</strong> branch.</span>
+                </label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" id="newBranch-true" name="newBranch" value="true">
+                <label for="newBranch-true" class="form-check-label">
+                  <i class='octicon octicon-git-pull-request'></i><span>Create a <strong>new branch</strong> for this commit and start a pull request.</span>
+                </label>
+              </div>
+            </div>
+          </div>
           <div style="text-align: right;">
             <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((branch :: pathList ::: List(fileName)).mkString("/"))" class="btn btn-default">Cancel</a>
             <input type="submit" id="commitButton" class="btn btn-success" value="Commit changes"/>

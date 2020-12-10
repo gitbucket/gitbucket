@@ -584,15 +584,12 @@ ul#commit-file-list li.border {
 */
 li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {
   list-style-type: decimal;
-  background: white;
   border-left: 1px solid #E5E5E5;
   padding-left: 10px;
-  color: rgba(0, 0, 0, 0.3);
 }
 
 pre.blob {
   border: none;
-  background-color: white;
   padding-left: 20px;
   font-size: 12px;
 }
@@ -612,6 +609,10 @@ div.markdown-body pre.plain {
 
 li.highlight {
   background-color: #ffb;
+}
+
+li.highlight-dark {
+  background-color: #4e0000;
 }
 
 span.simplified-path {
@@ -953,6 +954,12 @@ pre.reset.discussion-item-content-text{
   border-radius: 4px;
   vertical-align: middle;
   display: inline-block;
+}
+
+.discussion-item-delete-comment .discussion-item-icon {
+  background-color: #767676;
+  padding-top: 1px;
+  color: white;
 }
 
 .priority-sort-handle {

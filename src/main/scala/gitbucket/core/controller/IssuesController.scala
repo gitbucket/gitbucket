@@ -112,6 +112,7 @@ trait IssuesControllerBase extends ControllerBase {
                 getLabels(owner, name),
                 isIssueEditable(repository),
                 isIssueManageable(repository),
+                isIssueCommentManageable(repository),
                 repository
               )
             }
@@ -238,8 +239,8 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name) {
       case (owner, name) =>
         getComment(owner, name, params("id")).map { comment =>
-          if (isEditableContent(owner, name, comment.commentedUserName)) {
-            Ok(deleteComment(comment.issueId, comment.commentId))
+          if (isDeletableComment(owner, name, comment.commentedUserName)) {
+            Ok(deleteComment(repository.owner, repository.name, comment.issueId, comment.commentId))
           } else Unauthorized()
         } getOrElse NotFound()
     }
@@ -369,6 +370,9 @@ trait IssuesControllerBase extends ControllerBase {
             }
           case _ => BadRequest()
         }
+        if (params("uri").nonEmpty) {
+          redirect(params("uri"))
+        }
     }
   })
 
@@ -377,6 +381,9 @@ trait IssuesControllerBase extends ControllerBase {
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
           registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
+          if (params("uri").nonEmpty) {
+            redirect(params("uri"))
+          }
         }
       }
     } getOrElse NotFound()
@@ -386,6 +393,9 @@ trait IssuesControllerBase extends ControllerBase {
     defining(assignedUserName("value")) { value =>
       executeBatch(repository) {
         updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      }
+      if (params("uri").nonEmpty) {
+        redirect(params("uri"))
       }
     }
   })
@@ -449,6 +459,7 @@ trait IssuesControllerBase extends ControllerBase {
     params("from") match {
       case "issues" => redirect(s"/${repository.owner}/${repository.name}/issues")
       case "pulls"  => redirect(s"/${repository.owner}/${repository.name}/pulls")
+      case _        =>
     }
   }
 
@@ -462,14 +473,14 @@ trait IssuesControllerBase extends ControllerBase {
 
         html.list(
           "issues",
-          searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
           getPriorities(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
+          countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, owner -> repoName),
           condition,
           repository,
           isIssueEditable(repository),
@@ -485,5 +496,14 @@ trait IssuesControllerBase extends ControllerBase {
     implicit context: Context
   ): Boolean = {
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+  }
+
+  /**
+   * Tests whether an issue comment is deletable by a logged-in user.
+   */
+  private def isDeletableComment(owner: String, repository: String, author: String)(
+    implicit context: Context
+  ): Boolean = {
+    hasOwnerRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
   }
 }

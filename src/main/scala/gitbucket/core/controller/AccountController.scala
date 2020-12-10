@@ -82,6 +82,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   case class PersonalTokenForm(note: String)
 
+  case class SyntaxHighlighterThemeForm(theme: String)
+
   val newForm = mapping(
     "userName" -> trim(label("User name", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "password" -> trim(label("Password", text(required, maxlength(20)))),
@@ -121,6 +123,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   val personalTokenForm = mapping(
     "note" -> trim(label("Token", text(required, maxlength(100))))
   )(PersonalTokenForm.apply)
+
+  val syntaxHighlighterThemeForm = mapping(
+    "highlighterTheme" -> trim(label("Theme", text(required)))
+  )(SyntaxHighlighterThemeForm.apply)
 
   case class NewGroupForm(
     groupName: String,
@@ -440,6 +446,29 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val tokenId = params("id").toInt
     deleteAccessToken(userName, tokenId)
     redirect(s"/${userName}/_application")
+  })
+
+  /**
+   * Display the user preference settings page
+   */
+  get("/:userName/_preferences")(oneselfOnly {
+    val userName = params("userName")
+    val currentTheme = getAccountPreference(userName) match {
+      case Some(accountHighlighter) => accountHighlighter.highlighterTheme
+      case _                        => "github-v2"
+    }
+    getAccountByUserName(userName).map { x =>
+      html.preferences(x, currentTheme)
+    } getOrElse NotFound()
+  })
+
+  /**
+   * Update the syntax highlighter setting of user
+   */
+  post("/:userName/_preferences/highlighter", syntaxHighlighterThemeForm)(oneselfOnly { form =>
+    val userName = params("userName")
+    addOrUpdateAccountPreference(userName, form.theme)
+    redirect(s"/${userName}/_preferences")
   })
 
   get("/:userName/_hooks")(managersOnly {

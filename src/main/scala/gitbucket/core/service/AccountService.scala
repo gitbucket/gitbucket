@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import org.slf4j.LoggerFactory
-import gitbucket.core.model.{Account, AccountExtraMailAddress, GroupMember}
+import gitbucket.core.model.{Account, AccountExtraMailAddress, AccountPreference, GroupMember}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
@@ -308,6 +308,33 @@ trait AccountService {
   def getGroupNames(userName: String)(implicit s: Session): List[String] = {
     List(userName) ++
       Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list.distinct
+  }
+
+  /*
+   * For account preference
+   */
+  def getAccountPreference(userName: String)(
+    implicit s: Session
+  ): Option[AccountPreference] = {
+    AccountPreferences filter (_.byPrimaryKey(userName)) firstOption
+  }
+
+  def addAccountPreference(userName: String, highlighterTheme: String)(implicit s: Session): Unit = {
+    AccountPreferences insert AccountPreference(userName = userName, highlighterTheme = highlighterTheme)
+  }
+
+  def updateAccountPreference(userName: String, highlighterTheme: String)(implicit s: Session): Unit = {
+    AccountPreferences
+      .filter(_.byPrimaryKey(userName))
+      .map(t => t.highlighterTheme)
+      .update(highlighterTheme)
+  }
+
+  def addOrUpdateAccountPreference(userName: String, highlighterTheme: String)(implicit s: Session): Unit = {
+    getAccountPreference(userName) match {
+      case Some(_) => updateAccountPreference(userName, highlighterTheme)
+      case _       => addAccountPreference(userName, highlighterTheme)
+    }
   }
 
 }

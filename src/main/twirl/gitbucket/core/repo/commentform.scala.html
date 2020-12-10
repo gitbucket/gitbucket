@@ -111,9 +111,9 @@
         } else {
           var $v = $('<div class="commit-comment-box reply-comment-box">')
             .append($('<input type="text" class="form-control reply-comment" placeholder="Reply...">')
-              .data('filename', '@fileName')
-              .data('newline',  @newLineNumber.getOrElse("undefined"))
-              .data('oldline',  @oldLineNumber.getOrElse("undefined")));
+              .attr('data-filename', '@fileName')
+              .attr('data-newline',  @newLineNumber.getOrElse("undefined"))
+              .attr('data-oldline',  @oldLineNumber.getOrElse("undefined")));
 
           @if(oldLineNumber.isDefined){
             @if(newLineNumber.isDefined){

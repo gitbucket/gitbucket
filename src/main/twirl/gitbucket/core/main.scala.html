@@ -1,4 +1,4 @@
-@(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None, highlighterTheme: String = "github-v2")(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.plugin.PluginRegistry
 @import gitbucket.core.view.helpers
 @hasSidebar = @{body.toString.contains("main-sidebar")}
@@ -36,7 +36,7 @@
     <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery-ui/jquery-ui.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/facebox/facebox.css")" rel="stylesheet"/>
-    <link href="@helpers.assets("/vendors/google-code-prettify/prettify.css")" type="text/css" rel="stylesheet"/>
+    <link href="@helpers.assets(s"/vendors/color-themes-for-google-code-prettify/${highlighterTheme}.min.css")" type="text/css" rel="stylesheet"/>
     <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet">
 
     <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery/jquery.min.js")"></script>
@@ -72,6 +72,7 @@
     <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/css/adminlte.min.css")" rel="stylesheet">
     <link href="@helpers.assets(s"/vendors/AdminLTE-3.0.2/css/skins/${context.settings.skinName}.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/fontawesome-free-5.12.0-web/css/fontawesome.min.css")" rel="stylesheet">
+    <link href="@helpers.assets(s"/vendors/color-themes-for-google-code-prettify/${highlighterTheme}.min.css")" type="text/css" rel="stylesheet"/>
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.structure.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.theme.min.css")" rel="stylesheet">

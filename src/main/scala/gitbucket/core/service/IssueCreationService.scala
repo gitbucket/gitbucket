@@ -75,6 +75,13 @@ trait IssueCreationService {
   }
 
   /**
+   * Tests whether an logged-in user can manage issues comment.
+   */
+  protected def isIssueCommentManageable(repository: RepositoryInfo)(implicit context: Context, s: Session): Boolean = {
+    hasOwnerRole(repository.owner, repository.name, context.loginAccount)
+  }
+
+  /**
    * Tests whether an logged-in user can post issues.
    */
   protected def isIssueEditable(repository: RepositoryInfo)(implicit context: Context, s: Session): Boolean = {

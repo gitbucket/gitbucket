@@ -297,13 +297,30 @@ case comment: gitbucket.core.model.IssueComment => {
     </div>
     }
     case "change_base_branch" => {
-    <div class="discussion-item discussion-item-pencil">
-      <div class="discussion-item-header">
-        <span class="discussion-item-icon"><i class="octicon octicon-pencil"></i></span>
-        @helpers.avatar(comment.commentedUserName, 16)
-        @helpers.user(comment.commentedUserName, styleClass="username strong")
-        change base branch from <code>@convertLineSeparator(comment.content, "LF").split("\n")(0)</code> to <code>@convertLineSeparator(comment.content, "LF").split("\n")(1)</code>
-        @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+    <div>
+      <i class="fas octicon octicon-pencil"></i>
+      <div class="timeline-item discussion-item discussion-item-pencil">
+        <span class="time"><i class="fas fa-clock"></i> @gitbucket.core.helper.html.datetimeago(comment.registeredDate)</span>
+        <div class="timeline-header border-0">
+          <div class="discussion-item-header">
+            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.user(comment.commentedUserName, styleClass="username strong")
+            change base branch from <code>@convertLineSeparator(comment.content, "LF").split("\n")(0)</code> to <code>@convertLineSeparator(comment.content, "LF").split("\n")(1)</code>          </div>
+        </div>
+      </div>
+    </div>
+    }
+    case "delete_comment" => {
+    <div>
+      <i class="fas octicon octicon-trashcan"></i>
+      <div class="timeline-item discussion-item discussion-item-delete-comment">
+        <span class="time"><i class="fas fa-clock"></i> @gitbucket.core.helper.html.datetimeago(comment.registeredDate)</span>
+        <div class="timeline-header border-0">
+          <div class="discussion-item-header">
+            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.user(comment.commentedUserName, styleClass="username strong")
+            deleted the comment
+          </div>
       </div>
     </div>
     }

@@ -318,8 +318,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 
             // Retrieve all issue count in the repository
             val issueCount =
-              countIssue(IssueSearchCondition(state = "open"), false, owner -> repository) +
-                countIssue(IssueSearchCondition(state = "closed"), false, owner -> repository)
+              countIssue(IssueSearchCondition(state = "open"), IssueSearchOption.Issues, owner -> repository) +
+                countIssue(IssueSearchCondition(state = "closed"), IssueSearchOption.Issues, owner -> repository)
 
             // Extract new commit and apply issue comment
             val defaultBranch = repositoryInfo.repository.defaultBranch

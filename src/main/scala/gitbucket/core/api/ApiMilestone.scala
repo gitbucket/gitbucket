@@ -16,7 +16,7 @@ case class ApiMilestone(
   state: String,
   title: String,
   description: String,
-  creator: ApiUser,
+//  creator: ApiUser,  // MILESTONE table does not have created user column
   open_issues: Int,
   closed_issues: Int,
 //  created_at: Option[Date],
@@ -29,20 +29,18 @@ object ApiMilestone {
   def apply(
     repository: Repository,
     milestone: Milestone,
-    user: ApiUser,
     open_issue_count: Int = 0,
     closed_issue_count: Int = 0
   ): ApiMilestone =
     ApiMilestone(
       url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone.milestoneId}"),
-      html_url = ApiPath(s"/${RepositoryName(repository).fullName}/issues?milestone=${milestone.title}&state=open"),
+      html_url = ApiPath(s"/${RepositoryName(repository).fullName}/milestone/${milestone.milestoneId}"),
 //      label_url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone_number}/labels"),
       id = milestone.milestoneId,
       number = milestone.milestoneId, // use milestoneId as number
       state = if (milestone.closedDate.isDefined) "closed" else "open",
       title = milestone.title,
       description = milestone.description.getOrElse(""),
-      creator = user,
       open_issues = open_issue_count,
       closed_issues = closed_issue_count,
       closed_at = milestone.closedDate,

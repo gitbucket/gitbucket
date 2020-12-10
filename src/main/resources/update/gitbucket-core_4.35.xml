@@ -11,4 +11,11 @@
   <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
   <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
   <addAutoIncrement columnName="HOOK_ID" columnDataType="int" tableName="WEB_HOOK"/>
+
+  <createTable tableName="ACCOUNT_PREFERENCE">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="HIGHLIGHTER_THEME" type="varchar(100)" nullable="false" defaultValue="prettify"/>
+  </createTable>
+  <addPrimaryKey constraintName="IDX_ACCOUNT_PREFERENCE_PK" tableName="ACCOUNT_PREFERENCE" columnNames="USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_PREFERENCE_FK0" baseTableName="ACCOUNT_PREFERENCE" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
 </changeSet>

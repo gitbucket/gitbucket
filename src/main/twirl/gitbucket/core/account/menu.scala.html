@@ -43,6 +43,11 @@
               <i class="nav-icon octicon octicon-zap"></i> <p>Service Hooks</p>
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link @if(active=="preferences"){ active}" href="@context.path/@userName/_preferences">
+              <i class="nav-icon octicon octicon-star"></i> <span>Preferences</span>
+            </a>
+          </li>
           @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
             @menu(context).map { link =>
               <li class="nav-item">
