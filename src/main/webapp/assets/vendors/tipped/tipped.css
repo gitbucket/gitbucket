@@ -1,0 +1,935 @@
+.tpd-tooltip {
+  position: absolute;
+}
+
+/* Fix for CSS frameworks that don't keep the use of box-sizing: border-box
+   within their own namespace */
+.tpd-tooltip {
+  box-sizing: content-box;
+}
+.tpd-tooltip [class^="tpd-"] {
+  box-sizing: inherit;
+}
+
+/* Content */
+.tpd-content-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  float: left;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.tpd-content-spacer,
+.tpd-content-relative,
+.tpd-content-relative-padder {
+  float: left;
+  position: relative;
+}
+.tpd-content-relative {
+  width: 100%;
+}
+
+.tpd-content {
+  float: left;
+  clear: both;
+  position: relative;
+  padding: 10px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #fff;
+  box-sizing: border-box !important;
+}
+.tpd-has-inner-close .tpd-content-relative .tpd-content {
+  padding-right: 0 !important;
+}
+.tpd-tooltip .tpd-content-no-padding {
+  padding: 0 !important;
+}
+
+.tpd-title-wrapper {
+  float: left;
+  position: relative;
+  overflow: hidden;
+}
+.tpd-title-spacer {
+  float: left;
+}
+.tpd-title-relative,
+.tpd-title-relative-padder {
+  float: left;
+  position: relative;
+}
+.tpd-title-relative {
+  width: 100%;
+}
+.tpd-title {
+  float: left;
+  position: relative;
+  font-size: 11px;
+  line-height: 16px;
+  padding: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #fff;
+  box-sizing: border-box !important;
+}
+.tpd-has-title-close .tpd-title {
+  padding-right: 0 !important;
+}
+.tpd-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  overflow: hidden;
+  color: #fff;
+}
+.tpd-close-icon {
+  float: left;
+  font-family: Arial, Baskerville, monospace;
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: none;
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+  line-height: 28px;
+  text-align: center;
+}
+
+/* Skin */
+.tpd-skin {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.tpd-frames {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.tpd-frames .tpd-frame {
+  float: left;
+  width: 100%;
+  height: 100%;
+  clear: both;
+  display: none;
+}
+
+.tpd-visible-frame-top .tpd-frame-top {
+  display: block;
+}
+.tpd-visible-frame-bottom .tpd-frame-bottom {
+  display: block;
+}
+.tpd-visible-frame-left .tpd-frame-left {
+  display: block;
+}
+.tpd-visible-frame-right .tpd-frame-right {
+  display: block;
+}
+
+.tpd-backgrounds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-transform-origin: 0% 0%;
+  transform-origin: 0% 0%;
+}
+.tpd-background-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  pointer-events: none;
+}
+.tpd-no-shadow .tpd-skin .tpd-background-shadow {
+  box-shadow: none !important;
+}
+
+.tpd-background-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+/* only the top background box should be shown when not using a stem */
+.tpd-no-stem .tpd-background-box,
+.tpd-no-stem .tpd-shift-stem {
+  display: none;
+}
+.tpd-no-stem .tpd-background-box-top {
+  display: block;
+}
+
+.tpd-background-box-shift,
+.tpd-background-box-shift-further {
+  position: relative;
+  float: left;
+  width: 100%;
+  height: 100%;
+}
+.tpd-background {
+  border-radius: 10px;
+  float: left;
+  clear: both;
+  background: none;
+  -webkit-background-clip: padding-box; /* Safari */
+  background-clip: padding-box; /* IE9+, Firefox 4+, Opera, Chrome */
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /* opacity here bugs out in firefox, .tpd-background-content should have no opacity if this opacity is less than 1 */
+}
+.tpd-background-loading {
+  display: none;
+}
+/* no radius */
+.tpd-no-radius
+  .tpd-skin
+  .tpd-frames
+  .tpd-frame
+  .tpd-backgrounds
+  .tpd-background {
+  border-radius: 0;
+}
+.tpd-background-title {
+  float: left;
+  clear: both;
+  width: 100%;
+  background-color: #282828;
+}
+.tpd-background-content {
+  float: left;
+  clear: both;
+  width: 100%;
+  background-color: #282828;
+}
+.tpd-background-border-hack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-style: solid;
+}
+
+.tpd-background-box-top {
+  top: 0;
+}
+.tpd-background-box-bottom {
+  bottom: 0;
+}
+.tpd-background-box-left {
+  left: 0;
+}
+.tpd-background-box-right {
+  right: 0;
+}
+
+/* Skin / Stems */
+.tpd-shift-stem {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+.tpd-shift-stem-side {
+  position: absolute;
+}
+.tpd-frame-top .tpd-shift-stem-side,
+.tpd-frame-bottom .tpd-shift-stem-side {
+  width: 100%;
+}
+.tpd-frame-left .tpd-shift-stem-side,
+.tpd-frame-right .tpd-shift-stem-side {
+  height: 100%;
+}
+
+.tpd-stem {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden; /* shows possible invalid subpx rendering */
+  width: 16px; /* best cross browser stem: width = 2 x height (90deg angle) */
+  height: 8px;
+  margin-left: 3px; /* space from the side */
+  margin-top: 2px; /* space between target and stem */
+  -webkit-transform-origin: 0% 0%;
+  transform-origin: 0% 0%;
+}
+/* remove margins once we're done measuring */
+.tpd-tooltip .tpd-skin .tpd-frames .tpd-frame .tpd-shift-stem .tpd-stem-reset {
+  margin: 0 !important;
+}
+
+.tpd-stem-spacer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.tpd-stem-reset .tpd-stem-spacer {
+  margin-top: 0;
+}
+
+.tpd-stem-point {
+  width: 100px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+}
+.tpd-stem-downscale,
+.tpd-stem-transform {
+  float: left;
+  width: 100%;
+  height: 100%;
+  -webkit-transform-origin: 0% 0%;
+  transform-origin: 0% 0%;
+  position: relative;
+}
+
+.tpd-stem-side {
+  width: 50%;
+  height: 100%;
+  float: left;
+  position: relative;
+  overflow: hidden;
+}
+.tpd-stem-side-inversed {
+  -webkit-transform: scale(-1, 1);
+  transform: scale(-1, 1);
+}
+.tpd-stem-triangle {
+  width: 0;
+  height: 0;
+  border-bottom-style: solid;
+  border-left-color: transparent;
+  border-left-style: solid;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.tpd-stem-border {
+  width: 20px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  background-color: #fff; /* will become transparent */
+  border-right-color: #fff;
+  border-right-style: solid;
+  border-right-width: 0;
+}
+
+.tpd-stem-border-corner {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  border-right-style: solid;
+  border-right-width: 0;
+}
+
+/* fixes rendering issue in IE */
+.tpd-stem * {
+  z-index: 0;
+  zoom: 1;
+}
+
+/* used by IE < 9 */
+.tpd-stem-border-center-offset,
+.tpd-stem-border-center-offset-inverse {
+  float: left;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.tpd-stem-notransform {
+  float: left;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.tpd-stem-notransform .tpd-stem-border {
+  height: 100%;
+  position: relative;
+  float: left;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+.tpd-stem-notransform .tpd-stem-border-center {
+  position: absolute;
+}
+.tpd-stem-notransform .tpd-stem-border-corner {
+  background: #fff;
+  border: 0;
+  top: auto;
+  left: auto;
+}
+.tpd-stem-notransform .tpd-stem-border-center,
+.tpd-stem-notransform .tpd-stem-triangle {
+  height: 0;
+  border: 0;
+  left: 50%;
+}
+
+/* transformations for left/right/bottom */
+.tpd-stem-transform-left {
+  -webkit-transform: rotate(-90deg) scale(-1, 1);
+  transform: rotate(-90deg) scale(-1, 1);
+}
+.tpd-stem-transform-right {
+  -webkit-transform: rotate(90deg) translate(0, -100%);
+  transform: rotate(90deg) translate(0, -100%);
+}
+.tpd-stem-transform-bottom {
+  -webkit-transform: scale(1, -1) translate(0, -100%);
+  transform: scale(1, -1) translate(0, -100%);
+}
+
+/* Spinner */
+.tpd-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 36px;
+}
+.tpd-spinner-spin {
+  position: relative;
+  float: left;
+  margin: 8px 0 0 13px;
+  text-indent: -9999em;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  border-right: 2px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  border-left: 2px solid #fff;
+  -webkit-animation: tpd-spinner-animation 1.1s infinite linear;
+  animation: tpd-spinner-animation 1.1s infinite linear;
+  box-sizing: border-box !important;
+}
+.tpd-spinner-spin,
+.tpd-spinner-spin:after {
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}
+@-webkit-keyframes tpd-spinner-animation {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes tpd-spinner-animation {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+/* show the loader while loading and hide all the content */
+.tpd-is-loading .tpd-content-wrapper,
+.tpd-is-loading .tpd-title-wrapper {
+  display: none;
+}
+.tpd-is-loading .tpd-background {
+  display: none;
+}
+.tpd-is-loading .tpd-background-loading {
+  display: block;
+}
+
+/* Resets while measuring content */
+.tpd-tooltip-measuring {
+  top: 0;
+  left: 0;
+  position: absolute;
+  max-width: 100%;
+  width: 100%;
+}
+.tpd-tooltip-measuring .tpd-skin,
+.tpd-tooltip-measuring .tpd-spinner {
+  display: none;
+}
+
+.tpd-tooltip-measuring .tpd-content-wrapper,
+.tpd-tooltip-measuring .tpd-title-wrapper {
+  display: block;
+}
+
+/* Links */
+.tpd-tooltip a,
+.tpd-tooltip a:hover {
+  color: #808080;
+  text-decoration: underline;
+}
+.tpd-tooltip a:hover {
+  color: #6c6c6c;
+}
+
+/*
+ * Sizes
+ */
+/* x-small */
+.tpd-size-x-small .tpd-content,
+.tpd-size-x-small .tpd-title {
+  padding: 7px 8px;
+  font-size: 10px;
+  line-height: 15px;
+}
+.tpd-size-x-small .tpd-background {
+  border-radius: 5px;
+}
+.tpd-size-x-small .tpd-stem {
+  width: 12px;
+  height: 6px;
+  margin-left: 4px;
+  margin-top: 2px; /* space between target and stem */
+}
+.tpd-size-x-small.tpd-no-radius .tpd-stem {
+  margin-left: 7px;
+}
+.tpd-size-x-small .tpd-close {
+  margin-bottom: 1px;
+}
+.tpd-size-x-small .tpd-spinner {
+  width: 35px;
+  height: 29px;
+}
+.tpd-size-x-small .tpd-spinner-spin {
+  margin: 6px 0 0 9px;
+}
+.tpd-size-x-small .tpd-spinner-spin,
+.tpd-size-x-small .tpd-spinner-spin:after {
+  width: 17px;
+  height: 17px;
+}
+
+/* small */
+.tpd-size-small .tpd-content,
+.tpd-size-small .tpd-title {
+  padding: 8px;
+  font-size: 10px;
+  line-height: 16px;
+}
+.tpd-size-small .tpd-background {
+  border-radius: 6px;
+}
+.tpd-size-small .tpd-stem {
+  width: 14px;
+  height: 7px;
+  margin-left: 5px;
+  margin-top: 2px; /* space between target and stem */
+}
+.tpd-size-small.tpd-no-radius .tpd-stem {
+  margin-left: 8px;
+}
+.tpd-size-small .tpd-close {
+  margin: 2px 1px;
+}
+.tpd-size-small .tpd-spinner {
+  width: 42px;
+  height: 32px;
+}
+.tpd-size-small .tpd-spinner-spin {
+  margin: 7px 0 0 13px;
+}
+.tpd-size-small .tpd-spinner-spin,
+.tpd-size-small .tpd-spinner-spin:after {
+  width: 18px;
+  height: 18px;
+}
+
+/* medium (default) */
+.tpd-size-medium .tpd-content,
+.tpd-size-medium .tpd-title {
+  padding: 10px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.tpd-size-medium .tpd-background {
+  border-radius: 8px;
+}
+.tpd-size-medium .tpd-stem {
+  width: 16px; /* best cross browser stem width is 2xheight, for a 90deg angle */
+  height: 8px;
+  margin-left: 6px; /* space from the side */
+  margin-top: 2px; /* space between target and stem */
+}
+.tpd-size-medium.tpd-no-radius .tpd-stem {
+  margin-left: 10px;
+}
+.tpd-size-medium .tpd-close {
+  margin: 4px 2px;
+}
+/* ideal spinner dimensions don't cause movement op top and
+   on the stem when switching to text using position:'topleft' */
+.tpd-size-medium .tpd-spinner {
+  width: 50px;
+  height: 36px;
+}
+.tpd-size-medium .tpd-spinner-spin {
+  margin: 8px 0 0 15px;
+}
+.tpd-size-medium .tpd-spinner-spin,
+.tpd-size-medium .tpd-spinner-spin:after {
+  width: 20px;
+  height: 20px;
+}
+
+/* large */
+.tpd-size-large .tpd-content,
+.tpd-size-large .tpd-title {
+  padding: 10px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.tpd-size-large .tpd-background {
+  border-radius: 8px;
+}
+.tpd-size-large .tpd-stem {
+  width: 18px;
+  height: 9px;
+  margin-left: 7px;
+  margin-top: 2px; /* space between target and stem */
+}
+.tpd-size-large.tpd-no-radius .tpd-stem {
+  margin-left: 10px;
+}
+.tpd-size-large .tpd-close {
+  margin: 5px 2px 5px 2px;
+}
+.tpd-size-large .tpd-spinner {
+  width: 54px;
+  height: 38px;
+}
+.tpd-size-large .tpd-spinner-spin {
+  margin: 9px 0 0 17px;
+}
+.tpd-size-large .tpd-spinner-spin,
+.tpd-size-large .tpd-spinner-spin:after {
+  width: 20px;
+  height: 20px;
+}
+
+/* Skins */
+/* default (dark) */
+.tpd-skin-dark .tpd-content,
+.tpd-skin-dark .tpd-title,
+.tpd-skin-dark .tpd-close {
+  color: #fff;
+}
+.tpd-skin-dark .tpd-background-content,
+.tpd-skin-dark .tpd-background-title {
+  background-color: #282828;
+}
+.tpd-skin-dark .tpd-background {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+/* line below the title */
+.tpd-skin-dark .tpd-title-wrapper {
+  border-bottom: 1px solid #404040;
+}
+/* spinner */
+.tpd-skin-dark .tpd-spinner-spin {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-left-color: #fff;
+}
+/* links */
+.tpd-skin-dark a {
+  color: #ccc;
+}
+.tpd-skin-dark a:hover {
+  color: #c0c0c0;
+}
+
+/* light */
+.tpd-skin-light .tpd-content,
+.tpd-skin-light .tpd-title,
+.tpd-skin-light .tpd-close {
+  color: #333;
+}
+.tpd-skin-light .tpd-background-content {
+  background-color: #fff;
+}
+.tpd-skin-light .tpd-background {
+  border-width: 1px;
+  border-color: rgba(0, 0, 0, 0.3);
+}
+.tpd-skin-light .tpd-background-title {
+  background-color: #f7f7f7;
+}
+.tpd-skin-light .tpd-title-wrapper {
+  border-bottom: 1px solid #c0c0c0;
+}
+.tpd-skin-light .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+/* fallback for no/disabled shadow */
+.tpd-skin-light.tpd-no-shadow .tpd-background {
+  border-color: rgba(100, 100, 100, 0.3);
+}
+.tpd-skin-light .tpd-spinner-spin {
+  border-color: rgba(51, 51, 51, 0.2);
+  border-left-color: #333;
+}
+.tpd-skin-light a {
+  color: #808080;
+}
+.tpd-skin-light a:hover {
+  color: #6c6c6c;
+}
+
+/* gray */
+.tpd-skin-gray .tpd-content,
+.tpd-skin-gray .tpd-title,
+.tpd-skin-gray .tpd-close {
+  color: #fff;
+}
+.tpd-skin-gray .tpd-background-content,
+.tpd-skin-gray .tpd-background-title {
+  background-color: #727272;
+}
+.tpd-skin-gray .tpd-background {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.tpd-skin-gray .tpd-title-wrapper {
+  border-bottom: 1px solid #505050;
+}
+.tpd-skin-gray .tpd-spinner-spin {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-left-color: #fff;
+}
+.tpd-skin-gray a {
+  color: #ccc;
+}
+.tpd-skin-gray a:hover {
+  color: #b6b6b6;
+}
+
+/* red */
+.tpd-skin-red .tpd-content,
+.tpd-skin-red .tpd-title,
+.tpd-skin-red .tpd-close {
+  color: #fff;
+}
+.tpd-skin-red .tpd-background-content {
+  background-color: #e13c37;
+}
+.tpd-skin-red .tpd-background {
+  border-width: 1px;
+  border-color: rgba(12, 0, 0, 0.6);
+}
+.tpd-skin-red .tpd-background-title {
+  background-color: #e13c37;
+}
+.tpd-skin-red .tpd-title-wrapper {
+  border-bottom: 1px solid #a30500;
+}
+.tpd-skin-red .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+.tpd-skin-red .tpd-spinner-spin {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-left-color: #fff;
+}
+.tpd-skin-red a {
+  color: #ddd;
+}
+.tpd-skin-red a:hover {
+  color: #c6c6c6;
+}
+
+/* green */
+.tpd-skin-green .tpd-content,
+.tpd-skin-green .tpd-title,
+.tpd-skin-green .tpd-close {
+  color: #fff;
+}
+.tpd-skin-green .tpd-background-content {
+  background-color: #4aab3a;
+}
+.tpd-skin-green .tpd-background {
+  border-width: 1px;
+  border-color: rgba(0, 12, 0, 0.6);
+}
+.tpd-skin-green .tpd-background-title {
+  background-color: #4aab3a;
+}
+.tpd-skin-green .tpd-title-wrapper {
+  border-bottom: 1px solid #127c00;
+}
+.tpd-skin-green .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+.tpd-skin-green .tpd-spinner-spin {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-left-color: #fff;
+}
+.tpd-skin-green a {
+  color: #ddd;
+}
+.tpd-skin-green a:hover {
+  color: #c6c6c6;
+}
+
+/* blue */
+.tpd-skin-blue .tpd-content,
+.tpd-skin-blue .tpd-title,
+.tpd-skin-blue .tpd-close {
+  color: #fff;
+}
+.tpd-skin-blue .tpd-background-content {
+  background-color: #45a3e3;
+}
+.tpd-skin-blue .tpd-background {
+  border-width: 1px;
+  border-color: rgba(0, 0, 12, 0.6);
+}
+.tpd-skin-blue .tpd-background-title {
+  background-color: #45a3e3;
+}
+.tpd-skin-blue .tpd-title-wrapper {
+  border-bottom: 1px solid #1674b4;
+}
+.tpd-skin-blue .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+.tpd-skin-blue .tpd-spinner-spin {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-left-color: #fff;
+}
+.tpd-skin-blue a {
+  color: #ddd;
+}
+.tpd-skin-blue a:hover {
+  color: #c6c6c6;
+}
+
+/* lightyellow */
+.tpd-skin-lightyellow .tpd-content,
+.tpd-skin-lightyellow .tpd-title,
+.tpd-skin-lightyellow .tpd-close {
+  color: #333;
+}
+.tpd-skin-lightyellow .tpd-background-content {
+  background-color: #ffffa9;
+}
+.tpd-skin-lightyellow .tpd-background {
+  border-width: 1px;
+  border-color: rgba(8, 8, 0, 0.35);
+}
+.tpd-skin-lightyellow .tpd-background-title {
+  background-color: #ffffa9;
+}
+.tpd-skin-lightyellow .tpd-title-wrapper {
+  border-bottom: 1px solid #a7a697;
+}
+.tpd-skin-lightyellow .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+.tpd-skin-lightyellow .tpd-spinner-spin {
+  border-color: rgba(51, 51, 51, 0.2);
+  border-left-color: #333;
+}
+.tpd-skin-lightyellow a {
+  color: #777;
+}
+.tpd-skin-lightyellow a:hover {
+  color: #868686;
+}
+
+/* lightblue */
+.tpd-skin-lightblue .tpd-content,
+.tpd-skin-lightblue .tpd-title,
+.tpd-skin-lightblue .tpd-close {
+  color: #333;
+}
+.tpd-skin-lightblue .tpd-background-content {
+  background-color: #bce5ff;
+}
+.tpd-skin-lightblue .tpd-background {
+  border-width: 1px;
+  border-color: rgba(0, 0, 8, 0.35);
+}
+.tpd-skin-lightblue .tpd-background-title {
+  background-color: #bce5ff;
+}
+.tpd-skin-lightblue .tpd-title-wrapper {
+  border-bottom: 1px solid #909b9f;
+}
+.tpd-skin-lightblue .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+.tpd-skin-lightblue .tpd-spinner-spin {
+  border-color: rgba(51, 51, 51, 0.2);
+  border-left-color: #333;
+}
+.tpd-skin-lightblue a {
+  color: #777;
+}
+.tpd-skin-lightblue a:hover {
+  color: #868686;
+}
+
+/* lightpink */
+.tpd-skin-lightpink .tpd-content,
+.tpd-skin-lightpink .tpd-title,
+.tpd-skin-lightpink .tpd-close {
+  color: #333;
+}
+.tpd-skin-lightpink .tpd-background-content {
+  background-color: #ffc4bf;
+}
+.tpd-skin-lightpink .tpd-background {
+  border-width: 1px;
+  border-color: rgba(8, 0, 0, 0.35);
+}
+.tpd-skin-lightpink .tpd-background-title {
+  background-color: #ffc4bf;
+}
+.tpd-skin-lightpink .tpd-title-wrapper {
+  border-bottom: 1px solid #a08f8f;
+}
+.tpd-skin-lightpink .tpd-background-shadow {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+.tpd-skin-lightpink .tpd-spinner-spin {
+  border-color: rgba(51, 51, 51, 0.2);
+  border-left-color: #333;
+}
+.tpd-skin-lightpink a {
+  color: #777;
+}
+.tpd-skin-lightpink a:hover {
+  color: #868686;
+}
