@@ -219,7 +219,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
             val mergeStatus = PullRequestService.MergeStatus(
               conflictMessage = conflictMessage,
-              commitStatues = getCommitStatues(owner, name, pullreq.commitIdTo),
+              commitStatuses = getCommitStatuses(owner, name, pullreq.commitIdTo),
               branchProtection = branchProtection,
               branchIsOutOfDate = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
               needStatusCheck = context.loginAccount

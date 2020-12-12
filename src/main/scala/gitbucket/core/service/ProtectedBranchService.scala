@@ -154,7 +154,7 @@ object ProtectedBranchService {
       if (contexts.isEmpty) {
         Set.empty
       } else {
-        contexts.toSet -- getCommitStatues(owner, repository, sha1)
+        contexts.toSet -- getCommitStatuses(owner, repository, sha1)
           .filter(_.state == CommitState.SUCCESS)
           .map(_.context)
           .toSet

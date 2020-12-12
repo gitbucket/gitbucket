@@ -47,7 +47,7 @@ trait ApiRepositoryStatusControllerBase extends ControllerBase {
       ref <- params.get("ref")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
     } yield {
-      JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map {
+      JsonFormat(getCommitStatusesWithCreator(repository.owner, repository.name, sha).map {
         case (status, creator) =>
           ApiCommitStatus(status, ApiUser(creator))
       })
@@ -73,7 +73,7 @@ trait ApiRepositoryStatusControllerBase extends ControllerBase {
       owner <- getAccountByUserName(repository.owner)
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
     } yield {
-      val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
+      val statuses = getCommitStatusesWithCreator(repository.owner, repository.name, sha)
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
     }) getOrElse NotFound()
   })

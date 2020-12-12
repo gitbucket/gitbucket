@@ -611,7 +611,7 @@ object PullRequestService {
 
   case class MergeStatus(
     conflictMessage: Option[String],
-    commitStatues: List[CommitStatus],
+    commitStatuses: List[CommitStatus],
     branchProtection: ProtectedBranchService.ProtectedBranchInfo,
     branchIsOutOfDate: Boolean,
     hasUpdatePermission: Boolean,
@@ -622,7 +622,7 @@ object PullRequestService {
 
     val hasConflict = conflictMessage.isDefined
     val statuses: List[CommitStatus] =
-      commitStatues ++ (branchProtection.contexts.toSet -- commitStatues.map(_.context).toSet)
+      commitStatuses ++ (branchProtection.contexts.toSet -- commitStatuses.map(_.context).toSet)
         .map(CommitStatus.pending(branchProtection.owner, branchProtection.repository, _))
     val hasRequiredStatusProblem = needStatusCheck && branchProtection.contexts.exists(
       context => statuses.find(_.context == context).map(_.state) != Some(CommitState.SUCCESS)
