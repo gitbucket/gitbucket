@@ -637,13 +637,20 @@ trait PullRequestsControllerBase extends ControllerBase {
     defining(repository.owner, repository.name) {
       case (owner, repoName) =>
         val page = IssueSearchCondition.page(request)
-
         // retrieve search condition
         val condition = IssueSearchCondition(request)
+        // search issues
+        val issues = searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName)
+        // commit status
+        val status = issues.map { issue =>
+          issue.commitId.flatMap { commitId =>
+            getCommitStatusWithSummary(owner, repoName, commitId)
+          }
+        }
 
         gitbucket.core.issues.html.list(
           "pulls",
-          searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
+          issues.zip(status),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),

@@ -21,9 +21,7 @@
             <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
             <strong>@status.context</strong>
             @status.description.map { desc => <span class="muted">- @desc</span> }
-            <span>
-            @status.targetUrl.map { url => - <a href="@url">Details</a> }
-            </span>
+            <span>@status.targetUrl.map { url => - <a href="@url">Details</a> }</span>
           </div>
         }
       </div>

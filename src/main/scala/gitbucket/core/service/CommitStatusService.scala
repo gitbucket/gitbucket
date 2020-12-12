@@ -47,6 +47,18 @@ trait CommitStatusService {
         )
     }
 
+  def getCommitStatusWithSummary(userName: String, repositoryName: String, sha: String)(
+    implicit s: Session
+  ): Option[(CommitState, List[CommitStatus])] = {
+    val statuses = getCommitStatues(userName, repositoryName, sha)
+    if (statuses.isEmpty) {
+      None
+    } else {
+      val summary = CommitState.combine(statuses.groupBy(_.state).keySet)
+      Some((summary, statuses))
+    }
+  }
+
   def getCommitStatus(userName: String, repositoryName: String, id: Int)(implicit s: Session): Option[CommitStatus] =
     CommitStatuses.filter(t => t.byPrimaryKey(id) && t.byRepository(userName, repositoryName)).firstOption
 

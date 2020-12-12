@@ -14,7 +14,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.{Account, CommitState, CommitStatus}
+import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.view
@@ -289,7 +289,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                         verified = commit.commitSign.flatMap(GpgUtil.verifySign)
                       ),
                       JGitUtil.getTagsOnCommit(git, commit.id),
-                      getCommitStatus(repository, commit.id)
+                      getCommitStatusWithSummary(repository.owner, repository.name, commit.id)
                     )
                 }
                 .splitWith {
@@ -304,16 +304,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
     }
   })
-
-  private def getCommitStatus(repository: RepositoryInfo, sha: String): Option[(CommitState, List[CommitStatus])] = {
-    val statuses = getCommitStatues(repository.owner, repository.name, sha)
-    if (statuses.isEmpty) {
-      None
-    } else {
-      val summary = CommitState.combine(statuses.groupBy(_.state).keySet)
-      Some((summary, statuses))
-    }
-  }
 
   get("/:owner/:repository/new/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
@@ -724,7 +714,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 new JGitUtil.CommitInfo(revCommit),
                 JGitUtil.getBranchesOfCommit(git, revCommit.getName),
                 JGitUtil.getTagsOfCommit(git, revCommit.getName),
-                getCommitStatus(repository, revCommit.getName),
+                getCommitStatusWithSummary(repository.owner, repository.name, revCommit.getName),
                 getCommitComments(repository.owner, repository.name, id, true),
                 repository,
                 diffs,
@@ -896,7 +886,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                   branch.commitId
                 ),
                 protectedBranches.contains(branch.name),
-                getCommitStatus(repository, branch.commitId)
+                getCommitStatusWithSummary(repository.owner, repository.name, branch.commitId)
             )
           )
           .reverse
@@ -1080,7 +1070,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 repository,
                 if (path == ".") Nil else path.split("/").toList, // current path
                 new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
-                getCommitStatus(repository, lastModifiedCommit.getName),
+                getCommitStatusWithSummary(repository.owner, repository.name, lastModifiedCommit.getName),
                 commitCount,
                 files,
                 readme,
