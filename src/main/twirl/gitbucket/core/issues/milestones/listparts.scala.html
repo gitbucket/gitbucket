@@ -1,4 +1,4 @@
-@(issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+@(issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -62,7 +62,7 @@
         </td>
       </tr>
     }
-    @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) => {
+    @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId), status) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
           @if(isManageable){
@@ -83,7 +83,9 @@
               @if(issue.closed){<i class="menu-icon octicon octicon-issue-closed"></i>}else{<i class="menu-icon octicon octicon-issue-opened"></i>}@issue.title@issue.title
             </a>
           }
-          @gitbucket.core.issues.html.commitstatus(issue, commitStatus)
+          @status.map { case (summary, statuses) =>
+            @gitbucket.core.helper.html.commitstatus(commitId.get, summary, statuses)
+          }
           @labels.map { label =>
             <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
           }
@@ -113,7 +115,7 @@
           </div>
         </td>
       </tr>
-    }}
+    }
   </tbody>
 </table>
 <div class="pull-right">

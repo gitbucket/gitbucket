@@ -1,4 +1,4 @@
-@(issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+@(issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -17,7 +17,7 @@
     </tr>
   </thead>
   <tbody>
-    @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) => {
+    @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId), status) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
           <a href="@context.path/@issue.userName/@issue.repositoryName">@issue.userName/@issue.repositoryName</a>&nbsp;&#xFF65;
@@ -26,7 +26,9 @@
           } else {
             <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
           }
-          @gitbucket.core.issues.html.commitstatus(issue, commitStatus)
+          @status.map { case (summary, statuses) =>
+            @gitbucket.core.helper.html.commitstatus(commitId.get, summary, statuses)
+          }
           @labels.map { label =>
             <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
           }
@@ -52,7 +54,7 @@
           </div>
         </td>
       </tr>
-    }}
+    }
     @if(issues.isEmpty){
       <tr>
         <td style="padding: 20px; background-color: #eee; text-align: center;">

@@ -1,4 +1,4 @@
-@(issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+@(issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
   page: Int,
   openCount: Int,
   closedCount: Int,

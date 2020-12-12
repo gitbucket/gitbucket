@@ -47,6 +47,18 @@ trait CommitStatusService {
         )
     }
 
+  def getCommitStatusWithSummary(userName: String, repositoryName: String, sha: String)(
+    implicit s: Session
+  ): Option[(CommitState, List[CommitStatus])] = {
+    val statuses = getCommitStatuses(userName, repositoryName, sha)
+    if (statuses.isEmpty) {
+      None
+    } else {
+      val summary = CommitState.combine(statuses.groupBy(_.state).keySet)
+      Some((summary, statuses))
+    }
+  }
+
   def getCommitStatus(userName: String, repositoryName: String, id: Int)(implicit s: Session): Option[CommitStatus] =
     CommitStatuses.filter(t => t.byPrimaryKey(id) && t.byRepository(userName, repositoryName)).firstOption
 
@@ -55,10 +67,12 @@ trait CommitStatusService {
   ): Option[CommitStatus] =
     CommitStatuses.filter(t => t.byCommit(userName, repositoryName, sha) && t.context === context.bind).firstOption
 
-  def getCommitStatues(userName: String, repositoryName: String, sha: String)(implicit s: Session): List[CommitStatus] =
-    byCommitStatues(userName, repositoryName, sha).list
+  def getCommitStatuses(userName: String, repositoryName: String, sha: String)(
+    implicit s: Session
+  ): List[CommitStatus] =
+    byCommitStatus(userName, repositoryName, sha).list
 
-  def getRecentStatuesContexts(userName: String, repositoryName: String, time: java.util.Date)(
+  def getRecentStatusContexts(userName: String, repositoryName: String, time: java.util.Date)(
     implicit s: Session
   ): List[String] =
     CommitStatuses
@@ -68,15 +82,15 @@ trait CommitStatusService {
       .map(_._1)
       .list
 
-  def getCommitStatuesWithCreator(userName: String, repositoryName: String, sha: String)(
+  def getCommitStatusesWithCreator(userName: String, repositoryName: String, sha: String)(
     implicit s: Session
   ): List[(CommitStatus, Account)] =
-    byCommitStatues(userName, repositoryName, sha)
+    byCommitStatus(userName, repositoryName, sha)
       .join(Accounts)
       .filter { case (t, a) => t.creator === a.userName }
       .list
 
-  protected def byCommitStatues(userName: String, repositoryName: String, sha: String)(implicit s: Session) =
+  protected def byCommitStatus(userName: String, repositoryName: String, sha: String)(implicit s: Session) =
     CommitStatuses.filter(t => t.byCommit(userName, repositoryName, sha)).sortBy(_.updatedDate desc)
 
 }

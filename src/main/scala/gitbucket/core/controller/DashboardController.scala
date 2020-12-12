@@ -21,11 +21,17 @@ class DashboardController
     with WebHookPullRequestService
     with WebHookPullRequestReviewCommentService
     with MilestonesService
+    with CommitStatusService
     with UsersAuthenticator
     with RequestCache
 
 trait DashboardControllerBase extends ControllerBase {
-  self: IssuesService with PullRequestService with RepositoryService with AccountService with UsersAuthenticator =>
+  self: IssuesService
+    with PullRequestService
+    with RepositoryService
+    with AccountService
+    with CommitStatusService
+    with UsersAuthenticator =>
 
   get("/dashboard/repos")(usersOnly {
     val repos = getVisibleRepositories(
@@ -86,9 +92,10 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
     val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page = IssueSearchCondition.page(request)
+    val issues = searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos: _*)
 
     html.issues(
-      searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      issues.map(issue => (issue, None)),
       page,
       countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, userRepos: _*),
       countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, userRepos: _*),
@@ -116,15 +123,21 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
     val allRepos = getAllRepositories(userName)
     val page = IssueSearchCondition.page(request)
+    val issues = searchIssue(
+      condition,
+      IssueSearchOption.PullRequests,
+      (page - 1) * PullRequestLimit,
+      PullRequestLimit,
+      allRepos: _*
+    )
+    val status = issues.map { issue =>
+      issue.commitId.flatMap { commitId =>
+        getCommitStatusWithSummary(issue.issue.userName, issue.issue.repositoryName, commitId)
+      }
+    }
 
     html.pulls(
-      searchIssue(
-        condition,
-        IssueSearchOption.PullRequests,
-        (page - 1) * PullRequestLimit,
-        PullRequestLimit,
-        allRepos: _*
-      ),
+      issues.zip(status),
       page,
       countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, allRepos: _*),
       countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, allRepos: _*),

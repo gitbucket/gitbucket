@@ -36,6 +36,7 @@
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.structure.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.theme.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/tipped/tipped.css")" rel="stylesheet">
     <script src="@helpers.assets("/vendors/jquery/jquery-3.5.1.min.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.js")"></script>
     <script src="@helpers.assets("/vendors/dropzone/dropzone.min.js")"></script>
@@ -51,6 +52,7 @@
     <script src="@helpers.assets("/vendors/facebox/facebox.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-hotkeys/jquery.hotkeys.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-textcomplete-1.8.4/jquery.textcomplete.min.js")"></script>
+    <script src="@helpers.assets("/vendors/tipped/tipped.min.js")"></script>
     @repository.map { repository =>
       <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
     }

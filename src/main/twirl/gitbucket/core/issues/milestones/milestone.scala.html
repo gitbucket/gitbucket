@@ -1,5 +1,5 @@
 @(state: String,
-  issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+  issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
   page: Int,
   collaborators: List[String],
   priorities: List[gitbucket.core.model.Priority],
