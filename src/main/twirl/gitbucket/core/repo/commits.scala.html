@@ -1,12 +1,10 @@
 @(pathList: List[String],
   branch: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+  commits: Seq[Seq[(gitbucket.core.util.JGitUtil.CommitInfo, List[String], Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])]],
   page: Int,
   hasNext: Boolean,
-  hasWritePermission: Boolean,
-  getCommitStatus: String => Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])],
-  getTags: String => List[String])(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
@@ -34,8 +32,8 @@
     <table class="table table-bordered table-hover">
     @commits.map { day =>
       <tr>
-        <th rowspan="@day.size" width="100">@helpers.date(day.head.commitTime)</th>
-        @day.zipWithIndex.map { case (commit, i) =>
+        <th rowspan="@day.size" width="100">@helpers.date(day.head._1.commitTime)</th>
+        @day.zipWithIndex.map { case ((commit, tags, status), i) =>
           @if(i != 0){ <tr> }
           <td>
             <div class="pull-right text-right">
@@ -46,15 +44,13 @@
                   <span class="gpg-unverified">Unverified</span>
                 }
               }
-              @defining(getTags(commit.id)) { tags =>
-                @if(tags.nonEmpty){
-                  <span class="muted">
-                    <i class="octicon octicon-tag"></i>
-                    @tags.map { tag =>
-                      <a href="@helpers.url(repository)/tree/@tag" class="tag">@tag</a>
-                    }
-                  </span>
-                }
+              @if(tags.nonEmpty){
+                <span class="muted">
+                  <i class="octicon octicon-tag"></i>
+                  @tags.map { tag =>
+                    <a href="@helpers.url(repository)/tree/@tag" class="tag">@tag</a>
+                  }
+                </span>
               }
               <a href="@helpers.url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
               <a href="@helpers.url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
@@ -78,9 +74,9 @@
                   }
                   @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
                   <span class="muted">committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
-                    @getCommitStatus(commit.id).map { case (summary, statuses) =>
-                      @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
-                    }
+                  @status.map { case (summary, statuses) =>
+                    @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
+                  }
                 </div>
               </div>
             </div>

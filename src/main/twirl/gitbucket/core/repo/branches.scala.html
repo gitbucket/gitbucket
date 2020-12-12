@@ -1,4 +1,9 @@
-@(branchInfo: Seq[(gitbucket.core.util.JGitUtil.BranchInfo, Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)], Boolean)],
+@(branchInfo: Seq[(
+    gitbucket.core.util.JGitUtil.BranchInfo,
+    Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)],
+    Boolean,
+    Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])]
+  )],
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -11,7 +16,7 @@
         </tr>
       </thead>
       <tbody>
-      @branchInfo.map { case (branch, prs, isProtected) =>
+      @branchInfo.map { case (branch, prs, isProtected, status) =>
         <tr>
           <td class="branch-details">
             @if(isProtected){ <span class="octicon octicon-shield" title="This branch is protected"></span> }
@@ -21,6 +26,9 @@
                 by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "muted-link")</span>
               </span>
             </span>
+            @status.map { case (summary, statuses) =>
+              @gitbucket.core.helper.html.commitstatus(branch.commitId, summary, statuses)
+            }
           </td>
           <td class="branch-a-b-count">
             @if(repository.repository.defaultBranch == branch.name){

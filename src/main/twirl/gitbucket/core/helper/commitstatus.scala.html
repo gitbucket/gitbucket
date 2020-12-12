@@ -1,7 +1,7 @@
 @(commitId: String, summary: gitbucket.core.model.CommitState, statuses: List[gitbucket.core.model.CommitStatus])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<strong class="text-@{summary.name}">@helpers.commitStateIcon(summary) @helpers.commitStateText(summary, commitId)</strong>
-<span class="text-@{summary.name}">- @{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
+<strong class="text-@{summary.name}">@helpers.commitStateIcon(summary)</strong>
+<span class="text-@{summary.name}">@{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
 <a href="#" class="toggle-check">Show all checks</a>
 <div style="display: none;">
 @statuses.map{ status =>
