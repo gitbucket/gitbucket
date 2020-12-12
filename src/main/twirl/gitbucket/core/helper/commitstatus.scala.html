@@ -10,6 +10,7 @@
           <span aria-hidden="true">&times;</span>
         </button>
         <span class="modal-title">
+          <strong class="text-@{summary.name}">@helpers.commitStateIcon(summary)</strong>
           <strong class="text-@{summary.name}">@helpers.commitStateText(summary, commitId)</strong>
           <span class="text-@{summary.name}" data-toggle="modal" data-target="#commit-status-@commitId">- @{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
         </span>
