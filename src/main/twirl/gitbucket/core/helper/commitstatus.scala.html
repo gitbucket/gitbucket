@@ -1,36 +1,31 @@
-@(commitId: String, summary: gitbucket.core.model.CommitState, statuses: List[gitbucket.core.model.CommitStatus])(implicit context: gitbucket.core.controller.Context)
+@(commitId: String, summary: gitbucket.core.model.CommitState, statuses: List[gitbucket.core.model.CommitStatus])
 @import gitbucket.core.view.helpers
 <strong class="text-@{summary.name}">@helpers.commitStateIcon(summary)</strong>
-<span class="text-@{summary.name}">@{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
-<a href="#" class="toggle-check">Show all checks</a>
-<div style="display: none;">
-@statuses.map{ status =>
-  <div class="build-status-item">
-    <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
-    <strong>@status.context</strong>
-    @status.description.map { desc => <span class="muted">- @desc</span> }
-    <span>
-    @status.targetUrl.map { url => - <a href="@url">Details</a> }
-    </span>
+<span class="text-@{summary.name}" data-toggle="modal" data-target="#commit-status-@commitId" style="cursor : pointer;">@{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
+<div class="modal" tabindex="-1" role="dialog" id="commit-status-@commitId">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <span class="modal-title">
+          <strong class="text-@{summary.name}">@helpers.commitStateText(summary, commitId)</strong>
+          <span class="text-@{summary.name}" data-toggle="modal" data-target="#commit-status-@commitId">- @{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        @statuses.map{ status =>
+          <div class="build-status-item">
+            <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
+            <strong>@status.context</strong>
+            @status.description.map { desc => <span class="muted">- @desc</span> }
+            <span>
+            @status.targetUrl.map { url => - <a href="@url">Details</a> }
+            </span>
+          </div>
+        }
+      </div>
+    </div>
   </div>
-}
 </div>
-@if(context.request.getAttribute("commitstatus_javascript") == null) {
-  @context.request.setAttribute("commitstatus_javascript", "called")
-  <script>
-  $(function() {
-    $('[data-toggle="tooltip"]').tooltip();
-
-    $('.toggle-check').click(function(){
-      var div = $(this).next('div');
-      if(div.is(':visible')){
-        $(this).text('Show all checks');
-      } else {
-        $(this).text('Hide all checks');
-      }
-      div.toggle();
-      return false;
-    });
-  });
-  </script>
-}
