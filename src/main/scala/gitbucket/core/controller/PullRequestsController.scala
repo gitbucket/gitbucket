@@ -640,7 +640,13 @@ trait PullRequestsControllerBase extends ControllerBase {
         // retrieve search condition
         val condition = IssueSearchCondition(request)
         // search issues
-        val issues = searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName)
+        val issues = searchIssue(
+          condition,
+          IssueSearchOption.PullRequests,
+          (page - 1) * PullRequestLimit,
+          PullRequestLimit,
+          owner -> repoName
+        )
         // commit status
         val status = issues.map { issue =>
           issue.commitId.flatMap { commitId =>
@@ -656,8 +662,8 @@ trait PullRequestsControllerBase extends ControllerBase {
           getMilestones(owner, repoName),
           getPriorities(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), true, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), true, owner -> repoName),
+          countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, owner -> repoName),
           condition,
           repository,
           isEditable(repository),

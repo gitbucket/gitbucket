@@ -92,13 +92,13 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
     val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page = IssueSearchCondition.page(request)
-    val issues = searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*)
+    val issues = searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos: _*)
 
     html.issues(
       issues.map(issue => (issue, None)),
       page,
-      countIssue(condition.copy(state = "open"), false, userRepos: _*),
-      countIssue(condition.copy(state = "closed"), false, userRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, userRepos: _*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, userRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
@@ -123,7 +123,13 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
     val allRepos = getAllRepositories(userName)
     val page = IssueSearchCondition.page(request)
-    val issues = searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*)
+    val issues = searchIssue(
+      condition,
+      IssueSearchOption.PullRequests,
+      (page - 1) * PullRequestLimit,
+      PullRequestLimit,
+      allRepos: _*
+    )
     val status = issues.map { issue =>
       issue.commitId.flatMap { commitId =>
         getCommitStatusWithSummary(issue.issue.userName, issue.issue.repositoryName, commitId)
@@ -133,8 +139,8 @@ trait DashboardControllerBase extends ControllerBase {
     html.pulls(
       issues.zip(status),
       page,
-      countIssue(condition.copy(state = "open"), true, allRepos: _*),
-      countIssue(condition.copy(state = "closed"), true, allRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, allRepos: _*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, allRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))

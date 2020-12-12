@@ -34,7 +34,7 @@ object ApiMilestone {
   ): ApiMilestone =
     ApiMilestone(
       url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone.milestoneId}"),
-      html_url = ApiPath(s"/${RepositoryName(repository).fullName}/issues?milestone=${milestone.title}&state=open"),
+      html_url = ApiPath(s"/${RepositoryName(repository).fullName}/milestone/${milestone.milestoneId}"),
 //      label_url = ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/milestones/${milestone_number}/labels"),
       id = milestone.milestoneId,
       number = milestone.milestoneId, // use milestoneId as number
