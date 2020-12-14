@@ -882,12 +882,12 @@ object RepositoryService {
       repository: String,
       receivePack: ReceivePack,
       command: ReceiveCommand,
-      pusher: String
+      pusher: String,
+      mergePullRequest: Boolean
     )(implicit session: Session): Option[String] = {
       isArchivedRepository(owner, repository) match {
-        case Some(true)  => Some("This repository was archived so it is read-only.")
-        case Some(false) => None
-        case _           => None
+        case Some(true) => Some("This repository was archived so it is read-only.")
+        case _          => None
       }
     }
   }
