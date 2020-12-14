@@ -328,14 +328,8 @@ trait RepositoryService {
   }
 
   def isArchivedRepository(owner: String, repository: String)(implicit s: Session): Option[Boolean] =
-    getRepository(owner, repository) match {
-      case Some(repository) =>
-        if (repository.repository.isArchived) {
-          Some(true)
-        } else {
-          Some(false)
-        }
-      case _ => None
+    getRepository(owner, repository).map { repository =>
+      repository.repository.isArchived
     }
 
   /**
