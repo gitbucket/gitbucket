@@ -20,6 +20,6 @@
   <addForeignKeyConstraint constraintName="IDX_ACCOUNT_PREFERENCE_FK0" baseTableName="ACCOUNT_PREFERENCE" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
 
   <addColumn tableName="REPOSITORY">
-    <column name="ARCHIVED" type="boolean" nullable="false"/>
+    <column name="ARCHIVED" type="boolean" nullable="false" defaultValueBoolean="false" />
   </addColumn>
 </changeSet>
