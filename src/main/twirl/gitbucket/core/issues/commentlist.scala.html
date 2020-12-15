@@ -97,7 +97,7 @@ case comment: gitbucket.core.model.IssueComment => {
                 @helpers.user(comment.commentedUserName, styleClass="username strong")
                 added a commit that referenced this @issueOrPullRequest()
               </div>
-              <div class="small" style="discussion-item-content">
+              <div class="small discussion-item-content">
                 <span class="discussion-item-content-head"><i class="octicon octicon-git-commit"></i></span>
                 @helpers.link(head, repository)
                 @rest.map{ content =>
