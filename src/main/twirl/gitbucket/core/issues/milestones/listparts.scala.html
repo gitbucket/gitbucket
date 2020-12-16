@@ -80,7 +80,7 @@
             </a>
           } else {
             <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">
-              @if(issue.closed){<i class="menu-icon octicon octicon-issue-closed"></i>}else{<i class="menu-icon octicon octicon-issue-opened"></i>}@issue.title@issue.title
+              @if(issue.closed){<i class="menu-icon octicon octicon-issue-closed"></i>}else{<i class="menu-icon octicon octicon-issue-opened"></i>}@issue.title
             </a>
           }
           @status.map { case (summary, statuses) =>
