@@ -363,27 +363,24 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/pull/:id/merge", mergeForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        params("id").toIntOpt.flatMap { issueId =>
-          val owner = repository.owner
-          val name = repository.name
+  post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>
+    params("id").toIntOpt.flatMap { issueId =>
+      val owner = repository.owner
+      val name = repository.name
 
-          mergePullRequest(
-            repository,
-            issueId,
-            context.loginAccount.get,
-            form.message,
-            form.strategy,
-            form.isDraft,
-            context.settings
-          ) match {
-            case Right(objectId) => redirect(s"/${owner}/${name}/pull/${issueId}")
-            case Left(message)   => Some(BadRequest(message))
-          }
-        } getOrElse NotFound()
-    }
+      mergePullRequest(
+        repository,
+        issueId,
+        context.loginAccount.get,
+        form.message,
+        form.strategy,
+        form.isDraft,
+        context.settings
+      ) match {
+        case Right(objectId) => redirect(s"/${owner}/${name}/pull/${issueId}")
+        case Left(message)   => Some(BadRequest(message))
+      }
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
@@ -552,54 +549,51 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pulls/new", pullRequestForm)(unarchivedRepositoryOnly {
-    readableUsersOnly {
-      (form, repository) =>
-        defining(repository.owner, repository.name) {
-          case (owner, name) =>
-            val manageable = isManageable(repository)
-            val loginUserName = context.loginAccount.get.userName
+  post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnly { (form, repository) =>
+    defining(repository.owner, repository.name) {
+      case (owner, name) =>
+        val manageable = isManageable(repository)
+        val loginUserName = context.loginAccount.get.userName
 
-            val issueId = insertIssue(
-              owner = repository.owner,
-              repository = repository.name,
-              loginUser = loginUserName,
-              title = form.title,
-              content = form.content,
-              assignedUserName = if (manageable) form.assignedUserName else None,
-              milestoneId = if (manageable) form.milestoneId else None,
-              priorityId = if (manageable) form.priorityId else None,
-              isPullRequest = true
-            )
+        val issueId = insertIssue(
+          owner = repository.owner,
+          repository = repository.name,
+          loginUser = loginUserName,
+          title = form.title,
+          content = form.content,
+          assignedUserName = if (manageable) form.assignedUserName else None,
+          milestoneId = if (manageable) form.milestoneId else None,
+          priorityId = if (manageable) form.priorityId else None,
+          isPullRequest = true
+        )
 
-            createPullRequest(
-              originRepository = repository,
-              issueId = issueId,
-              originBranch = form.targetBranch,
-              requestUserName = form.requestUserName,
-              requestRepositoryName = form.requestRepositoryName,
-              requestBranch = form.requestBranch,
-              commitIdFrom = form.commitIdFrom,
-              commitIdTo = form.commitIdTo,
-              isDraft = form.isDraft,
-              loginAccount = context.loginAccount.get,
-              settings = context.settings
-            )
+        createPullRequest(
+          originRepository = repository,
+          issueId = issueId,
+          originBranch = form.targetBranch,
+          requestUserName = form.requestUserName,
+          requestRepositoryName = form.requestRepositoryName,
+          requestBranch = form.requestBranch,
+          commitIdFrom = form.commitIdFrom,
+          commitIdTo = form.commitIdTo,
+          isDraft = form.isDraft,
+          loginAccount = context.loginAccount.get,
+          settings = context.settings
+        )
 
-            // insert labels
-            if (manageable) {
-              form.labelNames.foreach { value =>
-                val labels = getLabels(owner, name)
-                value.split(",").foreach { labelName =>
-                  labels.find(_.labelName == labelName).map { label =>
-                    registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
-                  }
-                }
+        // insert labels
+        if (manageable) {
+          form.labelNames.foreach { value =>
+            val labels = getLabels(owner, name)
+            value.split(",").foreach { labelName =>
+              labels.find(_.labelName == labelName).map { label =>
+                registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
               }
             }
-
-            redirect(s"/${owner}/${name}/pull/${issueId}")
+          }
         }
+
+        redirect(s"/${owner}/${name}/pull/${issueId}")
     }
   })
 

@@ -56,18 +56,15 @@ trait LabelsControllerBase extends ControllerBase {
     html.edit(None, repository)
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        val labelId = createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
-        html.label(
-          getLabel(repository.owner, repository.name, labelId).get,
-          // TODO futility
-          countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
-          repository,
-          hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-        )
-    }
+  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(writableUsersOnly { (form, repository) =>
+    val labelId = createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
+    html.label(
+      getLabel(repository.owner, repository.name, labelId).get,
+      // TODO futility
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+      repository,
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+    )
   })
 
   ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(writableUsersOnly { repository =>
@@ -76,18 +73,15 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
-        html.label(
-          getLabel(repository.owner, repository.name, params("labelId").toInt).get,
-          // TODO futility
-          countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
-          repository,
-          hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-        )
-    }
+  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(writableUsersOnly { (form, repository) =>
+    updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
+    html.label(
+      getLabel(repository.owner, repository.name, params("labelId").toInt).get,
+      // TODO futility
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+      repository,
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+    )
   })
 
   ajaxPost("/:owner/:repository/issues/labels/:labelId/delete")(writableUsersOnly { repository =>

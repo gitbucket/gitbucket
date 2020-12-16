@@ -307,271 +307,247 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/new/*")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        val (branch, path) = repository.splitPath(multiParams("splat").head)
-        val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch)
-          .needStatusCheck(context.loginAccount.get.userName)
+  get("/:owner/:repository/new/*")(writableUsersOnly { repository =>
+    val (branch, path) = repository.splitPath(multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      .needStatusCheck(context.loginAccount.get.userName)
 
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
 
-          html.editor(
-            branch = branch,
-            repository = repository,
-            pathList = if (path.length == 0) Nil else path.split("/").toList,
-            fileName = None,
-            content = JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
-            protectedBranch = protectedBranch,
-            commit = revCommit.getName
-          )
-        }
+      html.editor(
+        branch = branch,
+        repository = repository,
+        pathList = if (path.length == 0) Nil else path.split("/").toList,
+        fileName = None,
+        content = JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
+        protectedBranch = protectedBranch,
+        commit = revCommit.getName
+      )
     }
   })
 
-  get("/:owner/:repository/upload/*")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        val (branch, path) = repository.splitPath(multiParams("splat").head)
-        val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch)
-          .needStatusCheck(context.loginAccount.get.userName)
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
-          html.upload(
-            branch,
-            repository,
-            if (path.length == 0) Nil else path.split("/").toList,
-            protectedBranch,
-            revCommit.name
-          )
-        }
+  get("/:owner/:repository/upload/*")(writableUsersOnly { repository =>
+    val (branch, path) = repository.splitPath(multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      .needStatusCheck(context.loginAccount.get.userName)
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+      html.upload(
+        branch,
+        repository,
+        if (path.length == 0) Nil else path.split("/").toList,
+        protectedBranch,
+        revCommit.name
+      )
     }
   })
 
-  post("/:owner/:repository/upload", uploadForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        val files = form.uploadFiles.split("\n").map { line =>
-          val i = line.indexOf(':')
-          CommitFile(line.substring(0, i).trim, line.substring(i + 1).trim)
-        }
+  post("/:owner/:repository/upload", uploadForm)(writableUsersOnly { (form, repository) =>
+    val files = form.uploadFiles.split("\n").map { line =>
+      val i = line.indexOf(':')
+      CommitFile(line.substring(0, i).trim, line.substring(i + 1).trim)
+    }
 
-        val newFiles = files.map { file =>
-          file.copy(name = if (form.path.length == 0) file.name else s"${form.path}/${file.name}")
-        }
+    val newFiles = files.map { file =>
+      file.copy(name = if (form.path.length == 0) file.name else s"${form.path}/${file.name}")
+    }
 
-        if (form.newBranch) {
-          val newBranchName = createNewBranchForPullRequest(repository, form.branch)
-          val objectId = _commit(newBranchName)
-          val issueId =
-            createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          _commit(form.branch)
-          if (form.path.length == 0) {
-            redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}")
-          } else {
-            redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}/${form.path}")
+    if (form.newBranch) {
+      val newBranchName = createNewBranchForPullRequest(repository, form.branch)
+      val objectId = _commit(newBranchName)
+      val issueId =
+        createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+    } else {
+      _commit(form.branch)
+      if (form.path.length == 0) {
+        redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}")
+      } else {
+        redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}/${form.path}")
+      }
+    }
+
+    def _commit(branchName: String): ObjectId = {
+      commitFiles(
+        repository = repository,
+        branch = branchName,
+        path = form.path,
+        files = files.toIndexedSeq,
+        message = form.message.getOrElse("Add files via upload"),
+        loginAccount = context.loginAccount.get,
+        settings = context.settings
+      ) {
+        case (git, headTip, builder, inserter) =>
+          JGitUtil.processTree(git, headTip) { (path, tree) =>
+            if (!newFiles.exists(_.name.contains(path))) {
+              builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+            }
           }
-        }
 
-        def _commit(branchName: String): ObjectId = {
-          commitFiles(
-            repository = repository,
-            branch = branchName,
-            path = form.path,
-            files = files.toIndexedSeq,
-            message = form.message.getOrElse("Add files via upload"),
-            loginAccount = context.loginAccount.get,
-            settings = context.settings
-          ) {
-            case (git, headTip, builder, inserter) =>
-              JGitUtil.processTree(git, headTip) { (path, tree) =>
-                if (!newFiles.exists(_.name.contains(path))) {
-                  builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-                }
-              }
-
-              newFiles.foreach { file =>
-                val bytes =
-                  FileUtils.readFileToByteArray(
-                    new File(getTemporaryDir(session.getId), FileUtil.checkFilename(file.id))
-                  )
-                builder.add(
-                  JGitUtil
-                    .createDirCacheEntry(file.name, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes))
-                )
-                builder.finish()
-              }
+          newFiles.foreach { file =>
+            val bytes =
+              FileUtils.readFileToByteArray(
+                new File(getTemporaryDir(session.getId), FileUtil.checkFilename(file.id))
+              )
+            builder.add(
+              JGitUtil
+                .createDirCacheEntry(file.name, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes))
+            )
+            builder.finish()
           }
-        }
+      }
     }
   })
 
-  get("/:owner/:repository/edit/*")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        val (branch, path) = repository.splitPath(multiParams("splat").head)
-        val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch)
-          .needStatusCheck(context.loginAccount.get.userName)
+  get("/:owner/:repository/edit/*")(writableUsersOnly { repository =>
+    val (branch, path) = repository.splitPath(multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      .needStatusCheck(context.loginAccount.get.userName)
 
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
-          git =>
-            val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+      git =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
 
-            getPathObjectId(git, path, revCommit)
-              .map {
-                objectId =>
-                  val paths = path.split("/")
-                  val info = EditorConfigUtil.getEditorConfigInfo(git, branch, path)
-
-                  html.editor(
-                    branch = branch,
-                    repository = repository,
-                    pathList = paths.take(paths.size - 1).toList,
-                    fileName = Some(paths.last),
-                    content = JGitUtil.getContentInfo(git, path, objectId),
-                    protectedBranch = protectedBranch,
-                    commit = revCommit.getName,
-                    newLineMode = info.newLineMode,
-                    useSoftTabs = info.useSoftTabs,
-                    tabSize = info.tabSize
-                  )
-              } getOrElse NotFound()
-        }
-    }
-  })
-
-  get("/:owner/:repository/remove/*")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        val (branch, path) = repository.splitPath(multiParams("splat").head)
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
-          git =>
-            val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
-
-            getPathObjectId(git, path, revCommit).map { objectId =>
+        getPathObjectId(git, path, revCommit)
+          .map {
+            objectId =>
               val paths = path.split("/")
-              html.delete(
+              val info = EditorConfigUtil.getEditorConfigInfo(git, branch, path)
+
+              html.editor(
                 branch = branch,
                 repository = repository,
                 pathList = paths.take(paths.size - 1).toList,
-                fileName = paths.last,
+                fileName = Some(paths.last),
                 content = JGitUtil.getContentInfo(git, path, objectId),
-                commit = revCommit.getName
+                protectedBranch = protectedBranch,
+                commit = revCommit.getName,
+                newLineMode = info.newLineMode,
+                useSoftTabs = info.useSoftTabs,
+                tabSize = info.tabSize
               )
-            } getOrElse NotFound()
-        }
+          } getOrElse NotFound()
     }
   })
 
-  post("/:owner/:repository/create", editorForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        if (form.newBranch) {
-          val newBranchName = createNewBranchForPullRequest(repository, form.branch)
-          val objectId = _commit(newBranchName)
-          val issueId =
-            createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          _commit(form.branch)
-          redirect(
-            s"/${repository.owner}/${repository.name}/blob/${form.branch}/${if (form.path.length == 0) urlEncode(form.newFileName)
-            else s"${form.path}/${urlEncode(form.newFileName)}"}"
-          )
-        }
+  get("/:owner/:repository/remove/*")(writableUsersOnly { repository =>
+    val (branch, path) = repository.splitPath(multiParams("splat").head)
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+      git =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
 
-        def _commit(branchName: String): ObjectId = {
-          commitFile(
+        getPathObjectId(git, path, revCommit).map { objectId =>
+          val paths = path.split("/")
+          html.delete(
+            branch = branch,
             repository = repository,
-            branch = branchName,
-            path = form.path,
-            newFileName = Some(form.newFileName),
-            oldFileName = None,
-            content = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
-            charset = form.charset,
-            message = form.message.getOrElse(s"Create ${form.newFileName}"),
-            commit = form.commit,
-            loginAccount = context.loginAccount.get,
-            settings = context.settings
+            pathList = paths.take(paths.size - 1).toList,
+            fileName = paths.last,
+            content = JGitUtil.getContentInfo(git, path, objectId),
+            commit = revCommit.getName
           )
-        }
+        } getOrElse NotFound()
     }
   })
 
-  post("/:owner/:repository/update", editorForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        if (form.newBranch) {
-          val newBranchName = createNewBranchForPullRequest(repository, form.branch)
-          val objectId = _commit(newBranchName)
-          val issueId =
-            createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          _commit(form.branch)
-          redirect(
-            s"/${repository.owner}/${repository.name}/blob/${urlEncode(form.branch)}/${if (form.path.length == 0) urlEncode(form.newFileName)
-            else s"${form.path}/${urlEncode(form.newFileName)}"}"
-          )
-        }
+  post("/:owner/:repository/create", editorForm)(writableUsersOnly { (form, repository) =>
+    if (form.newBranch) {
+      val newBranchName = createNewBranchForPullRequest(repository, form.branch)
+      val objectId = _commit(newBranchName)
+      val issueId =
+        createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+    } else {
+      _commit(form.branch)
+      redirect(
+        s"/${repository.owner}/${repository.name}/blob/${form.branch}/${if (form.path.length == 0) urlEncode(form.newFileName)
+        else s"${form.path}/${urlEncode(form.newFileName)}"}"
+      )
+    }
 
-        def _commit(branchName: String): ObjectId = {
-          commitFile(
-            repository = repository,
-            branch = branchName,
-            path = form.path,
-            newFileName = Some(form.newFileName),
-            oldFileName = form.oldFileName,
-            content = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
-            charset = form.charset,
-            message = if (form.oldFileName.contains(form.newFileName)) {
-              form.message.getOrElse(s"Update ${form.newFileName}")
-            } else {
-              form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
-            },
-            commit = form.commit,
-            loginAccount = context.loginAccount.get,
-            settings = context.settings
-          )
-        }
+    def _commit(branchName: String): ObjectId = {
+      commitFile(
+        repository = repository,
+        branch = branchName,
+        path = form.path,
+        newFileName = Some(form.newFileName),
+        oldFileName = None,
+        content = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+        charset = form.charset,
+        message = form.message.getOrElse(s"Create ${form.newFileName}"),
+        commit = form.commit,
+        loginAccount = context.loginAccount.get,
+        settings = context.settings
+      )
     }
   })
 
-  post("/:owner/:repository/remove", deleteForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        if (form.newBranch) {
-          val newBranchName = createNewBranchForPullRequest(repository, form.branch)
-          val objectId = _commit(newBranchName)
-          val issueId =
-            createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          _commit(form.branch)
-          redirect(
-            s"/${repository.owner}/${repository.name}/tree/${form.branch}${if (form.path.length == 0) ""
-            else "/" + form.path}"
-          )
-        }
+  post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
+    if (form.newBranch) {
+      val newBranchName = createNewBranchForPullRequest(repository, form.branch)
+      val objectId = _commit(newBranchName)
+      val issueId =
+        createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+    } else {
+      _commit(form.branch)
+      redirect(
+        s"/${repository.owner}/${repository.name}/blob/${urlEncode(form.branch)}/${if (form.path.length == 0) urlEncode(form.newFileName)
+        else s"${form.path}/${urlEncode(form.newFileName)}"}"
+      )
+    }
 
-        def _commit(branchName: String): ObjectId = {
-          commitFile(
-            repository = repository,
-            branch = branchName,
-            path = form.path,
-            newFileName = None,
-            oldFileName = Some(form.fileName),
-            content = "",
-            charset = "",
-            message = form.message.getOrElse(s"Delete ${form.fileName}"),
-            commit = form.commit,
-            loginAccount = context.loginAccount.get,
-            settings = context.settings
-          )
-        }
+    def _commit(branchName: String): ObjectId = {
+      commitFile(
+        repository = repository,
+        branch = branchName,
+        path = form.path,
+        newFileName = Some(form.newFileName),
+        oldFileName = form.oldFileName,
+        content = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+        charset = form.charset,
+        message = if (form.oldFileName.contains(form.newFileName)) {
+          form.message.getOrElse(s"Update ${form.newFileName}")
+        } else {
+          form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
+        },
+        commit = form.commit,
+        loginAccount = context.loginAccount.get,
+        settings = context.settings
+      )
+    }
+  })
+
+  post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
+    if (form.newBranch) {
+      val newBranchName = createNewBranchForPullRequest(repository, form.branch)
+      val objectId = _commit(newBranchName)
+      val issueId =
+        createIssueAndPullRequest(repository, form.branch, newBranchName, form.commit, objectId.name, form.message)
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+    } else {
+      _commit(form.branch)
+      redirect(
+        s"/${repository.owner}/${repository.name}/tree/${form.branch}${if (form.path.length == 0) ""
+        else "/" + form.path}"
+      )
+    }
+
+    def _commit(branchName: String): ObjectId = {
+      commitFile(
+        repository = repository,
+        branch = branchName,
+        path = form.path,
+        newFileName = None,
+        oldFileName = Some(form.fileName),
+        content = "",
+        charset = "",
+        message = form.message.getOrElse(s"Delete ${form.fileName}"),
+        commit = form.commit,
+        loginAccount = context.loginAccount.get,
+        settings = context.settings
+      )
     }
   })
 
@@ -943,42 +919,36 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Creates a tag.
    */
-  post("/:owner/:repository/tag", tagForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          JGitUtil.createTag(git, form.tagName, form.message, form.commitId)
-        } match {
-          case Right(message) =>
-            flash.update("info", message)
-            redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
-          case Left(message) =>
-            flash.update("error", message)
-            redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
-        }
+  post("/:owner/:repository/tag", tagForm)(writableUsersOnly { (form, repository) =>
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      JGitUtil.createTag(git, form.tagName, form.message, form.commitId)
+    } match {
+      case Right(message) =>
+        flash.update("info", message)
+        redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
+      case Left(message) =>
+        flash.update("error", message)
+        redirect(s"/${repository.owner}/${repository.name}/commit/${form.commitId}")
     }
   })
 
   /**
    * Creates a branch.
    */
-  post("/:owner/:repository/branches")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        val newBranchName = params.getOrElse("new", halt(400))
-        val fromBranchName = params.getOrElse("from", halt(400))
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          JGitUtil.createBranch(git, fromBranchName, newBranchName)
-        } match {
-          case Right(message) =>
-            flash.update("info", message)
-            redirect(
-              s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}"
-            )
-          case Left(message) =>
-            flash.update("error", message)
-            redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
-        }
+  post("/:owner/:repository/branches")(writableUsersOnly { repository =>
+    val newBranchName = params.getOrElse("new", halt(400))
+    val fromBranchName = params.getOrElse("from", halt(400))
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      JGitUtil.createBranch(git, fromBranchName, newBranchName)
+    } match {
+      case Right(message) =>
+        flash.update("info", message)
+        redirect(
+          s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}"
+        )
+      case Left(message) =>
+        flash.update("error", message)
+        redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
     }
   })
 

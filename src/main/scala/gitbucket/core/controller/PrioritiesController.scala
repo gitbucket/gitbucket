@@ -57,29 +57,26 @@ trait PrioritiesControllerBase extends ControllerBase {
     html.edit(None, repository)
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/new", priorityForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        val priorityId =
-          createPriority(
-            repository.owner,
-            repository.name,
-            form.priorityName,
-            form.description,
-            form.color.substring(1)
-          )
-        html.priority(
-          getPriority(repository.owner, repository.name, priorityId).get,
-          countIssueGroupByPriorities(
-            repository.owner,
-            repository.name,
-            IssuesService.IssueSearchCondition(),
-            Map.empty
-          ),
-          repository,
-          hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-        )
-    }
+  ajaxPost("/:owner/:repository/issues/priorities/new", priorityForm)(writableUsersOnly { (form, repository) =>
+    val priorityId =
+      createPriority(
+        repository.owner,
+        repository.name,
+        form.priorityName,
+        form.description,
+        form.color.substring(1)
+      )
+    html.priority(
+      getPriority(repository.owner, repository.name, priorityId).get,
+      countIssueGroupByPriorities(
+        repository.owner,
+        repository.name,
+        IssuesService.IssueSearchCondition(),
+        Map.empty
+      ),
+      repository,
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+    )
   })
 
   ajaxGet("/:owner/:repository/issues/priorities/:priorityId/edit")(writableUsersOnly { repository =>
@@ -88,58 +85,50 @@ trait PrioritiesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/:priorityId/edit", priorityForm)(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      (form, repository) =>
-        updatePriority(
-          repository.owner,
-          repository.name,
-          params("priorityId").toInt,
-          form.priorityName,
-          form.description,
-          form.color.substring(1)
-        )
-        html.priority(
-          getPriority(repository.owner, repository.name, params("priorityId").toInt).get,
-          countIssueGroupByPriorities(
-            repository.owner,
-            repository.name,
-            IssuesService.IssueSearchCondition(),
-            Map.empty
-          ),
-          repository,
-          hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-        )
-    }
-  })
-
-  ajaxPost("/:owner/:repository/issues/priorities/reorder")(unarchivedRepositoryOnly {
-    writableUsersOnly { (repository) =>
-      reorderPriorities(
+  ajaxPost("/:owner/:repository/issues/priorities/:priorityId/edit", priorityForm)(writableUsersOnly {
+    (form, repository) =>
+      updatePriority(
         repository.owner,
         repository.name,
-        params("order")
-          .split(",")
-          .map(id => id.toInt)
-          .zipWithIndex
-          .toMap
+        params("priorityId").toInt,
+        form.priorityName,
+        form.description,
+        form.color.substring(1)
       )
-      Ok()
-    }
+      html.priority(
+        getPriority(repository.owner, repository.name, params("priorityId").toInt).get,
+        countIssueGroupByPriorities(
+          repository.owner,
+          repository.name,
+          IssuesService.IssueSearchCondition(),
+          Map.empty
+        ),
+        repository,
+        hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+      )
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/default")(unarchivedRepositoryOnly {
-    writableUsersOnly { (repository) =>
-      setDefaultPriority(repository.owner, repository.name, priorityId("priorityId"))
-      Ok()
-    }
+  ajaxPost("/:owner/:repository/issues/priorities/reorder")(writableUsersOnly { (repository) =>
+    reorderPriorities(
+      repository.owner,
+      repository.name,
+      params("order")
+        .split(",")
+        .map(id => id.toInt)
+        .zipWithIndex
+        .toMap
+    )
+    Ok()
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/:priorityId/delete")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      deletePriority(repository.owner, repository.name, params("priorityId").toInt)
-      Ok()
-    }
+  ajaxPost("/:owner/:repository/issues/priorities/default")(writableUsersOnly { (repository) =>
+    setDefaultPriority(repository.owner, repository.name, priorityId("priorityId"))
+    Ok()
+  })
+
+  ajaxPost("/:owner/:repository/issues/priorities/:priorityId/delete")(writableUsersOnly { repository =>
+    deletePriority(repository.owner, repository.name, params("priorityId").toInt)
+    Ok()
   })
 
   val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)

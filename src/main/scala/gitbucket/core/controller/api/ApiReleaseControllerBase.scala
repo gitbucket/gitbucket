@@ -76,25 +76,22 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * v. Create a release
    * https://developer.github.com/v3/repos/releases/#create-a-release
    */
-  post("/api/v3/repos/:owner/:repository/releases")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        (for {
-          data <- extractFromJsonBody[CreateARelease]
-        } yield {
-          createRelease(
-            repository.owner,
-            repository.name,
-            data.name.getOrElse(data.tag_name),
-            data.body,
-            data.tag_name,
-            context.loginAccount.get
-          )
-          val release = getRelease(repository.owner, repository.name, data.tag_name).get
-          val assets = getReleaseAssets(repository.owner, repository.name, data.tag_name)
-          JsonFormat(ApiRelease(release, assets, context.loginAccount.get, RepositoryName(repository)))
-        })
-    }
+  post("/api/v3/repos/:owner/:repository/releases")(writableUsersOnly { repository =>
+    (for {
+      data <- extractFromJsonBody[CreateARelease]
+    } yield {
+      createRelease(
+        repository.owner,
+        repository.name,
+        data.name.getOrElse(data.tag_name),
+        data.body,
+        data.tag_name,
+        context.loginAccount.get
+      )
+      val release = getRelease(repository.owner, repository.name, data.tag_name).get
+      val assets = getReleaseAssets(repository.owner, repository.name, data.tag_name)
+      JsonFormat(ApiRelease(release, assets, context.loginAccount.get, RepositoryName(repository)))
+    })
   })
 
   /**
@@ -102,19 +99,16 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/releases/#edit-a-release
    * Incompatiblity info: GitHub API requires :release_id, but GitBucket API requires :tag_name
    */
-  patch("/api/v3/repos/:owner/:repository/releases/:tag")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        (for {
-          data <- extractFromJsonBody[CreateARelease]
-        } yield {
-          val tag = params("tag")
-          updateRelease(repository.owner, repository.name, tag, data.name.getOrElse(data.tag_name), data.body)
-          val release = getRelease(repository.owner, repository.name, data.tag_name).get
-          val assets = getReleaseAssets(repository.owner, repository.name, data.tag_name)
-          JsonFormat(ApiRelease(release, assets, context.loginAccount.get, RepositoryName(repository)))
-        })
-    }
+  patch("/api/v3/repos/:owner/:repository/releases/:tag")(writableUsersOnly { repository =>
+    (for {
+      data <- extractFromJsonBody[CreateARelease]
+    } yield {
+      val tag = params("tag")
+      updateRelease(repository.owner, repository.name, tag, data.name.getOrElse(data.tag_name), data.body)
+      val release = getRelease(repository.owner, repository.name, data.tag_name).get
+      val assets = getReleaseAssets(repository.owner, repository.name, data.tag_name)
+      JsonFormat(ApiRelease(release, assets, context.loginAccount.get, RepositoryName(repository)))
+    })
   })
 
   /**
@@ -122,12 +116,10 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/releases/#delete-a-release
    * Incompatiblity info: GitHub API requires :release_id, but GitBucket API requires :tag_name
    */
-  delete("/api/v3/repos/:owner/:repository/releases/:tag")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      val tag = params("tag")
-      deleteRelease(repository.owner, repository.name, tag)
-      NoContent()
-    }
+  delete("/api/v3/repos/:owner/:repository/releases/:tag")(writableUsersOnly { repository =>
+    val tag = params("tag")
+    deleteRelease(repository.owner, repository.name, tag)
+    NoContent()
   })
 
   /**
@@ -138,45 +130,41 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * ix. Upload a release asset
    * https://developer.github.com/v3/repos/releases/#upload-a-release-asset
    */
-  post("/api/v3/repos/:owner/:repository/releases/:tag/assets")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        val name = params("name")
-        val tag = params("tag")
-        getRelease(repository.owner, repository.name, tag)
-          .map {
-            release =>
-              defining(FileUtil.generateFileId) {
-                fileId =>
-                  val buf = new Array[Byte](request.inputStream.available())
-                  request.inputStream.read(buf)
-                  FileUtils.writeByteArrayToFile(
-                    new File(
-                      getReleaseFilesDir(repository.owner, repository.name),
-                      FileUtil.checkFilename(tag + "/" + fileId)
-                    ),
-                    buf
-                  )
-                  createReleaseAsset(
-                    repository.owner,
-                    repository.name,
-                    tag,
-                    fileId,
-                    name,
-                    request.contentLength.getOrElse(0),
-                    context.loginAccount.get
-                  )
-                  getReleaseAsset(repository.owner, repository.name, tag, fileId)
-                    .map { asset =>
-                      JsonFormat(ApiReleaseAsset(asset, RepositoryName(repository)))
-                    }
-                    .getOrElse {
-                      ApiError("Unknown error")
-                    }
+  post("/api/v3/repos/:owner/:repository/releases/:tag/assets")(writableUsersOnly { repository =>
+    val name = params("name")
+    val tag = params("tag")
+    getRelease(repository.owner, repository.name, tag)
+      .map {
+        release =>
+          defining(FileUtil.generateFileId) { fileId =>
+            val buf = new Array[Byte](request.inputStream.available())
+            request.inputStream.read(buf)
+            FileUtils.writeByteArrayToFile(
+              new File(
+                getReleaseFilesDir(repository.owner, repository.name),
+                FileUtil.checkFilename(tag + "/" + fileId)
+              ),
+              buf
+            )
+            createReleaseAsset(
+              repository.owner,
+              repository.name,
+              tag,
+              fileId,
+              name,
+              request.contentLength.getOrElse(0),
+              context.loginAccount.get
+            )
+            getReleaseAsset(repository.owner, repository.name, tag, fileId)
+              .map { asset =>
+                JsonFormat(ApiReleaseAsset(asset, RepositoryName(repository)))
+              }
+              .getOrElse {
+                ApiError("Unknown error")
               }
           }
-          .getOrElse(NotFound())
-    }
+      }
+      .getOrElse(NotFound())
   })
 
   /**

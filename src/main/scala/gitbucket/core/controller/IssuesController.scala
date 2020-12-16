@@ -329,136 +329,112 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/new/label")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      val labelNames = params("labelNames").split(",")
-      val labels = getLabels(repository.owner, repository.name).filter(x => labelNames.contains(x.labelName))
-      html.labellist(labels)
+  ajaxPost("/:owner/:repository/issues/new/label")(writableUsersOnly { repository =>
+    val labelNames = params("labelNames").split(",")
+    val labels = getLabels(repository.owner, repository.name).filter(x => labelNames.contains(x.labelName))
+    html.labellist(labels)
+  })
+
+  ajaxPost("/:owner/:repository/issues/:id/label/new")(writableUsersOnly { repository =>
+    defining(params("id").toInt) { issueId =>
+      registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
+      html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/label/new")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      defining(params("id").toInt) { issueId =>
-        registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
-        html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
-      }
+  ajaxPost("/:owner/:repository/issues/:id/label/delete")(writableUsersOnly { repository =>
+    defining(params("id").toInt) { issueId =>
+      deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
+      html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/label/delete")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      defining(params("id").toInt) { issueId =>
-        deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
-        html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
-      }
-    }
+  ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>
+    updateAssignedUserName(
+      repository.owner,
+      repository.name,
+      params("id").toInt,
+      assignedUserName("assignedUserName"),
+      true
+    )
+    Ok("updated")
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/assign")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      updateAssignedUserName(
-        repository.owner,
-        repository.name,
-        params("id").toInt,
-        assignedUserName("assignedUserName"),
-        true
-      )
-      Ok("updated")
-    }
+  ajaxPost("/:owner/:repository/issues/:id/milestone")(writableUsersOnly { repository =>
+    updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"), true)
+    milestoneId("milestoneId").map { milestoneId =>
+      getMilestonesWithIssueCount(repository.owner, repository.name)
+        .find(_._1.milestoneId == milestoneId)
+        .map {
+          case (_, openCount, closeCount) =>
+            gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
+        } getOrElse NotFound()
+    } getOrElse Ok()
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/milestone")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"), true)
-        milestoneId("milestoneId").map { milestoneId =>
-          getMilestonesWithIssueCount(repository.owner, repository.name)
-            .find(_._1.milestoneId == milestoneId)
-            .map {
-              case (_, openCount, closeCount) =>
-                gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
-            } getOrElse NotFound()
-        } getOrElse Ok()
-    }
+  ajaxPost("/:owner/:repository/issues/:id/priority")(writableUsersOnly { repository =>
+    val priority = priorityId("priorityId")
+    updatePriorityId(repository.owner, repository.name, params("id").toInt, priority, true)
+    Ok("updated")
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/priority")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      val priority = priorityId("priorityId")
-      updatePriorityId(repository.owner, repository.name, params("id").toInt, priority, true)
-      Ok("updated")
-    }
-  })
-
-  post("/:owner/:repository/issues/batchedit/state")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        defining(params.get("value")) {
-          case Some("open") =>
-            executeBatch(repository) { issueId =>
-              getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                handleComment(issue, None, repository, Some("reopen"))
-              }
-            }
-          case Some("close") =>
-            executeBatch(repository) { issueId =>
-              getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                handleComment(issue, None, repository, Some("close"))
-              }
-            }
-          case _ => BadRequest()
-        }
-        if (params("uri").nonEmpty) {
-          redirect(params("uri"))
-        }
-    }
-  })
-
-  post("/:owner/:repository/issues/batchedit/label")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      params("value").toIntOpt.map { labelId =>
+  post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>
+    defining(params.get("value")) {
+      case Some("open") =>
         executeBatch(repository) { issueId =>
-          getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
-            registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
-            if (params("uri").nonEmpty) {
-              redirect(params("uri"))
-            }
+          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+            handleComment(issue, None, repository, Some("reopen"))
           }
         }
-      } getOrElse NotFound()
+      case Some("close") =>
+        executeBatch(repository) { issueId =>
+          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+            handleComment(issue, None, repository, Some("close"))
+          }
+        }
+      case _ => BadRequest()
+    }
+    if (params("uri").nonEmpty) {
+      redirect(params("uri"))
     }
   })
 
-  post("/:owner/:repository/issues/batchedit/assign")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      defining(assignedUserName("value")) { value =>
-        executeBatch(repository) {
-          updateAssignedUserName(repository.owner, repository.name, _, value, true)
+  post("/:owner/:repository/issues/batchedit/label")(writableUsersOnly { repository =>
+    params("value").toIntOpt.map { labelId =>
+      executeBatch(repository) { issueId =>
+        getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
+          registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
+          if (params("uri").nonEmpty) {
+            redirect(params("uri"))
+          }
         }
       }
-      if (params("uri").nonEmpty) {
-        redirect(params("uri"))
+    } getOrElse NotFound()
+  })
+
+  post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
+    defining(assignedUserName("value")) { value =>
+      executeBatch(repository) {
+        updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      }
+    }
+    if (params("uri").nonEmpty) {
+      redirect(params("uri"))
+    }
+  })
+
+  post("/:owner/:repository/issues/batchedit/milestone")(writableUsersOnly { repository =>
+    defining(milestoneId("value")) { value =>
+      executeBatch(repository) {
+        updateMilestoneId(repository.owner, repository.name, _, value, true)
       }
     }
   })
 
-  post("/:owner/:repository/issues/batchedit/milestone")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      defining(milestoneId("value")) { value =>
-        executeBatch(repository) {
-          updateMilestoneId(repository.owner, repository.name, _, value, true)
-        }
-      }
-    }
-  })
-
-  post("/:owner/:repository/issues/batchedit/priority")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      defining(priorityId("value")) { value =>
-        executeBatch(repository) {
-          updatePriorityId(repository.owner, repository.name, _, value, true)
-        }
+  post("/:owner/:repository/issues/batchedit/priority")(writableUsersOnly { repository =>
+    defining(priorityId("value")) { value =>
+      executeBatch(repository) {
+        updatePriorityId(repository.owner, repository.name, _, value, true)
       }
     }
   })

@@ -41,22 +41,20 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
    * ii. Create a milestone
    * https://docs.github.com/en/rest/reference/issues#create-a-milestone
    */
-  post("/api/v3/repos/:owner/:repository/milestones")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      (for {
-        data <- extractFromJsonBody[CreateAMilestone] if data.isValid
-        milestoneId = createMilestone(
-          repository.owner,
-          repository.name,
-          data.title,
-          data.description,
-          data.due_on
-        )
-        apiMilestone <- getApiMilestone(repository, milestoneId)
-      } yield {
-        JsonFormat(apiMilestone)
-      }) getOrElse NotFound()
-    }
+  post("/api/v3/repos/:owner/:repository/milestones")(writableUsersOnly { repository =>
+    (for {
+      data <- extractFromJsonBody[CreateAMilestone] if data.isValid
+      milestoneId = createMilestone(
+        repository.owner,
+        repository.name,
+        data.title,
+        data.description,
+        data.due_on
+      )
+      apiMilestone <- getApiMilestone(repository, milestoneId)
+    } yield {
+      JsonFormat(apiMilestone)
+    }) getOrElse NotFound()
   })
 
   /*
@@ -74,43 +72,36 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
    * iv.Update a milestone
    * https://docs.github.com/en/rest/reference/issues#update-a-milestone
    */
-  patch("/api/v3/repos/:owner/:repository/milestones/:number")(unarchivedRepositoryOnly {
-    unarchivedRepositoryOnly {
-      writableUsersOnly {
-        repository =>
-          val milestoneId = params("number").toInt
-          (for {
-            data <- extractFromJsonBody[CreateAMilestone] if data.isValid
-            milestone <- getMilestone(repository.owner, repository.name, milestoneId)
-            _ = (data.state, milestone.closedDate) match {
-              case ("open", Some(_)) =>
-                openMilestone(milestone)
-              case ("closed", None) =>
-                closeMilestone(milestone)
-              case _ =>
-            }
-            milestone <- getMilestone(repository.owner, repository.name, milestoneId)
-            _ = updateMilestone(
-              milestone.copy(title = data.title, description = data.description, dueDate = data.due_on)
-            )
-            apiMilestone <- getApiMilestone(repository, milestoneId)
-          } yield {
-            JsonFormat(apiMilestone)
-          }) getOrElse NotFound()
+  patch("/api/v3/repos/:owner/:repository/milestones/:number")(writableUsersOnly { repository =>
+    val milestoneId = params("number").toInt
+    (for {
+      data <- extractFromJsonBody[CreateAMilestone] if data.isValid
+      milestone <- getMilestone(repository.owner, repository.name, milestoneId)
+      _ = (data.state, milestone.closedDate) match {
+        case ("open", Some(_)) =>
+          openMilestone(milestone)
+        case ("closed", None) =>
+          closeMilestone(milestone)
+        case _ =>
       }
-    }
+      milestone <- getMilestone(repository.owner, repository.name, milestoneId)
+      _ = updateMilestone(
+        milestone.copy(title = data.title, description = data.description, dueDate = data.due_on)
+      )
+      apiMilestone <- getApiMilestone(repository, milestoneId)
+    } yield {
+      JsonFormat(apiMilestone)
+    }) getOrElse NotFound()
   })
 
   /*
    * v. Delete a milestone
    * https://docs.github.com/en/rest/reference/issues#delete-a-milestone
    */
-  delete("/api/v3/repos/:owner/:repository/milestones/:number")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      val milestoneId = params("number").toInt // use milestoneId as number
-      deleteMilestone(repository.owner, repository.name, milestoneId)
-      NoContent()
-    }
+  delete("/api/v3/repos/:owner/:repository/milestones/:number")(writableUsersOnly { repository =>
+    val milestoneId = params("number").toInt // use milestoneId as number
+    deleteMilestone(repository.owner, repository.name, milestoneId)
+    NoContent()
   })
 
   private def getApiMilestone(repository: RepositoryInfo, milestoneId: Int): Option[ApiMilestone] = {

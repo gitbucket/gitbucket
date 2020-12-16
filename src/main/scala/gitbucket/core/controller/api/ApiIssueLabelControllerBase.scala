@@ -38,18 +38,48 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * iii. Create a label
    * https://developer.github.com/v3/issues/labels/#create-a-label
    */
-  post("/api/v3/repos/:owner/:repository/labels")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        (for {
-          data <- extractFromJsonBody[CreateALabel] if data.isValid
-        } yield {
-          LockUtil.lock(RepositoryName(repository).fullName) {
+  post("/api/v3/repos/:owner/:repository/labels")(writableUsersOnly { repository =>
+    (for {
+      data <- extractFromJsonBody[CreateALabel] if data.isValid
+    } yield {
+      LockUtil.lock(RepositoryName(repository).fullName) {
+        if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
+          val labelId = createLabel(repository.owner, repository.name, data.name, data.color)
+          getLabel(repository.owner, repository.name, labelId).map { label =>
+            Created(JsonFormat(ApiLabel(label, RepositoryName(repository))))
+          } getOrElse NotFound()
+        } else {
+          // TODO ApiError should support errors field to enhance compatibility of GitHub API
+          UnprocessableEntity(
+            ApiError(
+              "Validation Failed",
+              Some("https://developer.github.com/v3/issues/labels/#create-a-label")
+            )
+          )
+        }
+      }
+    }) getOrElse NotFound()
+  })
+
+  /*
+   * iv. Update a label
+   * https://developer.github.com/v3/issues/labels/#update-a-label
+   */
+  patch("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
+    (for {
+      data <- extractFromJsonBody[CreateALabel] if data.isValid
+    } yield {
+      LockUtil.lock(RepositoryName(repository).fullName) {
+        getLabel(repository.owner, repository.name, params("labelName")).map {
+          label =>
             if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
-              val labelId = createLabel(repository.owner, repository.name, data.name, data.color)
-              getLabel(repository.owner, repository.name, labelId).map { label =>
-                Created(JsonFormat(ApiLabel(label, RepositoryName(repository))))
-              } getOrElse NotFound()
+              updateLabel(repository.owner, repository.name, label.labelId, data.name, data.color)
+              JsonFormat(
+                ApiLabel(
+                  getLabel(repository.owner, repository.name, label.labelId).get,
+                  RepositoryName(repository)
+                )
+              )
             } else {
               // TODO ApiError should support errors field to enhance compatibility of GitHub API
               UnprocessableEntity(
@@ -59,59 +89,21 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
                 )
               )
             }
-          }
-        }) getOrElse NotFound()
-    }
-  })
-
-  /*
-   * iv. Update a label
-   * https://developer.github.com/v3/issues/labels/#update-a-label
-   */
-  patch("/api/v3/repos/:owner/:repository/labels/:labelName")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        (for {
-          data <- extractFromJsonBody[CreateALabel] if data.isValid
-        } yield {
-          LockUtil.lock(RepositoryName(repository).fullName) {
-            getLabel(repository.owner, repository.name, params("labelName")).map {
-              label =>
-                if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
-                  updateLabel(repository.owner, repository.name, label.labelId, data.name, data.color)
-                  JsonFormat(
-                    ApiLabel(
-                      getLabel(repository.owner, repository.name, label.labelId).get,
-                      RepositoryName(repository)
-                    )
-                  )
-                } else {
-                  // TODO ApiError should support errors field to enhance compatibility of GitHub API
-                  UnprocessableEntity(
-                    ApiError(
-                      "Validation Failed",
-                      Some("https://developer.github.com/v3/issues/labels/#create-a-label")
-                    )
-                  )
-                }
-            } getOrElse NotFound()
-          }
-        }) getOrElse NotFound()
-    }
+        } getOrElse NotFound()
+      }
+    }) getOrElse NotFound()
   })
 
   /*
    * v. Delete a label
    * https://developer.github.com/v3/issues/labels/#delete-a-label
    */
-  delete("/api/v3/repos/:owner/:repository/labels/:labelName")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      LockUtil.lock(RepositoryName(repository).fullName) {
-        getLabel(repository.owner, repository.name, params("labelName")).map { label =>
-          deleteLabel(repository.owner, repository.name, label.labelId)
-          NoContent()
-        } getOrElse NotFound()
-      }
+  delete("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
+    LockUtil.lock(RepositoryName(repository).fullName) {
+      getLabel(repository.owner, repository.name, params("labelName")).map { label =>
+        deleteLabel(repository.owner, repository.name, label.labelId)
+        NoContent()
+      } getOrElse NotFound()
     }
   })
 
@@ -129,43 +121,38 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * vii. Add labels to an issue
    * https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
    */
-  post("/api/v3/repos/:owner/:repository/issues/:id/labels")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        JsonFormat(for {
-          data <- extractFromJsonBody[Seq[String]];
-          issueId <- params("id").toIntOpt
-        } yield {
-          data.map { labelName =>
-            val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
-              getLabel(
-                repository.owner,
-                repository.name,
-                createLabel(repository.owner, repository.name, labelName)
-              ).get
-            )
-            registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
-            ApiLabel(label, RepositoryName(repository.owner, repository.name))
-          }
-        })
-    }
+  post("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
+    JsonFormat(for {
+      data <- extractFromJsonBody[Seq[String]];
+      issueId <- params("id").toIntOpt
+    } yield {
+      data.map { labelName =>
+        val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
+          getLabel(
+            repository.owner,
+            repository.name,
+            createLabel(repository.owner, repository.name, labelName)
+          ).get
+        )
+        registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
+        ApiLabel(label, RepositoryName(repository.owner, repository.name))
+      }
+    })
   })
 
   /*
    * viii. Remove a label from an issue
    * https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
    */
-  delete("/api/v3/repos/:owner/:repository/issues/:id/labels/:name")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      val issueId = params("id").toInt
-      val labelName = params("name")
-      getLabel(repository.owner, repository.name, labelName) match {
-        case Some(label) =>
-          deleteIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
-          JsonFormat(Seq(label))
-        case None =>
-          NotFound()
-      }
+  delete("/api/v3/repos/:owner/:repository/issues/:id/labels/:name")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    val labelName = params("name")
+    getLabel(repository.owner, repository.name, labelName) match {
+      case Some(label) =>
+        deleteIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
+        JsonFormat(Seq(label))
+      case None =>
+        NotFound()
     }
   })
 
@@ -173,39 +160,34 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * ix. Replace all labels for an issue
    * https://developer.github.com/v3/issues/labels/#replace-all-labels-for-an-issue
    */
-  put("/api/v3/repos/:owner/:repository/issues/:id/labels")(unarchivedRepositoryOnly {
-    writableUsersOnly {
-      repository =>
-        JsonFormat(for {
-          data <- extractFromJsonBody[Seq[String]];
-          issueId <- params("id").toIntOpt
-        } yield {
-          deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
-          data.map { labelName =>
-            val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
-              getLabel(
-                repository.owner,
-                repository.name,
-                createLabel(repository.owner, repository.name, labelName)
-              ).get
-            )
-            registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
-            ApiLabel(label, RepositoryName(repository.owner, repository.name))
-          }
-        })
-    }
+  put("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
+    JsonFormat(for {
+      data <- extractFromJsonBody[Seq[String]];
+      issueId <- params("id").toIntOpt
+    } yield {
+      deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
+      data.map { labelName =>
+        val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
+          getLabel(
+            repository.owner,
+            repository.name,
+            createLabel(repository.owner, repository.name, labelName)
+          ).get
+        )
+        registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
+        ApiLabel(label, RepositoryName(repository.owner, repository.name))
+      }
+    })
   })
 
   /*
    * x. Remove all labels from an issue
    * https://developer.github.com/v3/issues/labels/#remove-all-labels-from-an-issue
    */
-  delete("/api/v3/repos/:owner/:repository/issues/:id/labels")(unarchivedRepositoryOnly {
-    writableUsersOnly { repository =>
-      val issueId = params("id").toInt
-      deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
-      NoContent()
-    }
+  delete("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
+    NoContent()
   })
 
   /*
