@@ -169,10 +169,16 @@ trait PullRequestsControllerBase extends ControllerBase {
             val (commits, diffs) =
               getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
+            val commitsWithStatus = commits.map { day =>
+              day.map { commit =>
+                (commit, getCommitStatusWithSummary(repository.owner, repository.name, commit.id))
+              }
+            }
+
             html.commits(
               issue,
               pullreq,
-              commits,
+              commitsWithStatus,
               getPullRequestComments(owner, name, issue.issueId, commits.flatten),
               diffs.size,
               isManageable(repository),
