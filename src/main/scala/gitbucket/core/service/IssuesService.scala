@@ -778,16 +778,33 @@ trait IssuesService {
   def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String, loginAccount: Account)(
     implicit s: Session
   ): Unit = {
-    extractIssueId(message).foreach { issueId =>
-      val content = s"${fromIssue.issueId}:${fromIssue.title}"
-      if (getIssue(owner, repository, issueId).isDefined) {
-        // Not add if refer comment already exist.
-        if (!getComments(owner, repository, issueId.toInt).exists { x =>
-              x.action == "refer" && x.content == content
-            }) {
-          createComment(owner, repository, loginAccount.userName, issueId.toInt, content, "refer")
+    extractGlobalIssueId(message).foreach {
+      case (_referredOwner, _referredRepository, referredIssueId) =>
+        val referredOwner = _referredOwner.getOrElse(owner)
+        val referredRepository = _referredRepository.getOrElse(repository)
+        if (getIssue(referredOwner, referredRepository, referredIssueId.get).isDefined) {
+          val (content, action) = if (repository == referredRepository) {
+            (s"${fromIssue.issueId}:${fromIssue.title}", "refer")
+          } else {
+            (s"${fromIssue.issueId}:${owner}:${repository}:${fromIssue.title}", "refer_global")
+          }
+          referredIssueId.foreach(
+            x =>
+              // Not add if refer comment already exist.
+              if (!getComments(referredOwner, referredRepository, x.toInt).exists { x =>
+                    (x.action == "refer" || x.action == "refer_global") && x.content == content
+                  }) {
+                createComment(
+                  referredOwner,
+                  referredRepository,
+                  loginAccount.userName,
+                  x.toInt,
+                  content,
+                  action
+                )
+            }
+          )
         }
-      }
     }
   }
 

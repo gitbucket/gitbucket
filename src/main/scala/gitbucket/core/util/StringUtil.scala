@@ -12,6 +12,7 @@ import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
 
 import scala.util.control.Exception._
+import scala.util.matching.Regex.Match.unapply
 
 object StringUtil {
 
@@ -143,6 +144,19 @@ object StringUtil {
       .map(_.group(2))
       .toSeq
       .distinct
+
+  /**
+   * Extract issue id like ```owner/repository#issueId``` from the given message.
+   *
+   *@param message the message which may contains issue id
+   * @return the iterator of issue id
+   */
+  def extractGlobalIssueId(message: String): List[(Option[String], Option[String], Option[String])] =
+    "\\s?([\\w-\\.]+)?\\/?([\\w\\-\\.]+)?#(\\d+)\\s?".r
+      .findAllIn(message)
+      .matchData
+      .map(i => (Option(i.group(1)), Option(i.group(2)), Option(i.group(3))))
+      .toList
 
   /**
    * Extract close issue id like ```close #issueId ``` from the given message.
