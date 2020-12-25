@@ -82,3 +82,41 @@ final case class RenameRepositoryInfo(
       UUID.randomUUID().toString
     )
 }
+
+final case class ArchiveRepositoryInfo(
+  userName: String,
+  repositoryName: String,
+  activityUserName: String
+) extends BaseActivityInfo {
+
+  override def toActivity: Activity =
+    Activity(
+      userName,
+      repositoryName,
+      activityUserName,
+      "archive_repository",
+      s"[user:$activityUserName] archived [repo:$userName/$repositoryName]",
+      None,
+      currentDate,
+      UUID.randomUUID().toString
+    )
+}
+
+final case class UnarchiveRepositoryInfo(
+  userName: String,
+  repositoryName: String,
+  activityUserName: String
+) extends BaseActivityInfo {
+
+  override def toActivity: Activity =
+    Activity(
+      userName,
+      repositoryName,
+      activityUserName,
+      "unarchive_repository",
+      s"[user:$activityUserName] unarchived [repo:$userName/$repositoryName]",
+      None,
+      currentDate,
+      UUID.randomUUID().toString
+    )
+}

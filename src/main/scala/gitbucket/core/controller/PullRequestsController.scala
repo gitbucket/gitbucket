@@ -14,7 +14,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
-import org.scalatra.BadRequest
+import org.scalatra.{BadRequest, Forbidden}
 
 import scala.util.Using
 
@@ -33,6 +33,7 @@ class PullRequestsController
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
     with CommitStatusService
     with MergeService
     with ProtectedBranchService
@@ -52,6 +53,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
     with CommitStatusService
     with MergeService
     with ProtectedBranchService
@@ -299,67 +301,72 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/update_branch")(readableUsersOnly { baseRepository =>
-    (for {
-      issueId <- params("id").toIntOpt
-      loginAccount <- context.loginAccount
-      (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
-      repository <- getRepository(pullreq.requestUserName, pullreq.requestRepositoryName)
-      remoteRepository <- getRepository(pullreq.userName, pullreq.repositoryName)
-      owner = pullreq.requestUserName
-      name = pullreq.requestRepositoryName
-      if hasDeveloperRole(owner, name, context.loginAccount)
-    } yield {
-      val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
-      if (branchProtection.needStatusCheck(loginAccount.userName)) {
-        flash.update("error", s"branch ${pullreq.requestBranch} is protected need status check.")
-      } else {
-        LockUtil.lock(s"${owner}/${name}") {
-          val alias =
-            if (pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName) {
-              pullreq.branch
-            } else {
-              s"${pullreq.userName}:${pullreq.branch}"
+  post("/:owner/:repository/pull/:id/update_branch")(unarchivedRepositoryOnly {
+    readableUsersOnly {
+      baseRepository =>
+        (for {
+          issueId <- params("id").toIntOpt
+          loginAccount <- context.loginAccount
+          (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+          repository <- getRepository(pullreq.requestUserName, pullreq.requestRepositoryName)
+          remoteRepository <- getRepository(pullreq.userName, pullreq.repositoryName)
+          owner = pullreq.requestUserName
+          name = pullreq.requestRepositoryName
+          if hasDeveloperRole(owner, name, context.loginAccount)
+        } yield {
+          val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
+          if (branchProtection.needStatusCheck(loginAccount.userName)) {
+            flash.update("error", s"branch ${pullreq.requestBranch} is protected need status check.")
+          } else {
+            LockUtil.lock(s"${owner}/${name}") {
+              val alias =
+                if (pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName) {
+                  pullreq.branch
+                } else {
+                  s"${pullreq.userName}:${pullreq.branch}"
+                }
+              val existIds = Using
+                .resource(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
+                  JGitUtil.getAllCommitIds(git)
+                }
+                .toSet
+              pullRemote(
+                repository,
+                pullreq.requestBranch,
+                remoteRepository,
+                pullreq.branch,
+                loginAccount,
+                s"Merge branch '${alias}' into ${pullreq.requestBranch}",
+                Some(pullreq),
+                context.settings
+              ) match {
+                case None => // conflict
+                  flash.update("error", s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}.")
+                case Some(oldId) =>
+                  // update pull request
+                  updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize", context.settings)
+                  flash.update("info", s"Merge branch '${alias}' into ${pullreq.requestBranch}")
+              }
             }
-          val existIds = Using
-            .resource(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
-              JGitUtil.getAllCommitIds(git)
-            }
-            .toSet
-          pullRemote(
-            repository,
-            pullreq.requestBranch,
-            remoteRepository,
-            pullreq.branch,
-            loginAccount,
-            s"Merge branch '${alias}' into ${pullreq.requestBranch}",
-            Some(pullreq),
-            context.settings
-          ) match {
-            case None => // conflict
-              flash.update("error", s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}.")
-            case Some(oldId) =>
-              // update pull request
-              updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize", context.settings)
-              flash.update("info", s"Merge branch '${alias}' into ${pullreq.requestBranch}")
           }
-        }
-      }
-      redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
+          redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
 
-    }) getOrElse NotFound()
+        }) getOrElse NotFound()
+    }
   })
 
-  post("/:owner/:repository/pull/:id/update_draft")(readableUsersOnly { baseRepository =>
-    (for {
-      issueId <- params("id").toIntOpt
-      (_, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
-      owner = pullreq.requestUserName
-      name = pullreq.requestRepositoryName
-      if hasDeveloperRole(owner, name, context.loginAccount)
-    } yield {
-      updateDraftToPullRequest(baseRepository.owner, baseRepository.name, issueId)
-    }) getOrElse NotFound()
+  post("/:owner/:repository/pull/:id/update_draft")(unarchivedRepositoryOnly {
+    readableUsersOnly { baseRepository =>
+      (for {
+        issueId <- params("id").toIntOpt
+        (_, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+        owner = pullreq.requestUserName
+        name = pullreq.requestRepositoryName
+        if hasDeveloperRole(owner, name, context.loginAccount)
+      } yield {
+        updateDraftToPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      }) getOrElse NotFound()
+    }
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>

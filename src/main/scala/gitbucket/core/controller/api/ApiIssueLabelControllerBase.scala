@@ -11,7 +11,8 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
     with IssuesService
     with LabelsService
     with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   /*
    * i. List all labels for this repository
@@ -105,6 +106,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
       } getOrElse NotFound()
     }
   })
+
   /*
    * vi. List labels on an issue
    * https://developer.github.com/v3/issues/labels/#list-labels-on-an-issue

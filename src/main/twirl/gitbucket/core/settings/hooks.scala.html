@@ -19,7 +19,7 @@
           <a href="@helpers.url(repository)/settings/hooks/new" class="btn btn-success pull-right" style="margin-bottom: 10px;">Add webhook</a>
 
           <table class="table table-condensed" style="margin-bottom:0px;">
-            @webHooks.map { case (webHook, events) =>
+          @webHooks.map { case (webHook, events) =>
               <tr><td style="vertical-align: middle;">
                 <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
                   <span class="css-truncate-target">@webHook.url</span>
@@ -31,11 +31,11 @@
                     <span class="octicon octicon-pencil"></span>
                   </a>
                   <a href="@helpers.url(repository)/settings/hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
-                    <span class="octicon octicon-x"></span>
-                  </a>
-                </div>
-              </td></tr>
-            }
+            <span class="octicon octicon-x"></span>
+          </a>
+          </div>
+          </td></tr>
+          }
           </table>
         </div>
       </div>

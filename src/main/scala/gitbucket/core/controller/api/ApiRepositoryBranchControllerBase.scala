@@ -20,7 +20,8 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     with ProtectedBranchService
     with ReferrerAuthenticator
     with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   /**
    * i. List branches

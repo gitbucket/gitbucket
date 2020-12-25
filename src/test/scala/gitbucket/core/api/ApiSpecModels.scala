@@ -53,6 +53,7 @@ object ApiSpecModels {
     userName = repo1Name.owner,
     repositoryName = repo1Name.name,
     isPrivate = false,
+    isArchived = false,
     description = Some("This your first repo!"),
     defaultBranch = "master",
     registeredDate = date1,

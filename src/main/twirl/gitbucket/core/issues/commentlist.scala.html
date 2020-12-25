@@ -23,12 +23,14 @@
         @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
       </a>
     </span>
-    @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
-    && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-      <span class="pull-right">
-        <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
-        <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
-      </span>
+    @if(!repository.repository.isArchived){
+      @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
+              && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+        <span class="pull-right">
+          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
+          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+        </span>
+      }
     }
   </div>
   <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
@@ -52,8 +54,10 @@
       @helpers.user(issue.get.openedUserName, styleClass="username strong")
       <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
-        @if(isManageable || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
-          <a href="#" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+        @if(!repository.repository.isArchived){
+          @if(isManageable || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
+            <a href="#" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+          }
         }
       </span>
     </div>
@@ -284,11 +288,13 @@
           on
           <a href="@helpers.url(repository)/commit/@comment.commitId" class="monospace">@comment.commitId.substring(0, 7)</a>
         </span>
-        @if((isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-          <span class="pull-right">
-            <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
-            <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
-          </span>
+        @if(!repository.repository.isArchived){
+          @if((isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+            <span class="pull-right">
+              <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
+              <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+            </span>
+          }
         }
       </div>
       <div class="panel-body markdown-body commit-commentContent-@comment.commentId">

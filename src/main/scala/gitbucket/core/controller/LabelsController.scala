@@ -2,19 +2,19 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.labels.html
 import gitbucket.core.service.{
-  RepositoryService,
   AccountService,
   IssuesService,
   LabelsService,
   MilestonesService,
-  PrioritiesService
+  PrioritiesService,
+  RepositoryService
 }
-import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
-import org.scalatra.Ok
+import org.scalatra.{Forbidden, Ok}
 
 class LabelsController
     extends LabelsControllerBase
@@ -26,13 +26,15 @@ class LabelsController
     with MilestonesService
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
   self: LabelsService
     with IssuesService
     with RepositoryService
     with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 

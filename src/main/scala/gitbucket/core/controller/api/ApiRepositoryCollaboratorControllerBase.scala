@@ -3,11 +3,15 @@ import gitbucket.core.api.{AddACollaborator, ApiRepositoryCollaborator, ApiUser,
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{OwnerAuthenticator, ReferrerAuthenticator}
+import gitbucket.core.util.{OwnerAuthenticator, ReferrerAuthenticator, UnarchivedAuthenticator}
 import org.scalatra.NoContent
 
 trait ApiRepositoryCollaboratorControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with ReferrerAuthenticator with OwnerAuthenticator =>
+  self: RepositoryService
+    with AccountService
+    with ReferrerAuthenticator
+    with OwnerAuthenticator
+    with UnarchivedAuthenticator =>
 
   /*
    * i. List repository collaborators

@@ -7,7 +7,7 @@
   milestones: List[gitbucket.core.model.Milestone] = Nil,
   priorities: List[gitbucket.core.model.Priority] = Nil,
   labels: List[gitbucket.core.model.Label] = Nil,
-  repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   isManageable: Boolean = false)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.IssuesService.IssueInfo
@@ -25,6 +25,7 @@
   <thead>
     <tr>
       <th style="background-color: #eee;">
+      @if(!repository.repository.isArchived){
         @if(isManageable){
           <input type="checkbox" aria-label="Select all issues"/>
           <span id="table-issues-batchedit">
@@ -51,6 +52,7 @@
             }
           </span>
         }
+      }
       </th>
     </tr>
   </thead>
@@ -65,14 +67,10 @@
     @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId), status) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
-          @if(isManageable){
-            <input type="checkbox" value="@issue.issueId" aria-labelledby="issue_@(issue.issueId)_link"/>
-          }
-          @*
-          <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened")" style="margin-right: 3px;"></i>
-          *@
-          @if(repository.isEmpty){
-            <a href="@context.path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
+          @if(!repository.repository.isArchived){
+            @if(isManageable){
+              <input type="checkbox" value="@issue.issueId" aria-labelledby="issue_@(issue.issueId)_link"/>
+            }
           }
           @if(issue.isPullRequest){
             <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">

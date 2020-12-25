@@ -194,10 +194,12 @@
           } else {
           *@
             @if(repository.isDefined){
-              @if(target == "issues"){
-                <a href="@helpers.url(repository.get)/issues/new">Create a new issue.</a>
-              } else {
-                <a href="@helpers.url(repository.get)/compare">Create a new pull request.</a>
+              @if(!repository.get.repository.isArchived){
+                @if(target == "issues"){
+                  <a href="@helpers.url(repository.get)/issues/new">Create a new issue.</a>
+                } else {
+                  <a href="@helpers.url(repository.get)/compare">Create a new pull request.</a>
+                }
               }
             }
           @*

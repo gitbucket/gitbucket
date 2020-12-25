@@ -55,6 +55,7 @@ class RepositoryViewerController
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
     with MergeService
     with PullRequestService
     with CommitStatusService
@@ -77,6 +78,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
     with PullRequestService
     with CommitStatusService
     with WebHookPullRequestService
@@ -385,9 +387,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
           newFiles.foreach { file =>
             val bytes =
-              FileUtils.readFileToByteArray(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(file.id)))
+              FileUtils.readFileToByteArray(
+                new File(getTemporaryDir(session.getId), FileUtil.checkFilename(file.id))
+              )
             builder.add(
-              JGitUtil.createDirCacheEntry(file.name, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes))
+              JGitUtil
+                .createDirCacheEntry(file.name, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes))
             )
             builder.finish()
           }
@@ -404,24 +409,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
 
-        getPathObjectId(git, path, revCommit).map {
-          objectId =>
-            val paths = path.split("/")
-            val info = EditorConfigUtil.getEditorConfigInfo(git, branch, path)
+        getPathObjectId(git, path, revCommit)
+          .map {
+            objectId =>
+              val paths = path.split("/")
+              val info = EditorConfigUtil.getEditorConfigInfo(git, branch, path)
 
-            html.editor(
-              branch = branch,
-              repository = repository,
-              pathList = paths.take(paths.size - 1).toList,
-              fileName = Some(paths.last),
-              content = JGitUtil.getContentInfo(git, path, objectId),
-              protectedBranch = protectedBranch,
-              commit = revCommit.getName,
-              newLineMode = info.newLineMode,
-              useSoftTabs = info.useSoftTabs,
-              tabSize = info.tabSize
-            )
-        } getOrElse NotFound()
+              html.editor(
+                branch = branch,
+                repository = repository,
+                pathList = paths.take(paths.size - 1).toList,
+                fileName = Some(paths.last),
+                content = JGitUtil.getContentInfo(git, path, objectId),
+                protectedBranch = protectedBranch,
+                commit = revCommit.getName,
+                newLineMode = info.newLineMode,
+                useSoftTabs = info.useSoftTabs,
+                tabSize = info.tabSize
+              )
+          } getOrElse NotFound()
     }
   })
 
@@ -755,21 +761,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
-    val id = params("id")
-    createCommitComment(
-      repository,
-      id,
-      context.loginAccount.get,
-      form.content,
-      form.fileName,
-      form.oldLineNumber,
-      form.newLineNumber,
-      form.diff,
-      form.issueId
-    )
-
-    redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
+  post("/:owner/:repository/commit/:id/comment/new", commentForm)(unarchivedRepositoryOnly {
+    readableUsersOnly { (form, repository) =>
+      val id = params("id")
+      createCommitComment(
+        repository,
+        id,
+        context.loginAccount.get,
+        form.content,
+        form.fileName,
+        form.oldLineNumber,
+        form.newLineNumber,
+        form.diff,
+        form.issueId
+      )
+      redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
+    }
   })
 
   ajaxGet("/:owner/:repository/commit/:id/comment/_form")(readableUsersOnly { repository =>
@@ -790,23 +797,26 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     )
   })
 
-  ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(readableUsersOnly { (form, repository) =>
-    val id = params("id")
-    val commentId = createCommitComment(
-      repository,
-      id,
-      context.loginAccount.get,
-      form.content,
-      form.fileName,
-      form.oldLineNumber,
-      form.newLineNumber,
-      form.diff,
-      form.issueId
-    )
+  ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(unarchivedRepositoryOnly {
+    readableUsersOnly {
+      (form, repository) =>
+        val id = params("id")
+        val commentId = createCommitComment(
+          repository,
+          id,
+          context.loginAccount.get,
+          form.content,
+          form.fileName,
+          form.oldLineNumber,
+          form.newLineNumber,
+          form.diff,
+          form.issueId
+        )
 
-    val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
-    helper.html
-      .commitcomment(comment, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
+        val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
+        helper.html
+          .commitcomment(comment, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
+    }
   })
 
   ajaxGet("/:owner/:repository/commit_comments/_data/:id")(readableUsersOnly { repository =>
@@ -837,26 +847,30 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/commit_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
-    defining(repository.owner, repository.name) {
-      case (owner, name) =>
-        getCommitComment(owner, name, params("id")).map { comment =>
-          if (isEditable(owner, name, comment.commentedUserName)) {
-            updateCommitComment(comment.commentId, form.content)
-            redirect(s"/${owner}/${name}/commit_comments/_data/${comment.commentId}")
-          } else Unauthorized()
-        } getOrElse NotFound()
+  ajaxPost("/:owner/:repository/commit_comments/edit/:id", commentForm)(unarchivedRepositoryOnly {
+    readableUsersOnly { (form, repository) =>
+      defining(repository.owner, repository.name) {
+        case (owner, name) =>
+          getCommitComment(owner, name, params("id")).map { comment =>
+            if (isEditable(owner, name, comment.commentedUserName)) {
+              updateCommitComment(comment.commentId, form.content)
+              redirect(s"/${owner}/${name}/commit_comments/_data/${comment.commentId}")
+            } else Unauthorized()
+          } getOrElse NotFound()
+      }
     }
   })
 
-  ajaxPost("/:owner/:repository/commit_comments/delete/:id")(readableUsersOnly { repository =>
-    defining(repository.owner, repository.name) {
-      case (owner, name) =>
-        getCommitComment(owner, name, params("id")).map { comment =>
-          if (isEditable(owner, name, comment.commentedUserName)) {
-            Ok(deleteCommitComment(comment.commentId))
-          } else Unauthorized()
-        } getOrElse NotFound()
+  ajaxPost("/:owner/:repository/commit_comments/delete/:id")(unarchivedRepositoryOnly {
+    readableUsersOnly { repository =>
+      defining(repository.owner, repository.name) {
+        case (owner, name) =>
+          getCommitComment(owner, name, params("id")).map { comment =>
+            if (isEditable(owner, name, comment.commentedUserName)) {
+              Ok(deleteCommitComment(comment.commentId))
+            } else Unauthorized()
+          } getOrElse NotFound()
+      }
     }
   })
 

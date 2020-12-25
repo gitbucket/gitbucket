@@ -2,7 +2,7 @@ package gitbucket.core.controller.api
 import gitbucket.core.api.{ApiObject, ApiRef, CreateARef, JsonFormat, UpdateARef}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.ReferrerAuthenticator
+import gitbucket.core.util.{ReferrerAuthenticator, UnarchivedAuthenticator}
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
@@ -14,7 +14,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator =>
+  self: ReferrerAuthenticator with UnarchivedAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[ApiGitReferenceControllerBase])
 
@@ -65,72 +65,83 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * iii. Create a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-reference
    */
-  post("/api/v3/repos/:owner/:repository/git/refs")(referrersOnly { _ =>
-    extractFromJsonBody[CreateARef].map {
-      data =>
-        Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-          val ref = git.getRepository.findRef(data.ref)
-          if (ref == null) {
-            val update = git.getRepository.updateRef(data.ref)
-            update.setNewObjectId(ObjectId.fromString(data.sha))
-            val result = update.update()
-            result match {
-              case Result.NEW => JsonFormat(ApiRef(update.getName, ApiObject(update.getNewObjectId.getName)))
-              case _          => UnprocessableEntity(result.name())
+  post("/api/v3/repos/:owner/:repository/git/refs")(unarchivedRepositoryOnly {
+    referrersOnly {
+      _ =>
+        extractFromJsonBody[CreateARef].map {
+          data =>
+            Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
+              git =>
+                val ref = git.getRepository.findRef(data.ref)
+                if (ref == null) {
+                  val update = git.getRepository.updateRef(data.ref)
+                  update.setNewObjectId(ObjectId.fromString(data.sha))
+                  val result = update.update()
+                  result match {
+                    case Result.NEW => JsonFormat(ApiRef(update.getName, ApiObject(update.getNewObjectId.getName)))
+                    case _          => UnprocessableEntity(result.name())
+                  }
+                } else {
+                  UnprocessableEntity("Ref already exists.")
+                }
             }
-          } else {
-            UnprocessableEntity("Ref already exists.")
-          }
-        }
-    } getOrElse BadRequest()
+        } getOrElse BadRequest()
+    }
   })
 
   /*
    * iv. Update a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#update-a-reference
    */
-  patch("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { _ =>
-    val refName = multiParams("splat").mkString("/")
-    extractFromJsonBody[UpdateARef].map {
-      data =>
-        Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-          val ref = git.getRepository.findRef(refName)
-          if (ref == null) {
-            UnprocessableEntity("Ref does not exist.")
-          } else {
-            val update = git.getRepository.updateRef(ref.getName)
-            update.setNewObjectId(ObjectId.fromString(data.sha))
-            update.setForceUpdate(data.force)
-            val result = update.update()
-            result match {
-              case Result.FORCED | Result.FAST_FORWARD | Result.NO_CHANGE =>
-                JsonFormat(ApiRef(update.getName, ApiObject(update.getNewObjectId.getName)))
-              case _ => UnprocessableEntity(result.name())
+  patch("/api/v3/repos/:owner/:repository/git/refs/*")(unarchivedRepositoryOnly {
+    referrersOnly {
+      _ =>
+        val refName = multiParams("splat").mkString("/")
+        extractFromJsonBody[UpdateARef].map {
+          data =>
+            Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
+              git =>
+                val ref = git.getRepository.findRef(refName)
+                if (ref == null) {
+                  UnprocessableEntity("Ref does not exist.")
+                } else {
+                  val update = git.getRepository.updateRef(ref.getName)
+                  update.setNewObjectId(ObjectId.fromString(data.sha))
+                  update.setForceUpdate(data.force)
+                  val result = update.update()
+                  result match {
+                    case Result.FORCED | Result.FAST_FORWARD | Result.NO_CHANGE =>
+                      JsonFormat(ApiRef(update.getName, ApiObject(update.getNewObjectId.getName)))
+                    case _ => UnprocessableEntity(result.name())
+                  }
+                }
             }
-          }
-        }
-    } getOrElse BadRequest()
+        } getOrElse BadRequest()
+    }
   })
 
   /*
    * v. Delete a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#delete-a-reference
    */
-  delete("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { _ =>
-    val refName = multiParams("splat").mkString("/")
-    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-      val ref = git.getRepository.findRef(refName)
-      if (ref == null) {
-        UnprocessableEntity("Ref does not exist.")
-      } else {
-        val update = git.getRepository.updateRef(ref.getName)
-        update.setForceUpdate(true)
-        val result = update.delete()
-        result match {
-          case Result.FORCED => NoContent()
-          case _             => UnprocessableEntity(result.name())
+  delete("/api/v3/repos/:owner/:repository/git/refs/*")(unarchivedRepositoryOnly {
+    referrersOnly {
+      _ =>
+        val refName = multiParams("splat").mkString("/")
+        Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+          val ref = git.getRepository.findRef(refName)
+          if (ref == null) {
+            UnprocessableEntity("Ref does not exist.")
+          } else {
+            val update = git.getRepository.updateRef(ref.getName)
+            update.setForceUpdate(true)
+            val result = update.delete()
+            result match {
+              case Result.FORCED => NoContent()
+              case _             => UnprocessableEntity(result.name())
+            }
+          }
         }
-      }
     }
   })
 }

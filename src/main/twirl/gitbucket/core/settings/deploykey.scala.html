@@ -14,11 +14,11 @@
             @if(i != 0){
               <hr>
             }
-          <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
-          @if(key.allowWrite){
-            <label class="label label-warning">Write access</label>
-          }
-          <a href="@helpers.url(repository)/settings/deploykey/delete/@key.deployKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
+            <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
+            @if(key.allowWrite){
+              <label class="label label-warning">Write access</label>
+            }
+            <a href="@helpers.url(repository)/settings/deploykey/delete/@key.deployKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
           }
         </div>
       </div>

@@ -17,21 +17,23 @@
             </fieldset>
           </form>
           @if(context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin){
-            <form id="rename-form" method="post" action="@helpers.url(repository)/settings/rename" validate="true" autocomplete="off">
-              <fieldset class="border-top form-group">
-                <label class="strong">Rename repository</label>
-                <div>
-                  Rename this repository. This will make the current URL unavailable.
-                  <div class="pull-right">
-                    <input type="text" name="repositoryName" id="repositoryName" class="form-control" style="width: 200px; display: inline; vertical-align: middle;" value="@repository.name" aria-label="Repository name"/>
-                    <input type="submit" class="btn btn-danger" value="Rename"/>
-                    <div>
-                      <span id="error-repositoryName" class="error"></span>
+            @if(!repository.repository.isArchived){
+              <form id="rename-form" method="post" action="@helpers.url(repository)/settings/rename" validate="true" autocomplete="off">
+                <fieldset class="border-top form-group">
+                  <label class="strong">Rename repository</label>
+                  <div>
+                    Rename this repository. This will make the current URL unavailable.
+                    <div class="pull-right">
+                      <input type="text" name="repositoryName" id="repositoryName" class="form-control" style="width: 200px; display: inline; vertical-align: middle;" value="@repository.name" aria-label="Repository name"/>
+                      <input type="submit" class="btn btn-danger" value="Rename"/>
+                      <div>
+                        <span id="error-repositoryName" class="error"></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </fieldset>
-            </form>
+                </fieldset>
+              </form>
+            }
           }
           @if(context.settings.repositoryOperation.transfer || context.loginAccount.get.isAdmin){
             <form id="transfer-form" method="post" action="@helpers.url(repository)/settings/transfer" validate="true" autocomplete="off">
@@ -49,6 +51,33 @@
                 </div>
               </fieldset>
             </form>
+          }
+          @if(context.settings.repositoryOperation.archive || context.loginAccount.get.isAdmin){
+            @if(repository.repository.isArchived){
+              <form id="unarchive-form" method="post" action="@helpers.url(repository)/settings/unarchive">
+                <fieldset class="border-top form-group">
+                  <label class="strong">Unarchive this repository</label>
+                  <div>
+                    Mark this repository as unarchived and read-write.
+                    <div class="pull-right">
+                      <input type="submit" class="btn btn-danger pull-right" value="Unarchive this repository"/>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+            }else{
+              <form id="archive-form" method="post" action="@helpers.url(repository)/settings/archive">
+                <fieldset class="border-top form-group">
+                  <label class="strong">Archive this repository</label>
+                  <div>
+                    Mark this repository as archived and read-only.
+                    <div class="pull-right">
+                      <input type="submit" class="btn btn-danger pull-right" value="Archive this repository"/>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+            }
           }
           @if(context.settings.repositoryOperation.delete || context.loginAccount.get.isAdmin){
             <form id="delete-form" method="post" action="@helpers.url(repository)/settings/delete">
@@ -84,6 +113,12 @@ $(function(){
     } else {
       return true;
     }
+  });
+  $('#archive-form').submit(function(){
+    return confirm('Archive the repository.\nAre you sure?');
+  });
+  $('#unarchive-form').submit(function(){
+    return confirm('Unarchive the repository.\nAre you sure?');
   });
   $('#gc-form').submit(function(){
     return confirm('The garbage collection may take a long time.\nDo you want to execute it?');

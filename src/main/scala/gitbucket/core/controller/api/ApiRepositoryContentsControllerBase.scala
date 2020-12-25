@@ -13,7 +13,10 @@ import org.eclipse.jgit.api.Git
 import scala.util.Using
 
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
+  self: ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with RepositoryCommitFileService
+    with UnarchivedAuthenticator =>
 
   /**
    * i. Get a repository README
@@ -147,7 +150,10 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
       val paths = multiParams("splat").head.split("/")
       val path = paths.take(paths.size - 1).toList.mkString("/")
       if (data.sha.isDefined && data.sha.get != commit) {
-        ApiError("The blob SHA is not matched.", Some("https://developer.github.com/v3/repos/contents/#update-a-file"))
+        ApiError(
+          "The blob SHA is not matched.",
+          Some("https://developer.github.com/v3/repos/contents/#update-a-file")
+        )
       } else {
         val objectId = commitFile(
           repository,

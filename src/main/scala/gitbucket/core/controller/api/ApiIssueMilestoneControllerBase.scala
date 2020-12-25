@@ -3,12 +3,12 @@ import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.MilestonesService
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import org.scalatra.NoContent
 
 trait ApiIssueMilestoneControllerBase extends ControllerBase {
-  self: MilestonesService with WritableUsersAuthenticator with ReferrerAuthenticator =>
+  self: MilestonesService with WritableUsersAuthenticator with ReferrerAuthenticator with UnarchivedAuthenticator =>
 
   /*
    * i. List milestones
@@ -85,7 +85,9 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
         case _ =>
       }
       milestone <- getMilestone(repository.owner, repository.name, milestoneId)
-      _ = updateMilestone(milestone.copy(title = data.title, description = data.description, dueDate = data.due_on))
+      _ = updateMilestone(
+        milestone.copy(title = data.title, description = data.description, dueDate = data.due_on)
+      )
       apiMilestone <- getApiMilestone(repository, milestoneId)
     } yield {
       JsonFormat(apiMilestone)

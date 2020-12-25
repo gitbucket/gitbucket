@@ -11,7 +11,7 @@
 @import gitbucket.core.view.helpers
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Labels</span>
-  @if(isManageable){
+  @if(isManageable && !repository.repository.isArchived){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("labels", "Filter Labels")) {
         @labels.map { label =>
@@ -37,7 +37,7 @@
 
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Priority</span>
-  @if(isManageable){
+  @if(isManageable && !repository.repository.isArchived){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("priority", "Filter Priority")) {
         <li><a href="javascript:void(0);" class="priority" data-id=""><i class="octicon octicon-x"></i> Clear priority</a></li>
@@ -70,7 +70,7 @@
 
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Milestone</span>
-  @if(isManageable){
+  @if(isManageable && !repository.repository.isArchived){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("milestone", "Filter Milestone")) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
@@ -122,7 +122,7 @@
 <hr/>
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Assignee</span>
-  @if(isManageable){
+  @if(isManageable && !repository.repository.isArchived){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("assignee", "Filter Assignee")) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>

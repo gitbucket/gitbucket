@@ -12,7 +12,7 @@ import com.github.zafarkhaja.semver.Version
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
-import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.service.RepositoryService.{RepositoryInfo, ArchivedRepositoryReceiveHook}
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.{ConfigUtil, DatabaseConfig}
@@ -40,6 +40,7 @@ class PluginRegistry {
   private val repositoryRoutings = new ConcurrentLinkedQueue[GitRepositoryRouting]
   private val accountHooks = new ConcurrentLinkedQueue[AccountHook]
   private val receiveHooks = new ConcurrentLinkedQueue[ReceiveHook]
+  receiveHooks.add(new ArchivedRepositoryReceiveHook())
   receiveHooks.add(new ProtectedBranchReceiveHook())
   private val repositoryHooks = new ConcurrentLinkedQueue[RepositoryHook]
   private val issueHooks = new ConcurrentLinkedQueue[IssueHook]

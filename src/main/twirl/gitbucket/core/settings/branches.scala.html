@@ -22,9 +22,9 @@
             <form id="form" method="post" action="@helpers.url(repository)/settings/update_default_branch" validate="true" class="form-inline">
               <span class="error" id="error-defaultBranch"></span>
               <select name="defaultBranch" id="defaultBranch" class="form-control" aria-label="Default branch">
-                @repository.branchList.map { branch =>
-                  <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
-                }
+              @repository.branchList.map { branch =>
+                <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
+              }
               </select>
               <input type="submit" class="btn btn-default" value="Update" />
             </form>
@@ -35,26 +35,26 @@
           <div class="panel-heading strong">Protected branches</div>
           <div class="panel-body">
             <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally, require status checks before merging.
-              <form class="form-inline">
-                <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control" aria-label="Protect branch">
-                  <option>Choose a branch...</option>
-                  @repository.branchList.map { branch =>
-                    <option value="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)">@branch</option>
-                  }
-                </select>
-                <span class="error" id="error-protectBranch"></span>
-              </form>
+          <form class="form-inline">
+            <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control" aria-label="Protect branch">
+              <option>Choose a branch...</option>
+              @repository.branchList.map { branch =>
+                <option value="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)">@branch</option>
+              }
+            </select>
+            <span class="error" id="error-protectBranch"></span>
+          </form>
             </p>
 
             <table class="table table-hover branches">
-              @protectedBranchList.map { branch =>
-                <tr>
-                  <td>
-                    <span class="branch-name">@branch</span>
-                    <a href="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)" class="btn btn-sm btn-default pull-right">Edit</a>
-                  </td>
-                </tr>
-              }
+            @protectedBranchList.map { branch =>
+              <tr>
+                <td>
+                  <span class="branch-name">@branch</span>
+                  <a href="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)" class="btn btn-sm btn-default pull-right">Edit</a>
+                </td>
+              </tr>
+            }
             </table>
           </div>
 

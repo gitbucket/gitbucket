@@ -187,6 +187,19 @@
       </label>
     </div>
   </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Archive</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.archive" value="true"@if(context.settings.repositoryOperation.archive){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can archive repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="repositoryOperation.archive" value="false"@if(!context.settings.repositoryOperation.archive){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can archive repository.</span>
+      </label>
+    </div>
+  </div>
 </fieldset>
 <hr>
 <label class="strong">Default visibility when creating a new repository</label>

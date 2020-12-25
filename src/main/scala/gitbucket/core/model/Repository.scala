@@ -8,6 +8,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
 
   class Repositories(tag: Tag) extends Table[Repository](tag, "REPOSITORY") with BasicTemplate {
     val isPrivate = column[Boolean]("PRIVATE")
+    val isArchived = column[Boolean]("ARCHIVED")
     val description = column[String]("DESCRIPTION")
     val defaultBranch = column[String]("DEFAULT_BRANCH")
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
@@ -31,6 +32,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           userName,
           repositoryName,
           isPrivate,
+          isArchived,
           description.?,
           defaultBranch,
           registeredDate,
@@ -57,6 +59,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
             repository._10,
             repository._11,
             repository._12,
+            repository._13,
             RepositoryOptions.tupled.apply(options)
           )
       }, { (r: Repository) =>
@@ -66,6 +69,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
               r.userName,
               r.repositoryName,
               r.isPrivate,
+              r.isArchived,
               r.description,
               r.defaultBranch,
               r.registeredDate,
@@ -91,6 +95,7 @@ case class Repository(
   userName: String,
   repositoryName: String,
   isPrivate: Boolean,
+  isArchived: Boolean,
   description: Option[String],
   defaultBranch: String,
   registeredDate: java.util.Date,

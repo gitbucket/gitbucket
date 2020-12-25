@@ -4,10 +4,14 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.model.CommitState
 import gitbucket.core.service.{AccountService, CommitStatusService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 
 trait ApiRepositoryStatusControllerBase extends ControllerBase {
-  self: AccountService with CommitStatusService with ReferrerAuthenticator with WritableUsersAuthenticator =>
+  self: AccountService
+    with CommitStatusService
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   /*
    * i. Create a status

@@ -21,14 +21,16 @@
           <span class="muted">@counts.get(label.labelName).getOrElse(0) open issues</span>
         </div>
       </div>
-      @if(hasWritePermission){
-        <div class="col-md-2">
-          <div class="pull-right">
-            <a href="javascript:void(0);" onclick="editLabel(@label.labelId)">Edit</a>
-            &nbsp;&nbsp;
-            <a href="javascript:void(0);" onclick="deleteLabel(@label.labelId)">Delete</a>
+      @if(!repository.repository.isArchived){
+        @if(hasWritePermission){
+          <div class="col-md-2">
+            <div class="pull-right">
+              <a href="javascript:void(0);" onclick="editLabel(@label.labelId)">Edit</a>
+                &nbsp;&nbsp;
+              <a href="javascript:void(0);" onclick="deleteLabel(@label.labelId)">Delete</a>
+            </div>
           </div>
-        </div>
+        }
       }
     </div>
   </td>

@@ -32,17 +32,19 @@
           <button type="submit" id="search-btn" class="btn btn-default" aria-label="Search all issues"><i class="fa fa-search"></i></button>
         </span>
       </div>
-      @if(isEditable){
-        @if(target == "issues"){
-          <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
-        }
-        @if(target == "pulls"){
-          <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
+      @if(!repository.repository.isArchived){
+        @if(isEditable){
+          @if(target == "issues"){
+            <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+          }
+          @if(target == "pulls"){
+            <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
+          }
         }
       }
     </form>
     @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, priorities, labels, Some(repository), isManageable)
-    @if(isManageable){
+    @if(isManageable && !repository.repository.isArchived){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
         <input type="hidden" name="checked"/>
@@ -52,7 +54,7 @@
     }
   }
 }
-@if(isManageable){
+@if(isManageable && !repository.repository.isArchived){
 <script>
 $(function(){
   @*

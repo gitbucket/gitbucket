@@ -18,6 +18,7 @@ import org.scalatra.forms._
 import gitbucket.core.releases.html
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
+import org.scalatra.Forbidden
 
 import scala.util.Using
 
@@ -30,6 +31,7 @@ class ReleaseController
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
     with RequestCache
 
 trait ReleaseControllerBase extends ControllerBase {
@@ -39,6 +41,7 @@ trait ReleaseControllerBase extends ControllerBase {
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
     with ActivityService =>
 
   case class ReleaseForm(

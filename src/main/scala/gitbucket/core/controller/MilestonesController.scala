@@ -10,7 +10,7 @@ import gitbucket.core.service.{
   RepositoryService
 }
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
+import gitbucket.core.util.{ReferrerAuthenticator, UnarchivedAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.view.helpers.{getAssignableUserNames, getLabels, getPriorities, searchIssue}
 import org.scalatra.forms._
@@ -24,13 +24,15 @@ class MilestonesController
     with CommitStatusService
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with UnarchivedAuthenticator
 
 trait MilestonesControllerBase extends ControllerBase {
   self: MilestonesService
     with RepositoryService
     with CommitStatusService
     with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+    with WritableUsersAuthenticator
+    with UnarchivedAuthenticator =>
 
   case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 

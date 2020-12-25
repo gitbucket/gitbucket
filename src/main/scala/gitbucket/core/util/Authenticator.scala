@@ -138,15 +138,19 @@ trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService w
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
-      context.loginAccount match {
-        case Some(x) if (x.isAdmin)                                                          => action(repository)
-        case Some(x) if (userName == x.userName)                                             => action(repository)
-        case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-        case Some(x)
-            if (getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN, Role.DEVELOPER))
-              .contains(x.userName)) =>
-          action(repository)
-        case _ => Unauthorized()
+      if (repository.repository.isArchived) {
+        Unauthorized()
+      } else {
+        context.loginAccount match {
+          case Some(x) if (x.isAdmin)                                                          => action(repository)
+          case Some(x) if (userName == x.userName)                                             => action(repository)
+          case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+          case Some(x)
+              if (getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN, Role.DEVELOPER))
+                .contains(x.userName)) =>
+            action(repository)
+          case _ => Unauthorized()
+        }
       }
     } getOrElse NotFound()
   }
@@ -169,5 +173,28 @@ trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
         action
       case _ => Unauthorized()
     }
+  }
+}
+
+/**
+ * Allow action on only unarchived repository
+ */
+trait UnarchivedAuthenticator { self: ControllerBase with RepositoryService =>
+  protected def unarchivedRepositoryOnly(action: => Any) = { authenticate(action) }
+  protected def unarchivedRepositoryOnly[T](action: T => Any) = (form: T) => {
+    authenticate(action(form))
+  }
+
+  private def authenticate(action: => Any) = {
+    val userName = params("owner")
+    val repoName = params("repository")
+
+    getRepository(userName, repoName).map { repository =>
+      if (repository.repository.isArchived) {
+        Unauthorized()
+      } else {
+        action
+      }
+    } getOrElse NotFound()
   }
 }

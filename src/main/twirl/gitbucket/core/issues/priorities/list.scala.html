@@ -5,10 +5,12 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Priorities - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("priorities", repository){
-    @if(hasWritePermission){
-      <div class="pull-right" style="margin-bottom: 10px;">
-        <a class="btn btn-success" href="javascript:void(0);" id="new-priority-button">New priority</a>
-      </div>
+    @if(!repository.repository.isArchived){
+      @if(hasWritePermission){
+        <div class="pull-right" style="margin-bottom: 10px;">
+          <a class="btn btn-success" href="javascript:void(0);" id="new-priority-button">New priority</a>
+        </div>
+      }
     }
     <table class="table table-bordered table-hover table-issues" id="new-priority-table" style="display: none;">
       <tr><td></td></tr>

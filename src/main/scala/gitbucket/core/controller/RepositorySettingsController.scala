@@ -13,7 +13,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.WebHookContentType
-import gitbucket.core.model.activity.RenameRepositoryInfo
+import gitbucket.core.model.activity.{ArchiveRepositoryInfo, RenameRepositoryInfo, UnarchiveRepositoryInfo}
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
@@ -164,17 +164,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
-    if (!repository.branchList.contains(form.defaultBranch)) {
-      redirect(s"/${repository.owner}/${repository.name}/settings/options")
-    } else {
-      saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
-      // Change repository HEAD
-      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
-      }
-      flash.update("info", "Repository default branch has been updated.")
-      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
+    saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
+    // Change repository HEAD
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
     }
+    flash.update("info", "Repository default branch has been updated.")
+    redirect(s"/${repository.owner}/${repository.name}/settings/branches")
   })
 
   /** Branch protection for branch */
@@ -432,6 +428,44 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       // Delete the repository and related files
       deleteRepository(repository.repository)
       redirect(s"/${repository.owner}")
+    } else Forbidden()
+  })
+
+  /**
+   * Archive the repository.
+   */
+  post("/:owner/:repository/settings/archive")(ownerOnly { repository =>
+    if (context.settings.repositoryOperation.archive || context.loginAccount.get.isAdmin) {
+      archiveRepository(repository.owner, repository.name)
+      // Record activity log
+      val archiveInfo = ArchiveRepositoryInfo(
+        repository.owner,
+        repository.name,
+        context.loginAccount.get.userName
+      )
+      recordActivity(archiveInfo)
+      updateLastActivityDate(repository.owner, repository.name)
+      flash.update("info", "Your repository was successfully archived.")
+      redirect(s"/${repository.owner}/${repository.name}/settings/danger")
+    } else Forbidden()
+  })
+
+  /**
+   * Unarchive the repository.
+   */
+  post("/:owner/:repository/settings/unarchive")(ownerOnly { repository =>
+    if (context.settings.repositoryOperation.archive || context.loginAccount.get.isAdmin) {
+      unarchiveRepository(repository.owner, repository.name)
+      // Record activity log
+      val unarchiveInfo = UnarchiveRepositoryInfo(
+        repository.owner,
+        repository.name,
+        context.loginAccount.get.userName
+      )
+      recordActivity(unarchiveInfo)
+      updateLastActivityDate(repository.owner, repository.name)
+      flash.update("info", "Your repository was successfully unarchived.")
+      redirect(s"/${repository.owner}/${repository.name}/settings/danger")
     } else Forbidden()
   })
 
