@@ -1,6 +1,16 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.35.0 - 25 Dec 2020
+- Editor and source viewer color theme
+- Auto completion for issues and pull requests
+- Upload image from clipboard
+- Close multiple issues by commit comment
+- Create pull request from online editor
+- Milestone overview
+- Commit status at various places
+- WebAPI coverage improvements
+
 ## 4.34.0 - 26 Jul 2020
 - Enhancement admin settings UI
    - File upload settings

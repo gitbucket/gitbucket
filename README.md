@@ -57,20 +57,15 @@ Support
 
 What's New in 4.34.x
 -------------
-### 4.34.0 - 26 Jul 2020
+### 4.35.0 - 25 Dec 2020
 
-- Enhancement admin settings UI
-   - File upload settings
-   - Restrict repository operations
-   - User-defined CSS
-   - Limit the repository list in the sidebar
-- Improve MariaDB support
-- Improve activity logging
-- CLI option to persist session on disk in the standalone mode
-- Web API updates
-  - Add [list commits API](https://developer.github.com/v3/repos/commits/#list-commits)
-- Bundled plugins updates
-  - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin) 4.18.0 -> 4.19.0
-  - [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin) 1.8.0 -> 1.9.0
+- Editor and source viewer color theme
+- Auto completion for issues and pull requests
+- Upload image from clipboard
+- Close multiple issues by commit comment
+- Create pull request from online editor
+- Milestone overview
+- Commit status at various places
+- WebAPI coverage improvements
 
 See the [change log](CHANGELOG.md) for all of the updates.
