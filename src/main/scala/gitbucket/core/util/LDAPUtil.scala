@@ -125,6 +125,8 @@ object LDAPUtil {
   }
 
   private def getSslProvider(): Provider = {
+    import scala.language.existentials
+
     val cachedInstance = provider.get()
     if (cachedInstance == null) {
       val cls = try {

@@ -561,7 +561,7 @@ object MergeService {
     }
 
     def checkConflict(): Option[String] = {
-      checkConflictCache.getOrElse(checkConflictForce)
+      checkConflictCache().getOrElse(checkConflictForce())
     }
 
     def checkConflictForce(): Option[String] = {

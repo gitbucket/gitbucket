@@ -29,7 +29,7 @@ trait CommitStatusComponent extends TemplateComponent { self: Profile =>
         creator,
         registeredDate,
         updatedDate
-      ) <> ((CommitStatus.apply _).tupled, CommitStatus.unapply)
+      ).<>((CommitStatus.apply _).tupled, CommitStatus.unapply)
     def byPrimaryKey(id: Int) = commitStatusId === id.bind
   }
 }

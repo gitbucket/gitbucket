@@ -77,9 +77,9 @@ trait PullRequestService {
       }
       .filter {
         case (t1, t2) =>
-          (t2.closed === closed.bind) &&
-            (t1.userName === owner.get.bind, owner.isDefined) &&
-            (t1.repositoryName === repository.get.bind, repository.isDefined)
+          (t2.closed === closed.bind)
+            .&&(t1.userName === owner.get.bind, owner.isDefined)
+            .&&(t1.repositoryName === repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
       .map { case (userName, t) => userName -> t.length }
@@ -183,10 +183,10 @@ trait PullRequestService {
       }
       .filter {
         case (t1, t2) =>
-          (t1.requestUserName === userName.bind) &&
-            (t1.requestRepositoryName === repositoryName.bind) &&
-            (t1.requestBranch === branch.bind) &&
-            (t2.closed === closed.get.bind, closed.isDefined)
+          (t1.requestUserName === userName.bind)
+            .&&(t1.requestRepositoryName === repositoryName.bind)
+            .&&(t1.requestBranch === branch.bind)
+            .&&(t2.closed === closed.get.bind, closed.isDefined)
       }
       .map { case (t1, t2) => t1 }
       .list
@@ -201,10 +201,10 @@ trait PullRequestService {
       }
       .filter {
         case (t1, t2) =>
-          (t1.requestUserName === userName.bind) &&
-            (t1.requestRepositoryName === repositoryName.bind) &&
-            (t1.branch === branch.bind) &&
-            (t2.closed === closed.get.bind, closed.isDefined)
+          (t1.requestUserName === userName.bind)
+            .&&(t1.requestRepositoryName === repositoryName.bind)
+            .&&(t1.branch === branch.bind)
+            .&&(t2.closed === closed.get.bind, closed.isDefined)
       }
       .map { case (t1, t2) => t1 }
       .list

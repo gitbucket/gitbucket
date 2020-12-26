@@ -45,7 +45,6 @@ trait CoreProfile
     with Profile
     with AccessTokenComponent
     with AccountComponent
-    with ActivityComponent // ActivityComponent has been deprecated, but keep it for binary compatibility
     with CollaboratorComponent
     with CommitCommentComponent
     with CommitStatusComponent

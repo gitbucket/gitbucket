@@ -283,7 +283,7 @@ trait WebHookService {
       val json = JsonFormat(payload)
 
       webHooks.map { webHook =>
-        val reqPromise = Promise[HttpRequest]
+        val reqPromise = Promise[HttpRequest]()
         val f = Future {
           val itcp = new org.apache.http.HttpRequestInterceptor {
             def process(res: HttpRequest, ctx: HttpContext): Unit = {
