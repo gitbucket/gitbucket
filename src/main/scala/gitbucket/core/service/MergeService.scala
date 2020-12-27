@@ -10,6 +10,7 @@ import gitbucket.core.util.{JGitUtil, LockUtil}
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.activity.{CloseIssueInfo, MergeInfo, PushInfo}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+import gitbucket.core.service.WebHookService.WebHookPushPayload
 import gitbucket.core.util.JGitUtil.CommitInfo
 import org.eclipse.jgit.merge.{MergeStrategy, Merger, RecursiveMerger}
 import org.eclipse.jgit.api.Git
@@ -27,7 +28,8 @@ trait MergeService {
     with IssuesService
     with RepositoryService
     with PullRequestService
-    with WebHookPullRequestService =>
+    with WebHookPullRequestService
+    with WebHookService =>
 
   import MergeService._
 
@@ -61,40 +63,81 @@ trait MergeService {
   /** merge the pull request with a merge commit */
   def mergeWithMergeCommit(
     git: Git,
-    userName: String,
-    repositoryName: String,
+    repository: RepositoryInfo,
     branch: String,
     issueId: Int,
     message: String,
-    committer: PersonIdent
-  )(implicit s: Session): ObjectId = {
-    new MergeCacheInfo(git, userName, repositoryName, branch, issueId, getReceiveHooks()).merge(message, committer)
+    loginAccount: Account,
+    settings: SystemSettings
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+    val objectId = new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
+      .merge(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+    callWebHook(git, repository, branch, objectId, loginAccount, settings)
+    objectId
   }
 
   /** rebase to the head of the pull request branch */
   def mergeWithRebase(
     git: Git,
-    userName: String,
-    repositoryName: String,
+    repository: RepositoryInfo,
     branch: String,
     issueId: Int,
     commits: Seq[RevCommit],
-    committer: PersonIdent
-  )(implicit s: Session): ObjectId = {
-    new MergeCacheInfo(git, userName, repositoryName, branch, issueId, getReceiveHooks()).rebase(committer, commits)
+    loginAccount: Account,
+    settings: SystemSettings
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+    val objectId =
+      new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
+        .rebase(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress), commits)
+    callWebHook(git, repository, branch, objectId, loginAccount, settings)
+    objectId
   }
 
   /** squash commits in the pull request and append it */
   def mergeWithSquash(
     git: Git,
-    userName: String,
-    repositoryName: String,
+    repository: RepositoryInfo,
     branch: String,
     issueId: Int,
     message: String,
-    committer: PersonIdent
-  )(implicit s: Session): ObjectId = {
-    new MergeCacheInfo(git, userName, repositoryName, branch, issueId, getReceiveHooks()).squash(message, committer)
+    loginAccount: Account,
+    settings: SystemSettings
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+    val objectId =
+      new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
+        .squash(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+    callWebHook(git, repository, branch, objectId, loginAccount, settings)
+    objectId
+  }
+
+  private def callWebHook(
+    git: Git,
+    repository: RepositoryInfo,
+    branch: String,
+    commitId: ObjectId,
+    loginAccount: Account,
+    settings: SystemSettings
+  )(
+    implicit s: Session,
+    c: JsonFormat.Context
+  ): Unit = {
+    val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+    val headName = s"refs/heads/${branch}"
+    val headTip = git.getRepository.resolve(headName)
+    callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
+      getAccountByUserName(repository.owner).map { ownerAccount =>
+        WebHookPushPayload(
+          git,
+          loginAccount,
+          headName,
+          repository,
+          List(commit),
+          ownerAccount,
+          oldId = headTip,
+          newId = commitId
+        )
+      }
+    }
   }
 
   /** fetch remote branch to my repository refs/pull/{issueId}/head */
@@ -303,7 +346,8 @@ trait MergeService {
                     message,
                     strategy,
                     commits,
-                    getReceiveHooks()
+                    getReceiveHooks(),
+                    settings
                   ) match {
                     case Some(newCommitId) =>
                       // mark issue as merged and close.
@@ -428,8 +472,9 @@ trait MergeService {
     message: String,
     strategy: String,
     commits: Seq[Seq[CommitInfo]],
-    receiveHooks: Seq[ReceiveHook]
-  )(implicit s: Session): Option[ObjectId] = {
+    receiveHooks: Seq[ReceiveHook],
+    settings: SystemSettings
+  )(implicit s: Session, c: JsonFormat.Context): Option[ObjectId] = {
     val revCommits = Using
       .resource(new RevWalk(git.getRepository)) { revWalk =>
         commits.flatten.map { commit =>
@@ -443,36 +488,36 @@ trait MergeService {
         Some(
           mergeWithMergeCommit(
             git,
-            repository.owner,
-            repository.name,
+            repository,
             pullRequest.branch,
             issue.issueId,
             s"Merge pull request #${issue.issueId} from ${pullRequest.requestUserName}/${pullRequest.requestBranch}\n\n" + message,
-            new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+            loginAccount,
+            settings
           )
         )
       case "rebase" =>
         Some(
           mergeWithRebase(
             git,
-            repository.owner,
-            repository.name,
+            repository,
             pullRequest.branch,
             issue.issueId,
             revCommits,
-            new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+            loginAccount,
+            settings
           )
         )
       case "squash" =>
         Some(
           mergeWithSquash(
             git,
-            repository.owner,
-            repository.name,
+            repository,
             pullRequest.branch,
             issue.issueId,
             s"${issue.title} (#${issue.issueId})\n\n" + message,
-            new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+            loginAccount,
+            settings
           )
         )
       case _ =>
