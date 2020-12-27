@@ -25,7 +25,7 @@
 
   <addUniqueConstraint constraintName="IDX_WEB_HOOK_1" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>
   <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
 
   <!--================================================================================================-->
   <!-- ACCOUNT_PREFERENCE -->

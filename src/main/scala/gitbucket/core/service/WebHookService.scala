@@ -170,19 +170,13 @@ trait WebHookService {
     }
   }
 
-  def deleteWebHook(owner: String, repository: String, url: String)(implicit s: Session): Unit = {
-    RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
+  def deleteWebHook(owner: String, repository: String, url: String)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byRepositoryUrl(owner, repository, url)).delete
-  }
 
-  def deleteWebHookById(id: Int)(implicit s: Session): Unit = {
-    RepositoryWebHooks.filter(_.byId(id)).firstOption.foreach { webHook =>
-      RepositoryWebHookEvents
-        .filter(_.byRepositoryWebHook(webHook.userName, webHook.repositoryName, webHook.url))
-        .delete
-      RepositoryWebHooks.filter(_.byId(id)).delete
-    }
-  }
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
+  def deleteWebHookById(id: Int)(implicit s: Session): Unit =
+    RepositoryWebHooks.filter(_.byId(id)).delete
 
   /** get All AccountWebHook informations of user */
   def getAccountWebHooks(owner: String)(implicit s: Session): List[(AccountWebHook, Set[WebHook.Event])] =
