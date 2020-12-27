@@ -170,9 +170,11 @@ trait WebHookService {
     }
   }
 
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
   def deleteWebHook(owner: String, repository: String, url: String)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byRepositoryUrl(owner, repository, url)).delete
 
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
   def deleteWebHookById(id: Int)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byId(id)).delete
 
