@@ -70,10 +70,11 @@ trait MergeService {
     loginAccount: Account,
     settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
-    val objectId = new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
+    val beforeCommitId = git.getRepository.resolve(s"refs/heads/${branch}")
+    val afterCommitId = new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
       .merge(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-    callWebHook(git, repository, branch, objectId, loginAccount, settings)
-    objectId
+    callWebHook(git, repository, branch, beforeCommitId, afterCommitId, loginAccount, settings)
+    afterCommitId
   }
 
   /** rebase to the head of the pull request branch */
@@ -86,11 +87,12 @@ trait MergeService {
     loginAccount: Account,
     settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
-    val objectId =
+    val beforeCommitId = git.getRepository.resolve(s"refs/heads/${branch}")
+    val afterCommitId =
       new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
         .rebase(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress), commits)
-    callWebHook(git, repository, branch, objectId, loginAccount, settings)
-    objectId
+    callWebHook(git, repository, branch, beforeCommitId, afterCommitId, loginAccount, settings)
+    afterCommitId
   }
 
   /** squash commits in the pull request and append it */
@@ -103,38 +105,38 @@ trait MergeService {
     loginAccount: Account,
     settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
-    val objectId =
+    val beforeCommitId = git.getRepository.resolve(s"refs/heads/${branch}")
+    val afterCommitId =
       new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
         .squash(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-    callWebHook(git, repository, branch, objectId, loginAccount, settings)
-    objectId
+    callWebHook(git, repository, branch, beforeCommitId, afterCommitId, loginAccount, settings)
+    afterCommitId
   }
 
   private def callWebHook(
     git: Git,
     repository: RepositoryInfo,
     branch: String,
-    commitId: ObjectId,
+    beforeCommitId: ObjectId,
+    afterCommitId: ObjectId,
     loginAccount: Account,
     settings: SystemSettings
   )(
     implicit s: Session,
     c: JsonFormat.Context
   ): Unit = {
-    val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-    val headName = s"refs/heads/${branch}"
-    val headTip = git.getRepository.resolve(headName)
+    val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, afterCommitId)) // TODO get all commits pushed by merging the pull request
     callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
       getAccountByUserName(repository.owner).map { ownerAccount =>
         WebHookPushPayload(
           git,
           loginAccount,
-          headName,
+          s"refs/heads/${branch}",
           repository,
           List(commit),
           ownerAccount,
-          oldId = headTip,
-          newId = commitId
+          oldId = beforeCommitId,
+          newId = afterCommitId
         )
       }
     }

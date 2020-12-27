@@ -257,11 +257,11 @@ trait WebHookService {
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     val webHooks = getWebHooksByEvent(owner, repository, event)
     if (webHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, webHooks, _, settings))
+      makePayload.foreach(callWebHook(event, webHooks, _, settings))
     }
     val accountWebHooks = getAccountWebHooksByEvent(owner, event)
     if (accountWebHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, accountWebHooks, _, settings))
+      makePayload.foreach(callWebHook(event, accountWebHooks, _, settings))
     }
   }
 
