@@ -125,7 +125,6 @@ trait MergeService {
     implicit s: Session,
     c: JsonFormat.Context
   ): Unit = {
-    val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, afterCommitId)) // TODO get all commits pushed by merging the pull request
     callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
       getAccountByUserName(repository.owner).map { ownerAccount =>
         WebHookPushPayload(
@@ -133,7 +132,16 @@ trait MergeService {
           loginAccount,
           s"refs/heads/${branch}",
           repository,
-          List(commit),
+          git
+            .log()
+            .addRange(beforeCommitId, afterCommitId)
+            .call()
+            .asScala
+            .map { commit =>
+              new JGitUtil.CommitInfo(commit)
+            }
+            .toList
+            .reverse,
           ownerAccount,
           oldId = beforeCommitId,
           newId = afterCommitId
