@@ -114,25 +114,5 @@ object GitBucketCoreModule
         },
         new LiquibaseMigration("update/gitbucket-core_4.34.xml")
       ),
-      new Version(
-        "4.35.0",
-        new LiquibaseMigration("update/gitbucket-core_4.35-1.xml"),
-        new Migration() {
-          override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
-            import JDBCUtil._
-            val conn = context.get(Solidbase.CONNECTION).asInstanceOf[Connection]
-            conn.select("SELECT * FROM WEB_HOOK") { rs =>
-              conn.update(
-                "INSERT INTO WEB_HOOK_2 (USER_NAME, REPOSITORY_NAME, URL, TOKEN, CTYPE) VALUES (?, ?, ?, ?, ?)",
-                rs.getString("USER_NAME"),
-                rs.getString("REPOSITORY_NAME"),
-                rs.getString("URL"),
-                rs.getString("TOKEN"),
-                rs.getString("CTYPE")
-              )
-            }
-          }
-        },
-        new LiquibaseMigration("update/gitbucket-core_4.35-2.xml")
-      ),
+      new Version("4.35.0", new LiquibaseMigration("update/gitbucket-core_4.35.xml"))
     )

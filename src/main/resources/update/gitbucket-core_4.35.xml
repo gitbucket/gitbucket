@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
+  <!--================================================================================================-->
+  <!-- WEB_HOOK -->
+  <!--================================================================================================-->
   <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT"/>
   <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK"/>
   <dropPrimaryKey constraintName="IDX_WEB_HOOK_PK" tableName="WEB_HOOK"/>
@@ -13,6 +16,20 @@
     <column name="CTYPE" type="varchar(10)" nullable="true"/>
   </createTable>
 
+  <sql>
+    INSERT INTO WEB_HOOK_2 (USER_NAME, REPOSITORY_NAME, URL, TOKEN, CTYPE) SELECT USER_NAME, REPOSITORY_NAME, URL, TOKEN, CTYPE FROM WEB_HOOK
+  </sql>
+
+  <renameTable newTableName="WEB_HOOK_BK" oldTableName="WEB_HOOK"/>
+  <renameTable newTableName="WEB_HOOK" oldTableName="WEB_HOOK_2"/>
+
+  <addUniqueConstraint constraintName="IDX_WEB_HOOK_1" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+
+  <!--================================================================================================-->
+  <!-- ACCOUNT_PREFERENCE -->
+  <!--================================================================================================-->
   <createTable tableName="ACCOUNT_PREFERENCE">
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="HIGHLIGHTER_THEME" type="varchar(100)" nullable="false" defaultValue="prettify"/>
