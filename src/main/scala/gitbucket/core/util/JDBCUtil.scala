@@ -59,6 +59,7 @@ object JDBCUtil {
             p match {
               case x: Int    => stmt.setInt(i + 1, x)
               case x: String => stmt.setString(i + 1, x)
+              case null      => stmt.setNull(i + 1, java.sql.Types.NULL)
             }
         }
         f(stmt)

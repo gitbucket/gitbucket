@@ -116,7 +116,7 @@ object GitBucketCoreModule
       ),
       new Version(
         "4.35.0",
-        new LiquibaseMigration("update/gitbucket-core_4.35.xml"),
+        new LiquibaseMigration("update/gitbucket-core_4.35-1.xml"),
         new Migration() {
           override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
             import JDBCUtil._
@@ -131,8 +131,8 @@ object GitBucketCoreModule
                 rs.getString("CTYPE")
               )
             }
-            // TODO Theoritically, we can drop WEB_HOOK table here.
           }
-        }
+        },
+        new LiquibaseMigration("update/gitbucket-core_4.35-2.xml")
       ),
     )

@@ -8,7 +8,7 @@ trait RepositoryWebHookComponent extends TemplateComponent { self: Profile =>
 
   lazy val RepositoryWebHooks = TableQuery[RepositoryWebHooks]
 
-  class RepositoryWebHooks(tag: Tag) extends Table[RepositoryWebHook](tag, "WEB_HOOK_2") with BasicTemplate {
+  class RepositoryWebHooks(tag: Tag) extends Table[RepositoryWebHook](tag, "WEB_HOOK") with BasicTemplate {
     val hookId = column[Int]("HOOK_ID", O AutoInc)
     val url = column[String]("URL")
     val token = column[Option[String]]("TOKEN")

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <renameTable newTableName="WEB_HOOK_BK" oldTableName="WEB_HOOK"/>
+  <renameTable newTableName="WEB_HOOK" oldTableName="WEB_HOOK_2"/>
+
+  <addUniqueConstraint constraintName="IDX_WEB_HOOK_1" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+</changeSet>
