@@ -105,13 +105,13 @@ trait AccountService {
   }
 
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
-    Accounts filter (t => (t.userName === userName.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
+    Accounts filter (t => (t.userName === userName.bind).&&(t.removed === false.bind, !includeRemoved)) firstOption
 
   def getAccountByUserNameIgnoreCase(userName: String, includeRemoved: Boolean = false)(
     implicit s: Session
   ): Option[Account] =
     Accounts filter (
-      t => (t.userName.toLowerCase === userName.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)
+      t => (t.userName.toLowerCase === userName.toLowerCase.bind).&&(t.removed === false.bind, !includeRemoved)
     ) firstOption
 
   def getAccountsByUserNames(userNames: Set[String], knowns: Set[Account], includeRemoved: Boolean = false)(
@@ -123,7 +123,7 @@ trait AccountService {
       map
     } else {
       map ++ Accounts
-        .filter(t => (t.userName inSetBind needs) && (t.removed === false.bind, !includeRemoved))
+        .filter(t => (t.userName inSetBind needs).&&(t.removed === false.bind, !includeRemoved))
         .list
         .map(a => a.userName -> a)
         .toMap
@@ -140,15 +140,15 @@ trait AccountService {
             (x.map { e =>
                 e.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind
               }
-              .getOrElse(false.bind))) && (a.removed === false.bind, !includeRemoved)
+              .getOrElse(false.bind))).&&(a.removed === false.bind, !includeRemoved)
       }
       .map { case (a, e) => a } firstOption
 
   def getAllUsers(includeRemoved: Boolean = true, includeGroups: Boolean = true)(implicit s: Session): List[Account] = {
     Accounts filter { t =>
-      (1.bind === 1.bind) &&
-      (t.groupAccount === false.bind, !includeGroups) &&
-      (t.removed === false.bind, !includeRemoved)
+      (1.bind === 1.bind)
+        .&&(t.groupAccount === false.bind, !includeGroups)
+        .&&(t.removed === false.bind, !includeRemoved)
     } sortBy (_.userName) list
   }
 

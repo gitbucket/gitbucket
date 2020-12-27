@@ -14,7 +14,7 @@ trait AccountWebHookEventComponent extends TemplateComponent {
     val url = column[String]("URL")
     val event = column[WebHook.Event]("EVENT")
 
-    def * = (userName, url, event) <> ((AccountWebHookEvent.apply _).tupled, AccountWebHookEvent.unapply)
+    def * = (userName, url, event).<>((AccountWebHookEvent.apply _).tupled, AccountWebHookEvent.unapply)
 
     def byAccountWebHook(userName: String, url: String) = (this.userName === userName.bind) && (this.url === url.bind)
 

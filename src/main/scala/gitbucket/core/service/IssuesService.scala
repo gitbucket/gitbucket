@@ -351,49 +351,64 @@ trait IssuesService {
        } else {
          ((t1.userName ++ "/" ++ t1.repositoryName) inSetBind (repos.map { case (owner, repo) => s"$owner/$repo" }))
        }) &&
-      (t1.closed === (condition.state == "closed").bind) &&
-      (t1.milestoneId.? isEmpty, condition.milestone == Some(None)) &&
-      (t1.priorityId.? isEmpty, condition.priority == Some(None)) &&
-      (t1.assignedUserName.? isEmpty, condition.assigned == Some(None)) &&
-      (t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
+      (t1.closed === (condition.state == "closed").bind)
+        .&&(t1.milestoneId.? isEmpty, condition.milestone == Some(None))
+        .&&(t1.priorityId.? isEmpty, condition.priority == Some(None))
+        .&&(t1.assignedUserName.? isEmpty, condition.assigned == Some(None))
+        .&&(t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
       (searchOption match {
         case IssueSearchOption.Issues       => t1.pullRequest === false
         case IssueSearchOption.PullRequests => t1.pullRequest === true
         case IssueSearchOption.Both         => t1.pullRequest === false || t1.pullRequest === true
-      }) &&
+      })
       // Milestone filter
-      (Milestones filter { t2 =>
-        (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
-        (t2.title === condition.milestone.get.get.bind)
-      } exists, condition.milestone.flatten.isDefined) &&
-      // Priority filter
-      (Priorities filter { t2 =>
-        (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.priorityId)) &&
-        (t2.priorityName === condition.priority.get.get.bind)
-      } exists, condition.priority.flatten.isDefined) &&
-      // Assignee filter
-      (t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined) &&
-      // Label filter
-      (IssueLabels filter { t2 =>
-        (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
-        (t2.labelId in
-          (Labels filter { t3 =>
-            (t3.byRepository(t1.userName, t1.repositoryName)) &&
-            (t3.labelName inSetBind condition.labels)
-          } map (_.labelId)))
-      } exists, condition.labels.nonEmpty) &&
-      // Visibility filter
-      (Repositories filter { t2 =>
-        (t2.byRepository(t1.userName, t1.repositoryName)) &&
-        (t2.isPrivate === (condition.visibility == Some("private")).bind)
-      } exists, condition.visibility.nonEmpty) &&
-      // Organization (group) filter
-      (t1.userName inSetBind condition.groups, condition.groups.nonEmpty) &&
-      // Mentioned filter
-      ((t1.openedUserName === condition.mentioned.get.bind) || t1.assignedUserName === condition.mentioned.get.bind ||
-      (IssueComments filter { t2 =>
-        (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === condition.mentioned.get.bind)
-      } exists), condition.mentioned.isDefined)
+        .&&(
+          Milestones filter { t2 =>
+            (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
+            (t2.title === condition.milestone.get.get.bind)
+          } exists,
+          condition.milestone.flatten.isDefined
+        )
+        // Priority filter
+        .&&(
+          Priorities filter { t2 =>
+            (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.priorityId)) &&
+            (t2.priorityName === condition.priority.get.get.bind)
+          } exists,
+          condition.priority.flatten.isDefined
+        )
+        // Assignee filter
+        .&&(t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined)
+        // Label filter
+        .&&(
+          IssueLabels filter { t2 =>
+            (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
+            (t2.labelId in
+              (Labels filter { t3 =>
+                (t3.byRepository(t1.userName, t1.repositoryName)) &&
+                (t3.labelName inSetBind condition.labels)
+              } map (_.labelId)))
+          } exists,
+          condition.labels.nonEmpty
+        )
+        // Visibility filter
+        .&&(
+          Repositories filter { t2 =>
+            (t2.byRepository(t1.userName, t1.repositoryName)) &&
+            (t2.isPrivate === (condition.visibility == Some("private")).bind)
+          } exists,
+          condition.visibility.nonEmpty
+        )
+        // Organization (group) filter
+        .&&(t1.userName inSetBind condition.groups, condition.groups.nonEmpty)
+        // Mentioned filter
+        .&&(
+          (t1.openedUserName === condition.mentioned.get.bind) || t1.assignedUserName === condition.mentioned.get.bind ||
+            (IssueComments filter { t2 =>
+              (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === condition.mentioned.get.bind)
+            } exists),
+          condition.mentioned.isDefined
+        )
     }
 
   def insertIssue(
@@ -692,8 +707,8 @@ trait IssuesService {
         case (t1, t2) =>
           keywords
             .map { keyword =>
-              (t1.title.toLowerCase like (s"%${likeEncode(keyword)}%", '^')) ||
-              (t1.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
+              (t1.title.toLowerCase.like(s"%${likeEncode(keyword)}%", '^')) ||
+              (t1.content.toLowerCase.like(s"%${likeEncode(keyword)}%", '^'))
             }
             .reduceLeft(_ && _)
       }
@@ -720,7 +735,7 @@ trait IssuesService {
           t2.pullRequest === pullRequest.bind &&
             keywords
               .map { query =>
-                t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+                t1.content.toLowerCase.like(s"%${likeEncode(query)}%", '^')
               }
               .reduceLeft(_ && _)
       }

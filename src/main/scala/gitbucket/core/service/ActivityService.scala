@@ -98,6 +98,8 @@ trait ActivityService {
     }
   }
 
-  def recordActivity[T <: { def toActivity: Activity }](info: T): Unit =
+  def recordActivity[T <: { def toActivity: Activity }](info: T): Unit = {
+    import scala.language.reflectiveCalls
     writeLog(info.toActivity)
+  }
 }

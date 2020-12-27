@@ -4,7 +4,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.35.0"
-val ScalatraVersion = "2.7.0"
+val ScalatraVersion = "2.7.1"
 val JettyVersion = "9.4.32.v20200930"
 val JgitVersion = "5.9.0.202009080501-r"
 
@@ -17,7 +17,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.3"
 
 scalafmtOnCompile := true
 
@@ -75,7 +75,7 @@ libraryDependencies ++= Seq(
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method", "-feature")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 

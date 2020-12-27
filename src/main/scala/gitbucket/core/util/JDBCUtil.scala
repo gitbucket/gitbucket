@@ -202,7 +202,7 @@ object JDBCUtil {
     }
 
     private def allTablesOrderByDependencies(meta: DatabaseMetaData): Seq[String] = {
-      val tables = allTableNames.map { tableName =>
+      val tables = allTableNames().map { tableName =>
         TableDependency(tableName, childTables(meta, tableName))
       }
 
