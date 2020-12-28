@@ -1,6 +1,11 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.35.1 - 29 Dec 2020
+- Fix database migration issue which happens if webhook is configured
+- Call push webhook when pull request is merged
+- Show commit status at commits tab of pull request
+
 ### 4.35.0 - 25 Dec 2020
 - Editor and source viewer color theme
 - Auto completion for issues and pull requests

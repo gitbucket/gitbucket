@@ -55,8 +55,14 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.34.x
+What's New in 4.35.x
 -------------
+### 4.35.1 - 29 Dec 2020
+
+- Fix database migration issue which happens if webhook is configured
+- Call push webhook when pull request is merged
+- Show commit status at commits tab of pull request
+
 ### 4.35.0 - 25 Dec 2020
 
 - Editor and source viewer color theme
