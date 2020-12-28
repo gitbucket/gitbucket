@@ -46,7 +46,7 @@ object GitSpecUtil {
     authorName: String = "dummy",
     authorEmail: String = "dummy@example.com",
     message: String = "test commit"
-  ): Unit = {
+  ): ObjectId = {
     val builder = DirCache.newInCore.builder()
     val inserter = git.getRepository.newObjectInserter()
     val headId = git.getRepository.resolve(branch + "^{commit}")
@@ -65,7 +65,7 @@ object GitSpecUtil {
       )
     )
     builder.finish()
-    JGitUtil.createNewCommit(
+    val commitId = JGitUtil.createNewCommit(
       git,
       inserter,
       headId,
@@ -77,6 +77,7 @@ object GitSpecUtil {
     )
     inserter.flush()
     inserter.close()
+    commitId
   }
 
   def getFile(git: Git, branch: String, path: String) = {

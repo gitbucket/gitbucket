@@ -1,28 +1,32 @@
 package gitbucket.core.service
 
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
+import org.eclipse.jetty.server.handler.AbstractHandler
 import org.scalatest.funspec.AnyFunSpec
-import org.mockito.Mockito._
 import java.io.File
 import java.util.Date
-import javax.servlet.http.HttpServletRequest
-import scala.util.Using
+import java.net.InetSocketAddress
+import java.nio.charset.StandardCharsets
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
+import scala.util.Using
+import scala.jdk.CollectionConverters._
 import gitbucket.core.controller.Context
 import gitbucket.core.plugin.ReceiveHook
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.GitSpecUtil._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.service.SystemSettingsService.RepositoryOperation
-import gitbucket.core.service.SystemSettingsService.Ssh
-import gitbucket.core.service.SystemSettingsService.WebHook
-import gitbucket.core.service.SystemSettingsService.Upload
-import gitbucket.core.service.SystemSettingsService.RepositoryViewerSettings
-import gitbucket.core.model.Account
-import gitbucket.core.model.RepositoryOptions
+import gitbucket.core.model._
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.service.WebHookService.WebHookPushPayload
+import org.eclipse.jetty.webapp.WebAppContext
+import org.eclipse.jetty.server.{Request, Server}
+import org.json4s.jackson.JsonMethods._
+import MergeServiceSpec._
+import org.json4s.JsonAST.{JArray, JString}
 
 class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
   val service = new MergeService with AccountService with ActivityService with IssuesService with LabelsService
@@ -127,42 +131,72 @@ class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
   }
   describe("mergePullRequest") {
     it("can merge") {
+      implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
       import gitbucket.core.util.Implicits._
-      implicit val context =
-        Context(createSystemSettings(), Some(createAccount("dummy2", "dummy2-fullname", "dummy2@example.com")), request)
 
-      val repo8Dir = initRepository("user1", "repo8")
-      Using.resource(Git.open(repo8Dir)) { git =>
-        createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge2")
-        assert(getFile(git, branch, "test.txt").content.get == "hoge")
+      withTestDB { implicit session =>
+        generateNewUserWithDBRepository("user1", "repo8")
+        initRepository("user1", "repo8")
 
-        val requestBranchId = git.getRepository.resolve(s"refs/pull/${issueId}/head")
-        val masterId = git.getRepository.resolve(branch)
-        val repository = createRepositoryInfo("user1", "repo8")
+        implicit val context = Context(
+          createSystemSettings(),
+          Some(createAccount("dummy2", "dummy2-fullname", "dummy2@example.com")),
+          request
+        )
 
-        withTestDB { implicit session =>
-          service.mergeWithMergeCommit(
-            git,
-            repository,
-            branch,
-            issueId,
-            "merged",
-            context.loginAccount.get,
-            context.settings
-          )
+        Using.resource(Git.open(getRepositoryDir("user1", "repo8"))) { git =>
+          val commitId = createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge2")
+          assert(getFile(git, branch, "test.txt").content.get == "hoge")
+
+          val requestBranchId = git.getRepository.resolve(s"refs/pull/${issueId}/head")
+          val masterId = git.getRepository.resolve(branch)
+          val repository = createRepositoryInfo("user1", "repo8")
+
+          registerWebHook("user1", "repo8", "http://localhost:9999")
+
+          Using.resource(new TestServer()) { server =>
+            service.mergeWithMergeCommit(
+              git,
+              repository,
+              branch,
+              issueId,
+              "merged",
+              context.loginAccount.get,
+              context.settings
+            )
+
+            Thread.sleep(5000)
+
+            val json = parse(new String(server.lastRequestContent, StandardCharsets.UTF_8))
+            // 2 commits (create file + merge commit)
+            assert((json \ "commits").asInstanceOf[JArray].arr.length == 2)
+            // verify id of file creation commit
+            assert((json \ "commits" \ "id").asInstanceOf[JArray].arr(0).asInstanceOf[JString].s == commitId.getName)
+          }
+
+          val lastCommitId = git.getRepository.resolve(branch)
+          val commit = Using.resource(new RevWalk(git.getRepository))(_.parseCommit(lastCommitId))
+          assert(commit.getCommitterIdent().getName == "dummy2-fullname")
+          assert(commit.getCommitterIdent().getEmailAddress == "dummy2@example.com")
+          assert(commit.getAuthorIdent().getName == "dummy2-fullname")
+          assert(commit.getAuthorIdent().getEmailAddress == "dummy2@example.com")
+          assert(commit.getFullMessage() == "merged")
+          assert(commit.getParents.toSet == Set(requestBranchId, masterId))
+          assert(getFile(git, branch, "test.txt").content.get == "hoge2")
         }
-
-        val lastCommitId = git.getRepository.resolve(branch)
-        val commit = Using.resource(new RevWalk(git.getRepository))(_.parseCommit(lastCommitId))
-        assert(commit.getCommitterIdent().getName == "dummy2-fullname")
-        assert(commit.getCommitterIdent().getEmailAddress == "dummy2@example.com")
-        assert(commit.getAuthorIdent().getName == "dummy2-fullname")
-        assert(commit.getAuthorIdent().getEmailAddress == "dummy2@example.com")
-        assert(commit.getFullMessage() == "merged")
-        assert(commit.getParents.toSet == Set(requestBranchId, masterId))
-        assert(getFile(git, branch, "test.txt").content.get == "hoge2")
       }
     }
+  }
+
+  private def registerWebHook(userName: String, repositoryName: String, url: String)(implicit s: Session): Unit = {
+    RepositoryWebHooks insert RepositoryWebHook(
+      userName = userName,
+      repositoryName = repositoryName,
+      url = url,
+      ctype = WebHookContentType.JSON,
+      token = None
+    )
+    RepositoryWebHookEvents insert RepositoryWebHookEvent(userName, repositoryName, url, WebHook.Push)
   }
 
   private def createAccount(userName: String, fullName: String, mailAddress: String): Account =
@@ -217,4 +251,41 @@ class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
       tags = Nil,
       managers = Nil
     )
+}
+
+object MergeServiceSpec {
+  class TestServer extends AutoCloseable {
+    var lastRequestURI: String = null
+    var lastRequestHeaders: Map[String, String] = null
+    var lastRequestContent: Array[Byte] = null
+
+    val server = new Server(new InetSocketAddress(9999))
+    val context = new WebAppContext()
+    context.setServer(server)
+    server.setStopAtShutdown(true)
+    server.setStopTimeout(500)
+    server.setHandler(new AbstractHandler {
+      override def handle(
+        target: String,
+        baseRequest: Request,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+      ): Unit = {
+        lastRequestURI = request.getRequestURI
+        lastRequestHeaders = request.getHeaderNames.asScala.map { key =>
+          key -> request.getHeader(key)
+        }.toMap
+        val bytes = new Array[Byte](request.getContentLength)
+        if (bytes.length > 0) {
+          request.getInputStream.read(bytes)
+          lastRequestContent = bytes
+        }
+      }
+    })
+    server.start()
+
+    override def close(): Unit = {
+      server.stop()
+    }
+  }
 }
