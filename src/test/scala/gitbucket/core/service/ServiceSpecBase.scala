@@ -28,7 +28,7 @@ trait ServiceSpecBase {
   when(request.getContextPath).thenReturn("")
   when(request.getSession).thenReturn(session)
 
-  private def createSystemSettings() =
+  def createSystemSettings() =
     SystemSettings(
       baseUrl = None,
       information = None,
