@@ -57,6 +57,10 @@ Support
 
 What's New in 4.35.x
 -------------
+### 4.35.2 - 30 Dec 2020
+- Upgrade gitbucket-notifications-plugin to 1.10.0
+- Upgrade oauth2-oidc-sdk to 8.29.1 to solve dependency issue
+
 ### 4.35.1 - 29 Dec 2020
 
 - Fix database migration issue which happens if webhook is configured
