@@ -101,7 +101,10 @@ trait OpenIDConnectService {
     redirectURI: URI
   ): Option[AuthenticationSuccessResponse] =
     try {
-      AuthenticationResponseParser.parse(redirectURI, params.asJava) match {
+      AuthenticationResponseParser.parse(
+        redirectURI,
+        params.map { case (key, value) => (key, List(value).asJava) }.asJava
+      ) match {
         case response: AuthenticationSuccessResponse =>
           if (response.getState == state) {
             Some(response)
