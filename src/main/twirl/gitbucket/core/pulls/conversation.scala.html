@@ -17,42 +17,48 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.pulls.html.menu("conversation", issue, pullreq, commits, comments, changedFileSize, isManageable, repository, flash){
   <link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
-  <div class="col-md-9">
-    <div id="comment-list">
-      @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))
-    </div>
-    @defining(comments.flatMap {
+  <div class="row">
+    <div class="col-lg-9">
+      <div id="comment-list">
+        @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))
+      </div>
+      @defining(comments.flatMap {
       case comment: gitbucket.core.model.IssueComment => Some(comment)
       case other => None
-    }.exists(_.action == "merge")){ merged =>
+      }.exists(_.action == "merge")){ merged =>
       @if(!issue.closed){
-        <div class="check-conflict" style="display: none;">
-          <div class="issue-comment-box" style="background-color: #fbeed5">
-            <div class="box-content" style="border: 1px solid #c09853; padding: 10px;">
-              <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
-            </div>
+      <div class="check-conflict" style="display: none;">
+        <div class="issue-comment-box" style="background-color: #fbeed5">
+          <div class="box-content" style="border: 1px solid #c09853; padding: 10px;">
+            <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
           </div>
         </div>
+      </div>
       }
       @if(isManageableForkedRepository && issue.closed && merged &&
-        forkedRepository.map(r => (r.branchList.contains(pullreq.requestBranch) && r.repository.defaultBranch != pullreq.requestBranch)).getOrElse(false)){
-        <div class="issue-comment-box" style="background-color: #d0eeff;">
-          <div class="box-content" style="border: 1px solid #87a8c9; padding: 10px;">
-            <a href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
-            <div>
-              <span class="strong">Pull request successfully merged and closed</span>
-            </div>
-            <span class="small muted">You're all set. The <span class="label label-info monospace">@pullreq.requestBranch</span> branch can now be safely deleted.</span>
+      forkedRepository.map(r => (r.branchList.contains(pullreq.requestBranch) && r.repository.defaultBranch != pullreq.requestBranch)).getOrElse(false)){
+      <div class="issue-comment-box" style="background-color: #d0eeff;">
+        <div class="box-content border p-3" style="border-color: #87a8c9;">
+          <a href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-info float-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+          <div>
+            <span class="strong">Pull request successfully merged and closed</span>
           </div>
+          <span class="small text-muted">You're all set. The <span class="label label-info monospace">@pullreq.requestBranch</span> branch can now be safely deleted.</span>
         </div>
+      </div>
       }
       @gitbucket.core.issues.html.commentform(issue, !merged, isEditable, isManageable, repository)
-    }
-  </div>
-  <div class="col-md-3">
-    @gitbucket.core.issues.html.issueinfo(Some(issue), comments.toList, issueLabels, collaborators, milestones, priorities, None, labels, isManageable, repository)
-  </div>
-  <script>
+      }
+    </div><!-- /.col -->
+    <div class="col-lg-3">
+      <div class="card">
+        <div class="card-body">
+          @gitbucket.core.issues.html.issueinfo(Some(issue), comments.toList, issueLabels, collaborators, milestones, priorities, None, labels, isManageable, repository)
+        </div><!-- /.card-body -->
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+<script>
   $(function(){
     @if(commits.nonEmpty){
       var checkConflict = $('.check-conflict').show();
