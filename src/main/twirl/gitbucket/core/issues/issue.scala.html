@@ -39,7 +39,7 @@
         }
         </span>
       </div>
-    </div><!-- /col -->
+    </div><!-- /.col -->
     <div class="col-lg-auto">
       <div class="show-title float-lg-right">
         @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
@@ -53,22 +53,22 @@
         <a class="btn btn-success" href="#" id="update">Save</a>
         <a class="btn btn-default" href="#" id="cancel">Cancel</a>
       </div>
-    </div><!-- /col -->
-  </div><!-- /row -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
   <div class="row">
     <div class="col-lg-9">
       @gitbucket.core.issues.html.commentlist(Some(issue), comments, isCommentManageable, repository)
       @gitbucket.core.issues.html.commentform(issue, true, isEditable, isManageable, repository)
-    </div><!-- /col -->
+    </div><!-- /.col -->
     <div class="col-lg-3">
       <div class="card">
         <div class="card-body">
           @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, priorities, None, labels, isManageable, repository)
-        </div><!-- /card-body -->
-      </div><!-- /card -->
-    </div><!-- /col -->
-  </div><!-- /row -->
-</div><!-- /container -->
+        </div><!-- /.card-body -->
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
 
 }
 }
