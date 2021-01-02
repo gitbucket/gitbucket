@@ -10,7 +10,7 @@
       @if(!status.statuses.isEmpty){
         <div class="build-statuses">
           @defining(status.commitStateSummary){ case (summaryState, summary) =>
-            <a class="pull-right" id="toggle-all-checks" href="javascript:void(0);"></a>
+            <a class="float-right" id="toggle-all-checks" href="javascript:void(0);"></a>
             <span class="build-status-icon text-@{summaryState.name}">@helpers.commitStateIcon(summaryState)</span>
             <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, pullreq.commitIdTo)</strong>
             <span class="text-@{summaryState.name}">— @summary checks</span>
@@ -19,7 +19,7 @@
         <div class="build-statuses-list" style="@if(status.isAllSuccess){ display:none; }">
           @status.statusesAndRequired.map { case (status, required) =>
             <div class="build-status-item">
-              <div class="pull-right">
+              <div class="float-right">
                 @if(required){ <span class="label label-success">Required</span> }
                 @status.targetUrl.map { url => <a href="@url">Details</a> }
               </div>
