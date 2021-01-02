@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import java.io.{File, FileInputStream, FileOutputStream}
-
 import scala.util.Using
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.repo.html
@@ -14,8 +13,9 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.Account
+import gitbucket.core.model.{Account, WebHook}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.service.WebHookService.WebHookCreatePayload
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -559,6 +559,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       JGitUtil.createBranch(git, baseBranchName, newBranchName)
     }
+    // Call webhook
+    val settings = loadSystemSettings()
+    callWebHookOf(repository.owner, repository.name, WebHook.Create, settings) {
+      for {
+        sender <- context.loginAccount
+        owner <- getAccountByUserName(repository.owner)
+      } yield {
+        WebHookCreatePayload(
+          sender,
+          repository,
+          owner,
+          ref = newBranchName,
+          refType = "branch"
+        )
+      }
+    }
     newBranchName
   }
 
@@ -929,6 +945,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     } match {
       case Right(message) =>
         flash.update("info", message)
+        // Call webhook
+        val settings = loadSystemSettings()
+        callWebHookOf(repository.owner, repository.name, WebHook.Create, settings) {
+          for {
+            sender <- context.loginAccount
+            owner <- getAccountByUserName(repository.owner)
+          } yield {
+            WebHookCreatePayload(
+              sender,
+              repository,
+              owner,
+              ref = newBranchName,
+              refType = "branch"
+            )
+          }
+        }
         redirect(
           s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}"
         )
