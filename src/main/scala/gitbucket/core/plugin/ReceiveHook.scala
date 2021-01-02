@@ -6,11 +6,25 @@ import profile.api._
 
 trait ReceiveHook {
 
-  def preReceive(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)(
+  def preReceive(
+    owner: String,
+    repository: String,
+    receivePack: ReceivePack,
+    command: ReceiveCommand,
+    pusher: String,
+    mergePullRequest: Boolean
+  )(
     implicit session: Session
   ): Option[String] = None
 
-  def postReceive(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)(
+  def postReceive(
+    owner: String,
+    repository: String,
+    receivePack: ReceivePack,
+    command: ReceiveCommand,
+    pusher: String,
+    mergePullRequest: Boolean
+  )(
     implicit session: Session
   ): Unit = ()
 

@@ -13,7 +13,8 @@ trait MilestoneComponent extends TemplateComponent { self: Profile =>
     val dueDate = column[Option[java.util.Date]]("DUE_DATE")
     val closedDate = column[Option[java.util.Date]]("CLOSED_DATE")
     def * =
-      (userName, repositoryName, milestoneId, title, description, dueDate, closedDate) <> (Milestone.tupled, Milestone.unapply)
+      (userName, repositoryName, milestoneId, title, description, dueDate, closedDate)
+        .<>(Milestone.tupled, Milestone.unapply)
 
     def byPrimaryKey(owner: String, repository: String, milestoneId: Int) = byMilestone(owner, repository, milestoneId)
     def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], milestoneId: Rep[Int]) =

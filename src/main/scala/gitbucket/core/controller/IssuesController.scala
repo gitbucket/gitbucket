@@ -467,13 +467,15 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name) {
       case (owner, repoName) =>
         val page = IssueSearchCondition.page(request)
-
         // retrieve search condition
         val condition = IssueSearchCondition(request)
+        // search issues
+        val issues =
+          searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, owner -> repoName)
 
         html.list(
           "issues",
-          searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          issues.map(issue => (issue, None)),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),

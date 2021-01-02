@@ -2,6 +2,7 @@
   commit: gitbucket.core.util.JGitUtil.CommitInfo,
   branches: List[String],
   tags: List[String],
+  status: Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])],
   comments: List[gitbucket.core.model.Comment],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
@@ -49,22 +50,22 @@
       </tr>
       <tr>
         <td>
-          <div class="pull-right monospace small" style="text-align: right;">
+          <div class="pull-right">
             <div>
               @if(commit.parents.size == 0){
                 <span class="muted">0 parent</span>
               }
               @if(commit.parents.size == 1){
                 <span class="muted">1 parent</span>
-                <a href="@helpers.url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
+                <a href="@helpers.url(repository)/commit/@commit.parents(0)" class="commit-id monospace strong">@commit.parents(0).substring(0, 7)</a>
               }
-              <span class="muted">commit</span> @commit.id
+              <span class="muted ">commit</span> <span class="commit-id monospace strong">@commit.id</span>
             </div>
             @if(commit.parents.size > 1){
               <div>
                 <span class="muted">@commit.parents.size parents
                 @commit.parents.map { parent =>
-                  <a href="@helpers.url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
+                  <a href="@helpers.url(repository)/commit/@parent" class="commit-id monospace strong">@parent.substring(0, 7)</a>
                 }.mkHtml(" + ")
                 </span>
               </div>
@@ -76,13 +77,16 @@
               @helpers.avatarLink(commit, 20)
               <span>@helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
               <span class="muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
+              @status.map { case (summary, statuses) =>
+                @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
+              }
             </div>
             @if(commit.isDifferentFromAuthor) {
-            <div class="committer">
-              <span class="octicon octicon-arrow-right"></span>
-              <span>@helpers.user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
-              <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
-            </div>
+              <div class="committer">
+                <span class="octicon octicon-arrow-right"></span>
+                <span>@helpers.user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
+                <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
+              </div>
             }
           </div>
         </td>

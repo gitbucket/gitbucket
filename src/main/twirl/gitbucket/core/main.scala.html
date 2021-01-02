@@ -38,6 +38,7 @@
     <link href="@helpers.assets("/vendors/facebox/facebox.css")" rel="stylesheet"/>
     <link href="@helpers.assets(s"/vendors/color-themes-for-google-code-prettify/${highlighterTheme}.min.css")" type="text/css" rel="stylesheet"/>
     <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/tipped/tipped.css")" rel="stylesheet">
 
     <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery/jquery.min.js")"></script>
     <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/bootstrap/js/bootstrap.bundle.min.js")"></script>
@@ -62,6 +63,8 @@
     <script src="@helpers.assets("/vendors/bootstrap3-typeahead/bootstrap3-typeahead.min.js")"></script>
     <script src="@helpers.assets("/common/js/validation.js")"></script>
     <script src="@helpers.assets("/common/js/gitbucket.js")"></script>
+    <script src="@helpers.assets("/vendors/jquery-textcomplete-1.8.4/jquery.textcomplete.min.js")"></script>
+    <script src="@helpers.assets("/vendors/tipped/tipped.min.js")"></script>
 
     <!--
     <link href="@helpers.assets("/vendors/google-fonts/css/source-sans-pro.css")" rel="stylesheet">
@@ -85,7 +88,6 @@
     <script src="@helpers.assets("/vendors/colorpicker/js/bootstrap-colorpicker.min.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-hotkeys/jquery.hotkeys.js")"></script>
     -->
-
     @repository.map { repository =>
       <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
     }

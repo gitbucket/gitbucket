@@ -1,17 +1,13 @@
 name: build
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11]    
+        java: [8, 11]
     steps:
     - uses: actions/checkout@v2
     - name: Cache

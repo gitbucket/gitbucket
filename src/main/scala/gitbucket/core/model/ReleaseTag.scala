@@ -17,7 +17,8 @@ trait ReleaseTagComponent extends TemplateComponent {
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
 
     def * =
-      (userName, repositoryName, name, tag, author, content, registeredDate, updatedDate) <> (ReleaseTag.tupled, ReleaseTag.unapply)
+      (userName, repositoryName, name, tag, author, content, registeredDate, updatedDate)
+        .<>(ReleaseTag.tupled, ReleaseTag.unapply)
     def byPrimaryKey(owner: String, repository: String, tag: String) = byTag(owner, repository, tag)
     def byTag(owner: String, repository: String, tag: String) =
       byRepository(owner, repository) && (this.tag === tag.bind)

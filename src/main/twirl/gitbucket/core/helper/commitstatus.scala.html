@@ -1,0 +1,26 @@
+@(commitId: String, summary: gitbucket.core.model.CommitState, statuses: List[gitbucket.core.model.CommitStatus])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<strong class="text-@{summary.name}">@helpers.commitStateIcon(summary)</strong>
+<span class="text-@{summary.name}" id="commit-status-@commitId" style="cursor : pointer;">@{statuses.groupBy(_.state).map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")} checks</span>
+
+<div id="tooltip-commit-status-@commitId" style="display: none; width: 300px;">
+@statuses.map{ status =>
+  <div class="build-status-item">
+    <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
+    <strong>@status.context</strong>
+    @status.description.map { desc => <span class="muted">- @desc</span> }
+    <span>@status.targetUrl.map { url => - <a href="@url">Details</a> }</span>
+  </div>
+}
+</div>
+
+<script>
+$(document).ready(function() {
+  Tipped.create('#commit-status-@commitId', {
+    skin: 'light',
+    inline: 'tooltip-commit-status-@commitId',
+    size: 'large',
+    position: 'bottomleft'
+  });
+});
+</script>

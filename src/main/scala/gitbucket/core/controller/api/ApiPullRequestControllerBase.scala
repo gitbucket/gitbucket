@@ -230,9 +230,9 @@ trait ApiPullRequestControllerBase extends ControllerBase {
       if (checkConflict(repository.owner, repository.name, pullReq.branch, issueId).isDefined) {
         NoContent
       } else {
-        NotFound
+        NotFound()
       }
-    }).getOrElse(NotFound)
+    }).getOrElse(NotFound())
   })
 
   /*

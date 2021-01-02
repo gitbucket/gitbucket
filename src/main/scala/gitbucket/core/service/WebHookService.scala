@@ -170,9 +170,11 @@ trait WebHookService {
     }
   }
 
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
   def deleteWebHook(owner: String, repository: String, url: String)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byRepositoryUrl(owner, repository, url)).delete
 
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
   def deleteWebHookById(id: Int)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byId(id)).delete
 
@@ -255,11 +257,11 @@ trait WebHookService {
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     val webHooks = getWebHooksByEvent(owner, repository, event)
     if (webHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, webHooks, _, settings))
+      makePayload.foreach(callWebHook(event, webHooks, _, settings))
     }
     val accountWebHooks = getAccountWebHooksByEvent(owner, event)
     if (accountWebHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, accountWebHooks, _, settings))
+      makePayload.foreach(callWebHook(event, accountWebHooks, _, settings))
     }
   }
 
@@ -283,7 +285,7 @@ trait WebHookService {
       val json = JsonFormat(payload)
 
       webHooks.map { webHook =>
-        val reqPromise = Promise[HttpRequest]
+        val reqPromise = Promise[HttpRequest]()
         val f = Future {
           val itcp = new org.apache.http.HttpRequestInterceptor {
             def process(res: HttpRequest, ctx: HttpContext): Unit = {

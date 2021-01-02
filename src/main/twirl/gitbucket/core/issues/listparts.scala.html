@@ -1,5 +1,5 @@
 @(target: String,
-  issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+  issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -172,7 +172,7 @@
         </td>
       </tr>
     }
-    @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) => {
+    @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId), status) =>
       <tr>
         <td>
           @if(isManageable){
@@ -189,7 +189,9 @@
           } else {
             <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
           }
-          @gitbucket.core.issues.html.commitstatus(issue, commitStatus)
+          @status.map { case (summary, statuses) =>
+            @gitbucket.core.helper.html.commitstatus(commitId.get, summary, statuses)
+          }
           @labels.map { label =>
             <span class="badge small" style="background-color: #@label.color; color: #@label.fontColor;">@label.labelName</span>
           }
@@ -223,7 +225,7 @@
           </div>
         </td>
       </tr>
-    }}
+    }
   </tbody>
 </table>
 <div class="pull-right">

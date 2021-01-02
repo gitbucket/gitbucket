@@ -186,7 +186,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
-      val lastWeeks = getRecentStatuesContexts(
+      val lastWeeks = getRecentStatusContexts(
         repository.owner,
         repository.name,
         Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))

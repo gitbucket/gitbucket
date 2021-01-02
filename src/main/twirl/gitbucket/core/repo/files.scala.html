@@ -2,6 +2,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   latestCommit: gitbucket.core.util.JGitUtil.CommitInfo,
+  commitStatus: Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])],
   commitCount: Int,
   files: List[gitbucket.core.util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
@@ -119,13 +120,21 @@
           <th colspan="4" class="latest-commit">
             <div>
               <div class="float-right align-right">
-                <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> <span class="monospace">@latestCommit.id.substring(0, 10)</span></a>
+                <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id">
+                  <span class="text-muted">latest commit</span>
+                  <span class="monospace commit-message strong">@latestCommit.id.substring(0, 10)</span>
+                </a>
               </div>
               <div class="author-info">
                 <div class="author">
                   @helpers.avatarLink(latestCommit, 20)
                   <span>@helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
-                  <span class="muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
+                  <span class="text-muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
+                  <span>
+                  @commitStatus.map { case (summary, statuses) =>
+                    @gitbucket.core.helper.html.commitstatus(latestCommit.id, summary, statuses)
+                  }
+                  </span>
                 </div>
                 @if(latestCommit.isDifferentFromAuthor) {
                   <div class="committer">

@@ -42,46 +42,48 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           parentRepositoryName.?
         ),
         (issuesOption, externalIssuesUrl.?, wikiOption, externalWikiUrl.?, allowFork, mergeOptions, defaultMergeOption)
-      ).shaped <> ({
-        case (repository, options) =>
-          Repository(
-            repository._1,
-            repository._2,
-            repository._3,
-            repository._4,
-            repository._5,
-            repository._6,
-            repository._7,
-            repository._8,
-            repository._9,
-            repository._10,
-            repository._11,
-            repository._12,
-            RepositoryOptions.tupled.apply(options)
-          )
-      }, { (r: Repository) =>
-        Some(
-          (
+      ).shaped.<>(
+        {
+          case (repository, options) =>
+            Repository(
+              repository._1,
+              repository._2,
+              repository._3,
+              repository._4,
+              repository._5,
+              repository._6,
+              repository._7,
+              repository._8,
+              repository._9,
+              repository._10,
+              repository._11,
+              repository._12,
+              RepositoryOptions.tupled.apply(options)
+            )
+        }, { (r: Repository) =>
+          Some(
             (
-              r.userName,
-              r.repositoryName,
-              r.isPrivate,
-              r.description,
-              r.defaultBranch,
-              r.registeredDate,
-              r.updatedDate,
-              r.lastActivityDate,
-              r.originUserName,
-              r.originRepositoryName,
-              r.parentUserName,
-              r.parentRepositoryName
-            ),
-            (
-              RepositoryOptions.unapply(r.options).get
+              (
+                r.userName,
+                r.repositoryName,
+                r.isPrivate,
+                r.description,
+                r.defaultBranch,
+                r.registeredDate,
+                r.updatedDate,
+                r.lastActivityDate,
+                r.originUserName,
+                r.originRepositoryName,
+                r.parentUserName,
+                r.parentRepositoryName
+              ),
+              (
+                RepositoryOptions.unapply(r.options).get
+              )
             )
           )
-        )
-      })
+        }
+      )
 
     def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
   }

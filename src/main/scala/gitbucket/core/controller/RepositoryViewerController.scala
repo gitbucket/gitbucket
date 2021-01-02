@@ -4,7 +4,6 @@ import java.io.{File, FileInputStream, FileOutputStream}
 
 import scala.util.Using
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.model.activity.DeleteBranchInfo
@@ -15,9 +14,9 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.{Account, CommitState, CommitStatus}
+import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.JGitUtil.{CommitInfo, createBranch}
+import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveOutputStream}
@@ -263,23 +262,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branchName, path) = repository.splitPath(multiParams("splat").head)
     val page = params.get("page").flatMap(_.toIntOpt).getOrElse(1)
 
-    def getStatuses(sha: String): List[CommitStatus] = {
-      getCommitStatues(repository.owner, repository.name, sha)
-    }
-
-    def getSummary(statuses: List[CommitStatus]): (CommitState, String) = {
-      val stateMap = statuses.groupBy(_.state)
-      val state = CommitState.combine(stateMap.keySet)
-      val summary = stateMap.map { case (keyState, states) => s"${states.size} ${keyState.name}" }.mkString(", ")
-      state -> summary
-    }
-
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
       git =>
-        def getTags(sha: String): List[String] = {
-          JGitUtil.getTagsOnCommit(git, sha)
-        }
-
         JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
           case Right((logs, hasNext)) =>
             html.commits(
@@ -288,34 +272,33 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               repository,
               logs
                 .map {
-                  c =>
-                    CommitInfo(
-                      id = c.id,
-                      shortMessage = c.shortMessage,
-                      fullMessage = c.fullMessage,
-                      parents = c.parents,
-                      authorTime = c.authorTime,
-                      authorName = c.authorName,
-                      authorEmailAddress = c.authorEmailAddress,
-                      commitTime = c.commitTime,
-                      committerName = c.committerName,
-                      committerEmailAddress = c.committerEmailAddress,
-                      commitSign = c.commitSign,
-                      verified = c.commitSign
-                        .flatMap { s =>
-                          GpgUtil.verifySign(s)
-                        }
+                  commit =>
+                    (
+                      CommitInfo(
+                        id = commit.id,
+                        shortMessage = commit.shortMessage,
+                        fullMessage = commit.fullMessage,
+                        parents = commit.parents,
+                        authorTime = commit.authorTime,
+                        authorName = commit.authorName,
+                        authorEmailAddress = commit.authorEmailAddress,
+                        commitTime = commit.commitTime,
+                        committerName = commit.committerName,
+                        committerEmailAddress = commit.committerEmailAddress,
+                        commitSign = commit.commitSign,
+                        verified = commit.commitSign.flatMap(GpgUtil.verifySign)
+                      ),
+                      JGitUtil.getTagsOnCommit(git, commit.id),
+                      getCommitStatusWithSummary(repository.owner, repository.name, commit.id)
                     )
                 }
-                .splitWith { (commit1, commit2) =>
-                  view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
+                .splitWith {
+                  case ((commit1, _, _), (commit2, _, _)) =>
+                    view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
                 },
               page,
               hasNext,
-              hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-              getStatuses,
-              getSummary,
-              getTags
+              hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
             )
           case Left(_) => NotFound()
         }
@@ -731,6 +714,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 new JGitUtil.CommitInfo(revCommit),
                 JGitUtil.getBranchesOfCommit(git, revCommit.getName),
                 JGitUtil.getTagsOfCommit(git, revCommit.getName),
+                getCommitStatusWithSummary(repository.owner, repository.name, revCommit.getName),
                 getCommitComments(repository.owner, repository.name, id, true),
                 repository,
                 diffs,
@@ -889,19 +873,20 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             defaultBranch = repository.repository.defaultBranch,
             origin = repository.repository.originUserName.isEmpty
           )
-          .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+          .sortBy(branch => (branch.mergeInfo.isEmpty, branch.commitTime))
           .map(
-            br =>
+            branch =>
               (
-                br,
+                branch,
                 getPullRequestByRequestCommit(
                   repository.owner,
                   repository.name,
                   repository.repository.defaultBranch,
-                  br.name,
-                  br.commitId
+                  branch.name,
+                  branch.commitId
                 ),
-                protectedBranches.contains(br.name)
+                protectedBranches.contains(branch.name),
+                getCommitStatusWithSummary(repository.owner, repository.name, branch.commitId)
             )
           )
           .reverse
@@ -1085,6 +1070,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 repository,
                 if (path == ".") Nil else path.split("/").toList, // current path
                 new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
+                getCommitStatusWithSummary(repository.owner, repository.name, lastModifiedCommit.getName),
                 commitCount,
                 files,
                 readme,

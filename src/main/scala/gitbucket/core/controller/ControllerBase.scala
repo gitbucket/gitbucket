@@ -421,7 +421,7 @@ trait AccountManagementControllerBase extends ControllerBase {
     "new"
   )
 
-  protected def reservedNames(): Constraint = new Constraint() {
+  protected def reservedNames: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (allReservedNames.contains(value.toLowerCase)) {
         Some(s"${value} is reserved")

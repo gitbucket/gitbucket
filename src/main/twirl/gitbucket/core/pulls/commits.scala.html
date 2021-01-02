@@ -1,17 +1,17 @@
 @(issue: gitbucket.core.model.Issue,
   pullreq: gitbucket.core.model.PullRequest,
-  commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+  commits: Seq[Seq[(gitbucket.core.util.JGitUtil.CommitInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])]],
   comments: Seq[gitbucket.core.model.Comment],
   changedFileSize: Int,
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.pulls.html.menu("commits", issue, pullreq, commits.flatten, comments, changedFileSize, isManageable, repository){
+@gitbucket.core.pulls.html.menu("commits", issue, pullreq, commits.flatten.map(_._1), comments, changedFileSize, isManageable, repository){
   <table class="table table-bordered table-hover">
   @commits.map { day =>
     <tr>
-      <th rowspan="@day.size" width="100">@helpers.date(day.head.commitTime)</th>
-      @day.zipWithIndex.map { case (commit, i) =>
+      <th rowspan="@day.size" width="100">@helpers.date(day.head._1.commitTime)</th>
+      @day.zipWithIndex.map { case ((commit, status), i) =>
         @if(i != 0){ <tr> }
         <td>
           <div class="pull-right text-right">
@@ -37,6 +37,9 @@
                 }
                 @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
                 <span class="muted">committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
+                @status.map { case (summary, statuses) =>
+                  @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
+                }
               </div>
             </div>
           </div>

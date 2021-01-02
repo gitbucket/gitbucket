@@ -169,10 +169,16 @@ trait PullRequestsControllerBase extends ControllerBase {
             val (commits, diffs) =
               getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
+            val commitsWithStatus = commits.map { day =>
+              day.map { commit =>
+                (commit, getCommitStatusWithSummary(repository.owner, repository.name, commit.id))
+              }
+            }
+
             html.commits(
               issue,
               pullreq,
-              commits,
+              commitsWithStatus,
               getPullRequestComments(owner, name, issue.issueId, commits.flatten),
               diffs.size,
               isManageable(repository),
@@ -219,7 +225,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
             val mergeStatus = PullRequestService.MergeStatus(
               conflictMessage = conflictMessage,
-              commitStatues = getCommitStatues(owner, name, pullreq.commitIdTo),
+              commitStatuses = getCommitStatuses(owner, name, pullreq.commitIdTo),
               branchProtection = branchProtection,
               branchIsOutOfDate = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
               needStatusCheck = context.loginAccount
@@ -637,19 +643,26 @@ trait PullRequestsControllerBase extends ControllerBase {
     defining(repository.owner, repository.name) {
       case (owner, repoName) =>
         val page = IssueSearchCondition.page(request)
-
         // retrieve search condition
         val condition = IssueSearchCondition(request)
+        // search issues
+        val issues = searchIssue(
+          condition,
+          IssueSearchOption.PullRequests,
+          (page - 1) * PullRequestLimit,
+          PullRequestLimit,
+          owner -> repoName
+        )
+        // commit status
+        val status = issues.map { issue =>
+          issue.commitId.flatMap { commitId =>
+            getCommitStatusWithSummary(owner, repoName, commitId)
+          }
+        }
 
         gitbucket.core.issues.html.list(
           "pulls",
-          searchIssue(
-            condition,
-            IssueSearchOption.PullRequests,
-            (page - 1) * PullRequestLimit,
-            PullRequestLimit,
-            owner -> repoName
-          ),
+          issues.zip(status),
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),

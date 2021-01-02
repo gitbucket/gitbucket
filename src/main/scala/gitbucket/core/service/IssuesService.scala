@@ -188,37 +188,6 @@ trait IssuesService {
       .toMap
   }
 
-  def getCommitStatues(userName: String, repositoryName: String, issueId: Int)(
-    implicit s: Session
-  ): Option[CommitStatusInfo] = {
-    val status = PullRequests
-      .filter { pr =>
-        pr.userName === userName.bind && pr.repositoryName === repositoryName.bind && pr.issueId === issueId.bind
-      }
-      .join(CommitStatuses)
-      .on {
-        case pr ~ cs =>
-          pr.userName === cs.userName && pr.repositoryName === cs.repositoryName && pr.commitIdTo === cs.commitId
-      }
-      .list
-
-    if (status.nonEmpty) {
-      val (_, cs) = status.head
-      Some(
-        CommitStatusInfo(
-          count = status.length,
-          successCount = status.count(_._2.state == CommitState.SUCCESS),
-          context = (if (status.length == 1) Some(cs.context) else None),
-          state = (if (status.length == 1) Some(cs.state) else None),
-          targetUrl = (if (status.length == 1) cs.targetUrl else None),
-          description = (if (status.length == 1) cs.description else None)
-        )
-      )
-    } else {
-      None
-    }
-  }
-
   /**
    * Returns the search result against issues.
    *
@@ -246,9 +215,11 @@ trait IssuesService {
       .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
       .joinLeft(Priorities)
       .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t1.byPriority(t6.userName, t6.repositoryName, t6.priorityId) }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => i asc }
+      .joinLeft(PullRequests)
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t1.byIssue(t7.userName, t7.repositoryName, t7.issueId) }
+      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => i asc }
       .map {
-        case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 =>
+        case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 =>
           (
             t1,
             t2.commentCount,
@@ -256,7 +227,8 @@ trait IssuesService {
             t4.map(_.labelName),
             t4.map(_.color),
             t5.map(_.title),
-            t6.map(_.priorityName)
+            t6.map(_.priorityName),
+            t7.map(_.commitIdTo)
           )
       }
       .list
@@ -266,7 +238,7 @@ trait IssuesService {
 
     result.map { issues =>
       issues.head match {
-        case (issue, commentCount, _, _, _, milestone, priority) =>
+        case (issue, commentCount, _, _, _, milestone, priority, commitId) =>
           IssueInfo(
             issue,
             issues.flatMap { t =>
@@ -275,7 +247,7 @@ trait IssuesService {
             milestone,
             priority,
             commentCount,
-            getCommitStatues(issue.userName, issue.repositoryName, issue.issueId)
+            commitId
           )
       }
     } toList
@@ -379,49 +351,64 @@ trait IssuesService {
        } else {
          ((t1.userName ++ "/" ++ t1.repositoryName) inSetBind (repos.map { case (owner, repo) => s"$owner/$repo" }))
        }) &&
-      (t1.closed === (condition.state == "closed").bind) &&
-      (t1.milestoneId.? isEmpty, condition.milestone == Some(None)) &&
-      (t1.priorityId.? isEmpty, condition.priority == Some(None)) &&
-      (t1.assignedUserName.? isEmpty, condition.assigned == Some(None)) &&
-      (t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
+      (t1.closed === (condition.state == "closed").bind)
+        .&&(t1.milestoneId.? isEmpty, condition.milestone == Some(None))
+        .&&(t1.priorityId.? isEmpty, condition.priority == Some(None))
+        .&&(t1.assignedUserName.? isEmpty, condition.assigned == Some(None))
+        .&&(t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
       (searchOption match {
         case IssueSearchOption.Issues       => t1.pullRequest === false
         case IssueSearchOption.PullRequests => t1.pullRequest === true
         case IssueSearchOption.Both         => t1.pullRequest === false || t1.pullRequest === true
-      }) &&
+      })
       // Milestone filter
-      (Milestones filter { t2 =>
-        (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
-        (t2.title === condition.milestone.get.get.bind)
-      } exists, condition.milestone.flatten.isDefined) &&
-      // Priority filter
-      (Priorities filter { t2 =>
-        (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.priorityId)) &&
-        (t2.priorityName === condition.priority.get.get.bind)
-      } exists, condition.priority.flatten.isDefined) &&
-      // Assignee filter
-      (t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined) &&
-      // Label filter
-      (IssueLabels filter { t2 =>
-        (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
-        (t2.labelId in
-          (Labels filter { t3 =>
-            (t3.byRepository(t1.userName, t1.repositoryName)) &&
-            (t3.labelName inSetBind condition.labels)
-          } map (_.labelId)))
-      } exists, condition.labels.nonEmpty) &&
-      // Visibility filter
-      (Repositories filter { t2 =>
-        (t2.byRepository(t1.userName, t1.repositoryName)) &&
-        (t2.isPrivate === (condition.visibility == Some("private")).bind)
-      } exists, condition.visibility.nonEmpty) &&
-      // Organization (group) filter
-      (t1.userName inSetBind condition.groups, condition.groups.nonEmpty) &&
-      // Mentioned filter
-      ((t1.openedUserName === condition.mentioned.get.bind) || t1.assignedUserName === condition.mentioned.get.bind ||
-      (IssueComments filter { t2 =>
-        (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === condition.mentioned.get.bind)
-      } exists), condition.mentioned.isDefined)
+        .&&(
+          Milestones filter { t2 =>
+            (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
+            (t2.title === condition.milestone.get.get.bind)
+          } exists,
+          condition.milestone.flatten.isDefined
+        )
+        // Priority filter
+        .&&(
+          Priorities filter { t2 =>
+            (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.priorityId)) &&
+            (t2.priorityName === condition.priority.get.get.bind)
+          } exists,
+          condition.priority.flatten.isDefined
+        )
+        // Assignee filter
+        .&&(t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined)
+        // Label filter
+        .&&(
+          IssueLabels filter { t2 =>
+            (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
+            (t2.labelId in
+              (Labels filter { t3 =>
+                (t3.byRepository(t1.userName, t1.repositoryName)) &&
+                (t3.labelName inSetBind condition.labels)
+              } map (_.labelId)))
+          } exists,
+          condition.labels.nonEmpty
+        )
+        // Visibility filter
+        .&&(
+          Repositories filter { t2 =>
+            (t2.byRepository(t1.userName, t1.repositoryName)) &&
+            (t2.isPrivate === (condition.visibility == Some("private")).bind)
+          } exists,
+          condition.visibility.nonEmpty
+        )
+        // Organization (group) filter
+        .&&(t1.userName inSetBind condition.groups, condition.groups.nonEmpty)
+        // Mentioned filter
+        .&&(
+          (t1.openedUserName === condition.mentioned.get.bind) || t1.assignedUserName === condition.mentioned.get.bind ||
+            (IssueComments filter { t2 =>
+              (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === condition.mentioned.get.bind)
+            } exists),
+          condition.mentioned.isDefined
+        )
     }
 
   def insertIssue(
@@ -720,8 +707,8 @@ trait IssuesService {
         case (t1, t2) =>
           keywords
             .map { keyword =>
-              (t1.title.toLowerCase like (s"%${likeEncode(keyword)}%", '^')) ||
-              (t1.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
+              (t1.title.toLowerCase.like(s"%${likeEncode(keyword)}%", '^')) ||
+              (t1.content.toLowerCase.like(s"%${likeEncode(keyword)}%", '^'))
             }
             .reduceLeft(_ && _)
       }
@@ -748,7 +735,7 @@ trait IssuesService {
           t2.pullRequest === pullRequest.bind &&
             keywords
               .map { query =>
-                t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+                t1.content.toLowerCase.like(s"%${likeEncode(query)}%", '^')
               }
               .reduceLeft(_ && _)
       }
@@ -974,24 +961,14 @@ object IssuesService {
     }
   }
 
-  case class CommitStatusInfo(
-    count: Int,
-    successCount: Int,
-    context: Option[String],
-    state: Option[CommitState],
-    targetUrl: Option[String],
-    description: Option[String]
-  )
-
   case class IssueInfo(
     issue: Issue,
     labels: List[Label],
     milestone: Option[String],
     priority: Option[String],
     commentCount: Int,
-    status: Option[CommitStatusInfo]
+    commitId: Option[String]
   )
-
 }
 
 sealed trait IssueSearchOption

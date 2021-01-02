@@ -77,9 +77,9 @@ trait PullRequestService {
       }
       .filter {
         case (t1, t2) =>
-          (t2.closed === closed.bind) &&
-            (t1.userName === owner.get.bind, owner.isDefined) &&
-            (t1.repositoryName === repository.get.bind, repository.isDefined)
+          (t2.closed === closed.bind)
+            .&&(t1.userName === owner.get.bind, owner.isDefined)
+            .&&(t1.repositoryName === repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
       .map { case (userName, t) => userName -> t.length }
@@ -183,10 +183,10 @@ trait PullRequestService {
       }
       .filter {
         case (t1, t2) =>
-          (t1.requestUserName === userName.bind) &&
-            (t1.requestRepositoryName === repositoryName.bind) &&
-            (t1.requestBranch === branch.bind) &&
-            (t2.closed === closed.get.bind, closed.isDefined)
+          (t1.requestUserName === userName.bind)
+            .&&(t1.requestRepositoryName === repositoryName.bind)
+            .&&(t1.requestBranch === branch.bind)
+            .&&(t2.closed === closed.get.bind, closed.isDefined)
       }
       .map { case (t1, t2) => t1 }
       .list
@@ -201,10 +201,10 @@ trait PullRequestService {
       }
       .filter {
         case (t1, t2) =>
-          (t1.requestUserName === userName.bind) &&
-            (t1.requestRepositoryName === repositoryName.bind) &&
-            (t1.branch === branch.bind) &&
-            (t2.closed === closed.get.bind, closed.isDefined)
+          (t1.requestUserName === userName.bind)
+            .&&(t1.requestRepositoryName === repositoryName.bind)
+            .&&(t1.branch === branch.bind)
+            .&&(t2.closed === closed.get.bind, closed.isDefined)
       }
       .map { case (t1, t2) => t1 }
       .list
@@ -611,7 +611,7 @@ object PullRequestService {
 
   case class MergeStatus(
     conflictMessage: Option[String],
-    commitStatues: List[CommitStatus],
+    commitStatuses: List[CommitStatus],
     branchProtection: ProtectedBranchService.ProtectedBranchInfo,
     branchIsOutOfDate: Boolean,
     hasUpdatePermission: Boolean,
@@ -622,7 +622,7 @@ object PullRequestService {
 
     val hasConflict = conflictMessage.isDefined
     val statuses: List[CommitStatus] =
-      commitStatues ++ (branchProtection.contexts.toSet -- commitStatues.map(_.context).toSet)
+      commitStatuses ++ (branchProtection.contexts.toSet -- commitStatuses.map(_.context).toSet)
         .map(CommitStatus.pending(branchProtection.owner, branchProtection.repository, _))
     val hasRequiredStatusProblem = needStatusCheck && branchProtection.contexts.exists(
       context => statuses.find(_.context == context).map(_.state) != Some(CommitState.SUCCESS)

@@ -3,8 +3,8 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.34.0"
-val ScalatraVersion = "2.7.0"
+val GitBucketVersion = "4.35.2"
+val ScalatraVersion = "2.7.1"
 val JettyVersion = "9.4.32.v20200930"
 val JgitVersion = "5.9.0.202009080501-r"
 
@@ -17,7 +17,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.3"
 
 scalafmtOnCompile := true
 
@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.12",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "5.64.4",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.29.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13" % "test",
@@ -70,11 +70,12 @@ libraryDependencies ++= Seq(
   "org.testcontainers"              % "postgresql"                   % "1.14.3" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
-  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3"
+  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3",
+  "org.kohsuke"                     % "github-api"                   % "1.116" % "test"
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method", "-feature")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 
@@ -119,6 +120,12 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-io"           % JettyVersion % "executable",
   "org.eclipse.jetty" % "jetty-util"         % JettyVersion % "executable"
 )
+
+// Run package task before test to generate target/webapp for integration test
+test in Test := {
+  _root_.sbt.Keys.`package`.value
+  (test in Test).value
+}
 
 val executableKey = TaskKey[File]("executable")
 executableKey := {

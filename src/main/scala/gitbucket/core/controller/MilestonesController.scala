@@ -2,7 +2,13 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.milestones.html
 import gitbucket.core.service.IssuesService.{IssueLimit, IssueSearchCondition}
-import gitbucket.core.service.{AccountService, IssueSearchOption, MilestonesService, RepositoryService}
+import gitbucket.core.service.{
+  AccountService,
+  CommitStatusService,
+  IssueSearchOption,
+  MilestonesService,
+  RepositoryService
+}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.SyntaxSugars._
@@ -15,11 +21,16 @@ class MilestonesController
     with MilestonesService
     with RepositoryService
     with AccountService
+    with CommitStatusService
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
 
 trait MilestonesControllerBase extends ControllerBase {
-  self: MilestonesService with RepositoryService with ReferrerAuthenticator with WritableUsersAuthenticator =>
+  self: MilestonesService
+    with RepositoryService
+    with CommitStatusService
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator =>
 
   case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 
@@ -45,15 +56,22 @@ trait MilestonesControllerBase extends ControllerBase {
       request,
       milestone.get.title
     )
+    val issues = searchIssue(
+      condition,
+      IssueSearchOption.Both,
+      (page - 1) * IssueLimit,
+      IssueLimit,
+      repository.owner -> repository.name
+    )
+    val status = issues.map { issue =>
+      issue.commitId.flatMap { commitId =>
+        getCommitStatusWithSummary(issue.issue.userName, issue.issue.repositoryName, commitId)
+      }
+    }
+
     html.milestone(
       condition.state,
-      searchIssue(
-        condition,
-        IssueSearchOption.Both,
-        (page - 1) * IssueLimit,
-        IssueLimit,
-        repository.owner -> repository.name
-      ),
+      issues.zip(status),
       page,
       getAssignableUserNames(repository.owner, repository.name),
       getPriorities(repository.owner, repository.name),

@@ -55,22 +55,27 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.34.x
+What's New in 4.35.x
 -------------
-### 4.34.0 - 26 Jul 2020
+### 4.35.2 - 30 Dec 2020
+- Upgrade gitbucket-notifications-plugin to 1.10.0
+- Upgrade oauth2-oidc-sdk to 8.29.1 to solve dependency issue
 
-- Enhancement admin settings UI
-   - File upload settings
-   - Restrict repository operations
-   - User-defined CSS
-   - Limit the repository list in the sidebar
-- Improve MariaDB support
-- Improve activity logging
-- CLI option to persist session on disk in the standalone mode
-- Web API updates
-  - Add [list commits API](https://developer.github.com/v3/repos/commits/#list-commits)
-- Bundled plugins updates
-  - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin) 4.18.0 -> 4.19.0
-  - [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin) 1.8.0 -> 1.9.0
+### 4.35.1 - 29 Dec 2020
+
+- Fix database migration issue which happens if webhook is configured
+- Call push webhook when pull request is merged
+- Show commit status at commits tab of pull request
+
+### 4.35.0 - 25 Dec 2020
+
+- Editor and source viewer color theme
+- Auto completion for issues and pull requests
+- Upload image from clipboard
+- Close multiple issues by commit comment
+- Create pull request from online editor
+- Milestone overview
+- Commit status at various places
+- WebAPI coverage improvements
 
 See the [change log](CHANGELOG.md) for all of the updates.
