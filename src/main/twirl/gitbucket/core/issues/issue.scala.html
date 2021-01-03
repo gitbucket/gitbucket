@@ -57,8 +57,10 @@
   </div><!-- /.row -->
   <div class="row">
     <div class="col-lg-9">
-      @gitbucket.core.issues.html.commentlist(Some(issue), comments, isCommentManageable, repository)
-      @gitbucket.core.issues.html.commentform(issue, true, isEditable, isManageable, repository)
+      <div class="timeline timeline-inverse">
+        @gitbucket.core.issues.html.commentlist(Some(issue), comments, isCommentManageable, repository)
+        @gitbucket.core.issues.html.commentform(issue, true, isEditable, isManageable, repository)
+      </div><!-- /.timeline -->
     </div><!-- /.col -->
     <div class="col-lg-3">
       <div class="card">
