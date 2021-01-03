@@ -97,29 +97,31 @@
       <input type="checkbox" id="show-notes"> Show line notes below
     </label>
     <div id="comment-list">
-      @gitbucket.core.issues.html.commentlist(
-        issue        = None,
-        comments     = comments.filter(_.asInstanceOf[CommitComment].fileName.isEmpty),
-        isManageable = hasWritePermission,
-        repository   = repository,
-        pullreq      = None,
-        renderScript = false)
-      <div style="display: none;">
+      <div class="timeline timeline-inverse">
         @gitbucket.core.issues.html.commentlist(
           issue        = None,
-          comments     = comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
-            CommitComments(
-              fileName          = fileName.get,
-              commentedUserName = comments.head.commentedUserName,
-              registeredDate    = comments.head.registeredDate,
-              comments          = comments,
-              diff              = None
-            )
-          }.toList,
+          comments     = comments.filter(_.asInstanceOf[CommitComment].fileName.isEmpty),
           isManageable = hasWritePermission,
           repository   = repository,
           pullreq      = None,
-          commitId     = Some(commitId))
+          renderScript = false)
+        <div style="display: none;">
+          @gitbucket.core.issues.html.commentlist(
+            issue        = None,
+            comments     = comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
+              CommitComments(
+                fileName          = fileName.get,
+                commentedUserName = comments.head.commentedUserName,
+                registeredDate    = comments.head.registeredDate,
+                comments          = comments,
+                diff              = None
+              )
+            }.toList,
+            isManageable = hasWritePermission,
+            repository   = repository,
+            pullreq      = None,
+            commitId     = Some(commitId))
+        </div><!-- /.timeline -->
       </div>
     </div>
     @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
