@@ -471,7 +471,7 @@ table.branches>tbody>tr>td{
 .branches .branch-a-b-count{
   color: rgba(0,0,0,0.5);
 }
-
+*/
 .branches .a-b-count-widget .count-half{
   width:90px;
   position: relative;
@@ -487,7 +487,7 @@ table.branches>tbody>tr>td{
 .branches .a-b-count-widget .count-half .count-value{
   padding: 0 3px;
 }
-
+/*
 .branches .branch-a-b-count span.badge {
   font-size: 100%;
 }
