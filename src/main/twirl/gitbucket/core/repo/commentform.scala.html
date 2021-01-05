@@ -11,8 +11,8 @@
 @if(context.loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
   <form method="POST" validate="true">
-    <div class="panel panel-default issue-comment-box">
-      <div class="panel-body">
+    <div class="card issue-comment-box">
+      <div class="card-body">
         @gitbucket.core.helper.html.preview(
           repository         = repository,
           content            = "",
@@ -28,7 +28,7 @@
           uid                = uid
         )
         @if(fileName.isDefined){
-          <div class="pull-right">
+          <div class="float-right">
             <input type="button" class="btn btn-default" value="Cancel"/>
             <input type="submit" id="btn-inline-comment-@uid" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
           </div>
@@ -36,7 +36,7 @@
       </div>
     </div>
     @if(!fileName.isDefined){
-      <div class="pull-right">
+      <div class="float-right">
         <input type="submit" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment on this commit"/>
       </div>
     }
