@@ -72,9 +72,9 @@
       }
       </div>
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
-        <li class="nav-item"><a class="nav-link@if(active=="conversation"){ active}" href="@helpers.url(repository)/pull/@issue.issueId">Conversation <span class="badge">@countConversation(comments)</span></a></li>
-        <li class="nav-item"><a class="nav-link@if(active=="commits"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge">@commits.size</span></a></li>
-        <li class="nav-item"><a class="nav-link@if(active=="files"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge">@changedFileSize</span></a></li>
+        <li class="nav-item"><a class="nav-link@if(active=="conversation"){ active}" href="@helpers.url(repository)/pull/@issue.issueId">Conversation <span class="badge badge-info">@countConversation(comments)</span></a></li>
+        <li class="nav-item"><a class="nav-link@if(active=="commits"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge badge-info">@commits.size</span></a></li>
+        <li class="nav-item"><a class="nav-link@if(active=="files"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge badge-info">@changedFileSize</span></a></li>
       </ul>
       <div class="tab-content fill-width" style="padding-top: 20px;">
         @flash.get("error").map { error =>
