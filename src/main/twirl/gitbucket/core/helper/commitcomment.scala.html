@@ -11,12 +11,14 @@
     <div class="markdown-body">
       <div>
         @helpers.avatarLink(comment.commentedUserName, 20)
-        @helpers.user(comment.commentedUserName, styleClass="username strong")
-        <span class="muted">@gitbucket.core.helper.html.datetimeago(comment.registeredDate)</span>
-        <span class="pull-right">
+        @helpers.user(comment.commentedUserName, styleClass="username font-weight-bold")
+        <span class="text-muted">@gitbucket.core.helper.html.datetimeago(comment.registeredDate)</span>
+        <span class="float-right">
         @if(hasWritePermission || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){
-          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
-          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+          <div class="card-tools">
+            <a href="#" data-comment-id="@comment.commentId" class="btn btn-tool"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
+            <a href="#" data-comment-id="@comment.commentId" class="btn btn-tool"><i class="octicon octicon-x" aria-label="Remove"></i></a>
+          </div>
         }
         </span>
       </div>
@@ -35,3 +37,4 @@
     </div>
   </div>
 </div>
+
