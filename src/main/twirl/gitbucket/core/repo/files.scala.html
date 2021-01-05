@@ -222,12 +222,12 @@
         <div class="card">
           <div class="card-header">
             <div id="readme" class="box-header">
-              <div class="strong">
+              <div class="font-weight-bold strong">
                 <i class="octicon octicon-file"></i>
                 @filePath.last
                 @if(hasWritePermission){
-                <div class="btn-group pull-right">
-                  <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+                <div class="card-tools float-right"><!-- .card-tools make div right in .card-header -->
+                  <a class="btn btn-tool" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
                 </div>
                 }
               </div>
