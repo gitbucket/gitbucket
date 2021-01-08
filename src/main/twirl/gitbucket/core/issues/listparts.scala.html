@@ -148,7 +148,7 @@
   <tbody>
     @if(issues.isEmpty){
       <tr>
-        <td style="padding: 20px; background-color: #eee; text-align: center;">
+        <td class="py-2" style="background-color: #eee; text-align: center;">
           @if(target == "issues"){
             No issues to show.
           } else {
@@ -195,7 +195,7 @@
           @labels.map { label =>
             <span class="badge small" style="background-color: #@label.color; color: #@label.fontColor;">@label.labelName</span>
           }
-          <span class="float-right small">
+          <span class="float-right text-muted small">
             @issue.assignedUserName.map { userName =>
               @helpers.avatar(userName, 20, tooltip = true)
             }
