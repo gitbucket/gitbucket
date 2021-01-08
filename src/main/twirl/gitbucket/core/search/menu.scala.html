@@ -2,22 +2,36 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.menu(active, repository){
-  <form action="@helpers.url(repository)/search" method="GET" class="form-inline">
-    <select class="form-control" name="type">
-      <option value="code" @if(active == "files"){ selected }>Files</option>
-      @if(repository.repository.options.issuesOption != "DISABLE") {
-        <option value="issues" @if(active == "issues"){ selected }>Issues</option>
-      }
-      @if(repository.repository.options.issuesOption != "DISABLE") {
-        <option value="pulls" @if(active == "pulls"){ selected }>Pull requests</option>
-      }
-      @if(repository.repository.options.wikiOption != "DISABLE") {
-        <option value="wiki" @if(active == "wiki"){ selected }>Wiki</option>
-      }
-    </select>
-    <input type="text" name="q" value="@query" class="form-control" style="width: 250px;" placeholder="Search..."/>
-    <input type="submit" value="Search" class="btn btn-default"/>
-    <input type="hidden" name="type" value="@active"/>
-  </form>
-  @body
+<div class="body">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <form action="@helpers.url(repository)/search" method="GET" class="form-inline">
+              <select class="form-control form-control-sm" name="type">
+                <option value="code" @if(active == "files"){ selected }>Files</option>
+                @if(repository.repository.options.issuesOption != "DISABLE") {
+                  <option value="issues" @if(active == "issues"){ selected }>Issues</option>
+                }
+                @if(repository.repository.options.issuesOption != "DISABLE") {
+                  <option value="pulls" @if(active == "pulls"){ selected }>Pull requests</option>
+                }
+                @if(repository.repository.options.wikiOption != "DISABLE") {
+                  <option value="wiki" @if(active == "wiki"){ selected }>Wiki</option>
+                }
+              </select>
+              <input type="text" name="q" value="@query" class="form-control form-control-sm" style="width: 250px;" placeholder="Search..."/>
+              <input type="submit" value="Search" class="btn btn-sm btn-default"/>
+              <input type="hidden" name="type" value="@active"/>
+            </form>
+          </div><!-- /.card-hearder -->
+          <div class="card-body">
+            @body
+          </div><!-- /.card-body -->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+</div><!-- /.body -->
 }
