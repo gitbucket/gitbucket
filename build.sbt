@@ -127,6 +127,8 @@ test in Test := {
   (test in Test).value
 }
 
+envVars := Map("SOURCE_DATE_EPOCH" -> (System.currentTimeMillis() / 1000).toString)
+
 val executableKey = TaskKey[File]("executable")
 executableKey := {
   import java.util.jar.Attributes.{Name => AttrName}
