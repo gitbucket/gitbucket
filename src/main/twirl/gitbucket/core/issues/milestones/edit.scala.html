@@ -3,39 +3,52 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("milestones", repository){
-    @if(milestone.isEmpty){
-      <h4>New milestone</h4>
-      <div class="muted">Create a new milestone to help organize your issues and pull requests.</div>
-    }
-    <hr style="margin-top: 12px; margin-bottom: 18px;" class="fill-width"/>
-    <form method="POST" action="@helpers.url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true" autocomplete="off">
-      <fieldset class="form-group">
-        <input type="text" id="title" name="title" class="form-control" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title" aria-label="Title"/>
-        <span id="error-title" class="error text-danger"></span>
-      </fieldset>
-      <fieldset class="form-group">
-        <label for="description" class="strong">Description</label>
-        <textarea id="description" name="description" class="form-control" style="width: 500px; height: 150px;">@milestone.map(_.description)</textarea>
-        <span id="error-description" class="error text-danger"></span>
-      </fieldset>
-      <fieldset class="form-group">
-        <label for="dueDate" class="strong">Due Date</label>
-        @gitbucket.core.helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
-        <span id="error-dueDate" class="error text-danger"></span>
-      </fieldset>
-      <hr>
-      <div class="pull-right">
-        @if(milestone.isEmpty){
-          <input type="submit" class="btn btn-success" value="Create milestone"/>
-        } else {
-          @if(milestone.get.closedDate.isDefined){
-            <input type="button" class="btn btn-default" value="Open" id="open" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
-          } else {
-            <input type="button" class="btn btn-default" value="Close" id="close" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/close';"/>
-          }
-          <input type="submit" class="btn btn-success" value="Update milestone"/>
-        }
-      </div>
-    </form>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <form method="POST" action="@helpers.url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true" autocomplete="off">
+          <div class="card-header">
+            <h4>Edit milestone</h4>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            @if(milestone.isEmpty){
+            <div class="text-muted">Create a new milestone to help organize your issues and pull requests.</div>
+            }
+            <fieldset class="form-group">
+              <label for="title" class="strong">Title</label>
+              <input type="text" id="title" name="title" class="form-control" value="@milestone.map(_.title)" placeholder="Milestone title" aria-label="Title"/>
+              <span id="error-title" class="error text-danger"></span>
+            </fieldset>
+            <fieldset class="form-group">
+              <label for="description" class="strong">Description</label>
+              <textarea id="description" name="description" class="form-control" style="height: 150px;">@milestone.map(_.description)</textarea>
+              <span id="error-description" class="error text-danger"></span>
+            </fieldset>
+            <fieldset class="form-group">
+              <label for="dueDate" class="strong">Due Date</label>
+              @gitbucket.core.helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
+              <span id="error-dueDate" class="error text-danger"></span>
+            </fieldset>
+          </div><!-- /.card-body -->
+          <div class="card-footer">
+            <div class="float-right">
+              @if(milestone.isEmpty){
+              <input type="submit" class="btn btn-success" value="Create milestone"/>
+              } else {
+              @if(milestone.get.closedDate.isDefined){
+              <input type="button" class="btn btn-default" value="Open" id="open" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
+              } else {
+              <input type="button" class="btn btn-default" value="Close" id="close" onclick="location.href='@helpers.url(repository)/issues/milestones/@milestone.get.milestoneId/close';"/>
+              }
+              <input type="submit" class="btn btn-success" value="Update milestone"/>
+              }
+            </div>
+          </div>
+        </form>
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
   }
 }
