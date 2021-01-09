@@ -108,36 +108,36 @@
         @if(isManageable){
           <span id="table-issues-batchedit">
             @gitbucket.core.helper.html.dropdown("Mark as") {
-              <a class="dropdown-item" href="javascript:void(0);" class="toggle-state" data-id="open">Open</a>
-              <a class="dropdown-item" href="javascript:void(0);" class="toggle-state" data-id="close">Close</a>
+              <a class="dropdown-item toggle-state" href="javascript:void(0);" data-id="open">Open</a>
+              <a class="dropdown-item toggle-state" href="javascript:void(0);" data-id="close">Close</a>
             }
             @gitbucket.core.helper.html.dropdown("Label", filter = ("label", "Find Label...")) {
               @labels.map { label =>
-                <a class="dropdown-item" href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
+                <a class="dropdown-item toggle-label" href="javascript:void(0);" data-id="@label.labelId">
                   <i class="octicon"></i>
-                  <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                  <span class="badge" style="background-color: #@label.color;">&nbsp;&nbsp;</span>
                   @label.labelName
                 </a>
               }
             }
             @gitbucket.core.helper.html.dropdown("Priority", filter = ("priority", "Find Priority...")) {
-              <a class="dropdown-item" href="javascript:void(0);" class="toggle-priority" data-id="">No priority</a>
+              <a class="dropdown-item toggle-priority" href="javascript:void(0);" data-id="">No priority</a>
               @priorities.map { priority =>
-                <a class="dropdown-item" href="javascript:void(0);" class="toggle-priority" data-id="@priority.priorityId"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
-                  <span style="background-color: #@priority.color;" class="label">&nbsp;</span>
+                <a class="dropdown-item toggle-priority" href="javascript:void(0);" data-id="@priority.priorityId"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
+                  <span style="background-color: #@priority.color;" class="badge">&nbsp;&nbsp;</span>
                   @priority.priorityName</a>
               }
             }
             @gitbucket.core.helper.html.dropdown("Milestone", filter = ("milestone", "Find Milestone...")) {
-              <a class="dropdown-item" href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a>
+              <a class="dropdown-item toggle-milestone" href="javascript:void(0);" data-id="">No milestone</a>
               @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-                <a class="dropdown-item" href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a>
+                <a class="dropdown-item toggle-milestone" href="javascript:void(0);" data-id="@milestone.milestoneId">@milestone.title</a>
               }
             }
             @gitbucket.core.helper.html.dropdown("Assignee", filter = ("assignee", "Find Assignee...")) {
-              <a class="dropdown-item" href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a>
+              <a class="dropdown-item toggle-assign" href="javascript:void(0);" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a>
               @collaborators.map { collaborator =>
-                <a class="dropdown-item" href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@helpers.avatar(collaborator, 20) @collaborator</a>
+                <a class="dropdown-item toggle-assign" href="javascript:void(0);" data-name="@collaborator"><i class="octicon"></i>@helpers.avatar(collaborator, 20) @collaborator</a>
               }
             }
           </span>
@@ -228,6 +228,6 @@
     }
   </tbody>
 </table>
-<div class="pull-right">
+<div class="float-right">
   @gitbucket.core.helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), gitbucket.core.service.IssuesService.IssueLimit, 10, condition.toURL)
 </div>
