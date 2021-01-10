@@ -18,7 +18,7 @@
       <h1 class="body-title">
         <span class="show-title">
           <span id="show-title">@issue.title</span>
-          <span class="muted">#@issue.issueId</span>
+          <span class="text-muted">#@issue.issueId</span>
         </span>
         <span class="edit-title" style="display: none;">
           <span id="error-edit-title" class="error text-danger"></span>
@@ -31,8 +31,8 @@
         } else {
         <span class="label label-success issue-status">Open</span>
         }
-        <span class="muted">
-        @helpers.user(issue.openedUserName, styleClass="username strong") opened this issue @gitbucket.core.helper.html.datetimeago(issue.registeredDate) - @defining(
+        <span class="text-muted">
+        @helpers.user(issue.openedUserName, styleClass="username font-weight-bold strong") opened this issue @gitbucket.core.helper.html.datetimeago(issue.registeredDate) - @defining(
           comments.count( _.action.contains("comment") )
         ){ count =>
           @count @helpers.plural(count, "comment")

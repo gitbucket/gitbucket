@@ -122,7 +122,7 @@
               <div class="float-right align-right">
                 <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id">
                   <span class="text-muted">latest commit</span>
-                  <span class="monospace commit-message strong">@latestCommit.id.substring(0, 10)</span>
+                  <span class="monospace commit-message font-weight-bold strong">@latestCommit.id.substring(0, 10)</span>
                 </a>
               </div>
               <div class="author-info">
@@ -140,7 +140,7 @@
                   <div class="committer">
                     <span class="octicon octicon-arrow-right"></span>
                     <span>@helpers.user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
-                    <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
+                    <span class="text-muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
                   </div>
                 }
               </div>

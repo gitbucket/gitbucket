@@ -65,7 +65,7 @@
             <div class="row">
               <div class="col">
                 @helpers.avatarLink(latestCommit, 20)
-                @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
+                @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username font-weight-bold strong")
                 <span class="text-muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
                 <span class="label label-default">@helpers.readableSize(content.size)</span>
                 <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
@@ -169,7 +169,7 @@ $(window).on('load', function(){
           window.history.pushState('', '', commitUrl + '#L' + line);
           p.attr('id','L'+line);
         }
-        $("#branchCtrlWrapper .btn .muted").text("tree:");
+        $("#branchCtrlWrapper .btn .text-muted").text("tree:");
         $("#branchCtrlWrapper .btn .strong").text("@latestCommit.id.substring(0, 10)");
         updateHighlighting();
       }).appendTo(pre);
@@ -237,7 +237,7 @@ $(window).on('load', function(){
            .append(sha)
            .append($(blame.avatar).addClass('avatar').css({"float": "left"}))
            .append($('<div class="blame-commit-title">').text(blame.message))
-           .append($('<div class="muted">').html(blame.author + " authed " + blame.authed))
+           .append($('<div class="text-muted">').html(blame.author + " authed " + blame.authed))
            .appendTo(base);
         }
       });

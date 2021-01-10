@@ -12,7 +12,7 @@
         <div class="card-header">
           <div class="row">
             <div class="col-md-4">
-              <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
+              <h1 class="wiki-title"><span class="text-muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
             </div>
             <div class="col-md-8">
               <div class="float-md-right">
@@ -28,7 +28,7 @@
           <div class="card-body">
             <span id="error-pageName" class="error text-danger"></span>
             <input type="text" name="pageName" value="@pageName" class="form-control" placeholder="Input a page name." aria-label="Page name"/>
-            <div class="muted attachable">
+            <div class="text-muted attachable">
               @gitbucket.core.helper.html.preview(
                 repository         = repository,
                 content            = page.map(_.content).getOrElse(""),
@@ -51,7 +51,7 @@
             </div>
           </div><!-- /.card-body -->
           <div class="card-footer">
-            <div class="form-group float-right">
+            <div class="float-right">
               <input type="hidden" name="currentPageName" value="@pageName"/>
               <input type="hidden" name="id" value="@page.map(_.id)"/>
               <input type="submit" value="Save" class="btn btn-success">

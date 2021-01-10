@@ -14,7 +14,7 @@
     <div class="card-header">
       @helpers.avatarLink(comment.commentedUserName, 20)
       @helpers.user(comment.commentedUserName, styleClass="username strong")
-      <span class="muted">
+      <span class="text-muted">
         @if(comment.action == "comment"){
           commented
         } else {

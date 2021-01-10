@@ -20,7 +20,7 @@
       <ul class="nav nav-pills nav-sidebar flex-column">
         @recentRepositories.zipWithIndex.map { case (repository, i) =>
         <li class="nav-item repo-link">
-          <a class="nav-link" href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <p>@repository.owner/<span class="strong">@repository.name</span></p></a>
+          <a class="nav-link" href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <p>@repository.owner/<span class="font-weight-bold strong">@repository.name</span></p></a>
         </li>
         }
         }

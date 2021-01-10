@@ -78,25 +78,25 @@
       @gitbucket.core.helper.html.information(info)
       @gitbucket.core.helper.html.error(error)
       <div class="row mb-2">
-        <div class="col-sm-6">
+        <div class="col-sm-auto mb-1">
           <h1 class="m-0 text-dark">
             @gitbucket.core.helper.html.repositoryicon(repository, true)
-            <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
+            <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="font-weight-bold strong">@repository.name</a>
           </h1>
         </div><!-- /.col -->
-        <div class="col-sm-6">
-          <div class="float-right">
+        <div class="col-sm">
+          <div class="float-sm-right">
           @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
           @repositoryHeaderComponent(repository, context)
           }
           @if(repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || context.loginAccount.map(_.isAdmin).getOrElse(false))) {
           @if(context.loginAccount.isEmpty){
           <a class="btn btn-default btn-sm" href="@context.path/signin?redirect=@helpers.urlEncode(s"${context.path}/${repository.owner}/${repository.name}")">
-            <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+            <span class="font-weight-bold strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="text-muted">: @repository.forkedCount</span>
           </a>
           } else {
           <a class="btn btn-default btn-sm" href="@context.path/@repository.owner/@repository.name/fork" rel="facebox">
-            <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>
+            <span class="font-weight-bold strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="text-muted">: @repository.forkedCount</span>
           </a>
           }
           }

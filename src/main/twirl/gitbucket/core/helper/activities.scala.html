@@ -68,8 +68,8 @@
 
 @customActivity(activity: gitbucket.core.model.Activity)(additionalInfo: Any) = {
   <div>
-    <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
-    <div class="strong">
+    <div class="text-muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
+    <div class="font-weight-bold strong">
       @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
     </div>
@@ -79,7 +79,7 @@
 
 @simpleActivity(activity: gitbucket.core.model.Activity) = {
   <div>
-    <span class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
+    <span class="text-muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
     <div>
       @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
