@@ -8,6 +8,8 @@ GitBucket is a Git web platform powered by Scala offering:
 - High extensibility by plugins
 - API compatibility with GitHub
 
+![GitBucket](https://gitbucket.github.io/img/screenshots/screenshot-repository_viewer.png)
+
 You can try an [online demo](https://gitbucket.herokuapp.com/) *(ID: root / Pass: root)* of GitBucket, and also get the latest information at [GitBucket News](https://gitbucket.github.io/gitbucket-news/).
 
 Features
