@@ -15,116 +15,142 @@
 @import gitbucket.core.model._
 @gitbucket.core.html.main(commit.shortMessage, Some(repository)){
   @gitbucket.core.html.menu("files", repository, None, info, error){
-    <table class="table table-bordered">
-      <tr>
-        <th class="box-header">
-          <div class="pull-right align-right btn-group">
-            <a href="@helpers.url(repository)/tree/@commit.id" class="btn btn-default">Browse code</a>
-            @if(hasWritePermission) {
-              <a href="@helpers.url(repository)/tag/@commit.id" class="btn btn-default" rel="facebox">Add tag</a>
-            }
-          </div>
-          <div class="commit-log">@helpers.link(commit.summary, repository)</div>
-          @if(commit.description.isDefined){
-            <pre class="commit-description">@helpers.link(commit.description.get, repository)</pre>
-          }
-          <div class="small" style="font-weight: normal;">
-            @if(branches.nonEmpty){
-              <span class="muted">
-                <i class="octicon octicon-git-branch"></i>
-                @branches.zipWithIndex.map { case (branch, i) =>
-                  <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
-                }
-              </span>
-            }
-            @if(tags.nonEmpty){
-              <span class="muted">
-                <i class="octicon octicon-tag"></i>
-                @tags.zipWithIndex.map { case (tag, i) =>
-                  <a href="@helpers.url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
-                }
-              </span>
-            }
-          </div>
-        </th>
-      </tr>
-      <tr>
-        <td>
-          <div class="pull-right">
-            <div>
-              @if(commit.parents.size == 0){
-                <span class="muted">0 parent</span>
-              }
-              @if(commit.parents.size == 1){
-                <span class="muted">1 parent</span>
-                <a href="@helpers.url(repository)/commit/@commit.parents(0)" class="commit-id monospace strong">@commit.parents(0).substring(0, 7)</a>
-              }
-              <span class="muted ">commit</span> <span class="commit-id monospace strong">@commit.id</span>
-            </div>
-            @if(commit.parents.size > 1){
-              <div>
-                <span class="muted">@commit.parents.size parents
-                @commit.parents.map { parent =>
-                  <a href="@helpers.url(repository)/commit/@parent" class="commit-id monospace strong">@parent.substring(0, 7)</a>
-                }.mkHtml(" + ")
-                </span>
-              </div>
-            }
-          </div>
-
-          <div class="author-info">
-            <div class="author">
-              @helpers.avatarLink(commit, 20)
-              <span>@helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
-              <span class="muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
-              @status.map { case (summary, statuses) =>
-                @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
-              }
-            </div>
-            @if(commit.isDifferentFromAuthor) {
-              <div class="committer">
-                <span class="octicon octicon-arrow-right"></span>
-                <span>@helpers.user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
-                <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
-              </div>
-            }
-          </div>
-        </td>
-      </tr>
-    </table>
-    @gitbucket.core.helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
-    <label class="checkbox">
-      <input type="checkbox" id="show-notes"> Show line notes below
-    </label>
-    <div id="comment-list">
-      <div class="timeline timeline-inverse">
-        @gitbucket.core.issues.html.commentlist(
-          issue        = None,
-          comments     = comments.filter(_.asInstanceOf[CommitComment].fileName.isEmpty),
-          isManageable = hasWritePermission,
-          repository   = repository,
-          pullreq      = None,
-          renderScript = false)
-        <div style="display: none;">
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-body">
+          <table class="table table-bordered">
+            <tr>
+              <th class="box-header">
+                <div class="row">
+                  <div class="col">
+                    <div class="commit-log">@helpers.link(commit.summary, repository)</div>
+                    @if(commit.description.isDefined){
+                    <pre class="commit-description">@helpers.link(commit.description.get, repository)</pre>
+                    }
+                    <div class="small">
+                      @if(branches.nonEmpty){
+                      <span class="text-muted">
+                        <i class="octicon octicon-git-branch"></i>
+                        @branches.zipWithIndex.map { case (branch, i) =>
+                        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
+                        }
+                      </span>
+                          }
+                          @if(tags.nonEmpty){
+                          <span class="text-muted">
+                        <i class="octicon octicon-tag"></i>
+                        @tags.zipWithIndex.map { case (tag, i) =>
+                        <a href="@helpers.url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
+                        }
+                      </span>
+                      }
+                    </div>
+                  </div><!-- /.col -->
+                  <div class="col-auto">
+                    <div class="float-right">
+                      <div class="btn-group">
+                        <a href="@helpers.url(repository)/tree/@commit.id" class="btn btn-default">Browse code</a>
+                        @if(hasWritePermission) {
+                        <a href="@helpers.url(repository)/tag/@commit.id" class="btn btn-default" rel="facebox">Add tag</a>
+                        }
+                      </div>
+                    </div>
+                  </div><!-- /.col -->
+                </div><!-- /.row -->
+              </th>
+            </tr>
+            <tr>
+              <td>
+                <div class="row">
+                  <div class="col-lg-auto">
+                    <div class="author-info">
+                      <div class="author">
+                        @helpers.avatarLink(commit, 20)
+                        <span>@helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
+                        <span class="text-muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
+                        @status.map { case (summary, statuses) =>
+                        @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
+                        }
+                      </div>
+                      @if(commit.isDifferentFromAuthor) {
+                      <div class="committer">
+                        <span class="octicon octicon-arrow-right"></span>
+                        <span>@helpers.user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
+                        <span class="text-muted"> committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
+                      </div>
+                      }
+                    </div>
+                  </div><!-- /.col -->
+                  <div class="col-lg">
+                    <div class="float-lg-right">
+                      @if(commit.parents.size > 1){
+                      <div>
+                        <span class="text-muted">@commit.parents.size parents
+                        @commit.parents.map { parent =>
+                          <a href="@helpers.url(repository)/commit/@parent" class="commit-id monospace strong">@parent.substring(0, 7)</a>
+                        }.mkHtml(" + ")
+                        </span>
+                      </div>
+                      }
+                      <div>
+                        @if(commit.parents.size == 0){
+                        <span class="text-muted">0 parent</span>
+                        }
+                        @if(commit.parents.size == 1){
+                        <span class="text-muted">1 parent</span>
+                        <a href="@helpers.url(repository)/commit/@commit.parents(0)" class="commit-id monospace strong">@commit.parents(0).substring(0, 7)</a>
+                        }
+                        <span class="text-muted">commit</span> <span class="commit-id monospace strong">@commit.id</span>
+                      </div>
+                    </div>
+                  </div><!-- /.col -->
+                </div><!-- /.row -->
+              </td>
+            </tr>
+          </table>
+        </div><!-- /.card-body -->
+      </div><!-- /. card -->
+      <div class="card">
+        <div class="card-body">
+          @gitbucket.core.helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
+        </div><!-- /.card-body -->
+      </div><!--/.card -->
+      <input type="checkbox" id="show-notes">
+      <label class="checkbox" for="show-notes">Show line notes below</label>
+      <div id="comment-list">
+        <div class="timeline timeline-inverse">
           @gitbucket.core.issues.html.commentlist(
             issue        = None,
-            comments     = comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
-              CommitComments(
-                fileName          = fileName.get,
-                commentedUserName = comments.head.commentedUserName,
-                registeredDate    = comments.head.registeredDate,
-                comments          = comments,
-                diff              = None
-              )
-            }.toList,
+            comments     = comments.filter(_.asInstanceOf[CommitComment].fileName.isEmpty),
             isManageable = hasWritePermission,
             repository   = repository,
             pullreq      = None,
-            commitId     = Some(commitId))
+            renderScript = false)
+          <div id="inline-comment" style="display: none;">
+            @gitbucket.core.issues.html.commentlist(
+              issue        = None,
+              comments     = comments.map(_.asInstanceOf[CommitComment]).filter(_.fileName.isDefined).groupBy(_.fileName).map { case (fileName, comments) =>
+                CommitComments(
+                  fileName          = fileName.get,
+                  commentedUserName = comments.head.commentedUserName,
+                  registeredDate    = comments.head.registeredDate,
+                  comments          = comments,
+                  diff              = None
+                )
+              }.toList,
+              isManageable = hasWritePermission,
+              repository   = repository,
+              pullreq      = None,
+              commitId     = Some(commitId))
+          </div>
+          @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
         </div><!-- /.timeline -->
       </div>
-    </div>
-    @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
   }
 }
 <script>
@@ -168,9 +194,9 @@ $(function(){
 
   $('#show-notes').change(function() {
     if (this.checked) {
-      $('.inline-comment').show();
+      $('#inline-comment').show();
     } else {
-      $('.inline-comment').hide();
+      $('#inline-comment').hide();
       $('.diff .inline-comment').show();
     }
   });
