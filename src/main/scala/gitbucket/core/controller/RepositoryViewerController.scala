@@ -15,7 +15,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.{Account, WebHook}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.service.WebHookService.WebHookCreatePayload
+import gitbucket.core.service.WebHookService.{WebHookCreatePayload, WebHookPushPayload}
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -39,6 +39,8 @@ import org.eclipse.jgit.util.io.EolStreamTypeUtil
 import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.i18n.Messages
+
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 class RepositoryViewerController
     extends RepositoryViewerControllerBase
@@ -940,33 +942,54 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/branches")(writableUsersOnly { repository =>
     val newBranchName = params.getOrElse("new", halt(400))
     val fromBranchName = params.getOrElse("from", halt(400))
-    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-      JGitUtil.createBranch(git, fromBranchName, newBranchName)
-    } match {
-      case Right(message) =>
-        flash.update("info", message)
-        // Call webhook
-        val settings = loadSystemSettings()
-        callWebHookOf(repository.owner, repository.name, WebHook.Create, settings) {
-          for {
-            sender <- context.loginAccount
-            owner <- getAccountByUserName(repository.owner)
-          } yield {
-            WebHookCreatePayload(
-              sender,
-              repository,
-              owner,
-              ref = newBranchName,
-              refType = "branch"
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+      git =>
+        JGitUtil.createBranch(git, fromBranchName, newBranchName) match {
+          case Right(message) =>
+            flash.update("info", message)
+            val settings = loadSystemSettings()
+            val newCommitId = git.getRepository.resolve(s"refs/heads/${newBranchName}")
+            val oldCommitId = ObjectId.fromString("0" * 40)
+            // call push webhook
+            callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
+              for {
+                pusherAccount <- context.loginAccount
+                ownerAccount <- getAccountByUserName(repository.owner)
+              } yield {
+                WebHookPushPayload(
+                  git,
+                  pusherAccount,
+                  newBranchName,
+                  repository,
+                  List(),
+                  ownerAccount,
+                  newId = newCommitId,
+                  oldId = oldCommitId
+                )
+              }
+            }
+            // call create webhook
+            callWebHookOf(repository.owner, repository.name, WebHook.Create, settings) {
+              for {
+                sender <- context.loginAccount
+                owner <- getAccountByUserName(repository.owner)
+              } yield {
+                WebHookCreatePayload(
+                  sender,
+                  repository,
+                  owner,
+                  ref = newBranchName,
+                  refType = "branch"
+                )
+              }
+            }
+            redirect(
+              s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}"
             )
-          }
+          case Left(message) =>
+            flash.update("error", message)
+            redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
         }
-        redirect(
-          s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}"
-        )
-      case Left(message) =>
-        flash.update("error", message)
-        redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
     }
   })
 
