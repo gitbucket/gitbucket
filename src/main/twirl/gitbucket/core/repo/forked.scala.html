@@ -5,28 +5,40 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("fork", repository){
-    <h1 class="body-title">Forked repositories</h1>
-    <div class="block">
-      @if(originRepository.isDefined){
-        @helpers.avatarLink(originRepository.get.owner, 20)
-        <span@if(repository.owner == originRepository.get.owner){ class="highlight"}>
-          <a href="@helpers.url(originRepository.get.owner)">@originRepository.get.owner</a> / <a href="@context.path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
-        </span>
-      } else {
-        @helpers.avatar(repository.repository.originUserName.get, 20)
-        <span class="highlight">
-          @repository.repository.originUserName / @repository.repository.originRepositoryName
-        </span>
-      }
-      (origin)
-    </div>
-    @members.map { case (owner, name) =>
-      <div class="block">
-        @helpers.avatarLink(owner, 20)
-        <span@if(repository.owner == owner){ class="highlight"}>
-          <a href="@helpers.url(owner)">@owner</a> / <a href="@context.path/@owner/@name">@name</a>
-        </span>
-      </div>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="body-title">Forked repositories</h4>
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <div class="block p-2">
+            @if(originRepository.isDefined){
+            @helpers.avatarLink(originRepository.get.owner, 20)
+            <span@if(repository.owner == originRepository.get.owner){ class="highlight"}>
+            <a href="@helpers.url(originRepository.get.owner)">@originRepository.get.owner</a> / <a href="@context.path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
+            </span>
+            } else {
+            @helpers.avatar(repository.repository.originUserName.get, 20)
+            <span class="highlight">
+              @repository.repository.originUserName / @repository.repository.originRepositoryName
+            </span>
+            }
+            (origin)
+          </div>
+          @members.map { case (owner, name) =>
+          <div class="block p-2">
+            @helpers.avatarLink(owner, 20)
+            <span@if(repository.owner == owner){ class="highlight"}>
+            <a href="@helpers.url(owner)">@owner</a> / <a href="@context.path/@owner/@name">@name</a>
+            </span>
+          </div>
+        </div><!-- /.card-body -->
+      </div><!--- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
     }
   }
 }
