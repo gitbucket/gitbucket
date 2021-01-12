@@ -5,55 +5,67 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Release ${release.name} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
-    <div class="row">
-      <div class="col-md-2 text-right">
-        @defining(repository.tags.find(_.name == release.tag)){ tag =>
-          @tag.map { tag =>
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="font-weight-bold strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
-            <a href="@helpers.url(repository)/commit/@tag.id" class="monospace muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
-            <span class="muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
-          }
-        }
-      </div>
-      <div class="col-md-10" style="border-left: 1px solid #eee">
-        <div class="markdown-body">
-          <h3>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>
             @release.name
             @if(hasWritePermission){
-              <div class="pull-right">
-                <form method="POST" action="@helpers.url(repository)/releases/@release.tag/delete" id="delete-form">
-                  <a class="btn btn-default" href="@helpers.url(repository)/releases/@release.tag/edit" id="edit">Edit</a>
-                  <input type="submit" class="btn btn-danger" value="Delete">
-                </form>
+            <div class="float-right">
+              <form method="POST" action="@helpers.url(repository)/releases/@release.tag/delete" id="delete-form">
+                <a class="btn btn-default" href="@helpers.url(repository)/releases/@release.tag/edit" id="edit">Edit</a>
+                <input type="submit" class="btn btn-danger" value="Delete">
+              </form>
+            </div>
+            }
+          </h4>
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-2 text-right">
+              @defining(repository.tags.find(_.name == release.tag)){ tag =>
+                @tag.map { tag =>
+                  <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="font-weight-bold strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
+                  <a href="@helpers.url(repository)/commit/@tag.id" class="monospace text-muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
+                  <span class="text-muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
+                }
+              }
+            </div>
+            <div class="col-md-10 border-left">
+              <div class="markdown-body">
+                <p class="text-muted">
+                 @helpers.avatarLink(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
+                </p>
+                @helpers.markdown(
+                  markdown           = release.content getOrElse "No description provided.",
+                  repository         = repository,
+                  branch             = repository.repository.defaultBranch,
+                  enableWikiLink     = false,
+                  enableRefsLink     = true,
+                  enableLineBreaks   = true,
+                  enableTaskList     = true,
+                  hasWritePermission = hasWritePermission
+                )
+                <ul class="pl-4" style="list-style: none;" id="attachedFiles">
+                  @assets.map{ asset =>
+                    <li>
+                      <a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName"><i class="octicon octicon-file" data-filename="@helpers.urlEncode(asset.label)"></i>@asset.label</a>
+                      <span class="badge badge-default">@helpers.readableSize(Some(asset.size))</span>
+                    </li>
+                  }
+                  <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
+                  <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
+                </ul>
               </div>
-            }
-          </h3>
-          <p class="muted">
-           @helpers.avatarLink(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
-          </p>
-          @helpers.markdown(
-            markdown           = release.content getOrElse "No description provided.",
-            repository         = repository,
-            branch             = repository.repository.defaultBranch,
-            enableWikiLink     = false,
-            enableRefsLink     = true,
-            enableLineBreaks   = true,
-            enableTaskList     = true,
-            hasWritePermission = hasWritePermission
-          )
-          <ul style="list-style: none; padding-left: 8px;" id="attachedFiles">
-            @assets.map{ asset =>
-              <li>
-                <a href="@helpers.url(repository)/releases/@release.tag/assets/@asset.fileName"><i class="octicon octicon-file" data-filename="@helpers.urlEncode(asset.label)"></i>@asset.label</a>
-                <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
-              </li>
-            }
-            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
-            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
+            </div><!-- /.col -->
+          </div><!-- /.row -->
+        </div><!-- /.card-body -->
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
   }
 }
 <script>
