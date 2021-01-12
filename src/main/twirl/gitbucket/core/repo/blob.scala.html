@@ -17,12 +17,6 @@
   }
 </style>
 <div class="head">
-  <div class="float-right hide-if-blame">
-    <div class="btn-group">
-      <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
-      <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
-    </div>
-  </div>
   <div class="line-age-legend">
     <span>Newer</span>
     <ol>
@@ -38,15 +32,24 @@
         <li class="heat10"></li>
     </ol>
     <span>Older</span>
-  </div><!-- /.head -->
-</div>
+  </div>
+</div><!-- /.head -->
 <div class="container">
   <div class="row">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
             <div class="row">
-              <div class="col">
+              <div class="col-md-auto my-1">
+                <div id="branchCtrlWrapper" style="display:inline;">
+                  @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
+                  @repository.branchList.map { x =>
+                  <a class="dropdown-item" href="@helpers.url(repository)/blob/@helpers.encodeRefName((x :: pathList).mkString("/"))">@gitbucket.core.helper.html.checkicon(x == branch) @x</a>
+                  }
+                  }
+                </div>
+              </div><!-- /.col -->
+              <div class="col-md my-1">
                 <h4>
                   <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
                   @pathList.zipWithIndex.map { case (section, i) =>
@@ -57,30 +60,29 @@
                     }
                   }
                   @if(isLfsFile){
-                    <span class="label label-info">LFS</span>
+                    <span class="badge badge-info">LFS</span>
                   }
                 </h4>
-              </div>
-            </div>
+              </div><!-- /.col -->
+              <div class="col-md my-1">
+                <div class="float-md-right hide-if-blame">
+                  <div class="btn-group">
+                    <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
+                    <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
+                  </div>
+                </div>
+              </div><!-- /.col -->
+            </div><!-- /.row -->
             <div class="row">
-              <div class="col">
+              <div class="col-md my-1">
                 @helpers.avatarLink(latestCommit, 20)
                 @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username font-weight-bold strong")
                 <span class="text-muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
                 <span class="label label-default">@helpers.readableSize(content.size)</span>
                 <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
               </div><!-- /.col -->
-              <div class="col-auto">
-                <div id="branchCtrlWrapper" style="display:inline;">
-                  @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
-                    @repository.branchList.map { x =>
-                      <a class="dropdown-item" href="@helpers.url(repository)/blob/@helpers.encodeRefName((x :: pathList).mkString("/"))">@gitbucket.core.helper.html.checkicon(x == branch) @x</a>
-                    }
-                  }
-                </div>
-              </div><!-- /.col -->
-              <div class="col-auto">
-                <div class="btn-group float-right">
+              <div class="col-md-auto my-1">
+                <div class="btn-group float-md-right">
                   <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">Raw</a>
                   @if(content.viewType == "text"){
                     <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))"
@@ -114,7 +116,7 @@
                 </div>
               }
               @if(content.viewType == "large" || content.viewType == "binary"){
-                <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+                <div class="box-content-bottom py-3" style="text-align: center;">
                   <a href="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))">View Raw</a><br>
                   <br>
                   (Sorry about that, but we can't show files that are this big right now)
