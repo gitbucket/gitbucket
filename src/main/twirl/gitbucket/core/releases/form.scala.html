@@ -6,27 +6,37 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
-    <form method="POST" validate="true" class="form-group" autocomplete="off">
-      <div class="row-fluid">
-        <div class="co`l-md-12">
-          @if(release.isEmpty){
-            <h3>New release for @tag.name</h3>
-          } else {
-            <h3>Update release for @tag.name</h3>
-          }
-          <span id="error-name" class="error text-danger"></span>
-          <input type="text" id="release-name" name="name" class="form-control" value="@(release.map { case (release, _) => release.name }.getOrElse(tag.name))" placeholder="Title" style="margin-bottom: 6px;" autofocus aria-label="Release name"/>
-          <div class="pull-right">
-            <label for="insert-changelog-tag">Previous tag: </label>
-            <select id="insert-changelog-tag">
-              @tags.map { tag =>
-                <option value="@tag">@tag</option>
-              }
-              <option value="">None</option>
-            </select>
-            <input id="insert-changelog-button" type="button" value="Insert ChangeLog"/>
-          </div>
-          @gitbucket.core.helper.html.preview(
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <form method="POST" validate="true" autocomplete="off">
+          <div class="card-header">
+            @if(release.isEmpty){
+            <h4>New release for @tag.name</h4>
+            } else {
+            <h4>Update release for @tag.name</h4>
+            }
+            <span id="error-name" class="error text-danger"></span>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            <div class="form-group">
+              <label for="release-name">Title</label>
+              <input type="text" id="release-name" name="name" class="form-control" value="@(release.map { case (release, _) => release.name }.getOrElse(tag.name))" placeholder="Title" style="margin-bottom: 6px;" autofocus aria-label="Release name"/>
+            </div>
+            <div class="form-group">
+              <label for="insert-changelog-tag">Previous tag: </label>
+              <div class="form-inline">
+                <select class="form-control form-control-sm mr-sm-1 mb-sm-0 mb-1" id="insert-changelog-tag">
+                  @tags.map { tag =>
+                  <option value="@tag">@tag</option>
+                  }
+                  <option value="">None</option>
+                </select>
+                <input class="btn btn-default btn-sm" id="insert-changelog-button" type="button" value="Insert ChangeLog"/>
+              </div>
+            </div><!-- /.row -->
+            @gitbucket.core.helper.html.preview(
             repository         = repository,
             content            = content,
             enableWikiLink     = false,
@@ -39,31 +49,36 @@
             elastic            = true,
             placeholder        = "Describe this release",
             ariaLabel          = "Release content"
-          )
-          <ul id="assets-list" class="collaborator">
-            @release.map { case (release, assets) =>
+            )
+            <ul id="assets-list" class="collaborator">
+              @release.map { case (release, assets) =>
               @assets.map { asset =>
-                <li>
-                  <a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag.name)/@asset.fileName"><i class="octicon octicon-file"></i>@asset.label</a>
-                  <a href="#" class="remove pull-right" style="padding-top: 0px;">(remove)</a>
-                  <input type="hidden" name="file:@asset.fileName" value="@asset.label"/>
-                </li>
+              <li>
+                <a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag.name)/@asset.fileName"><i class="octicon octicon-file"></i>@asset.label</a>
+                <a href="#" class="remove float-right pt-0">(remove)</a>
+                <input type="hidden" name="file:@asset.fileName" value="@asset.label"/>
+              </li>
               }
-            }
-          </ul>
-          <div style="border: 1px dashed #ccc; color: gray; background-color: #eee; padding: 4px;">
-            <div id="drop" class="clickable">Attach release files by dragging &amp; dropping, or selecting them.</div>
-          </div>
-          <div class="align-right" style="margin-top: 12px;">
-            @if(release.isEmpty){
+              }
+            </ul>
+            <div style="border: 1px dashed #ccc; color: gray; background-color: #eee; padding: 4px;">
+              <div id="drop" class="clickable">Attach release files by dragging &amp; dropping, or selecting them.</div>
+            </div>
+          </div><!-- /.card-body -->
+          <div class="card-footer">
+            <div class="float-right">
+              @if(release.isEmpty){
               <input type="submit" class="btn btn-success" value="Submit new release" formaction="@helpers.url(repository)/releases/@helpers.encodeRefName(tag.name)/create"/>
-            } else {
+              } else {
               <input type="submit" class="btn btn-success" value="Update release" formaction="@helpers.url(repository)/releases/@helpers.encodeRefName(tag.name)/edit"/>
-            }
-          </div>
-        </div>
-      </div>
-    </form>
+              }
+            </div>
+          </div><!-- /.card-footer -->
+        </form>
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
   }
 }
 <script>
@@ -81,7 +96,7 @@ $(function(){
       var attach =
         '<li><a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag.name)/' + id + '">' +
         '<i class="octicon octicon-file"></i>' + escapeHtml(file.name) + '</a>' +
-        '<a href="#" class="remove pull-right" style="padding-top: 0px;">(remove)</a>' +
+        '<a href="#" class="remove float-right" style="padding-top: 0px;">(remove)</a>' +
         '<input type="hidden" name="file:' + id + '" value="' + escapeHtml(file.name) + '"/>'
         '</li>';
       $('#assets-list').append(attach);
