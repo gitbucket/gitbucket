@@ -22,50 +22,52 @@
             @releases.map { case (tag, release) =>
               <tr>
                 <td>
-                  <div class="col-md-2 text-right">
-                    <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="font-weight-bold strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
-                    <a href="@helpers.url(repository)/commit/@tag.id" class="monospace muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
-                    <span class="muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
-                  </div>
-                  <div class="col-md-10" style="border-left: 1px solid #eee">
-                    <div class="release-note markdown-body">
-                      @release.map { case (release, assets) =>
-                        <h3><a href="@helpers.url(repository)/releases/@release.tag">@release.name</a></h3>
-                        <p class="muted">
-                          @helpers.avatarLink(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
-                        </p>
-                        @helpers.markdown(
-                          markdown           = release.content getOrElse "No description provided.",
-                          repository         = repository,
-                          branch             = repository.repository.defaultBranch,
-                          enableWikiLink     = false,
-                          enableRefsLink     = true,
-                          enableLineBreaks   = true,
-                          enableTaskList     = true,
-                          hasWritePermission = hasWritePermission
-                        )
-                      }.getOrElse {
-                        @if(hasWritePermission){
-                          <div class="pull-right">
-                            <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.urlEncode(tag.name)}/create" id="edit">Create release</a>
-                          </div>
-                        }
-                        <div>@tag.message<br><br></div>
-                      }
-                      <ul style="list-style: none; padding-left: 8px;">
+                  <div class="row">
+                    <div class="col-md-2 text-right">
+                      <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="font-weight-bold strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
+                      <a href="@helpers.url(repository)/commit/@tag.id" class="monospace text-muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
+                      <span class="text-muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
+                    </div><!-- /.col -->
+                    <div class="col-md-10 border-left">
+                      <div class="release-note markdown-body">
                         @release.map { case (release, assets) =>
-                          @assets.map { asset =>
-                            <li>
-                              <a href="@helpers.url(repository)/releases/@helpers.urlEncode(release.tag)/assets/@helpers.urlEncode(asset.fileName)"><i class="octicon octicon-file" data-filename="@asset.label"></i>@asset.label</a>
-                              <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
-                            </li>
+                          <h3><a href="@helpers.url(repository)/releases/@release.tag">@release.name</a></h3>
+                          <p class="text-muted">
+                            @helpers.avatarLink(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
+                          </p>
+                          @helpers.markdown(
+                            markdown           = release.content getOrElse "No description provided.",
+                            repository         = repository,
+                            branch             = repository.repository.defaultBranch,
+                            enableWikiLink     = false,
+                            enableRefsLink     = true,
+                            enableLineBreaks   = true,
+                            enableTaskList     = true,
+                            hasWritePermission = hasWritePermission
+                          )
+                        }.getOrElse {
+                          @if(hasWritePermission){
+                            <div class="float-right">
+                              <a class="btn btn-success" href="@helpers.url(repository)/releases/@{helpers.urlEncode(tag.name)}/create" id="edit">Create release</a>
+                            </div>
                           }
+                          <div>@tag.message<br><br></div>
                         }
-                        <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
-                        <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
-                      </ul>
-                    </div>
-                  </div>
+                        <ul class="pl-4" style="list-style: none;">
+                          @release.map { case (release, assets) =>
+                            @assets.map { asset =>
+                              <li>
+                                <a href="@helpers.url(repository)/releases/@helpers.urlEncode(release.tag)/assets/@helpers.urlEncode(asset.fileName)"><i class="octicon octicon-file" data-filename="@asset.label"></i>@asset.label</a>
+                                <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
+                              </li>
+                            }
+                          }
+                          <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.zip"><i class="octicon octicon-file-zip"></i>Source code (zip)</a></li>
+                          <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(tag.name)}.tar.gz"><i class="octicon octicon-file-zip"></i>Source code (tar.gz)</a></li>
+                        </ul>
+                      </div>
+                    </div><!-- /.col -->
+                  </div><!-- /.row -->
                 </td>
               </tr>
             }
