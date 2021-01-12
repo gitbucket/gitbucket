@@ -1732,11 +1732,14 @@ a.markdown-anchor-link span.octicon {
 #tree-finder-results td {
   padding:7px 6px;
 }
-
+*/
 #tree-finder-results td.icon {
-  width:16px; padding: 7px 2px 7px 6px;
+  width:16px;
+  /*
+  padding: 7px 2px 7px 6px;
+  */
 }
-
+/*
 #tree-finder-results .tree-browser-result .icon-chevron-right {
   visibility: hidden;
 }

@@ -37,9 +37,9 @@
                         <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
                         }
                       </span>
-                          }
-                          @if(tags.nonEmpty){
-                          <span class="text-muted">
+                      }
+                      @if(tags.nonEmpty){
+                      <span class="text-muted">
                         <i class="octicon octicon-tag"></i>
                         @tags.zipWithIndex.map { case (tag, i) =>
                         <a href="@helpers.url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
