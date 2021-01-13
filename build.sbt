@@ -127,8 +127,6 @@ test in Test := {
   (test in Test).value
 }
 
-envVars := Map("SOURCE_DATE_EPOCH" -> (System.currentTimeMillis() / 1000).toString)
-
 val executableKey = TaskKey[File]("executable")
 executableKey := {
   import java.util.jar.Attributes.{Name => AttrName}
@@ -188,7 +186,9 @@ executableKey := {
   manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
   manifest.getMainAttributes put (AttrName.MAIN_CLASS, "JettyLauncher")
   val outputFile = workDir / warName
-  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest)
+  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest, Some(
+    System.currentTimeMillis() / 1000
+  ))
 
   // generate checksums
   Seq(
