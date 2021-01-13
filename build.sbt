@@ -187,7 +187,7 @@ executableKey := {
   manifest.getMainAttributes put (AttrName.MAIN_CLASS, "JettyLauncher")
   val outputFile = workDir / warName
   IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest, Some(
-    System.currentTimeMillis() / 1000
+    System.currentTimeMillis()
   ))
 
   // generate checksums
