@@ -1,6 +1,6 @@
 @(content: String, commentId: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-<span class="error-edit-content-@commentId error"></span>
+<span class="error-edit-content-@commentId error text-danger"></span>
 @gitbucket.core.helper.html.preview(
   repository         = repository,
   content            = content,

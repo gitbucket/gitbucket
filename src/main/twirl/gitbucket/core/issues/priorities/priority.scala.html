@@ -4,11 +4,11 @@
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <tr id="priority-row-@priority.priorityId" class="priority-row">
-  <td style="padding-top: 15px; padding-bottom: 15px;">
+  <td class="py-2">
     <div class="milestone row" id="priority-@priority.priorityId">
-      <div class="col-md-2">
+      <div class="col-md-3">
         @if(hasWritePermission) {
-        <div class="float-left priority-sort-handle" style="margin-top: 3px"><i class="octicon octicon-grabber"></i></div>
+        <div class="float-left priority-sort-handle mt-2"><i class="octicon octicon-grabber"></i></div>
         }
         <div>
           <a href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" id="priority-row-content-@priority.priorityId">
@@ -17,33 +17,32 @@
             </span>
           </a>
         </div>
-      </div>
-      <div class="@if(hasWritePermission){col-md-6} else {col-md-8}">
+      </div><!-- /.col -->
+      <div class="@if(hasWritePermission){col-md-5} else {col-md-7}">
         <span>@priority.description.getOrElse("")</span>
-      </div>
+      </div><!-- /.col -->
       <div class="col-md-1">
-        <div class="float-right">
+        <div class="float-md-right">
           @if(hasWritePermission){
             <a href="javascript:void(0);" onclick="setDefaultPriority(@priority.priorityId)" data-id="@priority.priorityId" data-default="@priority.isDefault" class="priority-default@if(priority.isDefault){ priority-default-selected}" title="@if(priority.isDefault){Unset as default} else {Set as default}"><i class="octicon octicon-star"></i></a>
           } else if(priority.isDefault) {
             <i class="octicon octicon-star priority-default priority-default-selected" title="Default"></i>
           }
         </div>
-      </div>
+      </div><!-- /.col -->
       <div class="col-md-1">
-        <div class="float-right">
-          <span class="muted">@counts.get(priority.priorityName).getOrElse(0) open issues</span>
+        <div class="float-md-right">
+          <span class="text-muted">@counts.get(priority.priorityName).getOrElse(0) open issues</span>
         </div>
-      </div>
+      </div><!-- /.col -->
       @if(hasWritePermission){
         <div class="col-md-2">
-          <div class="pull-right">
-            <a href="javascript:void(0);" onclick="editPriority(@priority.priorityId)">Edit</a>
-            &nbsp;&nbsp;
+          <div class="float-md-right">
+            <a href="javascript:void(0);" onclick="editPriority(@priority.priorityId)" class="mr-1">Edit</a>
             <a href="javascript:void(0);" onclick="deletePriority(@priority.priorityId)">Delete</a>
           </div>
-        </div>
+        </div><!-- /.col -->
       }
-    </div>
+    </div><!-- /.row -->
   </td>
 </tr>

@@ -4,11 +4,11 @@
 @defining(priority.map(_.priorityId).getOrElse("new")){ priorityId =>
 <div id="edit-priority-area-@priorityId">
   <form autocomplete="off">
-    <div class="row col-12">
-      <div class="col-md-2">
+    <div class="row">
+      <div class="col-md-2 mb-1 mb-md-0">
         <input type="text" id="priorityName-@priorityId" class="form-control form-control-sm" value="@priority.map(_.priorityName)"@if(priorityId == "new"){ placeholder="New priority name"}/>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-2 mb-1 mb-md-0">
         <div id="priority-color-@priorityId" class="input-group input-group-sm color bscp">
           <input type="text" class="form-control form-control-sm" id="priorityColor-@priorityId" value="#@priority.map(_.color).getOrElse("888888")">
           <span class="input-group-append">
@@ -19,11 +19,11 @@
         $('div#priority-color-@priorityId').colorpicker({format: "hex"});
         </script>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-5 mb-1 mb-md-0">
         <input type="text" id="description-@priorityId" class="form-control form-control-sm" value="@priority.flatMap(_.description).getOrElse("")" placeholder="Description..." />
       </div>
-      <div class="col-md-3">
-        <span class="float-right">
+      <div class="col-md-3 mb-1 mb-md-0">
+        <span class="float-md-right">
           <span id="priority-error-@priorityId" class="error text-danger"></span>
           <input type="button" id="cancel-@priorityId" class="btn btn-sm btn-default priority-edit-cancel" value="Cancel">
           <input type="button" id="submit-@priorityId" class="btn btn-sm btn-success" value="@(if(priorityId == "new") "Create priority"  else "Save changes")"/>

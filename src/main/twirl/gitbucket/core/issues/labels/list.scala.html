@@ -14,9 +14,9 @@
             <div class="col">
               <h4>Labels</h4>
             </div>
-            <div class="col float-right">
+            <div class="col">
               @if(context.loginAccount.isDefined){
-              <div class="float-right">
+              <div class="float-right mb-2">
                 <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
               </div>
               }
@@ -39,7 +39,7 @@
               }
               @if(labels.isEmpty){
               <tr>
-                <td style="padding: 20px; background-color: #eee; text-align: center;">
+                <td class="p-2 bg-light text-center">
                   No labels to show.
                   @if(hasWritePermission){
                     Click on the "New Label" button above to create one.

@@ -4,12 +4,12 @@
 @defining(label.map(_.labelId).getOrElse("new")){ labelId =>
 <div id="edit-label-area-@labelId">
   <form autocomplete="off">
-    <div class="row col-12">
-      <div class="col-md-2">
+    <div class="row">
+      <div class="col-md-2 mb-1 mb-md-0">
         <input type="text" id="labelName-@labelId" class="form-control form-control-sm mr-2" value="@label.map(_.labelName)"@if(labelId == "new"){ placeholder="New label name"}/>
       </div>
-      <div class="col-md-2">
-      <div id="label-color-@labelId" class="input-group input-group-sm mr-2">
+      <div class="col-md-2 mb-1 mb-md-0">
+        <div id="label-color-@labelId" class="input-group input-group-sm mr-2">
           <input type="text" class="form-control" id="labelColor-@labelId" value="#@label.map(_.color).getOrElse("888888")">
           <span class="input-group-append">
             <span class="input-group-text colorpicker-input-addon"><i></i></span>
@@ -19,8 +19,8 @@
         $('div#label-color-@labelId').colorpicker({format:"hex"});
         </script>
       </div>
-      <div class="col-md-8">
-        <span class="float-right">
+      <div class="col-md-8 mb-1 mb-md-0">
+        <span class="float-md-right">
           <span id="label-error-@labelId" class="error text-danger"></span>
           <input type="button" id="cancel-@labelId" class="btn btn-sm btn-default label-edit-cancel" value="Cancel">
           <input type="button" id="submit-@labelId" class="btn btn-sm btn-success" style="margin-bottom: 0px;" value="@(if(labelId == "new") "Create label"  else "Save changes")"/>

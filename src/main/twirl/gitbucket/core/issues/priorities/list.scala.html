@@ -16,7 +16,7 @@
             </div>
             <div class="col">
               @if(hasWritePermission){
-              <div class="float-right" style="margin-bottom: 10px;">
+              <div class="float-right mb-2">
                 <a class="btn btn-success" href="javascript:void(0);" id="new-priority-button">New priority</a>
               </div>
               }
@@ -38,7 +38,7 @@
                 @gitbucket.core.issues.priorities.html.priority(priority, counts, repository, hasWritePermission)
               }
               <tr id="priority-no-priorities" @if(!priorities.isEmpty){ style="display:none" }>
-                <td style="padding: 20px; background-color: #eee; text-align: center;">
+                <td class="p-2 bg-light text-center">
                   No priorities to show.
                   @if(hasWritePermission){
                     Click on the "New priority" button above to create one.

@@ -4,9 +4,9 @@
 @import gitbucket.core.view.helpers
 @if(branches.nonEmpty){
   @branches.map { branch =>
-    <div class="box-content" style="line-height: 20pt; margin-bottom: 6px; padding: 10px 6px 10px 10px; background-color: #fff9ea">
-      <strong><i class="menu-icon octicon octicon-git-branch"></i><span class="muted">@branch</span></strong>
-      <a class="pull-right btn btn-success" style="position: relative; top: -4px;"
+    <div class="box-content mb-1 p-1" style="line-height: 20pt; background-color: #fff9ea">
+      <strong><i class="menu-icon octicon octicon-git-branch"></i><span class="text-muted">@branch</span></strong>
+      <a class="float-right btn btn-success" style="position: relative; top: -4px;"
          href="@helpers.url(repository)/compare/@{parent.owner}:@{helpers.encodeRefName(parent.repository.defaultBranch)}...@{repository.owner}:@{helpers.encodeRefName(branch)}">Compare & pull request</a>
     </div>
   }
