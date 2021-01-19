@@ -1,6 +1,6 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
+<aside class="main-sidebar @helpers.sidebarSkin() elevation-4">
   @gitbucket.core.helper.html.logo()
 <div class="sidebar">
   <nav class="mt-2">

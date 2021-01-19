@@ -169,7 +169,7 @@ trait SystemSettingsService {
         } else {
           None
         },
-        getValue(props, SkinName, "skin-blue"),
+        getValue(props, SkinName, "skin-white"),
         getOptionValue(props, UserDefinedCss, None),
         getValue(props, ShowMailAddress, false),
         WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
