@@ -20,7 +20,7 @@
   @if(hasWritePermission) {
     <a class="dropdown-item" id="create-branch"><form action="@helpers.url(repository)/branches" method="post">
       <span class="strong">Create branch:&nbsp;<span class="new-branch"></span></span>
-      <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
+      <br><span class="pl-2">from&nbsp;'@branch'</span>
       <input type="hidden" name="new">
       <input type="hidden" name="from" value="@branch">
     </form></a>

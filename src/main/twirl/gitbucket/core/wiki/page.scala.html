@@ -70,7 +70,7 @@
         <div class="card-footer">
           <div class="wiki-sidebar wiki-footer">
             @if(isEditable){
-            <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
+            <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil float-right btn btn-tool mt-1"></span></a>
             }
             @helpers.markdown(
             markdown         = footerPage.content,
@@ -123,10 +123,10 @@
       <div class="card">
         <div class="card-header">
         @if(isEditable){
-          <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil float-right"></span></a>
+          <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil float-right btn btn-tool mt-1"></span></a>
         }
         @helpers.markdown(sidebarPage.content, repository, "master", true, false, false, false, pages)
-        </div>
+        </div><!-- /.card-header -->
       </div><!-- /.card -->
       }.getOrElse{
         @if(isEditable){
@@ -143,7 +143,7 @@
       }
       @if(WikiService.wikiSshUrl(repository).isDefined) {
       <div class="small">
-        <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
+        <span class="text-muted">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
       </div>
       }
     </div><!-- /.col -->

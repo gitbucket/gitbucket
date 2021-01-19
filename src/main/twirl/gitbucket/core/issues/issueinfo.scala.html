@@ -81,16 +81,16 @@
                 @gitbucket.core.helper.html.checkicon(Some(milestone.milestoneId) == issue.milestoneId)
               }
               @milestone.title
-              <div class="small" style="padding-left: 20px;">
+              <div class="small pl-3">
                 @milestone.dueDate.map { dueDate =>
                   @if(helpers.isPast(dueDate)){
                     <i class="octicon octicon-alert" style="color:#BD2C00;"></i>
                     <span class="milestone-alert">Due by @helpers.date(dueDate)</span>
                   } else {
-                    <span class="muted">Due by @helpers.date(dueDate)</span>
+                    <span class="text-muted">Due by @helpers.date(dueDate)</span>
                   }
                 }.getOrElse {
-                  <span class="muted">No due date</span>
+                  <span class="text-muted">No due date</span>
                 }
               </div>
             </a>

@@ -96,7 +96,7 @@ $(function(){
       var attach =
         '<li><a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag.name)/' + id + '">' +
         '<i class="octicon octicon-file"></i>' + escapeHtml(file.name) + '</a>' +
-        '<a href="#" class="remove float-right" style="padding-top: 0px;">(remove)</a>' +
+        '<a href="#" class="remove float-right pt-0">(remove)</a>' +
         '<input type="hidden" name="file:' + id + '" value="' + escapeHtml(file.name) + '"/>'
         '</li>';
       $('#assets-list').append(attach);

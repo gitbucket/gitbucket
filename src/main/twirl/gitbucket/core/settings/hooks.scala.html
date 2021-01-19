@@ -14,7 +14,7 @@
             When any of the specified events occur, GitBucket will send a POST request to all of the endpoints (URLs) you provide.
             Learn more about this feature on the <a href="https://github.com/gitbucket/gitbucket/wiki/API-WebHook" target="_blank" rel="noopener">GitBucket Wiki</a>.
           </p>
-          <table class="table table-condensed" style="margin-bottom:0px;">
+          <table class="table table-condensed mb-0">
             @webHooks.map { case (webHook, events) =>
               <tr><td style="vertical-align: middle;">
                 <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
@@ -36,7 +36,7 @@
         </div>
       </div>
       <div class="card-footer">
-        <a href="@helpers.url(repository)/settings/hooks/new" class="btn btn-success float-right" style="margin-bottom: 10px;">Add webhook</a>
+        <a href="@helpers.url(repository)/settings/hooks/new" class="btn btn-success float-right">Add webhook</a>
       </div>
     }
   }

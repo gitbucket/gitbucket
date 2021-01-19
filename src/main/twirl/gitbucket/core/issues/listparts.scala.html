@@ -179,7 +179,7 @@
             <input type="checkbox" value="@issue.issueId" aria-labelledby="issue_@(issue.issueId)_link"/>
           }
           @*
-          <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened")" style="margin-right: 3px;"></i>
+          <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened") mr-1"></i>
           *@
           @if(repository.isEmpty){
             <a href="@context.path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;

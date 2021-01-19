@@ -43,7 +43,7 @@
                 </div>
               </div><!-- /col -->
               <div class="col-md-auto">
-                <select id="theme" class="form-control form-control-sm" style="margin-bottom: 0px; padding: 0px;">
+                <select id="theme" class="form-control form-control-sm mb-0 p-0">
                   <optgroup label="Editor Theme">
                     <option value="ambiance">Ambiance</option>
                     <option value="chaos">Chaos</option>
@@ -85,7 +85,7 @@
                 </select>
               </div><!-- /col -->
               <div class="col-md-auto">
-                <select id="wrap" class="form-control form-control-sm" style="margin-bottom: 0px; padding: 0px;" aria-label="Wrap">
+                <select id="wrap" class="form-control form-control-sm mb-0 p-0" aria-label="Wrap">
                   <optgroup label="Line Wrap Mode">
                     <option value="false">No wrap</option>
                     <option value="true">Soft wrap</option>
@@ -237,7 +237,7 @@ $(function(){
         enableTaskList   : false
       }, function(data){
         $('#preview').empty().append(
-          $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
+          $('<div class="markdown-body px-2">').html(data));
         prettyPrint();
       });
     } else {

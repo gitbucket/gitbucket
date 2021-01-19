@@ -16,7 +16,7 @@
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div class="tabbable mt-2">
-  <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
+  <ul class="nav nav-tabs fill-width mb-1">
     <li class="nav-item"><a href="#tab@uid" class="nav-link active" data-toggle="tab" id="write@uid">Write</a></li>
     <li class="nav-item"><a href="#tab@(uid + 1)" class="nav-link" data-toggle="tab" id="preview@uid">Preview</a></li>
   </ul>

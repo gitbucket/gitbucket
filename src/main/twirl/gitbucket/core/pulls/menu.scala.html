@@ -76,7 +76,7 @@
         <li class="nav-item"><a class="nav-link@if(active=="commits"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge badge-info">@commits.size</span></a></li>
         <li class="nav-item"><a class="nav-link@if(active=="files"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge badge-info">@changedFileSize</span></a></li>
       </ul>
-      <div class="tab-content fill-width" style="padding-top: 20px;">
+      <div class="tab-content fill-width pt-2">
         @flash.get("error").map { error =>
           <div class="alert alert-error">@error</div>
         }

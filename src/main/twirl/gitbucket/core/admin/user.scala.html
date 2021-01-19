@@ -110,14 +110,16 @@
               </div>
             </div><!-- /.card-body"-->
             <div class="card-footer">
-              <fieldset>
-                @if(account.isEmpty){
-                <input type="submit" class="btn btn-success" value="Create user" formaction="@context.path/admin/users/_newuser"/>
-                } else {
-                <input type="submit" class="btn btn-success" value="Update user" formaction="@context.path/admin/users/@account.get.userName/_edituser" id="update"/>
-                }
-                <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
-              </fieldset>
+              <div class="float-right">
+                <fieldset>
+                  @if(account.isEmpty){
+                  <input type="submit" class="btn btn-success" value="Create user" formaction="@context.path/admin/users/_newuser"/>
+                  } else {
+                  <input type="submit" class="btn btn-success" value="Update user" formaction="@context.path/admin/users/@account.get.userName/_edituser" id="update"/>
+                  }
+                  <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
+                </fieldset>
+              </div>
             </div><!-- /.card-footer -->
           </form>
         </div><!-- /.card -->

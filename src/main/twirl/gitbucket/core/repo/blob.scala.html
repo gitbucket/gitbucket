@@ -90,10 +90,10 @@
                   }
                   <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">History</a>
                   @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-                    <a class="btn btn-sm pr-2" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+                    <a class="btn btn-sm btn-default" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
                   }
                   @if(hasWritePermission && repository.branchList.contains(branch)){
-                    <a class="btn btn-sm pr-2" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-trashcan" aria-label="Remove"></i></a>
+                    <a class="btn btn-sm btn-default" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))"><i class="octicon octicon-trashcan" aria-label="Remove"></i></a>
                   }
                 </div>
               </div><!-- /.col -->
@@ -101,7 +101,7 @@
           </div><!-- /.card-header -->
           @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
             @if(!isBlame && isRenderable) {
-          <div class="box-content-bottom @if(content.viewType == "text"){ markdown-body } " style="padding-left: 20px; padding-right: 20px;">
+          <div class="box-content-bottom @if(content.viewType == "text"){ markdown-body } px-3">
             @helpers.renderMarkup(pathList, content.content.getOrElse(""), branch, repository, false, false, true)
           </div>
             }else{

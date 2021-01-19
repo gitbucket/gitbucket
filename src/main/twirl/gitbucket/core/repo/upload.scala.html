@@ -92,7 +92,7 @@ $(function(){
       $(file.previewElement).remove();
       $('#upload-files').append($('<li class="upload-file">')
         .append($('<span>').data('id', id).text(file.name))
-        .append($('<a class="delete" href="javascript:void(0);" style="margin-left: 4px;">(delete)</a>')));
+        .append($('<a class="delete ml-2" href="javascript:void(0);">(delete)</a>')));
       updateCommitButtonStatus();
     }
   });

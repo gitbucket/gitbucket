@@ -44,9 +44,9 @@
                   } else {
                     @branch.mergeInfo.map{ info =>
                       <div data-toggle="tooltip" title="@info.ahead commits ahead, @info.behind commits behind @repository.repository.defaultBranch">
-                        <div class="a-b-count-widget">
-                          <div class="count-half"><div class="count-value">@info.ahead</div></div>
-                          <div class="count-half"><div class="count-value">@info.behind</div></div>
+                        <div class="row">
+                          <div class="col-md border-right"><div class="float-md-right">@info.ahead</div></div>
+                          <div class="col-md"><div class="float-md-left">@info.behind</div></div>
                         </div>
                       </div>
                     }
