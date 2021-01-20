@@ -250,17 +250,26 @@ trait WikiControllerBase extends ControllerBase {
     if (isEditable(repository)) {
       val pageName = StringUtil.urlDecode(params("page"))
 
-      defining(context.loginAccount.get) { loginAccount =>
-        val deleteWikiInfo = DeleteWikiInfo(
-          repository.owner,
-          repository.name,
-          loginAccount.userName,
-          pageName
-        )
-        recordActivity(deleteWikiInfo)
-        updateLastActivityDate(repository.owner, repository.name)
+      defining(context.loginAccount.get) {
+        loginAccount =>
+          deleteWikiPage(
+            repository.owner,
+            repository.name,
+            pageName,
+            loginAccount.fullName,
+            loginAccount.mailAddress,
+            s"Destroyed ${pageName}"
+          )
+          val deleteWikiInfo = DeleteWikiInfo(
+            repository.owner,
+            repository.name,
+            loginAccount.userName,
+            pageName
+          )
+          recordActivity(deleteWikiInfo)
+          updateLastActivityDate(repository.owner, repository.name)
 
-        redirect(s"/${repository.owner}/${repository.name}/wiki")
+          redirect(s"/${repository.owner}/${repository.name}/wiki")
       }
     } else Unauthorized()
   })

@@ -1,6 +1,10 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.35.3 - 14 Jan 2021
+- Fix a bug that Wiki page cannot be deleted
+- Fix a deployment issue on Tomcat
+
 ### 4.35.2 - 30 Dec 2020
 - Upgrade gitbucket-notifications-plugin to 1.10.0
 - Upgrade oauth2-oidc-sdk to 8.29.1 to solve dependency issue

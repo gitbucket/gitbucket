@@ -8,6 +8,8 @@ GitBucket is a Git web platform powered by Scala offering:
 - High extensibility by plugins
 - API compatibility with GitHub
 
+![GitBucket](https://gitbucket.github.io/img/screenshots/screenshot-repository_viewer.png)
+
 You can try an [online demo](https://gitbucket.herokuapp.com/) *(ID: root / Pass: root)* of GitBucket, and also get the latest information at [GitBucket News](https://gitbucket.github.io/gitbucket-news/).
 
 Features
@@ -57,6 +59,10 @@ Support
 
 What's New in 4.35.x
 -------------
+### 4.35.3 - 14 Jan 2021
+- Fix a bug that Wiki page cannot be deleted
+- Fix a deployment issue on Tomcat
+
 ### 4.35.2 - 30 Dec 2020
 - Upgrade gitbucket-notifications-plugin to 1.10.0
 - Upgrade oauth2-oidc-sdk to 8.29.1 to solve dependency issue

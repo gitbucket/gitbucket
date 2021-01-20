@@ -3,7 +3,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.35.2"
+val GitBucketVersion = "4.35.3"
 val ScalatraVersion = "2.7.1"
 val JettyVersion = "9.4.32.v20200930"
 val JgitVersion = "5.9.0.202009080501-r"
@@ -186,7 +186,9 @@ executableKey := {
   manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
   manifest.getMainAttributes put (AttrName.MAIN_CLASS, "JettyLauncher")
   val outputFile = workDir / warName
-  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest)
+  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest, Some(
+    System.currentTimeMillis()
+  ))
 
   // generate checksums
   Seq(
