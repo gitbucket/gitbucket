@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.12",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.29.1",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.34.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13" % "test",
