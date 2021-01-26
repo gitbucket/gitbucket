@@ -62,7 +62,7 @@ libraryDependencies ++= Seq(
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.34.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
-  "junit"                           % "junit"                        % "4.13" % "test",
+  "junit"                           % "junit"                        % "4.13.1" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "3.3.3" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.38.8" % "test",
