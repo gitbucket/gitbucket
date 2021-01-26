@@ -6,7 +6,7 @@ val Name = "gitbucket"
 val GitBucketVersion = "4.35.3"
 val ScalatraVersion = "2.7.1"
 val JettyVersion = "9.4.32.v20200930"
-val JgitVersion = "5.9.0.202009080501-r"
+val JgitVersion = "5.10.0.202012080955-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
