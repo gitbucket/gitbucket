@@ -1,5 +1,5 @@
 import com.typesafe.sbt.license.{DepModuleInfo, LicenseInfo}
-import com.typesafe.sbt.pgp.PgpKeys._
+import com.jsuereth.sbtpgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
