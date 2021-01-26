@@ -5,8 +5,8 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.35.3"
 val ScalatraVersion = "2.7.1"
-val JettyVersion = "9.4.36.v20210114"
-val JgitVersion = "5.9.0.202009080501-r"
+val JettyVersion = "9.4.32.v20200930"
+val JgitVersion = "5.10.0.202012080955-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -43,9 +43,9 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              % "commons-compress"             % "1.20",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.7.2",
-  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.12",
+  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "1.24.1",
+  "org.apache.tika"                 % "tika-core"                    % "1.25",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
@@ -57,12 +57,12 @@ libraryDependencies ++= Seq(
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
-  "net.coobird"                     % "thumbnailator"                % "0.4.12",
+  "net.coobird"                     % "thumbnailator"                % "0.4.13",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.34.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
-  "junit"                           % "junit"                        % "4.13" % "test",
+  "junit"                           % "junit"                        % "4.13.1" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "3.3.3" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.38.8" % "test",
@@ -71,7 +71,7 @@ libraryDependencies ++= Seq(
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3",
-  "org.kohsuke"                     % "github-api"                   % "1.116" % "test"
+  "org.kohsuke"                     % "github-api"                   % "1.122" % "test"
 )
 
 // Compiler settings
