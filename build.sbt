@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.35.3"
 val ScalatraVersion = "2.7.1"
-val JettyVersion = "9.4.32.v20200930"
+val JettyVersion = "9.4.36.v20210114"
 val JgitVersion = "5.10.0.202012080955-r"
 
 lazy val root = (project in file("."))
@@ -49,28 +49,28 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.0",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.1",
   "org.postgresql"                  % "postgresql"                   % "42.2.18",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.1",
   "com.typesafe"                    % "config"                       % "1.4.1",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
-  "org.cache2k"                     % "cache2k-all"                  % "1.2.4.Final",
+  "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.13",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.34.1",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "8.34.2",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.1" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "3.3.3" % "test",
+  "org.mockito"                     % "mockito-core"                 % "3.7.7" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.38.8" % "test",
   "org.testcontainers"              % "mysql"                        % "1.15.1" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.15.1" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
-  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.3",
+  "org.ec4j.core"                   % "ec4j-core"                    % "0.0.4",
   "org.kohsuke"                     % "github-api"                   % "1.122" % "test"
 )
 
