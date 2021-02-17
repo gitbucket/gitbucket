@@ -76,21 +76,21 @@ libraryDependencies ++= Seq(
 
 // Compiler settings
 scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method", "-feature")
-javacOptions in compile ++= Seq("-target", "8", "-source", "8")
-javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
+compile / javacOptions ++= Seq("-target", "8", "-source", "8")
+Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 
 // Test settings
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
-javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test"
-testOptions in Test += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
-fork in Test := true
+Test / javaOptions += "-Dgitbucket.home=target/gitbucket_home_for_test"
+Test / testOptions += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
+Test / fork := true
 
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 
 // Assembly settings
-test in assembly := {}
-assemblyMergeStrategy in assembly := {
+assembly / test := {}
+assembly / assemblyMergeStrategy := {
   case PathList("META-INF", xs @ _*) =>
     (xs map { _.toLowerCase }) match {
       case ("manifest.mf" :: Nil) => MergeStrategy.discard
@@ -122,9 +122,9 @@ libraryDependencies ++= Seq(
 )
 
 // Run package task before test to generate target/webapp for integration test
-test in Test := {
+Test / test := {
   _root_.sbt.Keys.`package`.value
-  (test in Test).value
+  (Test / test).value
 }
 
 val executableKey = TaskKey[File]("executable")
@@ -155,7 +155,7 @@ executableKey := {
   IO unzip (warFile, temp)
 
   // include launcher classes
-  val classDir = (Keys.classDirectory in Compile).value
+  val classDir = (Compile / Keys.classDirectory).value
   val launchClasses = Seq("JettyLauncher.class" /*, "HttpsSupportConnector.class" */ )
   launchClasses foreach { name =>
     IO copyFile (classDir / name, temp / name)
@@ -265,7 +265,7 @@ licenseOverrides := {
     LicenseInfo(LicenseCategory.Apache, "Apache-2.0", "http://www.apache.org/licenses/LICENSE-2.0")
 }
 
-testOptions in Test ++= {
+Test / testOptions ++= {
   if (scala.util.Properties.isWin) {
     Seq(
       Tests.Exclude(
