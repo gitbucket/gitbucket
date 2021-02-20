@@ -2,7 +2,7 @@ Authentication in Controller
 ========
 GitBucket provides many [authenticators](https://github.com/gitbucket/gitbucket/blob/master/src/main/scala/gitbucket/core/util/Authenticator.scala) to access controlling in the controller.
 
-For example, in the case of `RepositoryViwerController`,
+For example, in the case of `RepositoryViewerController`,
 it references three authenticators: `ReadableUsersAuthenticator`, `ReferrerAuthenticator` and `CollaboratorsAuthenticator`.
 
 ```scala
