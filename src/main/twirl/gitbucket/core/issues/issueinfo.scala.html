@@ -102,16 +102,16 @@
 </div>
 <div id="milestone-progress-area">
   @issue.flatMap(_.milestoneId).map { milestoneId =>
-    @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) => {
+    @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
       @gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
-    }}
+    }
   }
 </div>
 <span id="label-milestone">
   @issue.flatMap(_.milestoneId).map { milestoneId =>
-    @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) => {
+    @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
       <a class="strong small username" href="@helpers.url(repository)/issues?milestone=@helpers.urlEncode(milestone.title)&state=open">@milestone.title</a>
-    }}
+    }
   }.getOrElse {
     <span class="muted small">No milestone</span>
   }
