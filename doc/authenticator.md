@@ -2,7 +2,7 @@ Authentication in Controller
 ========
 GitBucket provides many [authenticators](https://github.com/gitbucket/gitbucket/blob/master/src/main/scala/gitbucket/core/util/Authenticator.scala) to access controlling in the controller.
 
-For example, in the case of `RepositoryViwerController`,
+For example, in the case of `RepositoryViewerController`,
 it references three authenticators: `ReadableUsersAuthenticator`, `ReferrerAuthenticator` and `CollaboratorsAuthenticator`.
 
 ```scala
@@ -19,13 +19,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ...
 ```
 
-Authenticators provides a method to add guard to actions in the controller:
+Authenticators provide a method to add guard to actions in the controller:
 
 - `ReadableUsersAuthenticator` provides `readableUsersOnly` method
 - `ReferrerAuthenticator` provides `referrersOnly` method
 - `CollaboratorsAuthenticator` provides `collaboratorsOnly` method
 
-These methods are available in each actions as below:
+These methods are available in each action as below:
 
 ```scala
 // Allows only the repository owner (or manager for group repository) and administrators.

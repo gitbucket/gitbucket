@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.20",
   "org.apache.commons"              % "commons-email"                % "1.5",
-  "commons-net"                     % "commons-net"                  % "3.7.2",
+  "commons-net"                     % "commons-net"                  % "3.8.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "1.25",
@@ -50,9 +50,9 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.2",
-  "org.postgresql"                  % "postgresql"                   % "42.2.18",
+  "org.postgresql"                  % "postgresql"                   % "42.2.19",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
-  "com.zaxxer"                      % "HikariCP"                     % "4.0.1",
+  "com.zaxxer"                      % "HikariCP"                     % "4.0.2",
   "com.typesafe"                    % "config"                       % "1.4.1",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "io.github.java-diff-utils"       % "java-diff-utils"              % "4.9",
@@ -62,12 +62,12 @@ libraryDependencies ++= Seq(
   "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
-  "junit"                           % "junit"                        % "4.13.1" % "test",
+  "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "3.7.7" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.39.0" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.15.1" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.15.1" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.39.1" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.15.2" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.15.2" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
@@ -76,21 +76,21 @@ libraryDependencies ++= Seq(
 
 // Compiler settings
 scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method", "-feature")
-javacOptions in compile ++= Seq("-target", "8", "-source", "8")
-javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
+compile / javacOptions ++= Seq("-target", "8", "-source", "8")
+Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 
 // Test settings
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
-javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test"
-testOptions in Test += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
-fork in Test := true
+Test / javaOptions += "-Dgitbucket.home=target/gitbucket_home_for_test"
+Test / testOptions += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
+Test / fork := true
 
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 
 // Assembly settings
-test in assembly := {}
-assemblyMergeStrategy in assembly := {
+assembly / test := {}
+assembly / assemblyMergeStrategy := {
   case PathList("META-INF", xs @ _*) =>
     (xs map { _.toLowerCase }) match {
       case ("manifest.mf" :: Nil) => MergeStrategy.discard
@@ -122,9 +122,9 @@ libraryDependencies ++= Seq(
 )
 
 // Run package task before test to generate target/webapp for integration test
-test in Test := {
+Test / test := {
   _root_.sbt.Keys.`package`.value
-  (test in Test).value
+  (Test / test).value
 }
 
 val executableKey = TaskKey[File]("executable")
@@ -155,7 +155,7 @@ executableKey := {
   IO unzip (warFile, temp)
 
   // include launcher classes
-  val classDir = (Keys.classDirectory in Compile).value
+  val classDir = (Compile / Keys.classDirectory).value
   val launchClasses = Seq("JettyLauncher.class" /*, "HttpsSupportConnector.class" */ )
   launchClasses foreach { name =>
     IO copyFile (classDir / name, temp / name)
@@ -260,7 +260,7 @@ pomExtra := (
   </developers>
 )
 
-testOptions in Test ++= {
+Test / testOptions ++= {
   if (scala.util.Properties.isWin) {
     Seq(
       Tests.Exclude(
