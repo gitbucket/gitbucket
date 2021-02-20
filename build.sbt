@@ -55,7 +55,7 @@ libraryDependencies ++= Seq(
   "com.zaxxer"                      % "HikariCP"                     % "4.0.2",
   "com.typesafe"                    % "config"                       % "1.4.1",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
-  "com.github.bkromhout"            % "java-diff-utils"              % "2.1.1",
+  "io.github.java-diff-utils"       % "java-diff-utils"              % "4.9",
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.13",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
@@ -259,11 +259,6 @@ pomExtra := (
     </developer>
   </developers>
 )
-
-licenseOverrides := {
-  case DepModuleInfo("com.github.bkromhout", "java-diff-utils", _) =>
-    LicenseInfo(LicenseCategory.Apache, "Apache-2.0", "http://www.apache.org/licenses/LICENSE-2.0")
-}
 
 Test / testOptions ++= {
   if (scala.util.Properties.isWin) {
