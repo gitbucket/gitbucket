@@ -292,6 +292,7 @@ div.box-content-bottom img {
 
 table.table th.box-header {
   background-color: #f5f5f5;
+  padding: 2px;
 }
 
 th.box-header .octicon {

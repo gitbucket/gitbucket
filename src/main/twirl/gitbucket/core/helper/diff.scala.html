@@ -59,7 +59,7 @@
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
-          <span class="monospace">@diff.oldPath → @diff.newPath</span>
+          <a href="#@helpers.md5(diff.newPath)" id="@helpers.md5(diff.newPath)"><span class="strong">@diff.oldPath → @diff.newPath</span></a>
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @if(newCommitId.isDefined){
@@ -76,7 +76,7 @@
             <i class="octicon octicon-diff-modified"></i>
           }
           </span>
-          <span class="monospace">@diff.newPath</span>
+          <a href="#@helpers.md5(diff.newPath)" id="@helpers.md5(diff.newPath)"><span class="strong">@diff.newPath</span></a>
         }
         @if(diff.changeType == ChangeType.DELETE){
           @if(oldCommitId.isDefined){
@@ -86,7 +86,7 @@
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
-          <span class="monospace">@diff.oldPath</span>
+          <a href="#@helpers.md5(diff.oldPath)" id="@helpers.md5(diff.oldPath)"><span class="strong">@diff.oldPath</span></a>
         }
         @if(diff.oldMode != diff.newMode){
           <span class="monospace">@diff.oldMode → @diff.newMode</span>
