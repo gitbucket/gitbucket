@@ -19,7 +19,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ...
 ```
 
-Authenticators provides a method to add guard to actions in the controller:
+Authenticators provide a method to add guard to actions in the controller:
 
 - `ReadableUsersAuthenticator` provides `readableUsersOnly` method
 - `ReferrerAuthenticator` provides `referrersOnly` method
