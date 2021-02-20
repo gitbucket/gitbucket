@@ -25,7 +25,7 @@ Authenticators provide a method to add guard to actions in the controller:
 - `ReferrerAuthenticator` provides `referrersOnly` method
 - `CollaboratorsAuthenticator` provides `collaboratorsOnly` method
 
-These methods are available in each actions as below:
+These methods are available in each action as below:
 
 ```scala
 // Allows only the repository owner (or manager for group repository) and administrators.
