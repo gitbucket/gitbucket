@@ -290,8 +290,15 @@ $(function(){
   // Line selection
   $('.diff-outside').on('click','table.diff th.line-num',function(e) {
     const $this   = $(this);
+    const hash    = location.hash;
     const baseUrl = location.toString().split("#")[0];
-    window.history.pushState('', '', baseUrl + '#' + $this[0].id);
+
+    if (e.shiftKey == true && hash.match(/#diff-\w+-L\d+(-L\d+)?/)) {
+      const fragments = hash.split('-');
+      window.history.pushState('', '', baseUrl + '#diff-' + fragments[1] + '-' + fragments[2] + '-' + $this[0].id.split('-')[2]);
+    } else {
+      window.history.pushState('', '', baseUrl + '#' + $this[0].id);
+    }
     getSelection().empty();
     updateHighlighting();
   });
@@ -460,11 +467,31 @@ function updateHighlighting(){
   const hash = location.hash;
   $('tr.highlight').removeClass('highlight');
   if (hash.match(/#diff-(\w+)-[LR]\d+(-[LR]\d+)?/)) {
-    const lines = hash.substr(1).split('-');
-    const tr = $('th#diff-' + lines[1] + '-' + lines[2]).closest('tr');
-    tr.addClass('highlight');
-    if(!scrolling){
-      $(window).scrollTop($('th#diff-' + lines[1] + '-' + lines[2]).closest('tr').offset().top);
+    const fragments = hash.substr(1).split('-');
+    if (fragments.length == 3) {
+      const tr = $('th#diff-' + fragments[1] + '-' + fragments[2]).closest('tr');
+      tr.addClass('highlight');
+      if(!scrolling){
+        $(window).scrollTop($('th#diff-' + fragments[1] + '-' + fragments[2]).closest('tr').offset().top);
+      }
+    } else if (fragments.length > 3) {
+      let highlight = false;
+      $('th[id^=diff-' + fragments[1] + '-').each(function(i, th) {
+        if (th.id.split('-')[2] == fragments[2]) { // start
+          highlight = true;
+          $(th.closest('tr')).addClass('highlight');
+        } else if (highlight == true) {
+          if (th.id.split('-')[2] == fragments[3]) { // end
+            $(th.closest('tr')).addClass('highlight');
+            return false;
+          } else {
+            $(th.closest('tr')).addClass('highlight');
+          }
+        }
+      });
+      if(!scrolling){
+        $(window).scrollTop($('th#diff-' + fragments[1] + '-' + fragments[2]).closest('tr').offset().top);
+      }
     }
   } else if (hash != ''){
     if (!scrolling) {
