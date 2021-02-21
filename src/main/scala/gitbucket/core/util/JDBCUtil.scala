@@ -83,7 +83,7 @@ object JDBCUtil {
               }
               if (c == ';' && !stringLiteral) {
                 val sql = new String(out.toByteArray, "UTF-8")
-                if(sql != null && !sql.isEmpty()) {
+                if (sql != null && !sql.isEmpty()) {
                   conn.update(sql.trim)                 
                 }
                 out = new ByteArrayOutputStream()
