@@ -1,6 +1,6 @@
 package gitbucket.core.api
 
-import java.util.{Calendar, Date, TimeZone}
+import java.util.{Base64, Calendar, Date, TimeZone}
 
 import gitbucket.core.api.ApiBranchProtection.EnforcementLevel
 import gitbucket.core.model._
@@ -366,21 +366,13 @@ object ApiSpecModels {
   )
 
   val apiContents = ApiContents(
-    fileInfo = FileInfo(
-      id = ObjectId.fromString(sha1),
-      isDirectory = false,
-      name = "README.md",
-      path = "doc/README.md",
-      message = "message",
-      commitId = sha1,
-      time = date1,
-      author = account.userName,
-      mailAddress = account.mailAddress,
-      linkUrl = None
-    ),
-    repositoryName = repo1Name,
-    content = Some("README".getBytes("UTF-8"))
-  )
+    `type` = "file",
+    name = "README.md",
+    path = "doc/README.md",
+    sha = sha1,
+    content = Some(Base64.getEncoder.encodeToString("README".getBytes())),
+    encoding = Some("base64")
+  )(repo1Name)
 
   val apiEndPoint = ApiEndPoint()
 

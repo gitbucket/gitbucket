@@ -1,9 +1,8 @@
 package gitbucket.core.controller
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
-import gitbucket.core.settings.html
 import gitbucket.core.model.{RepositoryWebHook, WebHook}
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
@@ -130,7 +129,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the Options page.
    */
   get("/:owner/:repository/settings/options")(ownerOnly {
-    html.options(_, flash.get("info"))
+    gitbucket.core.settings.html.options(_, flash.get("info"))
   })
 
   /**
@@ -159,7 +158,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /** branch settings */
   get("/:owner/:repository/settings/branches")(ownerOnly { repository =>
     val protecteions = getProtectedBranchList(repository.owner, repository.name)
-    html.branches(repository, protecteions, flash.get("info"))
+    gitbucket.core.settings.html.branches(repository, protecteions, flash.get("info"))
   })
 
   /** Update default branch */
@@ -192,7 +191,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))
       ).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
-      html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
+      gitbucket.core.settings.html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
   })
 
@@ -200,7 +199,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the Collaborators page.
    */
   get("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
-    html.collaborators(
+    gitbucket.core.settings.html.collaborators(
       getCollaborators(repository.owner, repository.name),
       getAccountByUserName(repository.owner).get.isGroupAccount,
       repository
@@ -221,7 +220,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook page.
    */
   get("/:owner/:repository/settings/hooks")(ownerOnly { repository =>
-    html.hooks(getWebHooks(repository.owner, repository.name), repository, flash.get("info"))
+    gitbucket.core.settings.html.hooks(getWebHooks(repository.owner, repository.name), repository, flash.get("info"))
   })
 
   /**
@@ -235,7 +234,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       ctype = WebHookContentType.FORM,
       token = None
     )
-    html.edithook(webhook, Set(WebHook.Push), repository, true)
+    gitbucket.core.settings.html.edithook(webhook, Set(WebHook.Push), repository, true)
   })
 
   /**
@@ -361,7 +360,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map {
       case (webhook, events) =>
-        html.edithook(webhook, events, repository, false)
+        gitbucket.core.settings.html.edithook(webhook, events, repository, false)
     } getOrElse NotFound()
   })
 
@@ -378,7 +377,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the danger zone.
    */
   get("/:owner/:repository/settings/danger")(ownerOnly {
-    html.danger(_, flash.get("info"))
+    gitbucket.core.settings.html.danger(_, flash.get("info"))
   })
 
   /**
@@ -450,7 +449,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** List deploy keys */
   get("/:owner/:repository/settings/deploykey")(ownerOnly { repository =>
-    html.deploykey(repository, getDeployKeys(repository.owner, repository.name))
+    gitbucket.core.settings.html.deploykey(repository, getDeployKeys(repository.owner, repository.name))
   })
 
   /** Register a deploy key */
