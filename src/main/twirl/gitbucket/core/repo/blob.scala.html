@@ -107,16 +107,15 @@
 <script>
 $(window).on('load', function(){
   updateHighlighting();
-
   window.onhashchange = function(){
     updateHighlighting();
   }
 
-  var pre = $('pre.prettyprint');
+  const pre = $('pre.prettyprint');
   function updateSourceLineNum(){
     $('.source-line-num').remove();
-    var pos = pre.find('ol.linenums').position();
-    if(pos){
+    const pos = pre.find('ol.linenums').position();
+    if (pos) {
       $('<div class="source-line-num">').css({
         height  : pre.height(),
         width   : '48px',
@@ -125,34 +124,36 @@ $(window).on('load', function(){
         top     : pos.top + 'px',
         left    : pos.left + 'px'
       }).click(function(e){
-        var pos = $(this).data("pos");
-        if(!pos){
+        let pos = $(this).data("pos");
+        if (!pos) {
           pos = $('ol.linenums li').map(function(){ return { id: $(this).attr("id"), top: $(this).position().top} }).toArray();
           $(this).data("pos",pos);
         }
-        for(var i = 0; i < pos.length-1; i++){
+        let i = 0;
+        for(i = 0; i < pos.length - 1; i++){
           if(pos[i + 1].top > e.pageY){
             break;
           }
         }
-        var line = pos[i].id.replace(/^L/,'');
-        var hash = location.hash;
-        var commitUrl = '@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))';
-        if(e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)){
-          var lines = hash.split('-');
-          window.history.pushState('', '', commitUrl + lines[0] + '-L' + line);
+        const line    = pos[i].id; //.replace(/^L/,'');
+        const hash    = location.hash;
+        const baseUrl = location.toString().split("#")[0];
+        if (e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)) {
+          const lines = hash.split('-');
+          window.history.pushState('', '', baseUrl + lines[0] + '-' + line);
         } else {
-          var p = $("#L"+line).attr('id',"");
-          window.history.pushState('', '', commitUrl + '#L' + line);
+          const p = $("#L"+line).attr('id',"");
+          window.history.pushState('', '', baseUrl + '#L' + line);
           p.attr('id','L'+line);
         }
         $("#branchCtrlWrapper .btn .muted").text("tree:");
         $("#branchCtrlWrapper .btn .strong").text("@latestCommit.id.substring(0, 10)");
+        getSelection().empty();
         updateHighlighting();
       }).appendTo(pre);
     }
   }
-  var repository = $('.blame-action').data('repository');
+  const repository = $('.blame-action').data('repository');
   $('.blame-action').click(function(e){
     if(history.pushState && $('pre.prettyprint.no-renderable').length){
       e.preventDefault();
@@ -230,12 +231,12 @@ $(window).on('load', function(){
 let scrolling = false;
 
 /**
- * Hightlight lines which are specified by URL hash.
+ * Highlight lines which are specified by URL hash.
  */
 function updateHighlighting(){
   const hash = location.hash;
   const isDark = @{highlighterTheme.contains("dark").toString};
-  if (hash.match(/#L\d+(-L?\d+)?/)) {
+  if (hash.match(/#L\d+(-L\d+)?/)) {
     if (isDark) {
       $('li.highlight').removeClass('highlight-dark');
     } else {
@@ -253,7 +254,7 @@ function updateHighlighting(){
       }
     } else if(lines.length > 1){
       const start = parseInt(lines[0].substr(1));
-      const end   = parseInt(lines[1].replace(/^L/, ''));
+      const end   = parseInt(lines[1].substr(1));
       for (let i = start; i <= end; i++) {
         if (isDark) {
           $('#L' + i).addClass('highlight-dark');
@@ -262,10 +263,10 @@ function updateHighlighting(){
         }
       }
       if (!scrolling) {
-        $(window).scrollTop($('#L' + start).offset().top);
+        $(window).scrollTop($('#' + lines[0]).offset().top);
       }
     }
-    scrolling = true;
   }
+  scrolling = true;
 }
 </script>
