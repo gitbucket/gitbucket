@@ -180,6 +180,10 @@ $(function(){
   }
   renderDiffs();
 
+  window.onhashchange = function(){
+    updateHighlighting();
+  }
+
   $('.toggle-notes').change(function() {
     if (!$(this).prop('checked')) {
       $(this).closest('table').find('.not-diff.inline-comment-form').remove();
@@ -410,6 +414,8 @@ $(function(){
         }
         i++;
         setTimeout(render);
+      } else {
+        updateHighlighting();
       }
     }
     render();
@@ -429,5 +435,41 @@ function changeDisplaySetting(key, value){
     }
   }
   location.href = url;
+}
+
+let scrolling = false;
+
+/**
+ * Highlight lines which are specified by URL hash.
+ */
+function updateHighlighting(){
+  const hash = location.hash;
+  $('tr.highlight').removeClass('highlight');
+  if (hash.match(/#(\w+)-[LR]\d+(-[LR]\d+)?/)) {
+    const lines = hash.substr(1).split('-');
+    if (lines.length == 2) {
+      const tr = $('th#' + lines[0] + '-' + lines[1]).closest('tr');
+      tr.addClass('highlight');
+      if(!scrolling){
+        $(window).scrollTop($('th#' + lines[0] + '-' + lines[1]).closest('tr').offset().top);
+      }
+    } else if(lines.length > 2){
+      const prefix = lines[1].substr(0, 1);
+      const start  = parseInt(lines[1].substr(1));
+      const end    = parseInt(lines[2].substr(1));
+      for(let i = start; i <= end; i++){
+        const tr = $('th#' + lines[0] + '-' + prefix + i).closest('tr');
+        tr.addClass('highlight');
+      }
+      if(!scrolling){
+        $(window).scrollTop($('th#' + lines[0] + '-' + lines[1]).closest('tr').offset().top);
+      }
+    }
+  } else {
+    if (!scrolling) {
+      $(window).scrollTop($(hash).offset().top);
+    }
+  }
+  scrolling = true;
 }
 </script>

@@ -227,42 +227,42 @@ $(window).on('load', function(){
   updateBlame();
 });
 
-var scrolling = false;
+let scrolling = false;
 
 /**
  * Hightlight lines which are specified by URL hash.
  */
 function updateHighlighting(){
-  var hash = location.hash;
-  var isDark = @{highlighterTheme.contains("dark").toString};
-  if(hash.match(/#L\d+(-L\d+)?/)){
-    if(isDark){
+  const hash = location.hash;
+  const isDark = @{highlighterTheme.contains("dark").toString};
+  if (hash.match(/#L\d+(-L\d+)?/)) {
+    if (isDark) {
       $('li.highlight').removeClass('highlight-dark');
-    }else{
+    } else {
       $('li.highlight').removeClass('highlight');
     }
-    var lines = hash.substr(1).split('-');
-    if(lines.length == 1){
-      if(isDark){
+    const lines = hash.substr(1).split('-');
+    if (lines.length == 1) {
+      if (isDark) {
         $('#' + lines[0]).addClass('highlight-dark');
-      }else{
+      } else {
         $('#' + lines[0]).addClass('highlight');
       }
       if(!scrolling){
-        $(window).scrollTop($('#' + lines[0]).offset().top - 40);
+        $(window).scrollTop($('#' + lines[0]).offset().top);
       }
     } else if(lines.length > 1){
-      var start = parseInt(lines[0].substr(1));
-      var end   = parseInt(lines[1].substr(1));
-      for(var i = start; i <= end; i++){
-        if(isDark){
+      const start = parseInt(lines[0].substr(1));
+      const end   = parseInt(lines[1].substr(1));
+      for (let i = start; i <= end; i++) {
+        if (isDark) {
           $('#L' + i).addClass('highlight-dark');
-        }else{
+        } else {
           $('#L' + i).addClass('highlight');
         }
       }
-      if(!scrolling){
-        $(window).scrollTop($('#L' + start).offset().top - 40);
+      if (!scrolling) {
+        $(window).scrollTop($('#L' + start).offset().top);
       }
     }
     scrolling = true;

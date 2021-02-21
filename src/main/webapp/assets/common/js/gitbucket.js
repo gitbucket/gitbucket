@@ -221,7 +221,7 @@ $.extend(JsDiffRender.prototype,{
       const cell = $('<th class="line-num">').addClass(type + 'line').addClass(klass);
       if (num) {
         cell.attr('line-number', num);
-        cell.attr('id', hash + (type == 'old' ? 'L' : 'R') + num);
+        cell.attr('id', hash + '-' + (type == 'old' ? 'L' : 'R') + num);
       }
       return cell;
     }

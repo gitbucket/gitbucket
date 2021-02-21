@@ -605,8 +605,11 @@ div.markdown-body pre.plain {
   padding: 20px;
 }
 
-li.highlight {
+li.highlight,
+table.diff tr.highlight>th.delete, table.diff tr.highlight>th.insert, table.diff tr.highlight>th.equal,
+table.diff tr.highlight>td.delete, table.diff tr.highlight>td.insert, table.diff tr.highlight>td.equal {
   background-color: #ffb;
+  !important
 }
 
 li.highlight-dark {
