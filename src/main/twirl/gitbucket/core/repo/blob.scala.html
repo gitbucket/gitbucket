@@ -135,16 +135,16 @@ $(window).on('load', function(){
             break;
           }
         }
-        const line    = pos[i].id; //.replace(/^L/,'');
+        const line    = pos[i].id.replace(/^L/,'');
         const hash    = location.hash;
         const baseUrl = location.toString().split("#")[0];
         if (e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)) {
           const lines = hash.split('-');
-          window.history.pushState('', '', baseUrl + lines[0] + '-' + line);
+          window.history.pushState('', '', baseUrl + lines[0] + '-L' + line);
         } else {
-          const p = $("#L"+line).attr('id',"");
+          const p = $("#L" + line).attr('id', '');
           window.history.pushState('', '', baseUrl + '#L' + line);
-          p.attr('id','L'+line);
+          p.attr('id','L' + line);
         }
         $("#branchCtrlWrapper .btn .muted").text("tree:");
         $("#branchCtrlWrapper .btn .strong").text("@latestCommit.id.substring(0, 10)");
