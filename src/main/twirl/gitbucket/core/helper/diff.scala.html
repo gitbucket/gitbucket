@@ -445,7 +445,7 @@ let scrolling = false;
 function updateHighlighting(){
   const hash = location.hash;
   $('tr.highlight').removeClass('highlight');
-  if (hash.match(/#(\w+)-[LR]\d+(-[LR]\d+)?/)) {
+  if (hash.match(/#(\w+)-[LR]\d+(-\d+)?/)) {
     const lines = hash.substr(1).split('-');
     if (lines.length == 2) {
       const tr = $('th#' + lines[0] + '-' + lines[1]).closest('tr');
@@ -456,7 +456,7 @@ function updateHighlighting(){
     } else if(lines.length > 2){
       const prefix = lines[1].substr(0, 1);
       const start  = parseInt(lines[1].substr(1));
-      const end    = parseInt(lines[2].substr(1));
+      const end    = parseInt(lines[2]);
       for(let i = start; i <= end; i++){
         const tr = $('th#' + lines[0] + '-' + prefix + i).closest('tr');
         tr.addClass('highlight');

@@ -235,7 +235,7 @@ let scrolling = false;
 function updateHighlighting(){
   const hash = location.hash;
   const isDark = @{highlighterTheme.contains("dark").toString};
-  if (hash.match(/#L\d+(-L\d+)?/)) {
+  if (hash.match(/#L\d+(-L?\d+)?/)) {
     if (isDark) {
       $('li.highlight').removeClass('highlight-dark');
     } else {
@@ -253,7 +253,7 @@ function updateHighlighting(){
       }
     } else if(lines.length > 1){
       const start = parseInt(lines[0].substr(1));
-      const end   = parseInt(lines[1].substr(1));
+      const end   = parseInt(lines[1].replace(/^L/, ''));
       for (let i = start; i <= end; i++) {
         if (isDark) {
           $('#L' + i).addClass('highlight-dark');
