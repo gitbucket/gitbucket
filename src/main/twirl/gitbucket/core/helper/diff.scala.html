@@ -8,6 +8,11 @@
   showLineNotes: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
+<style>
+  th.line-num {
+    cursor: pointer;
+  }
+</style>
 @if(showIndex){
   <div class="pull-right" style="margin-bottom: 10px;">
     @if(oldCommitId.isEmpty && newCommitId.isDefined) {
@@ -59,7 +64,7 @@
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
-          <a href="#@helpers.md5(diff.newPath)" id="@helpers.md5(diff.newPath)" class="file-hash"><span class="strong">@diff.oldPath → @diff.newPath</span></a>
+          <a href="#diff-@helpers.md5(diff.newPath)" id="diff-@helpers.md5(diff.newPath)" class="file-hash"><span class="strong">@diff.oldPath → @diff.newPath</span></a>
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @if(newCommitId.isDefined){
@@ -76,7 +81,7 @@
             <i class="octicon octicon-diff-modified"></i>
           }
           </span>
-          <a href="#@helpers.md5(diff.newPath)" id="@helpers.md5(diff.newPath)" class="file-hash"><span class="strong">@diff.newPath</span></a>
+          <a href="#diff-@helpers.md5(diff.newPath)" id="diff-@helpers.md5(diff.newPath)" class="file-hash"><span class="strong">@diff.newPath</span></a>
         }
         @if(diff.changeType == ChangeType.DELETE){
           @if(oldCommitId.isDefined){
@@ -86,7 +91,7 @@
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
-          <a href="#@helpers.md5(diff.oldPath)" id="@helpers.md5(diff.oldPath)" class="file-hash"><span class="strong">@diff.oldPath</span></a>
+          <a href="#diff-@helpers.md5(diff.oldPath)" id="diff-@helpers.md5(diff.oldPath)" class="file-hash"><span class="strong">@diff.oldPath</span></a>
         }
         @if(diff.oldMode != diff.newMode){
           <span class="monospace">@diff.oldMode → @diff.newMode</span>
@@ -282,6 +287,15 @@ $(function(){
     showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr);
   });
 
+  // Line selection
+  $('.diff-outside').on('click','table.diff th.line-num',function(e) {
+    const $this   = $(this);
+    const baseUrl = location.toString().split("#")[0];
+    window.history.pushState('', '', baseUrl + '#' + $this[0].id);
+    getSelection().empty();
+    updateHighlighting();
+  });
+
   function renderOneCommitCommentIntoDiff($v, diff){
     //var filename = $v.attr('filename');
     const oldline = $v.attr('oldline');
@@ -445,27 +459,14 @@ let scrolling = false;
 function updateHighlighting(){
   const hash = location.hash;
   $('tr.highlight').removeClass('highlight');
-  if (hash.match(/#(\w+)-[LR]\d+(-\d+)?/)) {
+  if (hash.match(/#diff-(\w+)-[LR]\d+(-[LR]\d+)?/)) {
     const lines = hash.substr(1).split('-');
-    if (lines.length == 2) {
-      const tr = $('th#' + lines[0] + '-' + lines[1]).closest('tr');
-      tr.addClass('highlight');
-      if(!scrolling){
-        $(window).scrollTop($('th#' + lines[0] + '-' + lines[1]).closest('tr').offset().top);
-      }
-    } else if(lines.length > 2){
-      const prefix = lines[1].substr(0, 1);
-      const start  = parseInt(lines[1].substr(1));
-      const end    = parseInt(lines[2]);
-      for(let i = start; i <= end; i++){
-        const tr = $('th#' + lines[0] + '-' + prefix + i).closest('tr');
-        tr.addClass('highlight');
-      }
-      if(!scrolling){
-        $(window).scrollTop($('th#' + lines[0] + '-' + lines[1]).closest('tr').offset().top);
-      }
+    const tr = $('th#diff-' + lines[1] + '-' + lines[2]).closest('tr');
+    tr.addClass('highlight');
+    if(!scrolling){
+      $(window).scrollTop($('th#diff-' + lines[1] + '-' + lines[2]).closest('tr').offset().top);
     }
-  } else {
+  } else if (hash != ''){
     if (!scrolling) {
       $(window).scrollTop($(hash).offset().top);
     }
