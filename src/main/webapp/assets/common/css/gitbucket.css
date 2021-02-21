@@ -292,6 +292,7 @@ div.box-content-bottom img {
 
 table.table th.box-header {
   background-color: #f5f5f5;
+  padding: 2px;
 }
 
 th.box-header .octicon {
@@ -604,8 +605,11 @@ div.markdown-body pre.plain {
   padding: 20px;
 }
 
-li.highlight {
+li.highlight,
+table.diff tr.highlight>th.delete, table.diff tr.highlight>th.insert, table.diff tr.highlight>th.equal,
+table.diff tr.highlight>td.delete, table.diff tr.highlight>td.insert, table.diff tr.highlight>td.equal {
   background-color: #ffb;
+  !important
 }
 
 li.highlight-dark {
