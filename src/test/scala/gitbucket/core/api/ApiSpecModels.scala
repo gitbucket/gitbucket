@@ -372,7 +372,7 @@ object ApiSpecModels {
     sha = sha1,
     content = Some(Base64.getEncoder.encodeToString("README".getBytes())),
     encoding = Some("base64")
-  )(repo1Name)
+  )(repo1Name, "master")
 
   val apiEndPoint = ApiEndPoint()
 

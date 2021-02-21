@@ -61,13 +61,11 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     path: String,
     refStr: String
   ) = {
-    println("getContents: " + path)
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileName = path.split("/").last
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(refStr))
       getPathObjectId(git, path, revCommit)
         .flatMap { objectId =>
-          println(objectId)
           val largeFile = params.get("large_file").exists(s => s.equals("true"))
           val content = getContentFromId(git, objectId, largeFile)
           request.getHeader("Accept") match {
@@ -97,7 +95,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
                     revCommit.getName,
                     content.map(Base64.getEncoder.encodeToString),
                     Some("base64")
-                  )(RepositoryName(repository))
+                  )(RepositoryName(repository), refStr)
                 )
               )
           }
@@ -114,7 +112,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
                 } else {
                   "file"
                 }
-                ApiContents(fileType, name, path, commit.getName, None, None)(RepositoryName(repository))
+                ApiContents(fileType, name, path, commit.getName, None, None)(RepositoryName(repository), refStr)
             })
           }
         }
@@ -208,7 +206,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           data.committer.map(_.email).getOrElse(context.loginAccount.get.mailAddress),
           context.settings
         )
-        ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
+        ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository), branch)
       }
     })
   })
