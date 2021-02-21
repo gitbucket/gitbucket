@@ -38,7 +38,7 @@ get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
   ...
 })
 
-// Allows only signed in users which can access the repository.
+// Allows only signed-in users which can access the repository.
 post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
   ...
 })
@@ -50,11 +50,11 @@ Currently, GitBucket provides below authenticators:
 |--------------------------|-----------------|--------------------------------------------------------------------------------------|
 |OneselfAuthenticator      |oneselfOnly      |Allows only oneself and administrators.                                               |
 |OwnerAuthenticator        |ownerOnly        |Allows only the repository owner and administrators.                                  |
-|UsersAuthenticator        |usersOnly        |Allows only signed in users.                                                          |
+|UsersAuthenticator        |usersOnly        |Allows only signed-in users.                                                          |
 |AdminAuthenticator        |adminOnly        |Allows only administrators.                                                           |
 |CollaboratorsAuthenticator|collaboratorsOnly|Allows only collaborators and administrators.                                         |
 |ReferrerAuthenticator     |referrersOnly    |Allows only the repository owner (or manager for group repository) and administrators.|
-|ReadableUsersAuthenticator|readableUsersOnly|Allows only signed in users which can access the repository.                          |
+|ReadableUsersAuthenticator|readableUsersOnly|Allows only signed-in users which can access the repository.                          |
 |GroupManagerAuthenticator |managersOnly     |Allows only the group managers.                                                       |
 
-Of course, if you make a new plugin, you can define a your own authenticator according to requirement in your plugin.
+Of course, if you make a new plugin, you can implement your own authenticator according to requirement in your plugin.
