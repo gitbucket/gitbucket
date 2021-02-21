@@ -1,0 +1,5 @@
+@(path: String, refStr: String, content: Array[Byte], repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers._
+<div data-path="@path" id="file">
+  <article>@(renderMarkup(path.split("/").toList, new String(content, "UTF-8"), refStr, repository, false, false, true))</article>
+</div>

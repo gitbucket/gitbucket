@@ -1,14 +1,18 @@
 package gitbucket.core.controller.api
+import java.util.Base64
+
 import gitbucket.core.api.{ApiContents, ApiError, CreateAFile, JsonFormat}
 import gitbucket.core.controller.ControllerBase
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.JGitUtil.{FileInfo, getContentFromId, getFileList}
+import gitbucket.core.util.JGitUtil.getContentFromId
 import gitbucket.core.util._
-import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
+import gitbucket.core.view.helpers.isRenderable
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.FileMode
+import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
+import org.eclipse.jgit.treewalk.TreeWalk
 
 import scala.util.Using
 
@@ -25,11 +29,13 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
         val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
         val files = getFileList(git, refStr, ".", maxFiles = context.settings.repositoryViewer.maxFiles)
         files // files should be sorted alphabetically.
-          .find { file =>
-            !file.isDirectory && RepositoryService.readmeFiles.contains(file.name.toLowerCase)
+          .find {
+            case (_, name, _, _) =>
+              RepositoryService.readmeFiles.contains(name.toLowerCase)
           } match {
-          case Some(x) => getContents(repository = repository, path = x.name, refStr = refStr, ignoreCase = true)
-          case _       => NotFound()
+          case Some((_, name, _, _)) =>
+            getContents(repository = repository, path = name, refStr = refStr)
+          case _ => NotFound()
         }
     }
   })
@@ -53,80 +59,119 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
   private def getContents(
     repository: RepositoryService.RepositoryInfo,
     path: String,
-    refStr: String,
-    ignoreCase: Boolean = false
+    refStr: String
   ) = {
-    def getFileInfo(git: Git, revision: String, pathStr: String, ignoreCase: Boolean): Option[FileInfo] = {
-      val (dirName, fileName) = pathStr.lastIndexOf('/') match {
-        case -1 =>
-          (".", pathStr)
-        case n =>
-          (pathStr.take(n), pathStr.drop(n + 1))
-      }
-      if (ignoreCase) {
-        getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-          .find(_.name.toLowerCase.equals(fileName.toLowerCase))
-      } else {
-        getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-          .find(_.name.equals(fileName))
-      }
-    }
-
+    println("getContents: " + path)
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-      val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
-      if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path, ignoreCase)
-          .flatMap { f =>
-            val largeFile = params.get("large_file").exists(s => s.equals("true"))
-            val content = getContentFromId(git, f.id, largeFile)
-            request.getHeader("Accept") match {
-              case "application/vnd.github.v3.raw" => {
-                contentType = "application/vnd.github.v3.raw"
-                content
-              }
-              case "application/vnd.github.v3.html" if isRenderable(f.name) => {
-                contentType = "application/vnd.github.v3.html"
-                content.map { c =>
-                  List(
-                    "<div data-path=\"",
-                    path,
-                    "\" id=\"file\">",
-                    "<article>",
-                    renderMarkup(path.split("/").toList, new String(c), refStr, repository, false, false, true).body,
-                    "</article>",
-                    "</div>"
-                  ).mkString
-                }
-              }
-              case "application/vnd.github.v3.html" => {
-                contentType = "application/vnd.github.v3.html"
-                content.map { c =>
-                  List(
-                    "<div data-path=\"",
-                    path,
-                    "\" id=\"file\">",
-                    "<div class=\"plain\">",
-                    "<pre>",
-                    play.twirl.api.HtmlFormat.escape(new String(c)).body,
-                    "</pre>",
-                    "</div>",
-                    "</div>"
-                  ).mkString
-                }
-              }
-              case _ =>
-                Some(JsonFormat(ApiContents(f, RepositoryName(repository), content)))
+      val fileName = path.split("/").last
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(refStr))
+      getPathObjectId(git, path, revCommit)
+        .flatMap { objectId =>
+          println(objectId)
+          val largeFile = params.get("large_file").exists(s => s.equals("true"))
+          val content = getContentFromId(git, objectId, largeFile)
+          request.getHeader("Accept") match {
+            case "application/vnd.github.v3.raw" => {
+              contentType = "application/vnd.github.v3.raw"
+              content
             }
+            case "application/vnd.github.v3.html" if isRenderable(fileName) => {
+              contentType = "application/vnd.github.v3.html"
+              content.map { c =>
+                gitbucket.core.api.html.contents_html_renderable(path, refStr, c, repository).body
+              }
+            }
+            case "application/vnd.github.v3.html" => {
+              contentType = "application/vnd.github.v3.html"
+              content.map { c =>
+                gitbucket.core.api.html.contents_html(path, c).body
+              }
+            }
+            case _ =>
+              Some(
+                JsonFormat(
+                  ApiContents(
+                    "file",
+                    fileName,
+                    path,
+                    revCommit.getName,
+                    content.map(Base64.getEncoder.encodeToString),
+                    Some("base64")
+                  )(RepositoryName(repository))
+                )
+              )
           }
-          .getOrElse(NotFound())
-
-      } else { // directory
-        JsonFormat(fileList.map { f =>
-          ApiContents(f, RepositoryName(repository), None)
-        })
-      }
+        }
+        .getOrElse {
+          val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
+          if (fileList.isEmpty) {
+            NotFound()
+          } else {
+            JsonFormat(fileList.map {
+              case (mode, name, path, commit) =>
+                val fileType = if (mode == FileMode.TREE) {
+                  "dir"
+                } else {
+                  "file"
+                }
+                ApiContents(fileType, name, path, commit.getName, None, None)(RepositoryName(repository))
+            })
+          }
+        }
     }
   }
+
+  private def getFileList(
+    git: Git,
+    revision: String,
+    path: String = ".",
+    maxFiles: Int = 100
+  ): List[(FileMode, String, String, RevCommit)] = {
+    Using.resource(new RevWalk(git.getRepository)) { revWalk =>
+      val objectId = git.getRepository.resolve(revision)
+      if (objectId == null) return Nil
+      val revCommit = revWalk.parseCommit(objectId)
+
+      def useTreeWalk(rev: RevCommit)(f: TreeWalk => Any): Unit =
+        if (path == ".") {
+          val treeWalk = new TreeWalk(git.getRepository)
+          treeWalk.addTree(rev.getTree)
+          Using.resource(treeWalk)(f)
+        } else {
+          val treeWalk = TreeWalk.forPath(git.getRepository, path, rev.getTree)
+          if (treeWalk != null) {
+            treeWalk.enterSubtree
+            Using.resource(treeWalk)(f)
+          }
+        }
+
+      def getCommit(path: String): RevCommit = {
+        git
+          .log()
+          .addPath(path)
+          .add(revCommit)
+          .setMaxCount(1)
+          .call()
+          .iterator()
+          .next()
+      }
+
+      var fileList: List[(FileMode, String, String, RevCommit)] = Nil
+      useTreeWalk(revCommit) { treeWalk =>
+        while (treeWalk.next()) {
+          fileList +:= (
+            treeWalk.getFileMode(0),
+            treeWalk.getNameString,
+            treeWalk.getPathString,
+            getCommit(path)
+          )
+        }
+      }
+
+      fileList
+    }
+  }
+
   /*
    * iii. Create a file or iv. Update a file
    * https://developer.github.com/v3/repos/contents/#create-a-file
