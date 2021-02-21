@@ -106,13 +106,12 @@
 }
 <script>
 $(window).on('load', function(){
-  updateHighlighting();
   window.onhashchange = function(){
     updateHighlighting();
   }
 
   const pre = $('pre.prettyprint');
-  function updateSourceLineNum(){
+  function updateSourceLineNum() {
     $('.source-line-num').remove();
     const pos = pre.find('ol.linenums').position();
     if (pos) {
@@ -139,8 +138,8 @@ $(window).on('load', function(){
         const hash    = location.hash;
         const baseUrl = location.toString().split("#")[0];
         if (e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)) {
-          const lines = hash.split('-');
-          window.history.pushState('', '', baseUrl + lines[0] + '-L' + line);
+          const fragments = hash.split('-');
+          window.history.pushState('', '', baseUrl + fragments[0] + '-L' + line);
         } else {
           const p = $("#L" + line).attr('id', '');
           window.history.pushState('', '', baseUrl + '#L' + line);
@@ -151,6 +150,10 @@ $(window).on('load', function(){
         getSelection().empty();
         updateHighlighting();
       }).appendTo(pre);
+      updateHighlighting();
+    } else {
+      // Maybe code view is not initialized yet. Retry until succeed.
+      setTimeout(updateSourceLineNum, 300);
     }
   }
   const repository = $('.blame-action').data('repository');
@@ -163,44 +166,45 @@ $(window).on('load', function(){
   });
 
   function updateBlame(){
-    var m = /\/(blame|blob)(\/.*)$/.exec(location.href);
-    var mode = m[1];
+    const m = /\/(blame|blob)(\/.*)$/.exec(location.href);
+    const mode = m[1];
     $('.blame-action').toggleClass("active", mode=='blame').attr('href', repository + (m[1] == 'blame' ? '/blob' : '/blame') + m[2]);
     if(pre.parents("div.box-content-bottom").find(".blame").length){
       pre.parent().toggleClass("blame-container", mode == 'blame');
       updateSourceLineNum();
       return;
     }
-    if(mode=='blob'){
+    if(mode == 'blob'){
       updateSourceLineNum();
       return;
     }
     $(document.body).toggleClass('no-box-shadow', document.body.style.boxShadow === undefined);
     $('.blame-action').addClass("active");
-    var base = $('<div class="blame">').css({height: pre.height()}).prependTo(pre.parents("div.box-content-bottom"));
+    const base = $('<div class="blame">').css({height: pre.height()}).prependTo(pre.parents("div.box-content-bottom"));
     base.parent().addClass("blame-container");
     updateSourceLineNum();
     $.get($('.blame-action').data('url')).done(function(data){
-      var blame = data.blame;
-      var index = [];
-      for(var i = 0; i < blame.length; i++){
-        for(var j = 0; j < blame[i].lines.length; j++){
+      let blame = data.blame;
+      let lastDiv;
+      const now = new Date().getTime();
+      const index = [];
+      for(let i = 0; i < blame.length; i++){
+        for(let j = 0; j < blame[i].lines.length; j++){
           index[blame[i].lines[j]] = blame[i];
         }
       }
-      var blame, lastDiv, now = new Date().getTime();
 
       $('pre.prettyprint ol.linenums li').each(function(i, e){
-        var p = $(e).position();
-        var h = $(e).height();
+        const p = $(e).position();
+        const h = $(e).height();
         if(blame == index[i]){
           lastDiv.css("min-height",(p.top + h + 1) - lastDiv.position().top);
         } else {
           $(e).addClass('blame-sep')
           blame = index[i];
-          var sha = $('<div class="blame-sha">')
-             .append($('<a>').attr("href", data.root + '/commit/' + blame.id).text(blame.id.substr(0,7)));
-          if(blame.prev){
+          const sha = $('<div class="blame-sha">')
+             .append($('<a>').attr("href", data.root + '/commit/' + blame.id).text(blame.id.substr(0, 7)));
+          if (blame.prev) {
              sha.append($('<br />'))
              .append($('<a class="muted-link">').text('prev').attr("href", data.root + '/blame/' + blame.prev + '/' + (blame.prevPath || data.path)));
           }
@@ -222,9 +226,11 @@ $(window).on('load', function(){
     });
     return false;
   };
+
   $(document).on('expanded.pushMenu collapsed.pushMenu', function(e){
     setTimeout(updateBlame, 300);
   });
+
   updateBlame();
 });
 
@@ -233,7 +239,7 @@ let scrolling = false;
 /**
  * Highlight lines which are specified by URL hash.
  */
-function updateHighlighting(){
+function updateHighlighting() {
   const hash = location.hash;
   const isDark = @{highlighterTheme.contains("dark").toString};
   if (hash.match(/#L\d+(-L\d+)?/)) {
@@ -242,19 +248,19 @@ function updateHighlighting(){
     } else {
       $('li.highlight').removeClass('highlight');
     }
-    const lines = hash.substr(1).split('-');
-    if (lines.length == 1) {
+    const fragments = hash.substr(1).split('-');
+    if (fragments.length == 1) {
       if (isDark) {
-        $('#' + lines[0]).addClass('highlight-dark');
+        $('#' + fragments[0]).addClass('highlight-dark');
       } else {
-        $('#' + lines[0]).addClass('highlight');
+        $('#' + fragments[0]).addClass('highlight');
       }
       if(!scrolling){
-        $(window).scrollTop($('#' + lines[0]).offset().top);
+        $(window).scrollTop($('#' + fragments[0]).offset().top);
       }
-    } else if(lines.length > 1){
-      const start = parseInt(lines[0].substr(1));
-      const end   = parseInt(lines[1].substr(1));
+    } else if(fragments.length > 1){
+      const start = parseInt(fragments[0].substr(1));
+      const end   = parseInt(fragments[1].substr(1));
       for (let i = start; i <= end; i++) {
         if (isDark) {
           $('#L' + i).addClass('highlight-dark');
@@ -263,7 +269,7 @@ function updateHighlighting(){
         }
       }
       if (!scrolling) {
-        $(window).scrollTop($('#' + lines[0]).offset().top);
+        $(window).scrollTop($('#' + fragments[0]).offset().top);
       }
     }
   }
