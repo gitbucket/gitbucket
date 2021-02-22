@@ -691,7 +691,13 @@ object ApiSpecModels {
        |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
        |"content":"UkVBRE1F",
        |"encoding":"base64",
-       |"download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md"
+       |"download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/tree/master/doc/README.md",
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/contents/doc/README.md?ref=master",
+       |"_link":{
+       |"self":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/contents/doc/README.md?ref=master",
+       |"html":"http://gitbucket.exmple.com/octocat/Hello-World/tree/master/doc/README.md"
+       |}
        |}""".stripMargin
 
   val jsonEndPoint = """{"rate_limit_url":"http://gitbucket.exmple.com/api/v3/rate_limit"}"""
