@@ -17,7 +17,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.13.3"
+scalaVersion := "2.13.5"
 
 scalafmtOnCompile := true
 
