@@ -18,12 +18,12 @@ $ sbt ~jetty:start
 
 Then access `http://localhost:8080/` in your browser. The default administrator account is `root` and password is `root`.
 
-Source code modifications are detected and a reloaded happens automatically. You can modify the logging configuration by editing `src/main/resources/logback-dev.xml`.
+Source code modifications are detected and a reloading happens automatically. You can modify the logging configuration by editing `src/main/resources/logback-dev.xml`.
 
 Build war file
 --------
 
-To build war file, run the following command:
+To build a war file, run the following command:
 
 ```shell
 $ sbt package
