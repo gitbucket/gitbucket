@@ -52,7 +52,7 @@ libraryDependencies ++= Seq(
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.2",
   "org.postgresql"                  % "postgresql"                   % "42.2.19",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
-  "com.zaxxer"                      % "HikariCP"                     % "4.0.2",
+  "com.zaxxer"                      % "HikariCP"                     % "4.0.3",
   "com.typesafe"                    % "config"                       % "1.4.1",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "io.github.java-diff-utils"       % "java-diff-utils"              % "4.9",
