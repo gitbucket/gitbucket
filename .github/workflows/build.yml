@@ -5,13 +5,14 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         java: [8, 11]
     steps:
     - uses: actions/checkout@v2
     - name: Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v2.1.4
       env:
         cache-name: cache-sbt-libs
       with:

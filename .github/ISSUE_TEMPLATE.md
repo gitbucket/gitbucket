@@ -12,7 +12,7 @@
 **Deployment mode**: *explain here how you use GitBucket : standalone app, under webcontainer (which one), with an http frontend (nginx, httpd, ...)*
 
 **Problem description**:
-- *be as explicit has you can*
+- *be as explicit as you can*
 - *describe the problem and its symptoms*
 - *explain how to reproduce*
 - *attach whatever information that can help understanding the context (screen capture, log files)*

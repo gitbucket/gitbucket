@@ -1,9 +1,10 @@
 package gitbucket.core.service
 
+import com.github.difflib.DiffUtils
+import com.github.difflib.patch.DeltaType
 import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import difflib.{Delta, DiffUtils}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
@@ -441,16 +442,17 @@ trait PullRequestService {
                   case Left(oldLine) => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
                   case Right(newLine) =>
                     var counter = newLine
-                    patch.getDeltas.asScala.filter(_.getOriginal.getPosition < newLine).foreach { delta =>
+                    patch.getDeltas.asScala.filter(_.getSource.getPosition < newLine).foreach { delta =>
                       delta.getType match {
-                        case Delta.TYPE.CHANGE =>
-                          if (delta.getOriginal.getPosition <= newLine - 1 && newLine <= delta.getOriginal.getPosition + delta.getRevised.getLines.size) {
+                        case DeltaType.CHANGE =>
+                          if (delta.getSource.getPosition <= newLine - 1 && newLine <= delta.getSource.getPosition + delta.getTarget.getLines.size) {
                             counter = -1
                           } else {
-                            counter = counter + (delta.getRevised.getLines.size - delta.getOriginal.getLines.size)
+                            counter = counter + (delta.getTarget.getLines.size - delta.getSource.getLines.size)
                           }
-                        case Delta.TYPE.INSERT => counter = counter + delta.getRevised.getLines.size
-                        case Delta.TYPE.DELETE => counter = counter - delta.getOriginal.getLines.size
+                        case DeltaType.INSERT => counter = counter + delta.getTarget.getLines.size
+                        case DeltaType.DELETE => counter = counter - delta.getSource.getLines.size
+                        case DeltaType.EQUAL  => // Do nothing
                       }
                     }
                     if (counter >= 0) {

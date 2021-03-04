@@ -10,6 +10,7 @@ import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
+import org.apache.commons.codec.digest.DigestUtils
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -505,6 +506,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def appendQueryString(baseUrl: String, queryString: String): String = {
     s"$baseUrl${if (baseUrl.contains("?")) "&" else "?"}$queryString"
   }
+
+  def md5(value: String): String = DigestUtils.md5Hex(value)
 
   /**
    * Create main-header css class from skin name

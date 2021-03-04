@@ -24,8 +24,6 @@ The current version of GitBucket provides many features such as:
 - Account and group management with LDAP integration
 - a Plug-in system
 
-If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/readme.md).
-
 Installation
 --------
 GitBucket requires **Java8**. You have to install it, if it is not already installed.
@@ -49,6 +47,12 @@ GitBucket has a plug-in system that allows extra functionality. Officially the f
 - [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin)
 
 You can find more plugins made by the community at [GitBucket community plugins](https://gitbucket-plugins.github.io/).
+
+Building and Development
+-----------
+If you want to try the development version of GitBucket, or want to contribute to the project, please see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/readme.md).
+It provides instructions on building from source and on setting up an IDE for debugging. 
+It also contains documentation of the core concepts used within the project.
 
 Support
 --------

@@ -8,6 +8,11 @@
   showLineNotes: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
+<style>
+  th.line-num {
+    cursor: pointer;
+  }
+</style>
 @if(showIndex){
 <div class="container">
   <div class="row my-2">
@@ -88,7 +93,7 @@
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
-          <span class="monospace">@diff.oldPath → @diff.newPath</span>
+          <a href="#diff-@helpers.md5(diff.newPath)" id="diff-@helpers.md5(diff.newPath)" class="file-hash"><span class="strong">@diff.oldPath → @diff.newPath</span></a>
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @if(newCommitId.isDefined){
@@ -113,7 +118,7 @@
             <i class="octicon octicon-diff-modified"></i>
           }
           </span>
-          <span class="monospace">@diff.newPath</span>
+          <a href="#diff-@helpers.md5(diff.newPath)" id="diff-@helpers.md5(diff.newPath)" class="file-hash"><span class="strong">@diff.newPath</span></a>
         }
         @if(diff.changeType == ChangeType.DELETE){
           @if(oldCommitId.isDefined){
@@ -128,7 +133,7 @@
             </div>
           }
           <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
-          <span class="monospace">@diff.oldPath</span>
+          <a href="#diff-@helpers.md5(diff.oldPath)" id="diff-@helpers.md5(diff.oldPath)" class="file-hash"><span class="strong">@diff.oldPath</span></a>
         }
         @if(diff.oldMode != diff.newMode){
           <span class="monospace">@diff.oldMode → @diff.newMode</span>
@@ -215,6 +220,10 @@ $(function(){
   }
   renderDiffs();
 
+  window.onhashchange = function(){
+    updateHighlighting();
+  }
+
   $('.toggle-notes').change(function() {
     if (!$(this).prop('checked')) {
       $(this).closest('table').find('.not-diff.inline-comment-form').remove();
@@ -223,7 +232,7 @@ $(function(){
   });
 
   $('.ignore-whitespace').change(function() {
-    renderOneDiff($(this).closest("table").find(".diffText"), window.viewType);
+    renderOneDiff($(this).closest("table").find(".diffText"), window.viewType, $(this).closest("table").find(".file-hash")[0].id);
   });
 
   function getInlineContainer(where) {
@@ -243,7 +252,7 @@ $(function(){
 
   function showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr){
     // assemble Ajax url
-    var url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+    let url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
     if (!isNaN(oldLineNumber) && oldLineNumber) {
       url += ('&oldLineNumber=' + oldLineNumber)
     }
@@ -253,7 +262,7 @@ $(function(){
     // send Ajax request
     $.get(url, { dataType : 'html' }, function(responseContent) {
       // create container
-      var tmp;
+      let tmp;
       if (!isNaN(oldLineNumber) && oldLineNumber) {
         if (!isNaN(newLineNumber) && newLineNumber) {
           tmp = getInlineContainer();
@@ -275,16 +284,16 @@ $(function(){
 
   // Add comment button
   $('.diff-outside').on('click','table.diff .add-comment',function() {
-    var $this  = $(this);
-    var $tr    = $this.closest('tr');
-    var $check = $this.closest('table:not(.diff)').find('.toggle-notes');
+    const $this  = $(this);
+    const $tr    = $this.closest('tr');
+    const $check = $this.closest('table:not(.diff)').find('.toggle-notes');
     if (!$check.prop('checked')) {
       $check.prop('checked', true).trigger('change');
     }
     if (!$tr.nextAll(':not(.not-diff):first').prev().hasClass('inline-comment-form')) {
-      var commitId = $this.closest('.table-bordered').attr('commitId'),
-      fileName = $this.closest('.table-bordered').attr('fileName'),
-      oldLineNumber, newLineNumber;
+      const commitId = $this.closest('.table-bordered').attr('commitId'),
+      fileName = $this.closest('.table-bordered').attr('fileName');
+      let oldLineNumber, newLineNumber;
       if (window.viewType == 0) {
         oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
         newLineNumber = $this.parent().prev('.newline').attr('line-number');
@@ -303,21 +312,37 @@ $(function(){
 
   // Reply comment
   $('.diff-outside').on('click', '.reply-comment',function(){
-    var $this = $(this);
-    var $tr    = $this.closest('tr');
-    var commitId = $this.closest('.table-bordered').attr('commitId');
-    var fileName = $this.data('filename');
-    var oldLineNumber = $this.data('oldline');
-    var newLineNumber = $this.data('newline');
+    const $this = $(this);
+    const $tr    = $this.closest('tr');
+    const commitId = $this.closest('.table-bordered').attr('commitId');
+    const fileName = $this.data('filename');
+    const oldLineNumber = $this.data('oldline');
+    const newLineNumber = $this.data('newline');
 
     showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr);
   });
 
+  // Line selection
+  $('.diff-outside').on('click','table.diff th.line-num',function(e) {
+    const $this   = $(this);
+    const hash    = location.hash;
+    const baseUrl = location.toString().split("#")[0];
+
+    if (e.shiftKey == true && hash.match(/#diff-\w+-L\d+(-L\d+)?/)) {
+      const fragments = hash.split('-');
+      window.history.pushState('', '', baseUrl + '#diff-' + fragments[1] + '-' + fragments[2] + '-' + $this[0].id.split('-')[2]);
+    } else {
+      window.history.pushState('', '', baseUrl + '#' + $this[0].id);
+    }
+    getSelection().empty();
+    updateHighlighting();
+  });
+
   function renderOneCommitCommentIntoDiff($v, diff){
     //var filename = $v.attr('filename');
-    var oldline  = $v.attr('oldline');
-    var newline  = $v.attr('newline');
-    var tmp;
+    const oldline = $v.attr('oldline');
+    const newline = $v.attr('newline');
+    let tmp;
     if (typeof oldline !== 'undefined') {
       if (typeof newline !== 'undefined') {
         tmp = getInlineContainer();
@@ -347,8 +372,8 @@ $(function(){
       }
       del = 5 - add;
     }
-    var ret = $('<div class="diffstat-bar">');
-    for(var i = 0; i < 5; i++){
+    const ret = $('<div class="diffstat-bar">');
+    for(let i = 0; i < 5; i++){
       if(add){
         ret.append('<span class="text-diff-added">■</span>');
         add--;
@@ -362,13 +387,13 @@ $(function(){
     return ret;
   }
 
-  function renderOneDiff(diffText, viewType){
-    var table = diffText.closest("table[data-diff-id]");
-    var i = table.data("diff-id");
-    var ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
-    diffUsingJS('oldText-' + i, 'newText-' + i, diffText.attr('id'), viewType, ignoreWhiteSpace);
-    var add = diffText.find("table").attr("add") * 1;
-    var del = diffText.find("table").attr("del") * 1;
+  function renderOneDiff(diffText, viewType, fileHash){
+    const table = diffText.closest("table[data-diff-id]");
+    const i = table.data("diff-id");
+    const ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
+    diffUsingJS('oldText-' + i, 'newText-' + i, diffText.attr('id'), viewType, ignoreWhiteSpace, fileHash);
+    const add = diffText.find("table").attr("add") * 1;
+    const del = diffText.find("table").attr("del") * 1;
     table.find(".diffstat").text(add + del + " ").append(renderStatBar(add, del)).attr("title", add + " additions & " + del + " deletions").tooltip();
     $('span.diffstat[data-diff-id="' + i + '"]')
         .html('<span class="text-diff-added">+' + add + '</span><span class="text-diff-deleted">-' + del + '</span>')
@@ -382,7 +407,7 @@ $(function(){
       });
     }
     @if(showLineNotes){
-      var fileName = table.attr('filename');
+      const fileName = table.attr('filename');
       $('.inline-comment').each(function(i, v) {
         if($(this).attr('filename') == fileName){
           renderOneCommitCommentIntoDiff($(this), table);
@@ -393,13 +418,13 @@ $(function(){
   }
 
   function renderReplyComment($table){
-    var elements = {};
-    var filename, newline, oldline;
+    const elements = {};
+    let filename, newline, oldline;
     $table.find('.comment-box-container .inline-comment').each(function(i, e){
       filename = $(e).attr('filename');
       newline = $(e).attr('newline');
       oldline = $(e).attr('oldline');
-      var key = filename + '-' + newline + '-' + oldline;
+      const key = filename + '-' + newline + '-' + oldline;
       elements[key] = {
         element: $(e),
         filename: filename,
@@ -407,7 +432,7 @@ $(function(){
         oldline: oldline
       };
     });
-    for(var key in elements){
+    for(const key in elements){
       filename = elements[key]['filename'];
       oldline = elements[key]['oldline']; //? elements[key]['oldline'] : '';
       newline = elements[key]['newline']; //? elements[key]['newline'] : '';
@@ -418,7 +443,7 @@ $(function(){
                        + 'data-newline="' + newline + '" '
                        + 'data-oldline="' + oldline + '">'));
 
-      var tmp;
+      let tmp;
       if (typeof oldline !== 'undefined') {
         if (typeof newline !== 'undefined') {
           tmp = getInlineContainer();
@@ -434,16 +459,19 @@ $(function(){
     }
   }
 
-  function renderDiffs(){
-    var i = 0, diffs = $('.diffText');
+  function renderDiffs() {
+    const diffs = $('.diffText');
+    let i = 0;
     function render(){
-      if(diffs[i]){
-        var $table = renderOneDiff($(diffs[i]), window.viewType);
+      if (diffs[i]) {
+        const $table = renderOneDiff($(diffs[i]), window.viewType, $('.file-hash')[i].id);
         @if(hasWritePermission) {
           renderReplyComment($table);
         }
         i++;
         setTimeout(render);
+      } else {
+        updateHighlighting();
       }
     }
     render();
@@ -451,7 +479,7 @@ $(function(){
 });
 
 function changeDisplaySetting(key, value){
-  var url = '';
+  let url = '';
   window.params[key] = value;
   for(key in window.params){
     if(window.params[key] != ''){
@@ -463,5 +491,48 @@ function changeDisplaySetting(key, value){
     }
   }
   location.href = url;
+}
+
+let scrolling = false;
+
+/**
+ * Highlight lines which are specified by URL hash.
+ */
+function updateHighlighting(){
+  const hash = location.hash;
+  $('tr.highlight').removeClass('highlight');
+  if (hash.match(/#diff-(\w+)-[LR]\d+(-[LR]\d+)?/)) {
+    const fragments = hash.substr(1).split('-');
+    if (fragments.length == 3) {
+      const tr = $('th#diff-' + fragments[1] + '-' + fragments[2]).closest('tr');
+      tr.addClass('highlight');
+      if(!scrolling){
+        $(window).scrollTop($('th#diff-' + fragments[1] + '-' + fragments[2]).closest('tr').offset().top);
+      }
+    } else if (fragments.length > 3) {
+      let highlight = false;
+      $('th[id^=diff-' + fragments[1] + '-').each(function(i, th) {
+        if (th.id.split('-')[2] == fragments[2]) { // start
+          highlight = true;
+          $(th.closest('tr')).addClass('highlight');
+        } else if (highlight == true) {
+          if (th.id.split('-')[2] == fragments[3]) { // end
+            $(th.closest('tr')).addClass('highlight');
+            return false;
+          } else {
+            $(th.closest('tr')).addClass('highlight');
+          }
+        }
+      });
+      if(!scrolling){
+        $(window).scrollTop($('th#diff-' + fragments[1] + '-' + fragments[2]).closest('tr').offset().top);
+      }
+    }
+  } else if (hash != ''){
+    if (!scrolling) {
+      $(window).scrollTop($(hash).offset().top);
+    }
+  }
+  scrolling = true;
 }
 </script>

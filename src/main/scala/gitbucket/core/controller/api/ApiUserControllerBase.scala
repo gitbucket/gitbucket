@@ -104,7 +104,7 @@ trait ApiUserControllerBase extends ControllerBase {
    */
   delete("/api/v3/users/:userName/suspended")(adminOnly {
     val userName = params("userName")
-    getAccountByUserName(userName) match {
+    getAccountByUserName(userName, true) match {
       case Some(targetAccount) =>
         updateAccount(targetAccount.copy(isRemoved = false))
         NoContent()
