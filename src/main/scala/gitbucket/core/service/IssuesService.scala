@@ -782,28 +782,32 @@ trait IssuesService {
       case (_referredOwner, _referredRepository, referredIssueId) =>
         val referredOwner = _referredOwner.getOrElse(owner)
         val referredRepository = _referredRepository.getOrElse(repository)
-        if (getIssue(referredOwner, referredRepository, referredIssueId.get).isDefined) {
-          val (content, action) = if (repository == referredRepository) {
-            (s"${fromIssue.issueId}:${fromIssue.title}", "refer")
-          } else {
-            (s"${fromIssue.issueId}:${owner}:${repository}:${fromIssue.title}", "refer_global")
-          }
-          referredIssueId.foreach(
-            x =>
-              // Not add if refer comment already exist.
-              if (!getComments(referredOwner, referredRepository, x.toInt).exists { x =>
-                    (x.action == "refer" || x.action == "refer_global") && x.content == content
-                  }) {
-                createComment(
-                  referredOwner,
-                  referredRepository,
-                  loginAccount.userName,
-                  x.toInt,
-                  content,
-                  action
-                )
+        getRepository(referredOwner, referredRepository).foreach { repo =>
+          if (isReadable(repo.repository, Option(loginAccount))) {
+            getIssue(referredOwner, referredRepository, referredIssueId.get).foreach { _ =>
+              val (content, action) = if (owner == referredOwner && repository == referredRepository) {
+                (s"${fromIssue.issueId}:${fromIssue.title}", "refer")
+              } else {
+                (s"${fromIssue.issueId}:${owner}:${repository}:${fromIssue.title}", "refer_global")
+              }
+              referredIssueId.foreach(
+                x =>
+                  // Not add if refer comment already exist.
+                  if (!getComments(referredOwner, referredRepository, x.toInt).exists { x =>
+                        (x.action == "refer" || x.action == "refer_global") && x.content == content
+                      }) {
+                    createComment(
+                      referredOwner,
+                      referredRepository,
+                      loginAccount.userName,
+                      x.toInt,
+                      content,
+                      action
+                    )
+                }
+              )
             }
-          )
+          }
         }
     }
   }
