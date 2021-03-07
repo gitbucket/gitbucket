@@ -92,4 +92,14 @@ object FileUtil {
     name
   }
 
+  /**
+   * Delete given folder recursively.
+   */
+  def deleteRecursively(f: File): Boolean = {
+    if (f.isDirectory) f.listFiles match {
+      case files: Array[File] => files.foreach(deleteRecursively)
+      case null               =>
+    }
+    f.delete()
+  }
 }
