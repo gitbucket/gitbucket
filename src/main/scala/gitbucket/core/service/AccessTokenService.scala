@@ -21,13 +21,13 @@ trait AccessTokenService {
    * @return (TokenId, Token)
    */
   def generateAccessToken(userName: String, note: String)(implicit s: Session): (Int, String) = {
-    var token: String = null
-    var hash: String = null
+    var token: String = makeAccessTokenString
+    var hash: String = tokenToHash(token)
 
-    do {
+    while (AccessTokens.filter(_.tokenHash === hash.bind).exists.run) {
       token = makeAccessTokenString
       hash = tokenToHash(token)
-    } while (AccessTokens.filter(_.tokenHash === hash.bind).exists.run)
+    }
 
     val newToken = AccessToken(userName = userName, note = note, tokenHash = hash)
     val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) insert newToken
