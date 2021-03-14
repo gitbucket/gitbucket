@@ -4,7 +4,8 @@ trait CommitStatusComponent extends TemplateComponent { self: Profile =>
   import profile.api._
   import self._
 
-  implicit val commitStateColumnType = MappedColumnType.base[CommitState, String](b => b.name, i => CommitState(i))
+  implicit val commitStateColumnType: BaseColumnType[CommitState] =
+    MappedColumnType.base[CommitState, String](b => b.name, i => CommitState(i))
 
   lazy val CommitStatuses = TableQuery[CommitStatuses]
   class CommitStatuses(tag: Tag) extends Table[CommitStatus](tag, "COMMIT_STATUS") with CommitTemplate {

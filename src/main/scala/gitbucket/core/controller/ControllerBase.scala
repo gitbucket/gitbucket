@@ -28,6 +28,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
+import org.json4s.Formats
 
 /**
  * Provides generic features for controller implementations.
@@ -43,7 +44,7 @@ abstract class ControllerBase
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+  implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
 
   before("/api/v3/*") {
     contentType = formats("json")

@@ -12,7 +12,7 @@ import gitbucket.core.util.JDBCUtil
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration, SqlMigration}
 import io.github.gitbucket.solidbase.model.{Module, Version}
-import org.json4s.NoTypeHints
+import org.json4s.{Formats, NoTypeHints}
 import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.write
 
@@ -85,7 +85,7 @@ object GitBucketCoreModule
         "4.34.0",
         new Migration() {
           override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
-            implicit val formats = Serialization.formats(NoTypeHints)
+            implicit val formats: Formats = Serialization.formats(NoTypeHints)
             import JDBCUtil._
 
             val conn = context.get(Solidbase.CONNECTION).asInstanceOf[Connection]

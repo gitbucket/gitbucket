@@ -11,6 +11,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 import org.apache.commons.codec.digest.DigestUtils
+import org.json4s.Formats
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -387,7 +388,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Render a given object as the JSON string.
    */
   def json(obj: AnyRef): String = {
-    implicit val formats = org.json4s.DefaultFormats
+    implicit val formats: Formats = org.json4s.DefaultFormats
     org.json4s.jackson.Serialization.write(obj)
   }
 
@@ -472,7 +473,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def diff(jsonString: String): Html = {
     import org.json4s._
     import org.json4s.jackson.JsonMethods._
-    implicit val formats = DefaultFormats
+    implicit val formats: Formats = DefaultFormats
 
     val diff = parse(jsonString).extract[Seq[CommentDiffLine]]
 

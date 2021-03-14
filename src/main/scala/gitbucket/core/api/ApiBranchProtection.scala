@@ -66,7 +66,7 @@ object ApiBranchProtection {
       }
   }
 
-  implicit val enforcementLevelSerializer = new CustomSerializer[EnforcementLevel](
+  implicit val enforcementLevelSerializer: CustomSerializer[EnforcementLevel] = new CustomSerializer[EnforcementLevel](
     format =>
       (
         {

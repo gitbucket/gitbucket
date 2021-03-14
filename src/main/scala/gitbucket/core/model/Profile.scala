@@ -10,15 +10,17 @@ trait Profile {
   /**
    * java.util.Date Mapped Column Types
    */
-  implicit val dateColumnType = MappedColumnType.base[java.util.Date, java.sql.Timestamp](
-    d => new java.sql.Timestamp(d.getTime),
-    t => new java.util.Date(t.getTime)
-  )
+  implicit val dateColumnType: BaseColumnType[java.util.Date] =
+    MappedColumnType.base[java.util.Date, java.sql.Timestamp](
+      d => new java.sql.Timestamp(d.getTime),
+      t => new java.util.Date(t.getTime)
+    )
 
   /**
    * WebHookBase.Event Column Types
    */
-  implicit val eventColumnType = MappedColumnType.base[WebHook.Event, String](_.name, WebHook.Event.valueOf(_))
+  implicit val eventColumnType: BaseColumnType[WebHook.Event] =
+    MappedColumnType.base[WebHook.Event, String](_.name, WebHook.Event.valueOf(_))
 
   /**
    * Extends Column to add conditional condition

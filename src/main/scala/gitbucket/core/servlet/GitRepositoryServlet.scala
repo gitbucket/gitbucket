@@ -6,6 +6,7 @@ import java.util.Date
 
 import scala.util.Using
 import gitbucket.core.api
+import gitbucket.core.api.JsonFormat.Context
 import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
@@ -42,6 +43,7 @@ import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.internal.storage.file.FileRepository
+import org.json4s.Formats
 import org.json4s.jackson.Serialization._
 
 /**
@@ -53,7 +55,7 @@ import org.json4s.jackson.Serialization._
 class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
-  private implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+  private implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
 
   override def init(config: ServletConfig): Unit = {
     setReceivePackFactory(new GitBucketReceivePackFactory())
@@ -293,7 +295,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           val pushedIds = scala.collection.mutable.Set[String]()
           commands.asScala.foreach { command =>
             logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-            implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
+            implicit val apiContext: Context = api.JsonFormat.Context(baseUrl, sshUrl)
             val refName = command.getRefName.split("/")
             val branchName = refName.drop(2).mkString("/")
             val commits = if (refName(1) == "tags") {
@@ -469,7 +471,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     Database() withTransaction { implicit session =>
       try {
         commands.asScala.headOption.foreach { command =>
-          implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
+          implicit val apiContext: Context = api.JsonFormat.Context(baseUrl, sshUrl)
           val refName = command.getRefName.split("/")
           val commitIds = if (refName(1) == "tags") {
             None

@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
 trait ActivityService {
   self: RequestCache =>
 
-  private implicit val formats = Serialization.formats(NoTypeHints)
+  private implicit val formats: Formats = Serialization.formats(NoTypeHints)
 
   private def writeLog(activity: Activity): Unit = {
     Using.resource(new FileOutputStream(ActivityLog, true)) { out =>
