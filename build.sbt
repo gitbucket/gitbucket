@@ -274,7 +274,7 @@ Test / testOptions ++= {
   }
 }
 
-javaOptions in Jetty ++= Seq(
+Jetty / javaOptions ++= Seq(
   "-Xdebug",
   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
 )
