@@ -7,6 +7,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
+import gitbucket.core.util.HttpCredentialParser.parseBasicAuth
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import org.json4s._
@@ -35,6 +36,7 @@ import org.json4s.Formats
  */
 abstract class ControllerBase
     extends ScalatraFilter
+    with AccountService
     with ValidationSupport
     with JacksonJsonSupport
     with I18nSupport
@@ -93,8 +95,16 @@ abstract class ControllerBase
     }
   }
 
+  private def RequestAccount: Option[Account] =
+    Option
+      .apply(request.getHeader("Authorization"))
+      .flatMap(h => parseBasicAuth(h))
+      .flatMap(ba => authenticate(loadSystemSettings(), ba.userName, ba.password))
+
   private def LoginAccount: Option[Account] =
-    request.getAs[Account](Keys.Session.LoginAccount).orElse(session.getAs[Account](Keys.Session.LoginAccount))
+    RequestAccount
+      .orElse(request.getAs[Account](Keys.Session.LoginAccount))
+      .orElse(session.getAs[Account](Keys.Session.LoginAccount))
 
   def ajaxGet(path: String)(action: => Any): Route =
     super.get(path) {
