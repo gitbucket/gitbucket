@@ -237,10 +237,11 @@ trait RepositoryService {
     LockUtil.lock(s"${repository.userName}/${repository.repositoryName}") {
       deleteRepositoryOnModel(repository.userName, repository.repositoryName)
 
-      FileUtils.deleteDirectory(getRepositoryDir(repository.userName, repository.repositoryName))
-      FileUtils.deleteDirectory(getWikiRepositoryDir(repository.userName, repository.repositoryName))
-      FileUtils.deleteDirectory(getTemporaryDir(repository.userName, repository.repositoryName))
-      FileUtils.deleteDirectory(getRepositoryFilesDir(repository.userName, repository.repositoryName))
+      FileUtil.deleteRecursively(getRepositoryDir(repository.userName, repository.repositoryName))
+
+      FileUtil.deleteRecursively(getWikiRepositoryDir(repository.userName, repository.repositoryName))
+      FileUtil.deleteRecursively(getTemporaryDir(repository.userName, repository.repositoryName))
+      FileUtil.deleteRecursively(getRepositoryFilesDir(repository.userName, repository.repositoryName))
 
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.userName, repository.repositoryName))
