@@ -109,8 +109,8 @@
         } else {
           @if(diff.newContent != None || diff.oldContent != None){
             <div id="diffText-@i" class="diffText"></div>
-            <input type="hidden" id="newText-@i" data-file-name="@diff.oldPath" data-val="@diff.newContent">
-            <input type="hidden" id="oldText-@i" data-file-name="@diff.newPath" data-val="@diff.oldContent">
+            <input type="hidden" id="newText-@i" data-file-name="@diff.newPath" data-val="@diff.newContent">
+            <input type="hidden" id="oldText-@i" data-file-name="@diff.oldPath" data-val="@diff.oldContent">
           } else {
             @if(diff.newIsImage || diff.oldIsImage){
               <div class="diff-image-render diff2up">
