@@ -160,10 +160,19 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Creates a link to the issue or the pull request from the issue id.
    */
-  def issueLink(repository: RepositoryService.RepositoryInfo, issueId: Int, title: String)(
+  def issueLink(owner: String, repository: String, issueId: Int, title: String)(
     implicit context: Context
   ): Html = {
-    Html(createIssueLink(repository, issueId, title))
+    Html(createIssueLink(owner, repository, issueId, title))
+  }
+
+  /**
+   * Creates a global link to the issue or the pull request from the issue id.
+   */
+  def issueGlobalLink(owner: String, repository: String, issueId: Int, title: String)(
+    implicit context: Context
+  ): Html = {
+    Html(createGlobalIssueLink(owner, repository, issueId, title))
   }
 
   /**

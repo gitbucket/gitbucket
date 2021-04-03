@@ -57,6 +57,20 @@ class StringUtilSpec extends AnyFunSpec {
     }
   }
 
+  describe("extractGlobalIssueId") {
+    it("should extract '#xxx' and return extracted id") {
+      assert(StringUtil.extractGlobalIssueId("(refs #123)").toSeq == List((None, None, Some("123"))))
+    }
+    it("should extract 'owner/repository#xxx' and return extracted owner, repository and id") {
+      assert(
+        StringUtil.extractGlobalIssueId("(refs root/test#123)").toSeq == List((Some("root"), Some("test"), Some("123")))
+      )
+    }
+    it("should return Nil from message which does not contain #xxx") {
+      assert(StringUtil.extractGlobalIssueId("this is test!").toSeq == Nil)
+    }
+  }
+
   describe("extractCloseId") {
     it("should extract 'close #xxx' and return extracted id") {
       assert(StringUtil.extractCloseId("(close #123)").toSeq == Seq("123"))

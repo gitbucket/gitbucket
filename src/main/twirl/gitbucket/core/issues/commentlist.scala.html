@@ -114,9 +114,26 @@
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </div>
           <div style="discussion-item-content">
-            @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) => {
-              @helpers.issueLink(repository, issueId.toInt, rest.mkString(":"))
-            }}
+            @defining(comment.content.split(":")){
+              case Array(issueId, rest @ _*) => {@helpers.issueLink(repository.owner, repository.name, issueId.toInt, rest.mkString(":"))}
+            }
+          </div>
+        </div>
+      }
+      case "refer_global" => {
+        <div class="discussion-item discussion-item-refer">
+          <div class="discussion-item-header">
+            <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
+            @helpers.avatarLink(comment.commentedUserName, 16)
+            @helpers.user(comment.commentedUserName, styleClass="username strong")
+            referenced the @issueOrPullRequest()
+            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+          </div>
+          <div style="discussion-item-content">
+          @defining(comment.content.split(":")){
+            case Array(issueId, ownerName, repositoryName, rest @ _*) => {
+              @helpers.issueGlobalLink(ownerName, repositoryName, issueId.toInt, rest.mkString(":"))
+          }}
           </div>
         </div>
       }
