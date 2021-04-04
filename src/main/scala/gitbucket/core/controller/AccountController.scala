@@ -725,7 +725,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     if (context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin) {
       LockUtil.lock(s"${form.owner}/${form.name}") {
-        if (getRepository(form.owner, form.name).isEmpty) {
+        if (getRepository(form.owner, form.name).isDefined) {
+          // redirect to the repository if repository already exists
+          redirect(s"/${form.owner}/${form.name}")
+        } else if (!canCreateRepository(form.owner, context.loginAccount.get)) {
+          // Permission error
+          Forbidden()
+        } else {
+          // create repository asynchronously
           createRepository(
             context.loginAccount.get,
             form.owner,
@@ -735,10 +742,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             form.initOption,
             form.sourceUrl
           )
+          // redirect to the repository
+          redirect(s"/${form.owner}/${form.name}")
         }
       }
-      // redirect to the repository
-      redirect(s"/${form.owner}/${form.name}")
     } else Forbidden()
   })
 
@@ -773,10 +780,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       val loginUserName = loginAccount.userName
       val accountName = form.accountName
 
-      if (getRepository(accountName, repository.name).isDefined ||
-          (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))) {
+      if (getRepository(accountName, repository.name).isDefined) {
         // redirect to the repository if repository already exists
         redirect(s"/${accountName}/${repository.name}")
+      } else if (!canCreateRepository(accountName, loginAccount)) {
+        // Permission error
+        Forbidden()
       } else {
         // fork repository asynchronously
         forkRepository(accountName, repository, loginUserName)

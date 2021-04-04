@@ -113,13 +113,10 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService w
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
-      context.loginAccount match {
-        case Some(x) if (x.isAdmin)                                                          => action(repository)
-        case Some(x) if (!repository.repository.isPrivate)                                   => action(repository)
-        case Some(x) if (userName == x.userName)                                             => action(repository)
-        case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-        case Some(x) if (getCollaboratorUserNames(userName, repoName).contains(x.userName))  => action(repository)
-        case _                                                                               => Unauthorized()
+      if (isReadable(repository.repository, context.loginAccount) || !repository.repository.isPrivate) {
+        action(repository)
+      } else {
+        Unauthorized()
       }
     } getOrElse NotFound()
   }

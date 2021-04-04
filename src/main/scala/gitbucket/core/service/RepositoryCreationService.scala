@@ -53,6 +53,11 @@ trait RepositoryCreationService {
     with ActivityService
     with PrioritiesService =>
 
+  def canCreateRepository(repositoryOwner: String, loginAccount: Account)(implicit session: Session): Boolean = {
+    repositoryOwner == loginAccount.userName || getGroupsByUserName(loginAccount.userName)
+      .contains(repositoryOwner) || loginAccount.isAdmin
+  }
+
   def createRepository(
     loginAccount: Account,
     owner: String,
@@ -76,7 +81,7 @@ trait RepositoryCreationService {
     RepositoryCreationService.startCreation(owner, name)
     try {
       Database() withTransaction { implicit session =>
-        val ownerAccount = getAccountByUserName(owner).get
+        //val ownerAccount = getAccountByUserName(owner).get
         val loginUserName = loginAccount.userName
 
         val copyRepositoryDir = if (initOption == "COPY") {
