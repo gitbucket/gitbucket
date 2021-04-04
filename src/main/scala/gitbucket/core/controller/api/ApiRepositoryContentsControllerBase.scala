@@ -1,7 +1,6 @@
 package gitbucket.core.controller.api
 import gitbucket.core.api.{ApiContents, ApiError, CreateAFile, JsonFormat}
 import gitbucket.core.controller.ControllerBase
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.JGitUtil.{FileInfo, getContentFromId, getFileList}

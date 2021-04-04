@@ -1,8 +1,6 @@
 package gitbucket.core.model
 
-trait AccountWebHookEventComponent extends TemplateComponent {
-  self: Profile =>
-
+trait AccountWebHookEventComponent extends TemplateComponent { self: Profile =>
   import profile.api._
   import gitbucket.core.model.Profile.AccountWebHooks
 

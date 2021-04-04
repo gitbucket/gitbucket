@@ -4,7 +4,7 @@ import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, RepositoryName}
-import org.scalatra.{ActionResult, NoContent}
+import org.scalatra.ActionResult
 
 trait ApiIssueCommentControllerBase extends ControllerBase {
   self: AccountService

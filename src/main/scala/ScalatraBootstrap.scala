@@ -2,7 +2,6 @@ import java.util.EnumSet
 import javax.servlet._
 
 import gitbucket.core.controller.{ReleaseController, _}
-import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.servlet._
 import gitbucket.core.util.Directory

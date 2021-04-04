@@ -3,7 +3,6 @@ package gitbucket.core.service
 import gitbucket.core.model.Priority
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.util.StringUtil
 
 trait PrioritiesService {
 

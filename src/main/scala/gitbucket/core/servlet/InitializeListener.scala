@@ -2,7 +2,6 @@ package gitbucket.core.servlet
 
 import java.io.{File, FileOutputStream}
 
-import com.typesafe.config.ConfigFactory
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService

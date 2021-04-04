@@ -1,8 +1,6 @@
 package gitbucket.core.api
 
-import gitbucket.core.model.Profile.{RepositoryWebHookEvents, RepositoryWebHooks}
 import gitbucket.core.model.{RepositoryWebHook, WebHook}
-import gitbucket.core.util.RepositoryName
 
 /**
  * https://docs.github.com/en/rest/reference/repos#webhooks

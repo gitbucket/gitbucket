@@ -40,8 +40,6 @@ import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.i18n.Messages
 
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
-
 class RepositoryViewerController
     extends RepositoryViewerControllerBase
     with RepositoryService
