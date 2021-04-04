@@ -12,7 +12,6 @@ import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
 
 import scala.util.control.Exception._
-import scala.util.matching.Regex.Match.unapply
 
 object StringUtil {
 

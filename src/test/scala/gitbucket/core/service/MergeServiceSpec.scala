@@ -21,7 +21,6 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.service.WebHookService.WebHookPushPayload
 import org.eclipse.jetty.webapp.WebAppContext
 import org.eclipse.jetty.server.{Request, Server}
 import org.json4s.jackson.JsonMethods._

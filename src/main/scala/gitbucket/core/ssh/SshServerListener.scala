@@ -1,6 +1,5 @@
 package gitbucket.core.ssh
 
-import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.{ServletContextEvent, ServletContextListener}
 

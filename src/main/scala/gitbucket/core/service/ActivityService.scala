@@ -1,8 +1,6 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Activity
-import gitbucket.core.util.JGitUtil
-import gitbucket.core.model.Profile._
 import gitbucket.core.util.Directory._
 import org.json4s._
 import org.json4s.jackson.Serialization
@@ -11,10 +9,8 @@ import org.json4s.jackson.Serialization.{read, write}
 import scala.util.Using
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
-import java.util.UUID
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.activity.BaseActivityInfo
 import org.apache.commons.io.input.ReversedLinesFileReader
 
 import scala.collection.mutable.ListBuffer

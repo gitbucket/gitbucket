@@ -2,9 +2,7 @@ package gitbucket.core.model
 
 import java.util.Date
 
-trait ReleaseAssetComponent extends TemplateComponent {
-  self: Profile =>
-
+trait ReleaseAssetComponent extends TemplateComponent { self: Profile =>
   import profile.api._
   import self._
 

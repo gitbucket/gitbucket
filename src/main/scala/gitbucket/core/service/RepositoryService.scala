@@ -12,7 +12,7 @@ import gitbucket.core.util.Directory.{getRepositoryDir, getRepositoryFilesDir, g
 import gitbucket.core.util.JGitUtil.FileInfo
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.{Repository => _, _}
+import org.eclipse.jgit.lib.{Repository => _}
 import scala.util.Using
 
 trait RepositoryService {

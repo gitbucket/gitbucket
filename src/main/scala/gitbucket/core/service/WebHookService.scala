@@ -3,7 +3,6 @@ package gitbucket.core.service
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
-import gitbucket.core.controller.Context
 import gitbucket.core.model.{
   Account,
   AccountWebHook,

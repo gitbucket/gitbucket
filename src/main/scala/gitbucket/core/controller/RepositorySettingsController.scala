@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 import gitbucket.core.settings.html

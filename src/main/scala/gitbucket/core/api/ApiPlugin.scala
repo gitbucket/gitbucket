@@ -1,6 +1,6 @@
 package gitbucket.core.api
 
-import gitbucket.core.plugin.{PluginRegistry, PluginInfo}
+import gitbucket.core.plugin.PluginInfo
 
 case class ApiPlugin(
   id: String,

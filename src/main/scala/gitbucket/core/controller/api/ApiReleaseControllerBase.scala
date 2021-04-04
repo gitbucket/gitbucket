@@ -1,5 +1,5 @@
 package gitbucket.core.controller.api
-import java.io.{ByteArrayInputStream, File}
+import java.io.File
 
 import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
@@ -9,7 +9,7 @@ import gitbucket.core.util.{FileUtil, ReferrerAuthenticator, RepositoryName, Wri
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars.defining
 import org.apache.commons.io.FileUtils
-import org.scalatra.{Created, NoContent}
+import org.scalatra.NoContent
 
 trait ApiReleaseControllerBase extends ControllerBase {
   self: AccountService with ReleaseService with ReferrerAuthenticator with WritableUsersAuthenticator =>

@@ -10,8 +10,6 @@ val JgitVersion = "5.11.0.202103091610-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
-  .settings(
-    )
 
 sourcesInBase := false
 organization := Organization
@@ -75,7 +73,14 @@ libraryDependencies ++= Seq(
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method", "-feature")
+scalacOptions := Seq(
+  "-deprecation",
+  "-language:postfixOps",
+  "-opt:l:method",
+  "-feature",
+  "-Wunused:imports",
+  "-Wconf:cat=unused&src=twirl/.*:s,cat=unused&src=scala/gitbucket/core/model/[^/]+\\.scala:s"
+)
 compile / javacOptions ++= Seq("-target", "8", "-source", "8")
 Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 

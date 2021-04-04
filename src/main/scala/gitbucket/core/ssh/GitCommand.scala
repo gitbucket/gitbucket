@@ -4,7 +4,7 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.{AccountService, DeployKeyService, RepositoryService, SystemSettingsService}
 import gitbucket.core.servlet.{CommitLogHook, Database}
-import gitbucket.core.util.{SyntaxSugars, Directory}
+import gitbucket.core.util.Directory
 import org.apache.sshd.server.{Environment, ExitCallback, SessionAware}
 import org.apache.sshd.server.command.{Command, CommandFactory}
 import org.apache.sshd.server.session.ServerSession

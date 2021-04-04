@@ -5,7 +5,6 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.model.Role
 import RepositoryService.RepositoryInfo
 import Implicits._
-import SyntaxSugars._
 
 /**
  * Allows only oneself and administrators.

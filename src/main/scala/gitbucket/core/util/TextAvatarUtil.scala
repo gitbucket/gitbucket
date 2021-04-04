@@ -3,7 +3,7 @@ package gitbucket.core.util
 import java.io.ByteArrayOutputStream
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import java.awt.{Color, Font, Graphics2D, RenderingHints}
+import java.awt.{Color, Font, RenderingHints}
 import java.awt.font.{FontRenderContext, TextLayout}
 import java.awt.geom.AffineTransform
 
