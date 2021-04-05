@@ -385,54 +385,62 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Rename repository.
    */
   post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
-    if (context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin) {
-      if (repository.name != form.repositoryName) {
-        // Update database and move git repository
-        renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-        // Record activity log
-        val renameInfo = RenameRepositoryInfo(
-          repository.owner,
-          form.repositoryName,
-          context.loginAccount.get.userName,
-          repository.name
-        )
-        recordActivity(renameInfo)
-      }
-      redirect(s"/${repository.owner}/${form.repositoryName}")
-    } else Forbidden()
+    context.withLoginAccount {
+      loginAccount =>
+        if (context.settings.repositoryOperation.rename || loginAccount.isAdmin) {
+          if (repository.name != form.repositoryName) {
+            // Update database and move git repository
+            renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+            // Record activity log
+            val renameInfo = RenameRepositoryInfo(
+              repository.owner,
+              form.repositoryName,
+              loginAccount.userName,
+              repository.name
+            )
+            recordActivity(renameInfo)
+          }
+          redirect(s"/${repository.owner}/${form.repositoryName}")
+        } else Forbidden()
+    }
   })
 
   /**
    * Transfer repository ownership.
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
-    if (context.settings.repositoryOperation.transfer || context.loginAccount.get.isAdmin) {
-      // Change repository owner
-      if (repository.owner != form.newOwner) {
-        // Update database and move git repository
-        renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-        // Record activity log
-        val renameInfo = RenameRepositoryInfo(
-          form.newOwner,
-          repository.name,
-          context.loginAccount.get.userName,
-          repository.owner
-        )
-        recordActivity(renameInfo)
-      }
-      redirect(s"/${form.newOwner}/${repository.name}")
-    } else Forbidden()
+    context.withLoginAccount {
+      loginAccount =>
+        if (context.settings.repositoryOperation.transfer || loginAccount.isAdmin) {
+          // Change repository owner
+          if (repository.owner != form.newOwner) {
+            // Update database and move git repository
+            renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+            // Record activity log
+            val renameInfo = RenameRepositoryInfo(
+              form.newOwner,
+              repository.name,
+              loginAccount.userName,
+              repository.owner
+            )
+            recordActivity(renameInfo)
+          }
+          redirect(s"/${form.newOwner}/${repository.name}")
+        } else Forbidden()
+    }
   })
 
   /**
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    if (context.settings.repositoryOperation.delete || context.loginAccount.get.isAdmin) {
-      // Delete the repository and related files
-      deleteRepository(repository.repository)
-      redirect(s"/${repository.owner}")
-    } else Forbidden()
+    context.withLoginAccount { loginAccount =>
+      if (context.settings.repositoryOperation.delete || loginAccount.isAdmin) {
+        // Delete the repository and related files
+        deleteRepository(repository.repository)
+        redirect(s"/${repository.owner}")
+      } else Forbidden()
+    }
   })
 
   /**

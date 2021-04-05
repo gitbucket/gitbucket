@@ -1,12 +1,11 @@
 package gitbucket.core.util
 
-import scala.language.reflectiveCalls
-
 /**
  * Provides control facilities.
  */
 object SyntaxSugars {
 
+  @deprecated("Use scala.util.Try instead", "4.36.0")
   def defining[A, B](value: A)(f: A => B): B = f(value)
 
   @deprecated("Use scala.util.Try instead", "4.36.0")

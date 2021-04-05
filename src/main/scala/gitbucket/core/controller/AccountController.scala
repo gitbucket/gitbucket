@@ -629,7 +629,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   get("/groups/new")(usersOnly {
-    html.creategroup(List(GroupMember("", context.loginAccount.get.userName, true)))
+    context.withLoginAccount { loginAccount =>
+      html.creategroup(List(GroupMember("", loginAccount.userName, true)))
+    }
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
@@ -716,83 +718,92 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Show the new repository form.
    */
   get("/new")(usersOnly {
-    html.newrepo(getGroupsByUserName(context.loginAccount.get.userName), context.settings.isCreateRepoOptionPublic)
+    context.withLoginAccount { loginAccount =>
+      html.newrepo(getGroupsByUserName(loginAccount.userName), context.settings.isCreateRepoOptionPublic)
+    }
   })
 
   /**
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    if (context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin) {
-      LockUtil.lock(s"${form.owner}/${form.name}") {
-        if (getRepository(form.owner, form.name).isDefined) {
-          // redirect to the repository if repository already exists
-          redirect(s"/${form.owner}/${form.name}")
-        } else if (!canCreateRepository(form.owner, context.loginAccount.get)) {
-          // Permission error
-          Forbidden()
-        } else {
-          // create repository asynchronously
-          createRepository(
-            context.loginAccount.get,
-            form.owner,
-            form.name,
-            form.description,
-            form.isPrivate,
-            form.initOption,
-            form.sourceUrl
-          )
-          // redirect to the repository
-          redirect(s"/${form.owner}/${form.name}")
-        }
-      }
-    } else Forbidden()
+    context.withLoginAccount {
+      loginAccount =>
+        if (context.settings.repositoryOperation.create || loginAccount.isAdmin) {
+          LockUtil.lock(s"${form.owner}/${form.name}") {
+            if (getRepository(form.owner, form.name).isDefined) {
+              // redirect to the repository if repository already exists
+              redirect(s"/${form.owner}/${form.name}")
+            } else if (!canCreateRepository(form.owner, loginAccount)) {
+              // Permission error
+              Forbidden()
+            } else {
+              // create repository asynchronously
+              createRepository(
+                loginAccount,
+                form.owner,
+                form.name,
+                form.description,
+                form.isPrivate,
+                form.initOption,
+                form.sourceUrl
+              )
+              // redirect to the repository
+              redirect(s"/${form.owner}/${form.name}")
+            }
+          }
+        } else Forbidden()
+    }
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
-    val loginAccount = context.loginAccount.get
-    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
-      val loginUserName = loginAccount.userName
-      val groups = getGroupsByUserName(loginUserName)
-      groups match {
-        case _: List[String] =>
-          val managerPermissions = groups.map { group =>
-            val members = getGroupMembers(group)
-            context.loginAccount.exists(
-              x =>
-                members.exists { member =>
-                  member.userName == x.userName && member.isManager
+    context.withLoginAccount {
+      loginAccount =>
+        if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
+          val loginUserName = loginAccount.userName
+          val groups = getGroupsByUserName(loginUserName)
+          groups match {
+            case _: List[String] =>
+              val managerPermissions = groups.map { group =>
+                val members = getGroupMembers(group)
+                context.loginAccount.exists(
+                  x =>
+                    members.exists { member =>
+                      member.userName == x.userName && member.isManager
+                  }
+                )
               }
-            )
+              helper.html.forkrepository(
+                repository,
+                (groups zip managerPermissions).sortBy(_._1)
+              )
+            case _ => redirect(s"/${loginUserName}")
           }
-          helper.html.forkrepository(
-            repository,
-            (groups zip managerPermissions).sortBy(_._1)
-          )
-        case _ => redirect(s"/${loginUserName}")
-      }
-    } else BadRequest()
+        } else BadRequest()
+    }
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    val loginAccount = context.loginAccount.get
-    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
-      val loginUserName = loginAccount.userName
-      val accountName = form.accountName
+    context.withLoginAccount {
+      loginAccount =>
+        if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
+          val loginUserName = loginAccount.userName
+          val accountName = form.accountName
 
-      if (getRepository(accountName, repository.name).isDefined) {
-        // redirect to the repository if repository already exists
-        redirect(s"/${accountName}/${repository.name}")
-      } else if (!canCreateRepository(accountName, loginAccount)) {
-        // Permission error
-        Forbidden()
-      } else {
-        // fork repository asynchronously
-        forkRepository(accountName, repository, loginUserName)
-        // redirect to the repository
-        redirect(s"/${accountName}/${repository.name}")
-      }
-    } else Forbidden()
+          if (getRepository(accountName, repository.name).isDefined) {
+            // redirect to the repository if repository already exists
+            redirect(s"/${accountName}/${repository.name}")
+          } else if (!canCreateRepository(accountName, loginAccount)) {
+            // Permission error
+            Forbidden()
+          } else {
+            // fork repository asynchronously
+            forkRepository(accountName, repository, loginUserName)
+            // redirect to the repository
+            redirect(s"/${accountName}/${repository.name}")
+          }
+        } else Forbidden()
+    }
   })
 
   private def existsAccount: Constraint = new Constraint() {

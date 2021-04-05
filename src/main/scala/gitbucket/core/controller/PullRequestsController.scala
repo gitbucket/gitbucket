@@ -8,7 +8,6 @@ import gitbucket.core.service.IssuesService._
 import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
@@ -111,24 +110,29 @@ trait PullRequestsControllerBase extends ControllerBase {
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap {
       issueId =>
-        val owner = repository.owner
-        val name = repository.name
-        getPullRequest(owner, name, issueId) map {
+        getPullRequest(repository.owner, repository.name, issueId) map {
           case (issue, pullreq) =>
             val (commits, diffs) =
-              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+              getRequestCompareInfo(
+                repository.owner,
+                repository.name,
+                pullreq.commitIdFrom,
+                repository.owner,
+                repository.name,
+                pullreq.commitIdTo
+              )
 
             html.conversation(
               issue,
               pullreq,
               commits.flatten,
-              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              getPullRequestComments(repository.owner, repository.name, issue.issueId, commits.flatten),
               diffs.size,
-              getIssueLabels(owner, name, issueId),
-              getAssignableUserNames(owner, name),
-              getMilestonesWithIssueCount(owner, name),
-              getPriorities(owner, name),
-              getLabels(owner, name),
+              getIssueLabels(repository.owner, repository.name, issueId),
+              getAssignableUserNames(repository.owner, repository.name),
+              getMilestonesWithIssueCount(repository.owner, repository.name),
+              getPriorities(repository.owner, repository.name),
+              getLabels(repository.owner, repository.name),
               isEditable(repository),
               isManageable(repository),
               hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
@@ -162,12 +166,17 @@ trait PullRequestsControllerBase extends ControllerBase {
   get("/:owner/:repository/pull/:id/commits")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap {
       issueId =>
-        val owner = repository.owner
-        val name = repository.name
-        getPullRequest(owner, name, issueId) map {
+        getPullRequest(repository.owner, repository.name, issueId) map {
           case (issue, pullreq) =>
             val (commits, diffs) =
-              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+              getRequestCompareInfo(
+                repository.owner,
+                repository.name,
+                pullreq.commitIdFrom,
+                repository.owner,
+                repository.name,
+                pullreq.commitIdTo
+              )
 
             val commitsWithStatus = commits.map { day =>
               day.map { commit =>
@@ -179,7 +188,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               issue,
               pullreq,
               commitsWithStatus,
-              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              getPullRequestComments(repository.owner, repository.name, issue.issueId, commits.flatten),
               diffs.size,
               isManageable(repository),
               repository
@@ -191,19 +200,24 @@ trait PullRequestsControllerBase extends ControllerBase {
   get("/:owner/:repository/pull/:id/files")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap {
       issueId =>
-        val owner = repository.owner
-        val name = repository.name
-        getPullRequest(owner, name, issueId) map {
+        getPullRequest(repository.owner, repository.name, issueId) map {
           case (issue, pullreq) =>
             val (commits, diffs) =
-              getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+              getRequestCompareInfo(
+                repository.owner,
+                repository.name,
+                pullreq.commitIdFrom,
+                repository.owner,
+                repository.name,
+                pullreq.commitIdTo
+              )
 
             html.files(
               issue,
               pullreq,
               diffs,
               commits.flatten,
-              getPullRequestComments(owner, name, issue.issueId, commits.flatten),
+              getPullRequestComments(repository.owner, repository.name, issue.issueId, commits.flatten),
               isManageable(repository),
               repository
             )
@@ -214,20 +228,20 @@ trait PullRequestsControllerBase extends ControllerBase {
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap {
       issueId =>
-        val owner = repository.owner
-        val name = repository.name
-        getPullRequest(owner, name, issueId) map {
+        getPullRequest(repository.owner, repository.name, issueId) map {
           case (issue, pullreq) =>
-            val conflictMessage = LockUtil.lock(s"${owner}/${name}") {
-              checkConflict(owner, name, pullreq.branch, issueId)
+            val conflictMessage = LockUtil.lock(s"${repository.owner}/${repository.name}") {
+              checkConflict(repository.owner, repository.name, pullreq.branch, issueId)
             }
-            val hasMergePermission = hasDeveloperRole(owner, name, context.loginAccount)
-            val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
+            val hasMergePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+            val branchProtection = getProtectedBranchInfo(repository.owner, repository.name, pullreq.branch)
             val mergeStatus = PullRequestService.MergeStatus(
               conflictMessage = conflictMessage,
-              commitStatuses = getCommitStatuses(owner, name, pullreq.commitIdTo),
+              commitStatuses = getCommitStatuses(repository.owner, repository.name, pullreq.commitIdTo),
               branchProtection = branchProtection,
-              branchIsOutOfDate = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
+              branchIsOutOfDate = JGitUtil.getShaByRef(repository.owner, repository.name, pullreq.branch) != Some(
+                pullreq.commitIdFrom
+              ),
               needStatusCheck = context.loginAccount
                 .map { u =>
                   branchProtection.needStatusCheck(u.userName)
@@ -363,23 +377,22 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>
-    params("id").toIntOpt.flatMap { issueId =>
-      val owner = repository.owner
-      val name = repository.name
-
-      mergePullRequest(
-        repository,
-        issueId,
-        context.loginAccount.get,
-        form.message,
-        form.strategy,
-        form.isDraft,
-        context.settings
-      ) match {
-        case Right(objectId) => redirect(s"/${owner}/${name}/pull/${issueId}")
-        case Left(message)   => Some(BadRequest(message))
-      }
-    } getOrElse NotFound()
+    context.withLoginAccount { loginAccount =>
+      params("id").toIntOpt.flatMap { issueId =>
+        mergePullRequest(
+          repository,
+          issueId,
+          loginAccount,
+          form.message,
+          form.strategy,
+          form.isDraft,
+          context.settings
+        ) match {
+          case Right(objectId) => redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+          case Left(message)   => Some(BadRequest(message))
+        }
+      } getOrElse NotFound()
+    }
   })
 
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
@@ -549,15 +562,14 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnly { (form, repository) =>
-    defining(repository.owner, repository.name) {
-      case (owner, name) =>
+    context.withLoginAccount {
+      loginAccount =>
         val manageable = isManageable(repository)
-        val loginUserName = context.loginAccount.get.userName
 
         val issueId = insertIssue(
           owner = repository.owner,
           repository = repository.name,
-          loginUser = loginUserName,
+          loginUser = loginAccount.userName,
           title = form.title,
           content = form.content,
           assignedUserName = if (manageable) form.assignedUserName else None,
@@ -576,14 +588,14 @@ trait PullRequestsControllerBase extends ControllerBase {
           commitIdFrom = form.commitIdFrom,
           commitIdTo = form.commitIdTo,
           isDraft = form.isDraft,
-          loginAccount = context.loginAccount.get,
+          loginAccount = loginAccount,
           settings = context.settings
         )
 
         // insert labels
         if (manageable) {
           form.labelNames.foreach { value =>
-            val labels = getLabels(owner, name)
+            val labels = getLabels(repository.owner, repository.name)
             value.split(",").foreach { labelName =>
               labels.find(_.labelName == labelName).map { label =>
                 registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
@@ -592,7 +604,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           }
         }
 
-        redirect(s"/${owner}/${name}/pull/${issueId}")
+        redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
     }
   })
 
@@ -639,43 +651,41 @@ trait PullRequestsControllerBase extends ControllerBase {
     html.proposals(proposedBranches, targetRepository, repository)
   })
 
-  private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
-    defining(repository.owner, repository.name) {
-      case (owner, repoName) =>
-        val page = IssueSearchCondition.page(request)
-        // retrieve search condition
-        val condition = IssueSearchCondition(request)
-        // search issues
-        val issues = searchIssue(
-          condition,
-          IssueSearchOption.PullRequests,
-          (page - 1) * PullRequestLimit,
-          PullRequestLimit,
-          owner -> repoName
-        )
-        // commit status
-        val status = issues.map { issue =>
-          issue.commitId.flatMap { commitId =>
-            getCommitStatusWithSummary(owner, repoName, commitId)
-          }
-        }
-
-        gitbucket.core.issues.html.list(
-          "pulls",
-          issues.zip(status),
-          page,
-          getAssignableUserNames(owner, repoName),
-          getMilestones(owner, repoName),
-          getPriorities(owner, repoName),
-          getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, owner -> repoName),
-          condition,
-          repository,
-          isEditable(repository),
-          isManageable(repository)
-        )
+  private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) = {
+    val page = IssueSearchCondition.page(request)
+    // retrieve search condition
+    val condition = IssueSearchCondition(request)
+    // search issues
+    val issues = searchIssue(
+      condition,
+      IssueSearchOption.PullRequests,
+      (page - 1) * PullRequestLimit,
+      PullRequestLimit,
+      repository.owner -> repository.name
+    )
+    // commit status
+    val status = issues.map { issue =>
+      issue.commitId.flatMap { commitId =>
+        getCommitStatusWithSummary(repository.owner, repository.name, commitId)
+      }
     }
+
+    gitbucket.core.issues.html.list(
+      "pulls",
+      issues.zip(status),
+      page,
+      getAssignableUserNames(repository.owner, repository.name),
+      getMilestones(repository.owner, repository.name),
+      getPriorities(repository.owner, repository.name),
+      getLabels(repository.owner, repository.name),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, repository.owner -> repository.name),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, repository.owner -> repository.name),
+      condition,
+      repository,
+      isEditable(repository),
+      isManageable(repository)
+    )
+  }
 
   /**
    * Tests whether an logged-in user can manage pull requests.
