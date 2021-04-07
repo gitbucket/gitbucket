@@ -57,7 +57,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     with PrioritiesService =>
 
   val pullRequestForm = mapping(
-    "title" -> trim(label("Title", text(required, maxlength(100)))),
+    "title" -> trim(label("Title", text(required))),
     "content" -> trim(label("Content", optional(text()))),
     "targetUserName" -> trim(text(required, maxlength(100))),
     "targetBranch" -> trim(text(required, maxlength(100))),
