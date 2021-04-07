@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.dashboard.html
+import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.{Keys, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
@@ -34,45 +35,63 @@ trait DashboardControllerBase extends ControllerBase {
     with UsersAuthenticator =>
 
   get("/dashboard/repos")(usersOnly {
-    val repos = getVisibleRepositories(
-      context.loginAccount,
-      None,
-      withoutPhysicalInfo = true,
-      limit = context.settings.limitVisibleRepositories
-    )
-    html.repos(getGroupNames(context.loginAccount.get.userName), repos, repos)
+    context.withLoginAccount { loginAccount =>
+      val repos = getVisibleRepositories(
+        context.loginAccount,
+        None,
+        withoutPhysicalInfo = true,
+        limit = context.settings.limitVisibleRepositories
+      )
+      html.repos(getGroupNames(loginAccount.userName), repos, repos)
+    }
   })
 
   get("/dashboard/issues")(usersOnly {
-    searchIssues("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/issues/assigned")(usersOnly {
-    searchIssues("assigned")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "assigned")
+    }
   })
 
   get("/dashboard/issues/created_by")(usersOnly {
-    searchIssues("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/issues/mentioned")(usersOnly {
-    searchIssues("mentioned")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "mentioned")
+    }
   })
 
   get("/dashboard/pulls")(usersOnly {
-    searchPullRequests("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/pulls/created_by")(usersOnly {
-    searchPullRequests("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/pulls/assigned")(usersOnly {
-    searchPullRequests("assigned")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "assigned")
+    }
   })
 
   get("/dashboard/pulls/mentioned")(usersOnly {
-    searchPullRequests("mentioned")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "mentioned")
+    }
   })
 
   private def getOrCreateCondition(key: String, filter: String, userName: String) = {
@@ -85,10 +104,10 @@ trait DashboardControllerBase extends ControllerBase {
     }
   }
 
-  private def searchIssues(filter: String) = {
+  private def searchIssues(loginAccount: Account, filter: String) = {
     import IssuesService._
 
-    val userName = context.loginAccount.get.userName
+    val userName = loginAccount.userName
     val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
     val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page = IssueSearchCondition.page(request)
@@ -115,11 +134,11 @@ trait DashboardControllerBase extends ControllerBase {
     )
   }
 
-  private def searchPullRequests(filter: String) = {
+  private def searchPullRequests(loginAccount: Account, filter: String) = {
     import IssuesService._
     import PullRequestService._
 
-    val userName = context.loginAccount.get.userName
+    val userName = loginAccount.userName
     val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
     val allRepos = getAllRepositories(userName)
     val page = IssueSearchCondition.page(request)

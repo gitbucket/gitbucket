@@ -136,32 +136,38 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/wiki/:page/_revert/:commitId")(readableUsersOnly { repository =>
-    if (isEditable(repository)) {
-      val pageName = StringUtil.urlDecode(params("page"))
-      val Array(from, to) = params("commitId").split("\\.\\.\\.")
+    context.withLoginAccount {
+      loginAccount =>
+        if (isEditable(repository)) {
+          val pageName = StringUtil.urlDecode(params("page"))
+          val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-      if (revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))) {
-        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
-      } else {
-        flash.update("info", "This patch was not able to be reversed.")
-        redirect(
-          s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}"
-        )
-      }
-    } else Unauthorized()
+          if (revertWikiPage(repository.owner, repository.name, from, to, loginAccount, Some(pageName))) {
+            redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
+          } else {
+            flash.update("info", "This patch was not able to be reversed.")
+            redirect(
+              s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}"
+            )
+          }
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/_revert/:commitId")(readableUsersOnly { repository =>
-    if (isEditable(repository)) {
-      val Array(from, to) = params("commitId").split("\\.\\.\\.")
+    context.withLoginAccount {
+      loginAccount =>
+        if (isEditable(repository)) {
+          val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-      if (revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)) {
-        redirect(s"/${repository.owner}/${repository.name}/wiki")
-      } else {
-        flash.update("info", "This patch was not able to be reversed.")
-        redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
-      }
-    } else Unauthorized()
+          if (revertWikiPage(repository.owner, repository.name, from, to, loginAccount, None)) {
+            redirect(s"/${repository.owner}/${repository.name}/wiki")
+          } else {
+            flash.update("info", "This patch was not able to be reversed.")
+            redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
+          }
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/:page/_edit")(readableUsersOnly { repository =>
@@ -172,9 +178,9 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/wiki/_edit", editForm)(readableUsersOnly { (form, repository) =>
-    if (isEditable(repository)) {
-      defining(context.loginAccount.get) {
-        loginAccount =>
+    context.withLoginAccount {
+      loginAccount =>
+        if (isEditable(repository)) {
           saveWikiPage(
             repository.owner,
             repository.name,
@@ -201,8 +207,8 @@ trait WikiControllerBase extends ControllerBase {
           } else {
             redirect(s"/${repository.owner}/${repository.name}/wiki")
           }
-      }
-    } else Unauthorized()
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/_new")(readableUsersOnly { repository =>
@@ -212,9 +218,9 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnly { (form, repository) =>
-    if (isEditable(repository)) {
-      defining(context.loginAccount.get) {
-        loginAccount =>
+    context.withLoginAccount {
+      loginAccount =>
+        if (isEditable(repository)) {
           saveWikiPage(
             repository.owner,
             repository.name,
@@ -242,16 +248,15 @@ trait WikiControllerBase extends ControllerBase {
           } else {
             redirect(s"/${repository.owner}/${repository.name}/wiki")
           }
-      }
-    } else Unauthorized()
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/:page/_delete")(readableUsersOnly { repository =>
-    if (isEditable(repository)) {
-      val pageName = StringUtil.urlDecode(params("page"))
-
-      defining(context.loginAccount.get) {
-        loginAccount =>
+    context.withLoginAccount {
+      loginAccount =>
+        if (isEditable(repository)) {
+          val pageName = StringUtil.urlDecode(params("page"))
           deleteWikiPage(
             repository.owner,
             repository.name,
@@ -270,8 +275,8 @@ trait WikiControllerBase extends ControllerBase {
           updateLastActivityDate(repository.owner, repository.name)
 
           redirect(s"/${repository.owner}/${repository.name}/wiki")
-      }
-    } else Unauthorized()
+        } else Unauthorized()
+    }
   })
 
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>

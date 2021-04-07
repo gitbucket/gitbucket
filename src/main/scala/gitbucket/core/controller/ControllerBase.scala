@@ -303,6 +303,13 @@ case class Context(
   }
   val sidebarCollapse = request.getSession.getAttribute("sidebar-collapse") != null
 
+  def withLoginAccount(f: Account => Any): Any = {
+    loginAccount match {
+      case Some(loginAccount) => f(loginAccount)
+      case None               => Unauthorized()
+    }
+  }
+
   /**
    * Get object from cache.
    *

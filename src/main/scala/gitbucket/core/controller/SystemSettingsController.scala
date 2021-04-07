@@ -9,7 +9,6 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.ssh.SshServer
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.mail.EmailException
@@ -463,31 +462,28 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/users/:groupName/_editgroup")(adminOnly {
-    defining(params("groupName")) { groupName =>
-      html.usergroup(getAccountByUserName(groupName, true), getGroupMembers(groupName))
-    }
+    val groupName = params("groupName")
+    html.usergroup(getAccountByUserName(groupName, true), getGroupMembers(groupName))
   })
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
-    defining(
-      params("groupName"),
-      form.members
-        .split(",")
-        .map {
-          _.split(":") match {
-            case Array(userName, isManager) => (userName, isManager.toBoolean)
-          }
+    val groupName = params("groupName")
+    val members = form.members
+      .split(",")
+      .map {
+        _.split(":") match {
+          case Array(userName, isManager) => (userName, isManager.toBoolean)
         }
-        .toList
-    ) {
-      case (groupName, members) =>
-        getAccountByUserName(groupName, true).map {
-          account =>
-            updateGroup(groupName, form.description, form.url, form.isRemoved)
+      }
+      .toList
 
-            if (form.isRemoved) {
-              // Remove from GROUP_MEMBER
-              updateGroupMembers(form.groupName, Nil)
+    getAccountByUserName(groupName, true).map {
+      account =>
+        updateGroup(groupName, form.description, form.url, form.isRemoved)
+
+        if (form.isRemoved) {
+          // Remove from GROUP_MEMBER
+          updateGroupMembers(form.groupName, Nil)
 //          // Remove repositories
 //          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
 //            deleteRepository(groupName, repositoryName)
@@ -495,9 +491,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 //            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
 //            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
 //          }
-            } else {
-              // Update GROUP_MEMBER
-              updateGroupMembers(form.groupName, members)
+        } else {
+          // Update GROUP_MEMBER
+          updateGroupMembers(form.groupName, members)
 //          // Update COLLABORATOR for group repositories
 //          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
 //            removeCollaborators(form.groupName, repositoryName)
@@ -505,13 +501,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 //              addCollaborator(form.groupName, repositoryName, userName)
 //            }
 //          }
-            }
+        }
 
-            updateImage(form.groupName, form.fileId, form.clearImage)
-            redirect("/admin/users")
+        updateImage(form.groupName, form.fileId, form.clearImage)
+        redirect("/admin/users")
 
-        } getOrElse NotFound()
-    }
+    } getOrElse NotFound()
   })
 
   get("/admin/data")(adminOnly {
@@ -559,12 +554,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   protected def disableByNotYourself(paramName: String): Constraint =
     new Constraint() {
       override def validate(name: String, value: String, messages: Messages): Option[String] = {
-        params.get(paramName).flatMap { userName =>
-          if (userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
-            Some("You can't disable your account yourself")
-          else
-            None
-        }
+        for {
+          userName <- params.get(paramName)
+          loginAccount <- context.loginAccount
+          if userName == loginAccount.userName && params.get("removed") == Some("true")
+        } yield "You can't disable your account yourself"
       }
     }
 
