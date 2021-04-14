@@ -25,6 +25,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.java }}
+        distribution: adopt
     - name: Run tests
       run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
     - name: Build executable
