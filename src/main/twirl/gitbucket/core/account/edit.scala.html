@@ -72,7 +72,8 @@ $(function(){
   addExtraMailAddress();
   $('#extraMailAddresses').on('change', '.extraMailAddress', checkExtraMailAddress);
   $('#save').click(function(){
-    if($('#password').val() != ''){
+    let pwval = $('#password').val();
+    if(typeof(pwval) != 'undefined' && pwval != ''){
       return confirm('Are you sure you want to change password?');
     } else {
       return true;
