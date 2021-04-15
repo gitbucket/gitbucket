@@ -1,0 +1,6 @@
+@(path: String, content: Array[Byte])
+<div data-path="@path" id="file">
+  <div class="plain">
+    <pre>@(new String(content, "UTF-8"))</pre>
+  </div>
+</div>

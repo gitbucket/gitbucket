@@ -1,6 +1,6 @@
 package gitbucket.core.api
 
-import java.util.{Calendar, Date, TimeZone}
+import java.util.{Base64, Calendar, Date, TimeZone}
 
 import gitbucket.core.api.ApiBranchProtection.EnforcementLevel
 import gitbucket.core.model._
@@ -366,21 +366,13 @@ object ApiSpecModels {
   )
 
   val apiContents = ApiContents(
-    fileInfo = FileInfo(
-      id = ObjectId.fromString(sha1),
-      isDirectory = false,
-      name = "README.md",
-      path = "doc/README.md",
-      message = "message",
-      commitId = sha1,
-      time = date1,
-      author = account.userName,
-      mailAddress = account.mailAddress,
-      linkUrl = None
-    ),
-    repositoryName = repo1Name,
-    content = Some("README".getBytes("UTF-8"))
-  )
+    `type` = "file",
+    name = "README.md",
+    path = "doc/README.md",
+    sha = sha1,
+    content = Some(Base64.getEncoder.encodeToString("README".getBytes())),
+    encoding = Some("base64")
+  )(repo1Name, "master")
 
   val apiEndPoint = ApiEndPoint()
 
@@ -699,7 +691,13 @@ object ApiSpecModels {
        |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
        |"content":"UkVBRE1F",
        |"encoding":"base64",
-       |"download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md"
+       |"download_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/doc/README.md",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/tree/master/doc/README.md",
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/contents/doc/README.md?ref=master",
+       |"_link":{
+       |"self":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/contents/doc/README.md?ref=master",
+       |"html":"http://gitbucket.exmple.com/octocat/Hello-World/tree/master/doc/README.md"
+       |}
        |}""".stripMargin
 
   val jsonEndPoint = """{"rate_limit_url":"http://gitbucket.exmple.com/api/v3/rate_limit"}"""
