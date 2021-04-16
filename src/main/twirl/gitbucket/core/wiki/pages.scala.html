@@ -6,15 +6,15 @@
   @gitbucket.core.html.menu("wiki", repository){
     <ul class="nav nav-tabs fill-width">
       <li>
-        <h1 class="wiki-title"><span class="muted">Pages</span></h1>
+        <h1 class="wiki-title"><span class="text-muted">Pages</span></h1>
       </li>
-      <li class="pull-right">
+      <li class="float-right">
         @if(isEditable){
           <a class="btn btn-default" href="@helpers.url(repository)/wiki/_new">New Page</a>
         }
       </li>
     </ul>
-    <ul class="pull-left">
+    <ul class="float-left">
       @pages.map { page =>
         <li><a href="@helpers.url(repository)/wiki/@helpers.urlEncode(page)">@page</a></li>
       }

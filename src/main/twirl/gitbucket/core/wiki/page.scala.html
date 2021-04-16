@@ -9,97 +9,70 @@
 @import gitbucket.core.service.WikiService
 @gitbucket.core.html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
-    <div>
-      <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right">
-        <div class="input-group">
-          <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all pages"/>
-          <input type="hidden" name="type" value="wiki"/>
-          <span class="input-group-btn">
-            <button type="submit" id="search-btn" class="btn btn-default" aria-label="Search all pages"><i class="fa fa-search"></i></button>
-          </span>
-        </div>
-        <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
-        @if(isEditable){
-          <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
-          <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
-        }
-      </form>
-      <h1 class="body-title">@pageName</h1>
-      <div>
-        <span class="muted"><strong>@page.committer</strong> edited this page @gitbucket.core.helper.html.datetimeago(page.time)</span>
-      </div>
-      <hr>
-    </div>
-    <div style="width: 250px; margin-top: 20px;" class="pull-right pc">
-      @defining(15){ max =>
-        <div class="panel panel-default">
-          <div class="panel-heading strong">
-            <a id="show-pages-index" href="javascript:void(0);">
-              <span id="triangle-down" class="octicon octicon-triangle-down"></span>
-              <span id="triangle-right" class="octicon octicon-triangle-right" style="display: none;"></span>
-              <span class="strong">Pages</span> <span class="badge">@pages.length</span>
-            </a>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-lg-4">
+              <div class="row">
+                <div class="col">
+                  <h4 class="body-title">@pageName</h4>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <span class="text-muted"><strong>@page.committer</strong> edited this page @gitbucket.core.helper.html.datetimeago(page.time)</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-8">
+              <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline float-lg-right">
+                <div class="form-row">
+                  <div class="input-group mr-1 mb-1">
+                    <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all pages"/>
+                    <input type="hidden" name="type" value="wiki"/>
+                    <div class="input-group-append">
+                      <button type="submit" id="search-btn" class="btn btn-default" aria-label="Search all pages"><i class="fa fa-search"></i></button>
+                    </div>
+                  </div>
+                  <a class="btn btn-default mr-1 mb-1" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
+                  @if(isEditable){
+                  <a class="btn btn-default mr-1 mb-1" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
+                  <a class="btn btn-success mb-1" href="@helpers.url(repository)/wiki/_new">New Page</a>
+                  }
+                </div>
+              </form>
+            </div>
           </div>
-          <ul id="pages-index" class="list-group list-group-flush">
-            @pages.zipWithIndex.map { case (page, i) =>
-              <li class="list-group-item page-link" style="border: none; @if(i > max - 1){display:none;}">
-                <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(page)" class="strong">@page</a>
-              </li>
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <div class="row">
+            <div class="col wiki-main">
+              <div class="markdown-body">
+                @helpers.markdown(
+                  markdown = page.content,
+                  repository = repository,
+                  branch = "master",
+                  enableWikiLink = true,
+                  enableRefsLink = false,
+                  enableLineBreaks = false,
+                  enableTaskList = false,
+                  hasWritePermission = false,
+                  pages = pages
+                )
+              </div>
+            </div>
+          </div>
+        </div><!-- /.card-body -->
+        @footer.map { footerPage =>
+        <div class="card-footer">
+          <div class="wiki-sidebar wiki-footer">
+            @if(isEditable){
+            <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil float-right btn btn-tool mt-1"></span></a>
             }
-            @if(pages.size > max){
-              <li class="list-group-item show-more">
-                <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
-              </li>
-            }
-          </ul>
-        </div>
-      }
-      @sidebar.map { sidebarPage =>
-        <div class="wiki-sidebar">
-          @if(isEditable){
-            <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
-          }
-          @helpers.markdown(sidebarPage.content, repository, "master", true, false, false, false, pages)
-        </div>
-      }.getOrElse{
-        @if(isEditable){
-          <a class="button-link" href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;">
-            <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom sidebar</div>
-          </a>
-        }
-      }
-      <div>
-        <strong>Clone this wiki locally</strong>
-      </div>
-      @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", WikiService.wikiHttpUrl(repository)){
-        <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly aria-label="repository-url">
-      }
-      @if(WikiService.wikiSshUrl(repository).isDefined) {
-        <div class="small">
-          <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
-        </div>
-      }
-    </div>
-    <div class="wiki-main">
-      <div class="markdown-body">
-        @helpers.markdown(
-          markdown = page.content,
-          repository = repository,
-          branch = "master",
-          enableWikiLink = true,
-          enableRefsLink = false,
-          enableLineBreaks = false,
-          enableTaskList = false,
-          hasWritePermission = false,
-          pages = pages
-        )
-      </div>
-      @footer.map { footerPage =>
-        <div class="wiki-sidebar wiki-footer">
-          @if(isEditable){
-            <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
-          }
-          @helpers.markdown(
+            @helpers.markdown(
             markdown         = footerPage.content,
             repository       = repository,
             branch           = "master",
@@ -108,16 +81,74 @@
             enableLineBreaks = false,
             enableAnchor     = false,
             pages            = pages
-          )
+            )
+          </div>
         </div>
-      }.getOrElse{
-        @if(isEditable){
+          }.getOrElse{
+          @if(isEditable){
+        <div class="card-footer">
           <a class="button-link" href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;">
             <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom footer</div>
           </a>
+        </div>
+          }
+        }
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+    <div class="col-md-3">
+      @defining(15){ max =>
+      <div class="card card-default">
+        <div class="card-header">
+          <a id="show-pages-index" href="javascript:void(0);">
+            <span id="triangle-down" class="octicon octicon-triangle-down"></span>
+            <span id="triangle-right" class="octicon octicon-triangle-right" style="display: none;"></span>
+            <span class="strong">Pages</span> <span class="badge">@pages.length</span>
+          </a>
+        </div>
+        <ul id="pages-index" class="list-group list-group-flush">
+          @pages.zipWithIndex.map { case (page, i) =>
+          <li class="list-group-item list-group-item-action">
+            <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(page)">@page</a>
+          </li>
+          }
+          @if(pages.size > max){
+          <li class="list-group-item show-more">
+            <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
+          </li>
+          }
+        </ul>
+      </div><!-- /.card -->
+      }
+      @sidebar.map { sidebarPage =>
+      <div class="card">
+        <div class="card-header">
+        @if(isEditable){
+          <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil float-right btn btn-tool mt-1"></span></a>
+        }
+        @helpers.markdown(sidebarPage.content, repository, "master", true, false, false, false, pages)
+        </div><!-- /.card-header -->
+      </div><!-- /.card -->
+      }.getOrElse{
+        @if(isEditable){
+      <a class="button-link" href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;">
+        <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom sidebar</div>
+      </a>
         }
       }
-    </div>
+      <div>
+        <strong>Clone this wiki locally</strong>
+      </div>
+      @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", WikiService.wikiHttpUrl(repository)){
+      <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly aria-label="repository-url">
+      }
+      @if(WikiService.wikiSshUrl(repository).isDefined) {
+      <div class="small">
+        <span class="text-muted">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
+      </div>
+      }
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div>
   }
 }
 <script>

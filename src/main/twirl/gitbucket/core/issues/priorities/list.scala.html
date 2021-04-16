@@ -5,34 +5,53 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Priorities - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("priorities", repository){
-    @if(hasWritePermission){
-      <div class="pull-right" style="margin-bottom: 10px;">
-        <a class="btn btn-success" href="javascript:void(0);" id="new-priority-button">New priority</a>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="row">
+            <div class="col">
+              <h4>Priorities</h4>
+            </div>
+            <div class="col">
+              @if(hasWritePermission){
+              <div class="float-right mb-2">
+                <a class="btn btn-success" href="javascript:void(0);" id="new-priority-button">New priority</a>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered table-hover table-issues mt-2" id="new-priority-table" style="display: none;">
+            <tr><td></td></tr>
+          </table>
+          <table id="priorities-table" class="table table-bordered table-hover table-issues mt-2">
+            <thead class="thead-light">
+              <tr id="priority-row-header">
+                <th>@priorities.size priorities</th>
+              </tr>
+            </thead>
+            <tbody>
+              @priorities.map { priority =>
+                @gitbucket.core.issues.priorities.html.priority(priority, counts, repository, hasWritePermission)
+              }
+              <tr id="priority-no-priorities" @if(!priorities.isEmpty){ style="display:none" }>
+                <td class="p-2 bg-light text-center">
+                  No priorities to show.
+                  @if(hasWritePermission){
+                    Click on the "New priority" button above to create one.
+                  }
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    }
-    <table class="table table-bordered table-hover table-issues" id="new-priority-table" style="display: none;">
-      <tr><td></td></tr>
-    </table>
-    <table id="priorities-table" class="table table-bordered table-hover table-issues">
-      <thead>
-        <tr id="priority-row-header">
-          <th>@priorities.size priorities</th>
-        </tr>
-      </thead>
-      <tbody>
-        @priorities.map { priority =>
-          @gitbucket.core.issues.priorities.html.priority(priority, counts, repository, hasWritePermission)
-        }
-        <tr id="priority-no-priorities" @if(!priorities.isEmpty){ style="display:none" }>
-          <td style="padding: 20px; background-color: #eee; text-align: center;">
-            No priorities to show.
-            @if(hasWritePermission){
-              Click on the "New priority" button above to create one.
-            }
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    </div>
+  </div>
+</div>
   }
 }
 <script>

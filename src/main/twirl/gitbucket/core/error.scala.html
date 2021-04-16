@@ -1,22 +1,40 @@
 @(title: String, e: Option[Throwable]=None)(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Error"){
   <div class="content-wrapper main-center">
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-auto mb-1">
+            <h1 class="m-0 text-dark">@title</h1>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div><!-- /.content-header -->
     <div class="content body">
-      <h1>@title</h1>
-      @if(context.loginAccount.map{_.isAdmin}.getOrElse(false)){
-        @e.map { ex =>
-          <h2>@ex.toString</h2>
-          <table class="table table-condensed table-striped table-hover">
-            <tbody>
-            @ex.getStackTrace.map{ st =>
-            <tr><td>@st</td></tr>
-            }
-            </tbody>
-          </table>
-        }
-      } else {
-        <div>Please contact your administrator.</div>
-      }
-    </div>
-  </div>
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <div class="card">
+              <div class="card-body">
+                @if(context.loginAccount.map{_.isAdmin}.getOrElse(false)){
+                @e.map { ex =>
+                <h5>@ex.toString</h5>
+                <table class="table table-condensed table-striped table-hover">
+                  <tbody>
+                  @ex.getStackTrace.map{ st =>
+                  <tr><td>@st</td></tr>
+                  }
+                  </tbody>
+                </table>
+                }
+                } else {
+                <div>Please contact your administrator.</div>
+                }
+              </div><!-- /.card-body -->
+            </div><!-- /.card -->
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container -->
+    </div><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 }

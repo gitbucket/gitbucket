@@ -7,58 +7,77 @@
 @import gitbucket.core.util.FileUtil
 @gitbucket.core.html.main(s"Upload Files at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
-    @if(protectedBranch){
-      <div class="alert alert-danger">branch @branch is protected.</div>
-    }
-    <form method="POST" action="@helpers.url(repository)/upload" id="upload-form" autocomplete="off">
-      <div class="head">
-        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
-        @pathList.zipWithIndex.map { case (section, i) =>
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.take(i + 1).mkString("/"))">@section</a> /
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        @if(protectedBranch){
+        <div class="alert alert-danger">branch @branch is protected.</div>
         }
-        <input type="hidden" name="branch" id="branch" value="@branch"/>
-        <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
-      </div>
-      <table class="table table-bordered">
-        <tr>
-          <td id="upload-td">
-            <div id="upload-area">
-              Drag files here to add them to your repository
+        <form method="POST" action="@helpers.url(repository)/upload" id="upload-form" autocomplete="off">
+          <div class="card-header">
+            <h4>
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+              @pathList.zipWithIndex.map { case (section, i) =>
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.take(i + 1).mkString("/"))">@section</a> /
+              }
+            </h4>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            <input type="hidden" name="branch" id="branch" value="@branch"/>
+            <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+            <table class="table table-bordered mb-2">
+              <tr>
+                <td id="upload-td" class="bg-light">
+                  <div id="upload-area" class="text-center p-3 pt-4">
+                    Drag files here to add them to your repository
+                  </div>
+                  <ul id="upload-files">
+                  </ul>
+                </td>
+              </tr>
+            </table>
+            <div class="row issue-comment-box">
+              <div class="col">
+                <div>
+                  <strong>Commit changes</strong>
+                </div>
+                <div class="form-group">
+                  <input type="text" name="message" class="form-control"/>
+                </div>
+                <div class="form-group">
+                  <div class="col-md-12">
+                    <div class="form-check form-check-inline">
+                      <input type="radio" class="form-check-input" id="newBranch-false" name="newBranch" value="false" checked>
+                      <label for="newBranch-false" class="form-check-label">
+                        <i class='octicon octicon-git-commit'></i><span>Commit directly to the <strong style="background-color: lightblue; font-family: Consolas">@branch</strong> branch.</span>
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="radio" class="form-check-input" id="newBranch-true" name="newBranch" value="true">
+                      <label for="newBranch-true" class="form-check-label">
+                        <i class='octicon octicon-git-pull-request'></i><span>Create a <strong>new branch</strong> for this commit and start a pull request.</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div><!-- /.col -->
+            </div><!-- /.row -->
+          </div><!-- /.card-body -->
+          <div class="card-footer">
+            <div class="float-right">
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.mkString("/"))" class="btn btn-default">Cancel</a>
+              <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
+              <input type="hidden" id="upload-files-data" name="uploadFiles" value=""/>
+              <input type="hidden" id="commit" name="commit" value="@commit"/>
             </div>
-            <ul id="upload-files">
-            </ul>
-          </td>
-        </tr>
-      </table>
-      <div class="panel panel-default issue-comment-box">
-        <div class="panel-body">
-          <div>
-            <strong>Commit changes</strong>
-          </div>
-          <div class="form-group">
-            <input type="text" name="message" class="form-control"/>
-          </div>
-          <div class="form-group">
-            <div class="col-md-12">
-              <label class="radio">
-                <input type="radio" id="newBranch" name="newBranch" value="false" checked>
-                <i class='octicon octicon-git-commit'></i><span>Commit directly to the <strong style="background-color: lightblue; font-family: Consolas">@branch</strong> branch.</span>
-              </label>
-              <label class="radio">
-                <input type="radio" id="newBranch"  name="newBranch" value="true">
-                <i class='octicon octicon-git-pull-request'></i><span>Create a <strong>new branch</strong> for this commit and start a pull request.</span>
-              </label>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch + "/" + pathList.mkString("/"))" class="btn btn-default">Cancel</a>
-            <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
-            <input type="hidden" id="upload-files-data" name="uploadFiles" value=""/>
-            <input type="hidden" id="commit" name="commit" value="@commit"/>
-          </div>
-        </div>
-      </div>
-    </form>
+          </div><!-- /.card-footer -->
+        </form>
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
+
   }
 }
 <script>
@@ -73,7 +92,7 @@ $(function(){
       $(file.previewElement).remove();
       $('#upload-files').append($('<li class="upload-file">')
         .append($('<span>').data('id', id).text(file.name))
-        .append($('<a class="delete" href="javascript:void(0);" style="margin-left: 4px;">(delete)</a>')));
+        .append($('<a class="delete ml-2" href="javascript:void(0);">(delete)</a>')));
       updateCommitButtonStatus();
     }
   });

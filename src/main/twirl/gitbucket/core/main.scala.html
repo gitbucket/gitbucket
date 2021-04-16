@@ -1,6 +1,7 @@
 @(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None, highlighterTheme: String = "github-v2")(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.plugin.PluginRegistry
 @import gitbucket.core.view.helpers
+@hasSidebar = @{body.toString.contains("main-sidebar")}
 <!DOCTYPE html>
 <html prefix="og: http://ogp.me/ns#" lang="en">
   <head>
@@ -21,125 +22,129 @@
       }
     }
     <link rel="icon" href="@helpers.assets("/common/images/gitbucket.png")" type="image/vnd.microsoft.icon" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="@helpers.assets("/vendors/google-fonts/css/source-sans-pro.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/bootstrap-3.4.1/css/bootstrap.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/octicons-4.4.0/octicons.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/css/bootstrap-datetimepicker.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/colorpicker/css/bootstrap-colorpicker.min.css")" rel="stylesheet">
-    <link href="@helpers.assets(s"/vendors/color-themes-for-google-code-prettify/${highlighterTheme}.min.css")" type="text/css" rel="stylesheet"/>
-    <link href="@helpers.assets("/vendors/facebox/facebox.css")" rel="stylesheet"/>
-    <link href="@helpers.assets("/vendors/AdminLTE-2.4.2/css/AdminLTE.min.css")" rel="stylesheet">
-    <link href="@helpers.assets(s"/vendors/AdminLTE-2.4.2/css/skins/${context.settings.skinName}.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/font-awesome-4.7.0/css/font-awesome.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.structure.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.theme.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/tipped/tipped.css")" rel="stylesheet">
-    <script src="@helpers.assets("/vendors/jquery/jquery-3.5.1.min.js")"></script>
-    <script src="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.js")"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/fontawesome-free/css/all.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/icheck-bootstrap/icheck-bootstrap.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jqvmap/jqvmap.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/dist/css/adminlte.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/overlayScrollbars/css/OverlayScrollbars.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/daterangepicker/daterangepicker.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/summernote/summernote-bs4.css")" />
+    <link href="@helpers.assets("/vendors/google-fonts/css/source-sans-pro.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/octicons-4.4.0/octicons.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery-ui/jquery-ui.min.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/facebox/facebox.css")" rel="stylesheet" />
+    <link href="@helpers.assets(s"/vendors/color-themes-for-google-code-prettify/${highlighterTheme}.min.css")" type="text/css" rel="stylesheet" />
+    <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/tipped/tipped.css")" rel="stylesheet" />
+    <link href="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/css/bootstrap-datetimepicker.min.css")" rel="stylesheet" />
+
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery/jquery.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery-ui/jquery-ui.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/bootstrap/js/bootstrap.bundle.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/chart.js/Chart.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/sparklines/sparkline.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jqvmap/jquery.vmap.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jqvmap/maps/jquery.vmap.usa.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/jquery-knob/jquery.knob.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/moment/moment.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/daterangepicker/daterangepicker.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/summernote/summernote-bs4.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js")"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-3.0.2/dist/js/adminlte.min.js")"></script>
+    <script src="@helpers.assets("/vendors/facebox/facebox.js")"></script>
+    <script src="@helpers.assets("/vendors/jquery-textcomplete-1.8.4/jquery.textcomplete.min.js")"></script>
+    <script src="@helpers.assets("/vendors/elastic/jquery.elastic.source.js")"></script>
     <script src="@helpers.assets("/vendors/dropzone/dropzone.min.js")"></script>
+    <script src="@helpers.assets("/vendors/google-code-prettify/prettify.js")"></script>
+    <script src="@helpers.assets("/vendors/bootstrap3-typeahead/bootstrap3-typeahead.min.js")"></script>
     <script src="@helpers.assets("/common/js/validation.js")"></script>
     <script src="@helpers.assets("/common/js/gitbucket.js")"></script>
-    <script src="@helpers.assets("/vendors/bootstrap-3.4.1/js/bootstrap.min.js")"></script>
-    <script src="@helpers.assets("/vendors/bootstrap3-typeahead/bootstrap3-typeahead.min.js")"></script>
+    <script src="@helpers.assets("/vendors/tipped/tipped.min.js")"></script>
     <script src="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/js/moment.min.js")"></script>
     <script src="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/js/bootstrap-datetimepicker.min.js")"></script>
-    <script src="@helpers.assets("/vendors/colorpicker/js/bootstrap-colorpicker.min.js")"></script>
-    <script src="@helpers.assets("/vendors/google-code-prettify/prettify.js")"></script>
-    <script src="@helpers.assets("/vendors/elastic/jquery.elastic.source.js")"></script>
-    <script src="@helpers.assets("/vendors/facebox/facebox.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-hotkeys/jquery.hotkeys.js")"></script>
-    <script src="@helpers.assets("/vendors/jquery-textcomplete-1.8.4/jquery.textcomplete.min.js")"></script>
-    <script src="@helpers.assets("/vendors/tipped/tipped.min.js")"></script>
+
     @repository.map { repository =>
       <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
     }
-    <script src="@helpers.assets("/vendors/AdminLTE-2.4.2/js/adminlte.min.js")" type="text/javascript"></script>
     @context.settings.userDefinedCss.map { css =>
       <style type="text/css">@css</style>
     }
   </head>
-  <body class="@context.settings.skinName page-load @if(body.toString.contains("menu-item-hover")){sidebar-mini} @if(context.sidebarCollapse){sidebar-collapse}">
+  <body class="hold-transition @context.settings.skinName text-sm layout-fixed @if(hasSidebar){sidebar-mini}else{layout-top-nav} @if(context.sidebarCollapse){sidebar-collapse}">
     <div class="wrapper">
-      <header class="main-header">
-        <a href="@context.path/" class="logo">
-          <span class="logo-mini"><img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" /></span>
-          <span class="logo-lg">
-            <img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" />
-            <span class="header-title strong">GitBucket</span>
-          </span>
-        </a>
-        <nav class="navbar navbar-static-top" role="navigation">
-          <!-- Sidebar toggle button-->
-          @if(body.toString.contains("main-sidebar")){
-            <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" title="Toggle navigation">
-              <span class="sr-only">Toggle navigation</span>
-            </a>
-          }
-          <form id="search" action="@context.path/search" method="GET" class="pc navbar-form navbar-left" role="search">
-            <div class="form-group">
-              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Find a repository" aria-label="Search"/>
+      <nav class="main-header navbar navbar-expand @helpers.headerSkin()">
+        @if(!hasSidebar){
+        @gitbucket.core.helper.html.logo()
+        }
+        <!-- Sidebar toggle button-->
+        <ul class="navbar-nav">
+          @if(hasSidebar){
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+          </li>}
+        </ul>
+        <!-- Search -->
+        <form id="search" action="@context.path/search" method="GET" class="form-inline ml-3" role="search">
+          <div class="input-group input-group-sm">
+            <input type="text" name="query" id="navbar-search-input" class="form-control form-control-sm form-control-navbar" placeholder="Find a repository" aria-label="Search"/>
+            <div class="input-group-append">
+              <button class="btn btn-sm btn-navbar" type="submit">
+                <i class="fas fa-search"></i>
+              </button>
             </div>
-          </form>
-          <ul class="pc nav navbar-nav">
-            @if(context.loginAccount.isDefined){
-              <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
-              <li><a href="@context.path/dashboard/issues">Issues</a></li>
-            }
-            @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
-              @menu(context).map { link =>
-                <li><a href="@context.path/@link.path">@link.label</a></li>
-              }
-            }
-          </ul>
-          <div class="navbar-custom-menu">
-            <ul class="nav navbar-nav">
-              @if(context.loginAccount.isDefined){
-                <li class="dropdown notifications-menu">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" aria-label="Create new…">
-                    <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
-                  </a>
-                  <ul class="dropdown-menu pull-right" style="width: auto;">
-                    <li>
-                      <ul class="menu">
-                        @if(context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin){
-                          <li><a href="@context.path/new">New repository</a></li>
-                        }
-                        <li><a href="@context.path/groups/new">New group</a></li>
-                      </ul>
-                    </li>
-                  </ul>
-                </li>
-                <li class="dropdown notifications-menu">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
-                    @helpers.avatar(context.loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
-                  </a>
-                  <ul class="dropdown-menu pull-right" style="width: auto;">
-                    <li>
-                      <ul class="menu">
-                        <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
-                        <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
-                        @if(context.loginAccount.get.isAdmin){
-                          <li><a href="@context.path/admin/users">System administration</a></li>
-                        }
-                        <li><a href="@context.path/signout">Sign out</a></li>
-                      </ul>
-                    </li>
-                  </ul>
-                </li>
-              } else {
-                <li>
-                  <a href="@context.path/signin?redirect=@helpers.urlEncode(context.currentPath)" class="pull-right" id="signin">Sign in</a>
-                </li>
-              }
-            </ul>
           </div>
-        </nav>
-      </header>
+        </form>
+        <!-- buttons -->
+        <ul class="navbar-nav">
+          @if(context.loginAccount.isDefined){
+          <li class="nav-item d-none d-md-inline-block"><a href="@context.path/dashboard/pulls" class="nav-link">Pull requests</a></li>
+          <li class="nav-item d-none d-md-inline-block"><a href="@context.path/dashboard/issues" class="nav-link">Issues</a></li>
+          }
+          @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
+          @menu(context).map { link =>
+          <li class="nav-item d-none d-md-inline-block"><a href="@context.path/@link.path" class="nav-link">@link.label</a></li>
+          }}
+        </ul>
+        <!-- right navbar -->
+        <ul class="navbar-nav ml-auto">
+          @if(context.loginAccount.isDefined){
+          <li class="nav-item dropdown">
+            <a class="nav-link" href="#" id="navbarDropdown" data-toggle="dropdown" aria-label="Create new…">
+              <i class="octicon octicon-plus"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right">
+              @if(context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin){
+              <a class="dropdown-item" href="@context.path/new">New repository</a>
+              }
+              <a class="dropdown-item" href="@context.path/groups/new">New group</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" title="Signed is as @context.loginAccount.get.userName">
+              @helpers.avatar(context.loginAccount.get.userName, 16)
+            </a>
+            <div class="dropdown-menu dropdown-menu-right">
+              <a class="dropdown-item" href="@helpers.url(context.loginAccount.get.userName)">Your profile</a>
+              <a class="dropdown-item" href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a>
+              @if(context.loginAccount.get.isAdmin){
+              <a class="dropdown-item" href="@context.path/admin/users">System administration</a>
+              }
+              <a class="dropdown-item" href="@context.path/signout">Sign out</a>
+            </div>
+          } else {
+          <li class="nav-item">
+            <a class="nav-link" href="@context.path/signin?redirect=@helpers.urlEncode(context.currentPath)" id="signin">Sign in</a>
+          </li>
+          }
+        </ul>
+      </nav>
       @body
-    </div>
     <script>
       $(function(){
         @*
@@ -159,5 +164,6 @@
         @Html(script)
       </script>
     }
+    </div>
   </body>
 </html>

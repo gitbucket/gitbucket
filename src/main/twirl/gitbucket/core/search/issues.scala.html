@@ -9,33 +9,35 @@
   @gitbucket.core.search.html.menu(if(pullRequest) "pulls" else "issues", query, repository){
     @if(query.nonEmpty) {
       @if(issues.isEmpty) {
-        <h4>We couldn't find any @{if(pullRequest) "pull requests" else "issues"} matching '@query'</h4>
+        <h6>We couldn't find any @{if(pullRequest) "pull requests" else "issues"} matching '@query'</h6>
       } else {
-        <h4>We've found @issues.size @helpers.plural(issues.size, if(pullRequest) "pull request" else "issue")</h4>
+        <h6>We've found @issues.size @helpers.plural(issues.size, if(pullRequest) "pull request" else "issue")</h6>
       }
     }
+    <div class="list-group list-group-flush m-3">
     @issues.drop((page - 1) * RepositorySearchService.IssueLimit).take(RepositorySearchService.IssueLimit).map { issue =>
-      <div class="block">
-        <div class="pull-right muted">
+      <div class="list-group-item block">
+        <div class="float-right text-muted">
           @if(issue.isClosed){
-            <span class="label label-danger">Closed</span>
+            <span class="badge badge-danger">Closed</span>
           }
           #@issue.issueId
         </div>
-        <h4 style="margin-top: 0px;"><a href="@helpers.url(repository)/@if(issue.isPullRequest){pull} else {issues}/@issue.issueId">@issue.title</a></h4>
+        <h4 class="mt-0"><a href="@helpers.url(repository)/@if(issue.isPullRequest){pull} else {issues}/@issue.issueId">@issue.title</a></h4>
         @if(issue.highlightText.nonEmpty){
-          <pre>@Html(issue.highlightText)</pre>
+          <pre class="border rounded bg-light">@Html(issue.highlightText)</pre>
         }
-        <div class="small muted">
+        <div class="small text-muted">
           Opened by <a href="@helpers.url(issue.openedUserName)" class="username">@issue.openedUserName</a>
           @gitbucket.core.helper.html.datetimeago(issue.registeredDate)
           @if(issue.commentCount > 0){
-            &nbsp;&nbsp;<i class="octicon octicon-comment"></i>
-            <span class="strong">@issue.commentCount</span> @helpers.plural(issue.commentCount, "comment")
+            <i class="octicon octicon-comment"></i>
+            <span class="font-weight-bold strong">@issue.commentCount</span> @helpers.plural(issue.commentCount, "comment")
           }
         </div>
       </div>
     }
+    </div><!-- /.list-group -->
     @gitbucket.core.helper.html.paginator(page, issues.size, RepositorySearchService.IssueLimit, 10,
       s"${helpers.url(repository)}/search?q=${helpers.urlEncode(query)}&type=${if(pullRequest) "pulls" else "issues"}")
   }

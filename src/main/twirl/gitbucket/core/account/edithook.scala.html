@@ -5,12 +5,31 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Service Hooks"){
   @gitbucket.core.account.html.menu("hooks", account.userName, account.isGroupAccount){
-    @gitbucket.core.settings.html.edithookform(
-      webHook, events, create,
-      helpers.url(account.userName) + "/_hooks/new",
-      helpers.url(account.userName) + "/_hooks/edit",
-      helpers.url(account.userName) + "/_hooks/delete",
-      helpers.url(account.userName) + "/_hooks/test"
-    )
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div>
+    </div>
+  </div>
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+        @gitbucket.core.settings.html.edithookform(
+          webHook, events, create,
+          helpers.url(account.userName) + "/_hooks/new",
+          helpers.url(account.userName) + "/_hooks/edit",
+          helpers.url(account.userName) + "/_hooks/delete",
+          helpers.url(account.userName) + "/_hooks/test"
+        )
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+</div><!-- /.content -->
   }
 }

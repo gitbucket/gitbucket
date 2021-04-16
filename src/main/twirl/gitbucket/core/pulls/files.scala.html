@@ -6,6 +6,8 @@
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.pulls.html.menu("files", issue, pullreq, commits, comments, diffs.size, isManageable, repository) {
+<div class="card">
+  <div class="card-body">
   @gitbucket.core.helper.html.diff(
     diffs,
     repository,
@@ -16,7 +18,11 @@
     isManageable,
     true
   )
+  </div><!-- /.card-body -->
+</div><!-- /.card -->
+<div class="timeline timeline-inverse">
   <div id="comment-list" style="display: none;">
     @gitbucket.core.issues.html.commentlist(Some(issue), comments.toList, isManageable, repository, Some(pullreq))
   </div>
+</div><!-- /.timeline -->
 }

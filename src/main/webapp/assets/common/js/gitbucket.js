@@ -713,7 +713,7 @@ function addExtraMailAddress() {
   var fieldset = $('#extraMailAddresses');
   var count = $('.extraMailAddress').length;
   var html =   '<input type="text" name="extraMailAddresses[' + count + ']" id="extraMailAddresses[' + count + ']" class="form-control extraMailAddress" aria-label="Additional mail address"/>'
-  + '<span id="error-extraMailAddresses_' + count + '" class="error"></span>';
+  + '<span id="error-extraMailAddresses_' + count + '" class="error text-danger"></span>';
   fieldset.append(html);
 }
 

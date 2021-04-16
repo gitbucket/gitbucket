@@ -11,114 +11,148 @@
 @check(name: String, event: Event) = {
   name="@(name).@event.name" value="on" @if(events(event)){checked}
 }
-<div class="panel panel-default">
-  <div class="panel-heading strong">Webhook / Manage webhook</div>
-  <div class="panel-body">
-    <form method="POST" validate="true" autocomplete="off">
-      <fieldset class="form-group">
-        <label class="strong" for="url">Payload URL</label>
+<form method="POST" validate="true" autocomplete="off">
+  <div class="card-body">
+    <h3>Webhook / Manage webhook</h3>
+    <div>
+      <div class="form-group">
+        <label for="url">Payload URL</label>
         <div>
-          <span class="error" id="error-url"></span>
+          <span class="error text-danger" id="error-url"></span>
         </div>
         @if(create){
-          <input type="text" name="url" id="url" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" required />
+          <input type="text" name="url" id="url" value="@webHook.url" class="form-control form-control-sm" style="display: inline; width: 500px; vertical-align: middle;" required />
         } else {
-          <input type="text" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" disabled />
+          <input type="text" value="@webHook.url" class="form-control form-control-sm" style="display: inline; width: 500px; vertical-align: middle;" disabled />
           <input type="hidden" value="@webHook.url" name="url" />
         }
-        <button class="btn btn-default" id="test-hook">Test Hook</button>
-      </fieldset>
-      <fieldset class="form-group">
-        <label class="strong" for="ctype">Content type</label>
+        <button class="btn btn-default btn-sm" id="test-hook">Test Hook</button>
+      </div>
+      <div class="form-group">
+        <label for="ctype">Content type</label>
         <div></div>
-        <select name="ctype" id="ctype" class="form-control" style="width: 500px;">
+        <select id="ctype" name="ctype" class="form-control form-control-sm" style="width: 500px;">
           <option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>
           <option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>
         </select>
-      </fieldset>
-      <fieldset class="form-group">
-        <label class="strong" for="token">Security Token</label>
+      </div>
+      <div class="form-group">
+        <label for="token">Security Token</label>
         <div></div>
-        <input type="text" name="token" id="token" placeholder="leave blank for no X-Hub-Signature usage" value="@webHook.token" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" />
-      </fieldset>
+        <input type="text" name="token" id="token" placeholder="leave blank for no X-Hub-Signature usage" value="@webHook.token" class="form-control form-control-sm" style="display: inline; width: 500px; vertical-align: middle;" />
+      </div>
       <hr />
-      <label class="strong">Which events would you like to trigger this webhook?</label>
+      <label>Which events would you like to trigger this webhook?</label>
       <div>
-        <span class="error" id="error-events"></span>
+        <span class="error text-danger" id="error-events"></span>
       </div>
-      <!--
-      <label class="checkbox"><input type="checkbox" @check("events",CommitComment) />Commit comment <small class="help-block">Commit or diff commented on. </small> </label>
-      -->
-      <label class="checkbox"><input type="checkbox" @check("events",Create) />Create <small class="help-block normal">Branch, or tag created. </small> </label>
-      <!--
-      <label class="checkbox"><input type="checkbox" @check("events",Delete) />Delete <small class="help-block">Branch, or tag deleted. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Deployment) />Deployment <small class="help-block">Repository deployed. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",DeploymentStatus) />Deployment status <small class="help-block">Deployment status updated from the API. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Fork) />Fork <small class="help-block">Repository forked. </small> </label>
-      -->
-      <label class="checkbox"><input type="checkbox" @check("events",Gollum) />Gollum <span class="help-block normal">Wiki page updated. </span> </label>
-      <!--
-      <label class="checkbox"><input type="checkbox" @check("events",Member) />Member <small class="help-block">Collaborator added to a non-organization repository. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",PageBuild) />Page build <small class="help-block">Pages site built. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Public) />Public <small class="help-block">Repository changes from private to public. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Release) />Release <small class="help-block">Release published in a repository. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",TeamAdd) />Team add <small class="help-block">Team added or modified on a repository. </small> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Watch) />Watch <small class="help-block">User stars a repository.</small></label>
-      <label class="checkbox"><input type="checkbox" @check("events",Status) />Status <small class="help-block">Commit status updated from the API. </small> </label>
-      -->
-      <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <span class="help-block normal">Issue commented on. </span> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <span class="help-block normal">Issue opened, closed<!-- , assigned, or labeled -->. </span> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull request <span class="help-block normal">Pull request opened, closed<!-- , assigned, labeled -->, or synchronized. </span> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull request review comment <span class="help-block normal">Pull request diff commented on. </span> </label>
-      <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <span class="help-block normal">Git push to a repository. </span> </label>
-      <div class="text-right">
-      @if(!create){
-        <input type="submit" class="btn btn-success" value="Update webhook" formaction="@editButtonUrl" />
-        <a href="@deleteButtonUrl?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
-          Delete webhook
-        </a>
-      } else {
-        <input type="submit" class="btn btn-success" value="Add webhook" formaction="@newButtonUrl" />
-      }
+      <div class="form-group">
+        <!--
+        <label class="checkbox"><input type="checkbox" @check("events",CommitComment) />Commit comment <small class="help-block">Commit or diff commented on. </small> </label>
+        -->
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="events-Create" @check("events",Create) />
+          <label class="form-check-label" for="events-Create">Create</label>
+          <p class="help-block small text-muted">Branch, or tag created. </p>
+        </div>
+        <!--
+        <label class="checkbox"><input type="checkbox" @check("events",Delete) />Delete <small class="help-block">Branch, or tag deleted. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",Deployment) />Deployment <small class="help-block">Repository deployed. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",DeploymentStatus) />Deployment status <small class="help-block">Deployment status updated from the API. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",Fork) />Fork <small class="help-block">Repository forked. </small> </label>
+        -->
+        <div class="form-check">
+          <input class="form-check-input" id="events-Gollum" type="checkbox" @check("events",Gollum) />
+          <label class="form-check-label" for="events-Gollum">Gollum</label>
+          <p class="help-block small text-muted">Wiki page updated. </p>
+        </div>
+        <!--
+        <label class="checkbox"><input type="checkbox" @check("events",Member) />Member <small class="help-block">Collaborator added to a non-organization repository. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",PageBuild) />Page build <small class="help-block">Pages site built. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",Public) />Public <small class="help-block">Repository changes from private to public. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",Release) />Release <small class="help-block">Release published in a repository. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",TeamAdd) />Team add <small class="help-block">Team added or modified on a repository. </small> </label>
+        <label class="checkbox"><input type="checkbox" @check("events",Watch) />Watch <small class="help-block">User stars a repository.</small></label>
+        <label class="checkbox"><input type="checkbox" @check("events",Status) />Status <small class="help-block">Commit status updated from the API. </small> </label>
+        -->
+        <div class="form-check">
+          <input class="form-check-input"  id="events-IssueComment" type="checkbox" @check("events",IssueComment) />
+          <label class="form-check-label" for="events-IssueComment">Issue comment</label>
+          <p class="help-block small text-muted">Issue commented on. </p>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input"  id="events-Issues" type="checkbox" @check("events",Issues) />
+          <label class="form-check-label" for="events-Issues">Issues</label>
+          <p class="help-block small text-muted">Issue opened, closed<!-- , assigned, or labeled -->. </p>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input"  id="events-PullRequest" type="checkbox" @check("events",PullRequest) />
+          <label class="form-check-label" for="events-PullRequest">Pull request</label>
+          <p class="help-block small text-muted">Pull request opened, closed<!-- , assigned, labeled -->, or synchronized. </p>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input"  id="events-PullRequestReviewComment" type="checkbox" @check("events",PullRequestReviewComment) />
+          <label class="form-check-label" for="events-PullRequestReviewComment">Pull request review comment </label>
+          <p class="help-block small text-muted">Pull request diff commented on. </p>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input"  id="events-Push" type="checkbox" @check("events",Push) />
+          <label class="form-check-label" for="events-Push">Push </label>
+          <p class="help-block small text-muted">Git push to a repository. </p>
+        </div>
       </div>
-    </form>
+    </div>
   </div>
-</div>
+  <div class="card-footer">
+    <div class="float-right">
+      @if(!create){
+      <input type="submit" class="btn btn-success" value="Update webhook" formaction="@editButtonUrl" />
+      <a href="@deleteButtonUrl?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+        Delete webhook
+      </a>
+      } else {
+      <input type="submit" class="btn btn-success" value="Add webhook" formaction="@newButtonUrl" />
+      }
+    </div>
+  </div>
+</form>
 <div class="modal" id="test-report-modal" role="dialog" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3>WebHook Test</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-      <div class="modal-body" style="max-height: 300px; overflow: auto;">
+      <div class="modal-body">
         <p>request to <span id="test-modal-url" style="word-break: break-all; word-wrap: break-word; white-space: pre; white-space: pre-wrap;"></span></p>
         <div id="test-report" style="display:none">
           <ul class="nav nav-tabs" id="test-report-tab">
-            <li class="active"><a href="#request">Request</a></li>
-            <li><a href="#response">Response <span class="badge badge-success" id="res-status"></span></a></li>
+            <li class="nav-item"><a class="nav-link active" href="#request">Request</a></li>
+            <li class="nav-item"><a class="nav-link" href="#response">Response <span class="badge badge-success" id="res-status"></span></a></li>
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="request">
               <div id="req-errors" class="alert alert-error">
-                      ERROR<span id="req-errors-body"></span>
-                    </div>
+                ERROR<span id="req-errors-body"></span>
+              </div>
               <div id="req-success" style="display:none">
-                      Headers
-                <pre id="req-headers"></pre>
+                Headers
+                <pre id="req-headers" class="bg-light"></pre>
                 Payload
-                <pre id="req-payload"></pre>
+                <pre id="req-payload" class="bg-light"></pre>
               </div>
             </div>
             <div class="tab-pane" id="response">
               <div id="res-errors" class="alert alert-error">
-                      ERROR<span id="res-errors-body"></span>
-                    </div>
+                ERROR<span id="res-errors-body"></span>
+              </div>
               <div id="res-success" style="display:none">
-                      Headers
-                <pre id="res-headers"></pre>
+                Headers
+                <pre id="res-headers" class="bg-light"></pre>
                 Body
-                <pre id="res-body"></pre>
+                <pre id="res-body" class="bg-light"></pre>
               </div>
             </div>
           </div>
@@ -174,7 +208,7 @@ $(function(){
         $("#res-errors-body").text(e.response.error);
         var success = !!(e.response && e.response.status && /^2\d\d$/.test(e.response.status.statusCode));
         $("#res-status").text((e.response && e.response.status && e.response.status.statusCode) || "ERROR");
-        $("#res-status").toggleClass("badge-success", success).toggleClass("badge-important", !success);
+        $("#res-status").toggleClass("badge-success", success).toggleClass("badge-danger", !success);
         $("#res-headers").html(headers(e.response));
         $("#res-body").text(e.response && e.response.body ? e.response.body : "");
       },

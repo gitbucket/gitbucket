@@ -13,19 +13,20 @@
         @if(prefix.nonEmpty){
           <span class="muted">@prefix:</span>
         }
-        <span class="strong"
+        <span class="font-weight-bold"
               @if(maxValueWidth.nonEmpty){style="display:inline-block; vertical-align:bottom; overflow-x:hidden; max-width:@maxValueWidth; text-overflow:ellipsis"}>
           @value
         </span>
       }
       <span class="caret"></span>
     </button>
-    <ul class="dropdown-menu@if(right){ pull-right}">
+    <div class="dropdown-menu px-2@if(right){ dropdown-menu-right}">
       @if(filterId.nonEmpty) {
-        <li><input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter._2"/></li>
+      <input id="@filterId-input" type="text" class="form-control form-control-sm dropdown-filter-input" placeholder="@filter._2"/>
+      <div class="dropdown-divider"></div>
       }
       @body
-    </ul>
+    </div>
   </div>
   @if(filterId.nonEmpty) {
     <script>
@@ -37,9 +38,9 @@
         var inputVal = $('#@{filterId}-input').val();
         $.each($('#@{filterId}-input').parent().parent().find('a'), function(index, elem) {
           if ( !inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >=0 ) {
-            $(elem).parent().show();
+            $(elem).show();
           } else {
-            $(elem).parent().hide();
+            $(elem).hide();
           }
         });
       });

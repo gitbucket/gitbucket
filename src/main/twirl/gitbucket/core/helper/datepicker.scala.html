@@ -2,7 +2,9 @@
 @import gitbucket.core.view.helpers
 <div class="input-group date" data-date="@value.map(helpers.date)" style="width: 180px;">
   <input id="@name" class="form-control" name="@name" type="text" value="@value.map(helpers.date)"/>
-  <span class="input-group-addon"><i class="octicon octicon-calendar"></i></span>
+  <div class="input-group-append">
+    <span class="input-group-text"><i class="octicon octicon-calendar"></i></span>
+  </div>
 </div>
 <script>
 $(function(){

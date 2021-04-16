@@ -9,31 +9,43 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("issues", repository){
+  <div class="container-fluid">
     <form action="@helpers.url(repository)/issues/new" method="POST" validate="true" class="form-group" autocomplete="off">
-      <div class="row-fluid">
-        <div class="col-md-9">
-          <span id="error-title" class="error"></span>
-          <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
-          @gitbucket.core.helper.html.preview(
-            repository         = repository,
-            content            = content,
-            enableWikiLink     = false,
-            enableRefsLink     = true,
-            enableLineBreaks   = true,
-            enableTaskList     = true,
-            hasWritePermission = isManageable,
-            completionContext  = "issues",
-            style              = "height: 200px; max-height: 500px;",
-            elastic            = true
-          )
-          <div class="align-right">
-            <input type="submit" class="btn btn-success" value="Submit new issue"/>
-          </div>
-        </div>
-        <div class="col-md-3">
-          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, isManageable, repository)
-        </div>
-      </div>
+      <div class="row">
+        <div class="col-lg-9">
+          <div class="card">
+            <div class="card-body">
+              <span id="error-title" class="error text-danger"></span>
+              <input type="text" id="issue-title" name="title" class="form-control mb-1" value="" placeholder="Title" autofocus/>
+              @gitbucket.core.helper.html.preview(
+                repository         = repository,
+                content            = content,
+                enableWikiLink     = false,
+                enableRefsLink     = true,
+                enableLineBreaks   = true,
+                enableTaskList     = true,
+                hasWritePermission = isManageable,
+                completionContext  = "issues",
+                style              = "height: 200px; max-height: 500px;",
+                elastic            = true
+              )
+            </div><!-- /.card-body -->
+            <div class="card-footer">
+              <div class="float-right">
+                <input type="submit" class="btn btn-success" value="Submit new issue"/>
+              </div>
+            </div><!-- /.card-footer -->
+          </div><!-- /.card -->
+        </div><!-- /.col -->
+        <div class="col-lg-3">
+          <div class="card">
+            <div class="card-body">
+              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, isManageable, repository)
+            </div><!-- /.card-body -->
+          </div><!-- /.card -->
+        </div><!-- /.col -->
+      </div><!-- /.row -->
     </form>
+  </div><!-- /.container-fluid -->
   }
 }

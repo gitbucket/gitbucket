@@ -23,123 +23,134 @@
     s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
   @gitbucket.core.html.menu("files", repository, Some(branch), info, error){
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>Files</h4>
+        </div>
+        <div class="card-body">
     @if(pathList.isEmpty) {
       @repository.repository.description.map { description =>
-        <p class="pc" style="margin-bottom: 10px;">
-          <span class="normal muted">@Html(helpers.decorateHtml(helpers.urlLink(description), repository))</span>
+        <p class="d-none d-md-block mb-1">
+          <span class="normal text-muted">@Html(helpers.decorateHtml(helpers.urlLink(description), repository))</span>
         </p>
       }
     }
     <div id="pull-request-area"></div>
-    <div class="head" style="height: 24px;">
-      <div class="pull-right">
-        <div class="btn-group">
-          <a href="@{helpers.url(repository)}/archive@if(pathList.length > 0){/@pathList.map(helpers.urlEncode).mkString("/")}/@{helpers.urlEncode(branch)}.zip" class="btn btn-sm btn-default pc"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
-          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t" title="Search files"><i class="octicon octicon-search" aria-label="Search files"></i></a>
-          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
-        </div>
-        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
-      </div>
-      @if(pathList.isEmpty){
-        <div class="pull-right pc" style="margin-right: 5px;">
-          <div class="btn-group">
-            @if(context.platform != "linux" && context.platform != null){
-              <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default" title="Open with GitHub Desktop"><i class="octicon octicon-desktop-download" aria-label="Open with GitHub Desktop"></i></a>
-            }
+    <div class="row">
+      <div class="col">
+        <div class="float-right ml-1">
+          <div class="btn-group btn-group-sm">
+            <a href="@{helpers.url(repository)}/archive@if(pathList.length > 0){/@pathList.map(helpers.urlEncode).mkString("/")}/@{helpers.urlEncode(branch)}.zip" class="btn btn-default d-none d-md-block"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
+            <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-default" data-hotkey="t" title="Search files"><i class="octicon octicon-search" aria-label="Search files"></i></a>
+            <a href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
           </div>
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
         </div>
-        <div class="pull-right pc">
-          <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
-            @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", repository.httpUrl){
-              @if(repository.sshUrl.isDefined){
-                <div class="btn-group input-group-btn">
-                  <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span id="repository-url-proto">HTTP</span> <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li>
-                      <a href="javascript:void(0);" id="repository-url-http">
+        <div class="float-lg-right">
+        @if(pathList.isEmpty){
+          <div class="float-right ml-1 d-none d-md-block">
+            <div class="btn-group btn-group-sm">
+              @if(context.platform != "linux" && context.platform != null){
+                <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-default" title="Open with GitHub Desktop"><i class="octicon octicon-desktop-download" aria-label="Open with GitHub Desktop"></i></a>
+              }
+            </div>
+          </div>
+          <div class="float-right ml-1 d-none d-md-block">
+            <div>
+              @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", repository.httpUrl){
+                @if(repository.sshUrl.isDefined){
+                  <div class="input-group-prepend">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <span id="repository-url-proto">HTTP</span> <span class="caret"></span>
+                    </button>
+                    <div class="dropdown-menu">
+                      <a class="dropdown-item" href="javascript:void(0);" id="repository-url-http">
                         <strong>HTTP (recommended)</strong><br>
                         Clone with Git using the repository's web address.
                       </a>
-                    </li>
-                    <li>
-                      <a href="javascript:void(0);" id="repository-url-ssh">
+                      <a class="dropdown-item" href="javascript:void(0);" id="repository-url-ssh">
                         <strong>SSH</strong><br>
                         Clone with an SSH key and passphrase from your GitBucket settings.
                       </a>
-                    </li>
-                  </ul>
-                </div>
+                    </div>
+                  </div><!--/.input-group-->
+                }
+                <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control" readonly aria-label="repository-url">
               }
-              <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly aria-label="repository-url">
-            }
+            </div>
           </div>
-        </div>
-      }
-      <div class="pull-left">
-        @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
-          @repository.branchList.map { x =>
-            <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
           }
-        }
-        @if(pathList.nonEmpty){
+        </div>
+        <div>
+          @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
+          @repository.branchList.map { x =>
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)" class="dropdown-item">@gitbucket.core.helper.html.checkicon(x == branch) @x</a>
+          }
+          }
+          @if(pathList.nonEmpty){
           <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
           @pathList.zipWithIndex.map { case (section, i) =>
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
           }
-        }
-      </div>
-      @if(hasWritePermission){
-        <div class="btn-group pull-left" style="margin-left: 4px;">
-          <a href="@helpers.url(repository)/new/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Create a new file"><i class="octicon octicon-plus"></i></a>
-          <a href="@helpers.url(repository)/upload/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-sm btn-default pc" title="Upload files"><i class="octicon octicon-cloud-upload"></i></a>
-        </div>
-      }
-    </div>
-    <table class="table table-hover">
-      @*
-      <tr>
-        <th colspan="4" style="font-weight: normal; border: none;">
-          <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
-          @if(latestCommit.description.isDefined){
-            <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
-            <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@link(latestCommit.description.get, repository)</pre>
           }
-        </th>
-      </tr>
-      *@
-      <tr>
-        <th colspan="4" class="latest-commit" style="font-weight: normal;">
-          <div>
-            <div class="pull-right align-right" style="line-height: 18px;">
-              <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id">
-                <span class="muted">latest commit</span>
-                <span class="monospace commit-message strong">@latestCommit.id.substring(0, 10)</span>
-              </a>
-            </div>
-            <div class="author-info">
-              <div class="author">
-                @helpers.avatarLink(latestCommit, 20)
-                <span>@helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
-                <span class="muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
-                <span>
-                @commitStatus.map { case (summary, statuses) =>
-                  @gitbucket.core.helper.html.commitstatus(latestCommit.id, summary, statuses)
-                }
-                </span>
-              </div>
-              @if(latestCommit.isDifferentFromAuthor) {
-                <div class="committer">
-                  <span class="octicon octicon-arrow-right"></span>
-                  <span>@helpers.user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
-                  <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
-                </div>
-              }
-            </div>
+          @if(hasWritePermission){
+          <div class="btn-group btn-group-sm">
+            <a href="@helpers.url(repository)/new/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default d-none d-md-block" title="Create a new file"><i class="octicon octicon-plus"></i></a>
+            <a href="@helpers.url(repository)/upload/@helpers.encodeRefName((branch :: pathList).mkString("/"))" class="btn btn-default d-none d-md-block" title="Upload files"><i class="octicon octicon-cloud-upload"></i></a>
           </div>
-        </th>
-      </tr>
+          }
+        </div>
+      </div><!--/.col-->
+    </div><!--/.row-->
+    <table class="table table-hover mt-2">
+      <thead class="thead-light">
+        @*
+        <tr>
+          <th colspan="4" style="font-weight: normal; border: none;">
+            <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
+            @if(latestCommit.description.isDefined){
+              <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
+              <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@link(latestCommit.description.get, repository)</pre>
+            }
+          </th>
+        </tr>
+        *@
+        <tr>
+          <th colspan="4" class="latest-commit">
+            <div>
+              <div class="float-right align-right">
+                <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id">
+                  <span class="text-muted">latest commit</span>
+                  <span class="monospace commit-message font-weight-bold strong">@latestCommit.id.substring(0, 10)</span>
+                </a>
+              </div>
+              <div class="author-info">
+                <div class="author">
+                  @helpers.avatarLink(latestCommit, 20)
+                  <span>@helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
+                  <span class="text-muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
+                  <span>
+                  @commitStatus.map { case (summary, statuses) =>
+                    @gitbucket.core.helper.html.commitstatus(latestCommit.id, summary, statuses)
+                  }
+                  </span>
+                </div>
+                @if(latestCommit.isDifferentFromAuthor) {
+                  <div class="committer">
+                    <span class="octicon octicon-arrow-right"></span>
+                    <span>@helpers.user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
+                    <span class="text-muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
       @if(pathList.size > 0){
         <tr>
           <td width="16" class="file-icon"></td>
@@ -204,22 +215,36 @@
           <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
         </tr>
       }
+      </tbody>
     </table>
+
     @readme.map { case (filePath, content) =>
-      <div id="readme" class="box-header">
-        <div class="strong" style="line-height: 28px;">
-          <i class="octicon octicon-file"></i>
-          @filePath.last
-          @if(hasWritePermission){
-            <div class="btn-group pull-right">
-              <a class="btn btn-sm" style="padding-right: 4px;" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+    </div><!--/.card-body-->
+      </div><!--/.card-->
+        <div class="card">
+          <div class="card-header">
+            <div id="readme" class="box-header">
+              <div class="font-weight-bold strong">
+                <i class="octicon octicon-file"></i>
+                @filePath.last
+                @if(hasWritePermission){
+                <div class="card-tools float-right"><!-- .card-tools make div right in .card-header -->
+                  <a class="btn btn-tool pr-1" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: filePath).mkString("/"))"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
+                </div>
+                }
+              </div>
             </div>
-          }
-        </div>
-      </div>
-      <div class="box-content-bottom markdown-body" style="padding-left: 20px; padding-right: 20px;">@helpers.renderMarkup(filePath, content, branch, repository, false, false, true)</div>
+          </div><!--/.card-header-->
+          <div class="card-body">
+            <div class="box-content-bottom markdown-body">@helpers.renderMarkup(filePath, content, branch, repository, false, false, true)</div>
+          </div><!--/.card-body-->
+        </div><!--/.card-->
     }
-  }
+    </div><!--/.col-->
+  </div><!--/.row-->
+</div><!--/.container-->
+
+}
 }
 <script>
 $(function() {

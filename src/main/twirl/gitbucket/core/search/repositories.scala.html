@@ -4,36 +4,63 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("GitBucket"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories){
-    <form action="@context.path/search" method="GET" class="form-inline">
-      <input type="text" name="query" value="@query" class="form-control" style="width: 250px; margin-bottom: 0px;"/>
-      <input type="submit" value="Search" class="btn btn-default"/>
-    </form>
-    @if(repositories.isEmpty) {
-      <h4>We couldn't find any repositories matching '@query'</h4>
-    } else {
-      <h4>We've found @repositories.size @helpers.plural(repositories.size, "repository", "repositories")</h4>
-    }
-    @repositories.map { repository =>
-      <div class="block">
-        <div class="repository-icon">
-          @gitbucket.core.helper.html.repositoryicon(repository, true)
-        </div>
-        <div class="repository-content">
-          <div class="block-header">
-            <a href="@helpers.url(repository)">@repository.owner/@repository.name</a>
-            @if(repository.repository.isPrivate){
-              <i class="octicon octicon-lock"></i>
-            }
-          </div>
-          @if(repository.repository.originUserName.isDefined){
-            <div class="small muted">forked from <a href="@context.path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
-          }
-          @if(repository.repository.description.isDefined){
-            <div>@repository.repository.description</div>
-          }
-          <div><span class="muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
-        </div>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark">Search results</h1>
       </div>
-    }
+    </div>
+  </div>
+</div>
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <form action="@context.path/search" method="GET" class="form-inline">
+              <input type="text" name="query" value="@query" class="form-control form-control-sm" style="width: 250px; margin-bottom: 0px;"/>
+              <input type="submit" value="Search" class="btn btn-sm btn-default"/>
+            </form>
+          </div>
+          <div class="card-body">
+            @if(repositories.isEmpty) {
+            <h6>We couldn't find any repositories matching '@query'</h6>
+            } else {
+            <h6>We've found @repositories.size @helpers.plural(repositories.size, "repository", "repositories")</h6>
+            }
+            <div class="list-group list-group-flush m-3">
+            @repositories.map { repository =>
+              <div class="list-group-item block">
+                <div class="row">
+                  <div class="col-auto repository-icon">
+                    @gitbucket.core.helper.html.repositoryicon(repository, true)
+                  </div><!-- /.col -->
+                  <div class="col repository-content">
+                    <div class="block-header">
+                      <a href="@helpers.url(repository)">@repository.owner/@repository.name</a>
+                      @if(repository.repository.isPrivate){
+                      <i class="octicon octicon-lock"></i>
+                      }
+                    </div>
+                    @if(repository.repository.originUserName.isDefined){
+                    <div class="small text-muted">forked from <a href="@context.path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
+                    }
+                    @if(repository.repository.description.isDefined){
+                    <div>@repository.repository.description</div>
+                    }
+                    <div><span class="text-muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
+                  </div><!-- /.col -->
+                </div><!-- /.row -->
+              </div><!--  /.list-group-item -->
+            }
+            </div><!-- /.list-group -->
+          </div><!-- /.card-body -->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+</div><!-- /.content /.body -->
   }
 }

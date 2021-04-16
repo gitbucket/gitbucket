@@ -2,7 +2,7 @@
   userName: Option[Any] = None,
   password: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 <div class="panel panel-default">
-  <div class="panel-heading strong">Sign in</div>
+  <div class="panel-heading font-weight-bold strong">Sign in</div>
   <ul class="list-group list-group-flush">
     @if(context.settings.oidcAuthentication){
       <li class="list-group-item">
@@ -17,12 +17,12 @@
       <form action="@context.path/signin" method="POST" validate="true" autocomplete="off">
         <div class="form-group">
           <label for="userName">Username:</label>
-          <span id="error-userName" class="error"></span>
+          <span id="error-userName" class="error text-danger"></span>
           <input type="text" name="userName" id="userName" class="form-control" autofocus value="@userName"/>
         </div>
         <div class="form-group">
           <label for="password">Password:</label>
-          <span id="error-password" class="error"></span>
+          <span id="error-password" class="error text-danger"></span>
           <input type="password" name="password" id="password" class="form-control" value="@password"/>
         </div>
         <input type="hidden" name="hash"/>

@@ -4,25 +4,27 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Repositories"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories){
-    @gitbucket.core.dashboard.html.tab("repos")
+    @gitbucket.core.html.maincard("Repositories", "repos", false){
     <div class="container">
       <div class="btn-group" id="owner-dropdown">
-        <button class="dropdown-toggle btn btn-default" data-toggle="dropdown" aria-expanded="false">
-          <span class="strong">All</span>
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="font-weight-bold strong">All</span>
           <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu">
-          <li><a href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a></li>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <a class="dropdown-item" href="javascript:void(0);" data-name=""><i class="octicon octicon-check"></i><span>All</span></a>
           @visibleRepositories.map(_.owner).distinct.map { userName =>
-            <li><a href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a></li>
+            <a class="dropdown-item" href="javascript:void(0);" data-name="@userName"><i class="octicon"></i><span>@helpers.avatar(userName, 20) @userName</span></a>
           }
-        </ul>
+        </div>
       </div>
+      <div class="list-group list-group-flush mt-2">
       @if(visibleRepositories.isEmpty){
         No repositories
       } else {
         @visibleRepositories.map { repository =>
-          <div class="block" data-owner="@repository.owner">
+        <div class="list-group-item block" data-owner="@repository.owner">
+          <div class="row">
             <div class="repository-icon">
               @gitbucket.core.helper.html.repositoryicon(repository, true)
             </div>
@@ -41,11 +43,14 @@
               }
               <div><span class="muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
             </div>
-          </div>
+          </div><!-- /.row -->
+        </div>
         }
       }
+      </div><!-- /.list-group -->
     </div>
   }
+}
 }
 <script>
 $('#owner-dropdown a').click(function(){

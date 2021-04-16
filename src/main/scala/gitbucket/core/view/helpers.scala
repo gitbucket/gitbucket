@@ -519,4 +519,34 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
 
   def md5(value: String): String = DigestUtils.md5Hex(value)
 
+  /**
+   * Create main-header css class from skin name
+   *
+   * @return css class names
+   */
+  def headerSkin()(implicit context: Context): String = {
+    context.settings.skinName.replace("-light", "") match {
+      case "skin-black" => "navbar-dark"
+      case "skin-blue" => "navbar-dark navbar-blue"
+      case "skin-green" => "navbar-dark navbar-green"
+      case "skin-purple" => "navbar-dark navbar-purple"
+      case "skin-red" => "navbar-dark navbar-red"
+      case "skin-yellow" => "navbar-light navbar-yellow"
+      case "skin-white" => "navbar-light navbar-white"
+      case _ => "navbar-light navbar-white"
+    }
+  }
+
+  /**
+   * Create main-sidebar css class from skin name
+   *
+   * @return css class name
+   */
+  def sidebarSkin()(implicit context: Context): String = {
+    if(context.settings.skinName.endsWith("-light")){
+      "sidebar-light-primary"
+    }else {
+      "sidebar-dark-primary"
+    }
+  }
 }

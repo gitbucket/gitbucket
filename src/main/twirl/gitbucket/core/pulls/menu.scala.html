@@ -13,8 +13,9 @@
 @import gitbucket.core.model.IssueComment
 @gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("pulls", repository) {
+    <div class="container-fluid">
       <div>
-        <div class="show-title pull-right">
+        <div class="show-title float-right">
           @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)) {
             <a class="btn btn-default" href="#" id="edit">Edit</a>
           }
@@ -22,7 +23,7 @@
             <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
           }
         </div>
-        <div class="edit-title pull-right" style="display: none;">
+        <div class="edit-title float-right" style="display: none;">
           <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">
           Cancel</a>
         </div>
@@ -32,19 +33,19 @@
             <span class="muted">#@issue.issueId</span>
           </span>
           <span class="edit-title" style="display: none;">
-            <span id="error-edit-title" class="error"></span>
+            <span id="error-edit-title" class="error text-danger"></span>
             <input type="text" class="form-control" style="width: 700px;" id="edit-title" value="@issue.title"/>
           </span>
         </h1>
       </div>
-      <div style="margin-bottom: 15px">
+      <div class="mb-3">
       @if(issue.closed) {
         @comments.flatMap @{
           case comment: IssueComment => Some(comment)
           case _ => None
         }.find(_.action == "merge").map { comment =>
-        <span class="label label-info issue-status">Merged</span>
-        <span class="muted">
+        <span class="badge badge-info issue-status">Merged</span>
+        <span class="text-muted">
           @helpers.user(comment.commentedUserName, styleClass = "username strong")
           merged @commits.size @helpers.plural(commits.size, "commit")
           into <code><a href="@helpers.basePRBranchUrl(pullreq)">@pullreq.userName:@pullreq.branch</a></code>
@@ -52,8 +53,8 @@
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </span>
         }.getOrElse {
-          <span class="label label-important issue-status">Closed</span>
-          <span class="muted">
+          <span class="badge badge-important issue-status">Closed</span>
+          <span class="text-muted">
             @helpers.user(issue.openedUserName, styleClass = "username strong")
             wants to merge @commits.size @helpers.plural(commits.size, "commit")
             into <code><a href="@helpers.basePRBranchUrl(pullreq)">@pullreq.userName:@pullreq.branch</a></code>
@@ -61,8 +62,8 @@
           </span>
         }
       } else {
-        <span class="label label-success issue-status">Open</span>
-        <span class="muted">
+        <span class="badge badge-success issue-status">Open</span>
+        <span class="text-muted">
           @helpers.user(issue.openedUserName, styleClass = "username strong")
           wants to merge @commits.size @helpers.plural(commits.size, "commit")
           into <code><a href="@helpers.basePRBranchUrl(pullreq)">@pullreq.userName:@pullreq.branch</a></code>
@@ -71,11 +72,11 @@
       }
       </div>
       <ul class="nav nav-tabs fill-width" id="pullreq-tab">
-        <li @if(active=="conversation"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId">Conversation <span class="badge">@countConversation(comments)</span></a></li>
-        <li @if(active=="commits"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge">@commits.size</span></a></li>
-        <li @if(active=="files"){class="active"}><a href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge">@changedFileSize</span></a></li>
+        <li class="nav-item"><a class="nav-link@if(active=="conversation"){ active}" href="@helpers.url(repository)/pull/@issue.issueId">Conversation <span class="badge badge-info">@countConversation(comments)</span></a></li>
+        <li class="nav-item"><a class="nav-link@if(active=="commits"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/commits">Commits <span class="badge badge-info">@commits.size</span></a></li>
+        <li class="nav-item"><a class="nav-link@if(active=="files"){ active}" href="@helpers.url(repository)/pull/@issue.issueId/files">Files Changed <span class="badge badge-info">@changedFileSize</span></a></li>
       </ul>
-      <div class="tab-content fill-width" style="padding-top: 20px;">
+      <div class="tab-content fill-width pt-2">
         @flash.get("error").map { error =>
           <div class="alert alert-error">@error</div>
         }
@@ -84,6 +85,7 @@
         }
         @body
       </div>
+    </div><!-- /.container-fluid -->
   }
 }
 <script>

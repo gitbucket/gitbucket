@@ -20,151 +20,191 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
-    <div class="pullreq-info">
-      <div id="compare-edit">
-        @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
-          @members.map { case (owner, name, defaultBranch) =>
-            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
-          }
-        }
-        @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
-          @if(!originRepository.branchList.contains(originId)){
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(originId)">@gitbucket.core.helper.html.checkicon(true) @originId</a></li>
-          }
-          @originRepository.branchList.map { branch =>
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
-          }
-        }
-        ...
-        @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
-          @members.map { case (owner, name, defaultBranch) =>
-            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
-          }
-        }
-        @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
-          @if(!forkedRepository.branchList.contains(forkedId)){
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(forkedId)">@gitbucket.core.helper.html.checkicon(true) @forkedId</a></li>
-          }
-          @forkedRepository.branchList.map { branch =>
-            <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
-          }
-        }
-      </div>
-      @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-        <div class="check-conflict" style="display: none;">
-          <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
-        </div>
-      }
-    </div>
-    @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-      <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
-        <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
-        &nbsp;&nbsp;
-        <span class="muted">Discuss and review the changes in this comparison with others.</span>
-      </div>
-      <div id="pull-request-form" style="display: none; margin-bottom: 20px;">
-        <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
-          <div class="row">
-            <div class="col-md-9">
-              <span class="error" id="error-title"></span>
-              <input type="text" name="title" value="@title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
-              @gitbucket.core.helper.html.preview(
-                repository         = repository,
-                content            = content,
-                enableWikiLink     = false,
-                enableRefsLink     = true,
-                enableLineBreaks   = true,
-                enableTaskList     = true,
-                hasWritePermission = true,
-                completionContext  = "issues",
-                style              = "height: 200px;"
-              )
-              <div class="text-right">
-                <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
-                <input type="hidden" name="targetBranch" value="@originId"/>
-                <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
-                <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
-                <input type="hidden" name="requestBranch" value="@forkedId"/>
-                <input type="hidden" name="commitIdFrom" value="@sourceId"/>
-                <input type="hidden" name="commitIdTo" value="@commitId"/>
-                <input type="hidden" id="is-draft" name="isDraft" value=false />
-                <div class="btn-group dropdown">
-                  <input type="submit" class="btn btn-success" tabindex="2" value="Create pull request" id="submit-button" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pulls/new"/>
-                  <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-right">
-                    <li><a id="pull-request">Create pull request</a></li>
-                    <li><a id="draft-request">Create draft request</a></li>
-                  </ul>
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>Pull request</h4>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            <div class="container mb-4">
+              <div class="border rounded-sm my-2 p-2 bg-light">
+                <div id="compare-edit">
+                  <div class="row">
+                    <div class="col-sm-auto">
+                      @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
+                      @members.map { case (owner, name, defaultBranch) =>
+                      <a href="#" class="dropdown-item origin-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a>
+                      }
+                      }
+                      @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
+                      @if(!originRepository.branchList.contains(originId)){
+                      <a href="#" class="dropdown-item origin-branch" data-branch="@helpers.encodeRefName(originId)">@gitbucket.core.helper.html.checkicon(true) @originId</a>
+                      }
+                      @originRepository.branchList.map { branch =>
+                      <a href="#" class="dropdown-item origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a>
+                      }
+                      }
+                    </div><!-- .col -->
+                    <div class="col-sm-auto">
+                      ...
+                    </div><!-- .col -->
+                    <div class="col-sm-auto">
+                      @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
+                      @members.map { case (owner, name, defaultBranch) =>
+                      <a href="#" class="dropdown-item forked-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a>
+                      }
+                      }
+                      @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
+                      @if(!forkedRepository.branchList.contains(forkedId)){
+                      <a href="#" class="dropdown-item origin-branch" data-branch="@helpers.encodeRefName(forkedId)">@gitbucket.core.helper.html.checkicon(true) @forkedId</a>
+                      }
+                      @forkedRepository.branchList.map { branch =>
+                      <a href="#" class="dropdown-item forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a>
+                      }
+                      }
+                    </div><!-- .col -->
+                  </div><!-- .row -->
+                 </div>
+                @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+                <div class="check-conflict" style="display: none;">
+                  <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
                 </div>
+                }
+              </div><!-- .border -->
+              @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+              <div class="create-pullreq border rounded-sm my-2 p-2" id="create-pull-request">
+                <div class="row">
+                  <div class="col-sm-auto">
+                    <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
+                  </div><!-- .col -->
+                  <div class="col align-self-center">
+                    <span class="text-muted">Discuss and review the changes in this comparison with others.</span>
+                  </div><!-- .col -->
+                </div><!-- .row -->
+              </div><!-- .create-pullreq -->
+              <div class="my-4" id="pull-request-form" style="display: none;">
+                <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+                  <div class="row">
+                    <div class="col-md-9">
+                      <span class="error" id="error-title"></span>
+                      <input type="text" name="title" value="@title" class="form-control mb-3" placeholder="Title"/>
+                      @gitbucket.core.helper.html.preview(
+                      repository         = repository,
+                      content            = content,
+                      enableWikiLink     = false,
+                      enableRefsLink     = true,
+                      enableLineBreaks   = true,
+                      enableTaskList     = true,
+                      hasWritePermission = true,
+                      completionContext  = "issues",
+                      style              = "height: 200px;"
+                      )
+                      <div class="text-right">
+                        <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+                        <input type="hidden" name="targetBranch" value="@originId"/>
+                        <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+                        <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
+                        <input type="hidden" name="requestBranch" value="@forkedId"/>
+                        <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+                        <input type="hidden" name="commitIdTo" value="@commitId"/>
+                        <input type="hidden" id="is-draft" name="isDraft" value=false />
+                        <div class="btn-group dropdown">
+                          <input type="submit" class="btn btn-success" tabindex="2" value="Create pull request" id="submit-button" validate="true" formaction="@context.path/@originRepository.owner/@originRepository.name/pulls/new"/>
+                          <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span>
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" id="pull-request">Create pull request</a>
+                            <a class="dropdown-item" id="draft-request">Create draft request</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), priorities, defaultPriority, labels, hasOriginWritePermission, repository)
+                    </div>
+                  </div>
+                </form>
               </div>
-            </div>
-            <div class="col-md-3">
-              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), priorities, defaultPriority, labels, hasOriginWritePermission, repository)
-            </div>
-          </div>
-        </form>
-      </div>
-    }
-    @if(commits.isEmpty){
-      <div class="panel panel-default" style="padding: 20px; background-color: #eee; text-align: center;">
-        <h4>There isn't anything to compare.</h4>
-        <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
-      </div>
-    } else {
-      <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
-        <table class="fill-width">
-          <tr>
-            <td style="width: 25%; text-align: center;">
-              <i class="octicon octicon-commit"></i>
-              @defining(commits.flatten){ commits =>
-                <strong>@commits.size</strong> @helpers.plural(commits.size, "commit")
               }
-            </td>
-            <td style="width: 25%; text-align: center;">
-              <i class="octicon octicon-diff"></i>
-              <strong>@diffs.size</strong> @helpers.plural(diffs.size, "file") changed
-            </td>
-            <td style="width: 25%; text-align: center;">
-              <i class="octicon octicon-comment"></i>
-              @defining(comments.collect { case c: gitbucket.core.model.CommitComment => c }){ comments =>
-                <strong>@comments.size</strong> commit @helpers.plural(comments.size, "comment")
-              }
-            </td>
-            <td style="width: 25%; text-align: center;">
-              <i class="octicon octicon-organization"></i>
-              @defining(commits.flatMap(_.map(_.authorEmailAddress)).distinct){ contributors =>
-                <strong>@contributors.size</strong> @helpers.plural(contributors.size, "contributor")
-              }
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div style="margin-bottom: 20px;">
-        @commits.map { day =>
-          <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
-            Commits on @helpers.date(day.head.commitTime)
-          </div>
-          <table style="width: 100%;">
-          @day.map { commit =>
-            <tr>
-              <td style="width: 20%;">
-                <i class="octicon octicon-git-commit"></i>
-                @helpers.avatarLink(commit, 20)
-                @helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")
-              </td>
-              <td><span class="monospace">@commit.shortMessage</span></td>
-              <td style="width: 10%; text-align: right;">
-                <a href="@helpers.url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
-              </td>
-            </tr>
-          }
-          </table>
-        }
-      </div>
-      @gitbucket.core.helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
-      @gitbucket.core.issues.html.commentlist(None, comments, false, repository, None)
+              @if(commits.isEmpty){
+              <div class="border rounded-sm text-center bg-light p-2 my-2">
+                <h4>There isn't anything to compare.</h4>
+                <span class="font-weight-bold">@originRepository.owner:@originId</span> and <span class="font-weight-bold">@forkedRepository.owner:@forkedId</span> are identical.
+              </div>
+              } else {
+              <div class="border rounded-sm my-2 p-2">
+                <div class="row">
+                  <div class="col-sm text-sm-center">
+                    <i class="octicon octicon-git-commit"></i>
+                    @defining(commits.flatten){ commits =>
+                    <strong>@commits.size</strong> @helpers.plural(commits.size, "commit")
+                    }
+                  </div>
+                  <div class="col-sm text-sm-center">
+                    <i class="octicon octicon-diff"></i>
+                    <strong>@diffs.size</strong> @helpers.plural(diffs.size, "file") changed
+                  </div>
+                  <div class="col-sm text-sm-center">
+                    <i class="octicon octicon-comment"></i>
+                    @defining(comments.collect { case c: gitbucket.core.model.CommitComment => c }){ comments =>
+                    <strong>@comments.size</strong> commit @helpers.plural(comments.size, "comment")
+                    }
+                  </div>
+                  <div class="col-sm text-sm-center">
+                    <i class="octicon octicon-organization"></i>
+                    @defining(commits.flatMap(_.map(_.authorEmailAddress)).distinct){ contributors =>
+                    <strong>@contributors.size</strong> @helpers.plural(contributors.size, "contributor")
+                    }
+                  </div>
+                </div><!-- .row -->
+              </div><!-- .border -->
+              <div class="my-2">
+                @commits.map { day =>
+                <div class="mt-3 mb-1 text-muted">
+                  Commits on @helpers.date(day.head.commitTime)
+                </div>
+                <div>
+                  @day.map { commit =>
+                  <div class="row mb-1">
+                    <div class="col-sm">
+                      <i class="octicon octicon-git-commit"></i>
+                      @helpers.avatarLink(commit, 20)
+                      @helpers.user(commit.authorName, commit.authorEmailAddress, "username font-weight-bold")
+                    </div>
+                    <div class="col-sm">
+                      <span class="monospace">@commit.shortMessage</span>
+                    </div>
+                    <div class="col-sm">
+                      <a href="@helpers.url(repository)/commit/@commit.id" class="float-sm-right monospace">@commit.id.substring(0, 7)</a>
+                    </div>
+                  </div><!-- .row -->
+                  }
+                </div>
+                }
+              </div>
+            </div><!-- .container -->
+            @gitbucket.core.helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
+            @gitbucket.core.issues.html.commentlist(None, comments, false, repository, None)
+          </div><!-- /.card-body"-->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
+
     }
   }
 }
@@ -184,9 +224,9 @@ $(function(){
 
 $(function(){
   function updateSelector(e){
-    e.parents('ul').find('i').attr('class', 'octicon');
+    e.parents('.dropdown-menu').find('i').attr('class', 'octicon');
     e.find('i').addClass('octicon-check');
-    e.parents('div.btn-group').find('button span.strong').text(e.text());
+    e.parents('div.btn-group').find('button span.font-weight-bold').text(e.text());
   }
 
   $('a.origin-owner').click(function(){

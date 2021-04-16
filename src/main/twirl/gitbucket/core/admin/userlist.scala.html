@@ -2,71 +2,96 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Manage Users"){
   @gitbucket.core.admin.html.menu("users"){
-    <div class="pull-right" style="margin-bottom: 4px;">
-      <a href="@context.path/admin/users/_newuser" class="btn btn-default">New user</a>
-      <a href="@context.path/admin/users/_newgroup" class="btn btn-default">New group</a>
-    </div>
-    <label for="includeRemoved">
-      <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
-      Include removed users
-    </label>
-    <label for="includeGroups">
-      <input type="checkbox" id="includeGroups" name="includeGroups" @if(includeGroups){checked}/>
-      Include group accounts
-    </label>
-    <table class="table table-bordered table-hover">
-      @users.map { account =>
-        <tr>
-          <td @if(account.isRemoved){style="background-color: #dddddd;"}>
-            <div class="pull-right">
-              @if(account.isGroupAccount){
-                <a href="@context.path/admin/users/@account.userName/_editgroup">Edit</a>
-              } else {
-                <a href="@context.path/admin/users/@account.userName/_edituser">Edit</a>
-              }
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>User list
+              <div class="float-right">
+                <a href="@context.path/admin/users/_newuser" class="btn btn-default">New user</a>
+                <a href="@context.path/admin/users/_newgroup" class="btn btn-default">New group</a>
+              </div>
+            </h4>
+          </div><!-- /.card-header -->
+          <div class="card-body">
+            <div class="form-check form-check-inline">
+              <input type="checkbox" class="form-check-input" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
+              <label for="includeRemoved" class="form-check-label">Include removed users</label>
             </div>
-            <div class="strong">
-              @helpers.avatarLink(account.userName, 20)
-              @if(account.isRemoved){
-                @account.userName
-              } else {
-                <a href="@helpers.url(account.userName)">@account.userName</a>
-              }
-              @if(account.isGroupAccount){
-                (Group)
-              } else {
-                @if(account.isAdmin){
-                  (Administrator)
-                } else {
-                  (Normal)
-                }
-              }
-              @if(account.isGroupAccount){
-                @members(account.userName).map { userName =>
-                  @helpers.avatarLink(userName, 20, tooltip = true)
-                }
-              }
+            <div class="form-check form-check-inline">
+              <input type="checkbox" class="form-check-input" id="includeGroups" name="includeGroups" @if(includeGroups){checked}/>
+              <label for="includeGroups" class="form-check-label">Include group accounts</label>
             </div>
-            <div>
-              <hr>
-              @if(!account.isGroupAccount){
-                <i class="octicon octicon-mail"></i> @account.mailAddress
+            <table class="table table-bordered table-hover">
+              @users.map { account =>
+              <tr>
+                <td @if(account.isRemoved){style="background-color: #dddddd;"}>
+                  <div class="float-right">
+                    @if(account.isGroupAccount){
+                    <a href="@context.path/admin/users/@account.userName/_editgroup">Edit</a>
+                    } else {
+                    <a href="@context.path/admin/users/@account.userName/_edituser">Edit</a>
+                    }
+                  </div>
+                  <div class="strong">
+                    @helpers.avatarLink(account.userName, 20)
+                    @if(account.isRemoved){
+                    @account.userName
+                    } else {
+                    <a href="@helpers.url(account.userName)">@account.userName</a>
+                    }
+                    @if(account.isGroupAccount){
+                    (Group)
+                    } else {
+                    @if(account.isAdmin){
+                    (Administrator)
+                    } else {
+                    (Normal)
+                    }
+                    }
+                    @if(account.isGroupAccount){
+                    @members(account.userName).map { userName =>
+                    @helpers.avatarLink(userName, 20, tooltip = true)
+                    }
+                    }
+                  </div>
+                  <div>
+                    <hr>
+                    @if(!account.isGroupAccount){
+                    <i class="octicon octicon-mail"></i> @account.mailAddress
+                    }
+                    @account.url.map { url =>
+                    <i class="octicon octicon-home"></i> @url
+                    }
+                  </div>
+                  <div>
+                    <span class="text-muted">Registered:</span> @helpers.datetime(account.registeredDate)
+                    <span class="text-muted">Updated:</span> @helpers.datetime(account.updatedDate)
+                    @if(!account.isGroupAccount){
+                    <span class="text-muted">Last Login:</span> @account.lastLoginDate.map(helpers.datetime)
+                    }
+                  </div>
+                </td>
+              </tr>
               }
-              @account.url.map { url =>
-                <i class="octicon octicon-home"></i> @url
-              }
-            </div>
-            <div>
-              <span class="muted">Registered:</span> @helpers.datetime(account.registeredDate)
-              <span class="muted">Updated:</span> @helpers.datetime(account.updatedDate)
-              @if(!account.isGroupAccount){
-                <span class="muted">Last Login:</span> @account.lastLoginDate.map(helpers.datetime)
-              }
-            </div>
-          </td>
-        </tr>
-      }
-    </table>
+            </table>
+          </div><!-- /.card-body"-->
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
 <script>

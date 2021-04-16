@@ -1,12 +1,12 @@
 @(hasConflict: Boolean)
-<div style="margin-top: 8px;">
+<div>
   @if(hasConflict){
     <i class="octicon octicon-x" style="color: #bd2c00"></i>
-    <span class="strong" style="color: #bd2c00;">Can’t automatically merge.</span>
-    <span class="muted">Don’t worry, you can still create the pull request.</span>
+    <span class="font-weight-bold" style="color: #bd2c00;">Can’t automatically merge.</span>
+    <span class="text-muted">Don’t worry, you can still create the pull request.</span>
   } else {
     <i class="octicon octicon-check" style="color: #6cc644"></i>
-    <span class="strong" style="color: #6cc644">Able to merge.</span>
-    <span class="muted">These branches can be automatically merged.</span>
+    <span class="font-weight-bold" style="color: #6cc644">Able to merge.</span>
+    <span class="text-muted">These branches can be automatically merged.</span>
   }
 </div>

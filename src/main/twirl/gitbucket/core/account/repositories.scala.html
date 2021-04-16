@@ -4,11 +4,15 @@
   isGroupManager: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.account.html.main(account, groupNames, "repositories", extraMailAddresses, isGroupManager){
+
+<div class="card-body">
+  <div class="list-group list-group-flush mt-2">
   @if(repositories.isEmpty){
     No repositories
   } else {
     @repositories.map { repository =>
-      <div class="block">
+    <div class="list-group-item block">
+      <div class="row">
         <div class="repository-icon">
           @gitbucket.core.helper.html.repositoryicon(repository, true)
         </div>
@@ -25,9 +29,12 @@
           @if(repository.repository.description.isDefined){
             <div>@repository.repository.description</div>
           }
-          <div><span class="muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
+          <div><span class="text-muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
         </div>
-      </div>
+      </div><!-- /.row -->
+    </div>
     }
   }
+  </div><!-- /.list-group -->
+</div><!-- /.card-body -->
 }

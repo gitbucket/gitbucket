@@ -4,8 +4,9 @@
 @if(activities.isEmpty){
   No activity
 } else {
+<div class="list-group list-group-flush m-3">
   @activities.map { activity =>
-    <div class="block">
+    <div class="list-group-item">
       @(activity.activityType match {
         case "open_issue"          => simpleActivity(activity)
         case "comment_issue"       => simpleActivity(activity)
@@ -62,12 +63,14 @@
       })
     </div>
   }
+</div>
+
 }
 
 @customActivity(activity: gitbucket.core.model.Activity)(additionalInfo: Any) = {
   <div>
-    <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
-    <div class="strong">
+    <div class="text-muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
+    <div class="font-weight-bold strong">
       @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
     </div>
@@ -77,7 +80,7 @@
 
 @simpleActivity(activity: gitbucket.core.model.Activity) = {
   <div>
-    <span class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
+    <span class="text-muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
     <div>
       @helpers.avatarLink(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)

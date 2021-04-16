@@ -1,5 +1,5 @@
 @(total: Int, progress: Int)
-<div class="progress" style="height: 12px; margin-bottom: 8px;">
-  <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="@((progress.toDouble / total.toDouble * 100).toInt)" aria-valuemin="0" aria-valuemax="100" style="width: @((progress.toDouble / total.toDouble * 100).toInt)%">
+<div class="progress my-2" style="height: 12px;">
+  <div class="progress-bar bg-success " role="progressbar" aria-valuenow="@((progress.toDouble / total.toDouble * 100).toInt)" aria-valuemin="0" aria-valuemax="100" style="width: @((progress.toDouble / total.toDouble * 100).toInt)%">
   </div>
 </div>

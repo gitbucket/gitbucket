@@ -5,37 +5,46 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository, Some(branch)){
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="find-input">
+            <span class="bold"><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a></span>
+            /
+            <input type="text" name="query" class="form-control" style="display: inline; width: 300px;" autocomplete="off" spellcheck="false" autofocus id="tree-finder-field" aria-label="query"/>
+          </div>
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <div class="alert alert-info">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            You've activated the <em>file finder</em>
+            by pressing <code>t</code>.
+            Start typing to filter the file list. Use <code>↑</code> and
+            <code>↓</code> to navigate,
+            <code>enter</code> to view files.
+          </div>
+          <table id="tree-finder-results" class="table table-file-list" data-url="@helpers.url(repository)/tree-list/@treeId">
+            <tbody class="tree-browser-result-template">
+            <tr class="tree-browser-result">
+              <td class="icon"><span class="octicon octicon-chevron-right"></span></td>
+              <td class="icon"><i class="octicon octicon-file-text"></i></td>
+              <td>
+                <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)"></a>
+              </td>
+            </tr>
+            </tbody>
+            <tbody class="no-results" style="display:none">
+            <tr><th colspan="3">No matching files</th><tr>
+            </tbody>
+          </table>
+        </div><!-- /.card-body -->
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
 
-<div>
-  <div class="find-input">
-    <span class="bold"><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a></span>
-    /
-    <input type="text" name="query" class="form-control" style="display: inline; width: 300px;" autocomplete="off" spellcheck="false" autofocus id="tree-finder-field" aria-label="query"/>
-  </div>
-</div>
-
-<div class="alert alert-info">
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-  You've activated the <em>file finder</em>
-  by pressing <code>t</code>.
-  Start typing to filter the file list. Use <code>↑</code> and
-  <code>↓</code> to navigate,
-  <code>enter</code> to view files.
-</div>
-<table id="tree-finder-results" class="table table-file-list" data-url="@helpers.url(repository)/tree-list/@treeId">
-  <tbody class="tree-browser-result-template">
-    <tr class="tree-browser-result">
-      <td class="icon"><span class="octicon octicon-chevron-right"></span></td>
-      <td class="icon"><i class="octicon octicon-file-text"></i></td>
-      <td>
-        <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)"></a>
-      </td>
-    </tr>
-  </tbody>
-  <tbody class="no-results" style="display:none">
-    <tr><th colspan="3">No matching files</th><tr>
-  </tbody>
-</table>
 <script>
 $(function(){
   var paths = [];

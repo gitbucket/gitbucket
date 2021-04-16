@@ -1,26 +1,36 @@
 @(recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<div class="main-sidebar">
+<aside class="main-sidebar @helpers.sidebarSkin() elevation-4">
+  @gitbucket.core.helper.html.logo()
   <div class="sidebar">
-  <ul class="nav sidebar-menu">
-    <li class="header">Recently updated repositories</li>
-    @if(recentRepositories.isEmpty){
-      <li>No repositories</li>
-    } else {
-      <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find a repository" aria-label="Search"/></form></li>
-      @recentRepositories.zipWithIndex.map { case (repository, i) =>
-        <li class="repo-link menu-item-hover">
-          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span>@repository.owner/<span class="strong">@repository.name</span></span></a>
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-acording="false">
+        <li class="nav-header">
+          <span>Recently updated repositories</span>
+          <form class="sidebar-form mt-2">
+            <div class="input-group">
+              <input type="text" id="filter-box" class="form-control form-control-sm form-control-sidebar" placeholder="Find a repository" aria-label="Search"/>
+            </div>
+          </form>
         </li>
-      }
-    }
-  </ul>
+        @if(recentRepositories.isEmpty){
+        <li class="nav-header"><span>No repositories</span></li>
+        } else {
+      </ul>
+      <ul class="nav nav-pills nav-sidebar flex-column">
+        @recentRepositories.zipWithIndex.map { case (repository, i) =>
+        <li class="nav-item repo-link">
+          <a class="nav-link" href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <p>@repository.owner/<span class="font-weight-bold strong">@repository.name</span></p></a>
+        </li>
+        }
+        }
+      </ul>
+    </nav>
   </div>
-</div>
+</aside>
+
 <div class="content-wrapper">
-  <div class="content body">
-    @body
-  </div>
+  @body
 </div>
 <script>
 $(function(){

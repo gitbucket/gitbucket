@@ -1,51 +1,53 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
-<div class="main-sidebar">
-  <div class="sidebar">
-    <ul class="sidebar-menu" id="system-admin-menu-container">
-      <li class="menu-item-hover @if(active=="users"){active}">
-        <a href="@context.path/admin/users">
-          <i class="menu-icon octicon octicon-person"></i>
-          <span>User management</span>
+@import gitbucket.core.view.helpers
+<aside class="main-sidebar @helpers.sidebarSkin() elevation-4">
+  @gitbucket.core.helper.html.logo()
+<div class="sidebar">
+  <nav class="mt-2">
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-acording="false">
+      <li class="nav-item @if(active=="users"){active}">
+        <a class="nav-link" href="@context.path/admin/users">
+          <i class="nav-icon octicon octicon-person"></i>
+          <p>User management</p>
         </a>
       </li>
-      <li class="menu-item-hover @if(active=="system"){active}">
-        <a href="@context.path/admin/system">
-          <i class="menu-icon octicon octicon-gear"></i>
-          <span>System settings</span></a>
+      <li class="nav-item @if(active=="system"){active}">
+        <a class="nav-link" href="@context.path/admin/system">
+          <i class="nav-icon octicon octicon-gear"></i>
+          <p>System settings</p></a>
       </li>
-      <li class="menu-item-hover @if(active=="plugins"){active}">
-        <a href="@context.path/admin/plugins">
-          <i class="menu-icon octicon octicon-plug"></i>
-          <span>Plugins</span>
+      <li class="nav-item @if(active=="plugins"){active}">
+      <a class="nav-link" href="@context.path/admin/plugins">
+          <i class="nav-icon octicon octicon-plug"></i>
+          <p>Plugins</p>
         </a>
       </li>
-      <li class="menu-item-hover @if(active=="data"){active}">
-        <a href="@context.path/admin/data">
-          <i class="menu-icon octicon octicon-database"></i>
-          <span>Data export / import</span>
+      <li class="nav-item @if(active=="data"){active}">
+      <a class="nav-link" href="@context.path/admin/data">
+          <i class="nav-icon octicon octicon-database"></i>
+          <p>Data export / import</p>
         </a>
       </li>
-      <li class="menu-item-hover @if(active=="dbviewer"){active}">
-        <a href="@context.path/admin/dbviewer">
-          <i class="menu-icon octicon octicon-database"></i>
-          <span>Database viewer</span>
+      <li class="nav-item @if(active=="dbviewer"){active}">
+      <a class="nav-link"href="@context.path/admin/dbviewer">
+          <i class="nav-icon octicon octicon-database"></i>
+          <p>Database viewer</p>
         </a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
         @menu(context).map { link =>
-          <li@if(active==link.id){ class="active"}>
-            <a href="@context.path/@link.path">
-              <i class="menu-icon octicon octicon-@link.icon.getOrElse("plug")"></i>
-              <span>@link.label</span>
+      <li class="nav-item@if(active==link.id){ active}">
+        <a class="nav-link" href="@context.path/@link.path">
+              <i class="nav-icon octicon octicon-@link.icon.getOrElse("plug")"></i>
+              <p>@link.label</p>
             </a>
-          </li>
+      </li>
         }
       }
    </ul>
-  </div>
+  </nav>
 </div>
+</aside>
 <div class="content-wrapper">
-  <div class="content body">
-    @body
-  </div>
+  @body
 </div>

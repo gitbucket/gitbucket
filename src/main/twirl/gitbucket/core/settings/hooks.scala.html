@@ -5,20 +5,16 @@
 @gitbucket.core.html.main("Settings", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("hooks", repository){
-      @gitbucket.core.helper.html.information(info)
-      <div class="panel panel-default">
-        <div class="panel-heading strong">
-          Webhooks
-        </div>
-        <div class="panel-body">
+      <div class="card-body">
+        @gitbucket.core.helper.html.information(info)
+        <h3>Webhooks</h3>
+        <div>
           <p>
             Webhooks notify external services when certain events occur within this repository.
             When any of the specified events occur, GitBucket will send a POST request to all of the endpoints (URLs) you provide.
             Learn more about this feature on the <a href="https://github.com/gitbucket/gitbucket/wiki/API-WebHook" target="_blank" rel="noopener">GitBucket Wiki</a>.
           </p>
-          <a href="@helpers.url(repository)/settings/hooks/new" class="btn btn-success pull-right" style="margin-bottom: 10px;">Add webhook</a>
-
-          <table class="table table-condensed" style="margin-bottom:0px;">
+          <table class="table table-condensed mb-0">
             @webHooks.map { case (webHook, events) =>
               <tr><td style="vertical-align: middle;">
                 <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
@@ -26,7 +22,7 @@
                 </a>
                 <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
               </td><td>
-                <div class="btn-group pull-right">
+                <div class="btn-group float-right">
                   <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
                     <span class="octicon octicon-pencil"></span>
                   </a>
@@ -38,6 +34,9 @@
             }
           </table>
         </div>
+      </div>
+      <div class="card-footer">
+        <a href="@helpers.url(repository)/settings/hooks/new" class="btn btn-success float-right">Add webhook</a>
       </div>
     }
   }

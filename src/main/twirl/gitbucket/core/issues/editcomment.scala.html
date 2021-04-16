@@ -1,6 +1,6 @@
 @(content: String, commentId: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-<span id="error-edit-content-@commentId" class="error"></span>
+<span id="error-edit-content-@commentId" class="error text-danger"></span>
 @gitbucket.core.helper.html.preview(
   repository         = repository,
   content            = content,
@@ -15,7 +15,7 @@
   focus              = true,
   tabIndex           = 1
 )
-<div class="pull-right">
+<div class="float-right">
   <input type="button" id="cancel-comment-@commentId" class="btn btn-default" value="Cancel"/>
   <input type="button" id="update-comment-@commentId" class="btn btn-success" value="Update comment"/>
 </div>

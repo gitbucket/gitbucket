@@ -3,39 +3,58 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
-    @if(!hasWritePermission){
-      <h3>This is an empty repository</h3>
-    } else {
-      <h3><strong>Quick setup</strong> — if you've done this kind of thing before</h3>
-      <div class="empty-repo-options">
-        via <a href="@repository.httpUrl" class="git-protocol-selector">HTTP</a>
-      @repository.sshUrl.map { sshUrl =>
-         or
-         <a href="@sshUrl" class="git-protocol-selector">SSH</a>
-      }
-      </div>
-      <h3 style="margin-top: 30px;">Create a new repository from the command line</h3>
-      @helpers.pre {
-        touch README.md
-        git init
-        git add README.md
-        git commit -m "first commit"
-        git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
-        git push -u origin master
-      }
-      <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
-      @helpers.pre {
-        git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
-        git push -u origin master
-      }
-      <script>
-      $(function(){
-        $('.git-protocol-selector').click(function(e){
-          e.preventDefault();
-          $('.live-clone-url').text($(e.target).attr('href'));
-        });
-      });
-      </script>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        @if(!hasWritePermission){
+        <div class="card-body">
+          <h3>This is an empty repository</h3>
+        </div>
+        } else {
+        <div class="card-header">
+          <h4><strong>Quick setup</strong> — if you've done this kind of thing before</h4>
+        </div>
+        <div class="card-body">
+        <div class="empty-repo-options">
+            via <a href="@repository.httpUrl" class="git-protocol-selector">HTTP</a>
+          @repository.sshUrl.map { sshUrl =>
+             or
+             <a href="@sshUrl" class="git-protocol-selector">SSH</a>
+          }
+          </div>
+          <h3>Create a new repository from the command line</h3>
+          <div class="bg-light">
+          @helpers.pre {
+            touch README.md
+            git init
+            git add README.md
+            git commit -m "first commit"
+            git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
+            git push -u origin master
+          }
+          </div>
+          <h3>Push an existing repository from the command line</h3>
+          <div class="bg-light">
+          @helpers.pre {
+            git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
+            git push -u origin master
+          }
+          </div>
+        </div><!--/.card-body-->
+      </div><!--/.card-->
+    </div><!--/.col-->
+  </div><!--/.row-->
+</div><!--/.container-->
+
+<script>
+  $(function(){
+    $('.git-protocol-selector').click(function(e){
+      e.preventDefault();
+      $('.live-clone-url').text($(e.target).attr('href'));
+    });
+  });
+</script>
     }
   }
 }

@@ -3,56 +3,52 @@
 @import gitbucket.core.util.DatabaseConfig
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
     @gitbucket.core.helper.html.information(info)
-    <form action="@context.path/admin/system" method="POST" validate="true" class="form-horizontal" autocomplete="off">
-      <ul class="nav nav-tabs fill-width" id="settings-tab">
-        <li><a href="#system">System settings</a></li>
-        <li><a href="#integrations">Integrations</a></li>
-        <li><a href="#authentication">Authentication</a></li>
-      </ul>
-      <div class="tab-content fill-width" style="padding-top: 20px;">
-        <div class="tab-pane" id="tab-system">
-          @settings_system(info)
-        </div>
-        <div class="tab-pane" id="tab-integrations">
-          @settings_integrations(info)
-        </div>
-        <div class="tab-pane" id="tab-authentication">
-          @settings_authentication(info)
-        </div>
-      </div>
-      <hr>
-      <div class="align-right" style="margin-top: 20px;">
-        <input type="submit" class="btn btn-success" value="Apply changes"/>
-      </div>
-    </form>
+    <div class="row">
+      <div class="col">
+        <div class="card card-primary card-outline card-outline-tabs">
+          <div class="card-header p-0 border-bottom-0">
+            <ul class="nav nav-tabs" id="settings-tab">
+              <li class="nav-item"><a class="nav-link active" href="#tab-system" data-toggle="pill" role="tab" aria-selected="false">System settings</a></li>
+              <li class="nav-item"><a class="nav-link" href="#tab-integrations" data-toggle="pill" role="tab" aria-selected="false">Integrations</a></li>
+              <li class="nav-item"><a class="nav-link" href="#tab-authentication" data-toggle="pill" role="tab" aria-selected="false">Authentication</a></li>
+            </ul>
+          </div><!-- /.card-header -->
+          <form action="@context.path/admin/system" method="POST" validate="true" class="form-horizontal" autocomplete="off">
+            <div class="card-body">
+              <div class="tab-content">
+                <div class="tab-pane active" id="tab-system">
+                  @settings_system(info)
+                </div>
+                <div class="tab-pane" id="tab-integrations">
+                  @settings_integrations(info)
+                </div>
+                <div class="tab-pane" id="tab-authentication">
+                  @settings_authentication(info)
+                </div>
+              </div>
+            </div><!-- /.card-body"-->
+            <div class="card-footer">
+              <div class="float-right">
+                <input type="submit" class="btn btn-success" value="Apply changes"/>
+              </div>
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /container -->
+</div><!-- /.content-body -->
   }
 }
-<script>
-$(function(){
-  function updateTabs(){
-    $('ul.nav-tabs li').removeClass('active');
-    $('div.tab-pane').removeClass('active');
-
-    // Determine active tab from hash
-    if(location.hash == '#authentication'){
-      $('li:has(a[href="#authentication"])').addClass('active');
-      $('div#tab-authentication').addClass('active');
-    } else if(location.hash == '#integrations'){
-      $('li:has(a[href="#integrations"])').addClass('active');
-      $('div#tab-integrations').addClass('active');
-    } else {
-      $('li:has(a[href="#system"])').addClass('active');
-      $('div#tab-system').addClass('active');
-    }
-  }
-
-  // Set hash when tab is clicked
-  $('#settings-tab li a').click(function(e){
-    location.href = $(e.delegateTarget).attr("href");
-    updateTabs();
-  });
-
-  updateTabs();
-});
-</script>

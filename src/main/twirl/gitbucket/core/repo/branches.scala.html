@@ -9,91 +9,104 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("branches", repository){
-    <table class="table table-hover branches">
-      <thead>
-        <tr>
-          <th colspan="3">All branches</th>
-        </tr>
-      </thead>
-      <tbody>
-      @branchInfo.map { case (branch, prs, isProtected, status) =>
-        <tr>
-          <td class="branch-details">
-            @if(isProtected){ <span class="octicon octicon-shield" title="This branch is protected"></span> }
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)">@branch.name</a>
-            <span class="branch-meta">
-              <span>Updated @gitbucket.core.helper.html.datetimeago(branch.commitTime, false)
-                by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "muted-link")</span>
-              </span>
-            </span>
-            @status.map { case (summary, statuses) =>
-              @gitbucket.core.helper.html.commitstatus(branch.commitId, summary, statuses)
-            }
-          </td>
-          <td class="branch-a-b-count">
-            @if(repository.repository.defaultBranch == branch.name){
-              <span class="badge">Default</span>
-            } else {
-              @branch.mergeInfo.map{ info =>
-                <div data-toggle="tooltip" title="@info.ahead commits ahead, @info.behind commits behind @repository.repository.defaultBranch">
-                  <div class="a-b-count-widget">
-                    <div class="count-half"><div class="count-value">@info.ahead</div></div>
-                    <div class="count-half"><div class="count-value">@info.behind</div></div>
-                  </div>
-                </div>
-              }
-            }
-          </td>
-          <td class="text-right">
-            <div class="branch-action">
-              @if(repository.repository.defaultBranch != branch.name){
-                @branch.mergeInfo.map{ info =>
-                  @prs.map{ case (pull, issue) =>
-                    <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title">#@issue.issueId</a>
-                    @if(issue.closed) {
-                      @if(info.isMerged){
-                        <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-info">Merged</a>
-                      } else {
-                        <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-important">Closed</a>
-                      }
-                    } else {
-                      <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-success">Open</a>
-                    }
-                  }.getOrElse{
-                    @if(context.loginAccount.isDefined){
-                      <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
-                        helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
-                      }.getOrElse {
-                        helpers.encodeRefName(repository.repository.defaultBranch)
-                      }}...@{helpers.encodeRefName(branch.name)}?expand=1" class="btn btn-default btn-sm">New Pull request</a>
-                    } else {
-                      <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
-                        helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
-                      }.getOrElse {
-                        helpers.encodeRefName(repository.repository.defaultBranch)
-                      }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default btn-sm">Compare</a>
-                    }
-                  }
-                  @if(hasWritePermission){
-                    <span style="margin-left: 8px;">
-                    @if(prs.map(!_._2.closed).getOrElse(false)){
-                      <a class="disabled" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="octicon octicon-trashcan"></i></a>
-                    } else {
-                      @if(isProtected){
-                        <a class="disabled" data-toggle="tooltip" title="You can’t delete a protected branch."><i class="octicon octicon-trashcan"></i></a>
-                      } else {
-                        <a href="@helpers.url(repository)/delete/@helpers.encodeRefName(branch.name)" class="delete-branch" data-name="@branch.name" @if(info.isMerged){ data-toggle="tooltip" title="this branch is merged" }><i class="octicon octicon-trashcan @if(info.isMerged){warning} else {danger}"></i></a>
-                      }
-                    }
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>Branches</h4>
+        </div>
+        <div class="card-body">
+          <table class="table table-hover branches">
+            <thead class="thead-light">
+              <tr>
+                <th colspan="3">All branches</th>
+              </tr>
+            </thead>
+            <tbody>
+            @branchInfo.map { case (branch, prs, isProtected, status) =>
+              <tr>
+                <td class="branch-details">
+                  @if(isProtected){ <span class="octicon octicon-shield" title="This branch is protected"></span> }
+                  <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)">@branch.name</a>
+                  <span class="branch-meta">
+                    <span>Updated @gitbucket.core.helper.html.datetimeago(branch.commitTime, false)
+                      by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "text-muted")</span>
                     </span>
+                  </span>
+                  @status.map { case (summary, statuses) =>
+                  @gitbucket.core.helper.html.commitstatus(branch.commitId, summary, statuses)
                   }
-                }
-              }
-            </div>
-          </td>
-        </tr>
-      }
-    </table>
+                </td>
+                <td class="branch-a-b-count">
+                  @if(repository.repository.defaultBranch == branch.name){
+                    <span class="badge badge-secondary">Default</span>
+                  } else {
+                    @branch.mergeInfo.map{ info =>
+                      <div data-toggle="tooltip" title="@info.ahead commits ahead, @info.behind commits behind @repository.repository.defaultBranch">
+                        <div class="row">
+                          <div class="col-md border-right"><div class="float-md-right">@info.ahead</div></div>
+                          <div class="col-md"><div class="float-md-left">@info.behind</div></div>
+                        </div>
+                      </div>
+                    }
+                  }
+                </td>
+                <td class="text-right">
+                  <div class="branch-action">
+                    @if(repository.repository.defaultBranch != branch.name){
+                      @branch.mergeInfo.map{ info =>
+                        @prs.map{ case (pull, issue) =>
+                          <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title">#@issue.issueId</a>
+                          @if(issue.closed) {
+                            @if(info.isMerged){
+                              <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="badge badge-info">Merged</a>
+                            } else {
+                              <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="badge badge-important">Closed</a>
+                            }
+                          } else {
+                            <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="badge badge-success">Open</a>
+                          }
+                        }.getOrElse{
+                          @if(context.loginAccount.isDefined){
+                            <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
+                              helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
+                            }.getOrElse {
+                              helpers.encodeRefName(repository.repository.defaultBranch)
+                            }}...@{helpers.encodeRefName(branch.name)}?expand=1" class="btn btn-default btn-sm">New Pull request</a>
+                          } else {
+                            <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
+                              helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
+                            }.getOrElse {
+                              helpers.encodeRefName(repository.repository.defaultBranch)
+                            }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default btn-sm">Compare</a>
+                          }
+                        }
+                        @if(hasWritePermission){
+                          <span class="ml-2">
+                          @if(prs.map(!_._2.closed).getOrElse(false)){
+                            <a class="disabled" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="octicon octicon-trashcan"></i></a>
+                          } else {
+                            @if(isProtected){
+                              <a class="disabled" data-toggle="tooltip" title="You can’t delete a protected branch."><i class="octicon octicon-trashcan"></i></a>
+                            } else {
+                              <a href="@helpers.url(repository)/delete/@helpers.encodeRefName(branch.name)" class="delete-branch" data-name="@branch.name" @if(info.isMerged){ data-toggle="tooltip" title="this branch is merged" }><i class="octicon octicon-trashcan @if(info.isMerged){text-warning} else {text-danger}"></i></a>
+                            }
+                          }
+                          </span>
+                        }
+                      }
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   }
 }
 <script>
@@ -102,6 +115,6 @@ $(function(){
     var branchName = $(e.target).closest('a').data('name');
     return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
   });
-  $('*[data-toggle=tooltip]').tooltip().css("white-space","nowrap");
+  $('*[data-toggle="tooltip"]').tooltip().css("white-space","nowrap");
 });
 </script>

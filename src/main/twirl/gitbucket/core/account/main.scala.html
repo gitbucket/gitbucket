@@ -2,86 +2,114 @@
   isGroupManager: Boolean = false)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(account.userName){
-  <div class="main-sidebar">
+  <aside class="main-sidebar @helpers.sidebarSkin() elevation-4">
+    @gitbucket.core.helper.html.logo()
     <div class="sidebar">
-      <div class="user-panel">
-        <div class="pull-left image">@helpers.avatar(account.userName, 40)</div>
-        <div class="pull-left info">
-          <p>@account.userName</p>
-          @account.fullName
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+          @helpers.avatar(account.userName, 30)
         </div>
-      </div>
-      <div style="padding-left: 10px; padding-right: 10px;">
-        @account.description.map { description =>
-          <p style="color: #999">@description</p>
-        }
-        @account.url.map { url =>
-          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <i class="octicon octicon-home"></i>
-            @if(url.startsWith("http://") || url.startsWith("https://")){
-              <a href="@url">@url</a>
-            } else {
-            <span style="color: #999">@url</span>
-            }
-          </p>
-        }
-        @if(context.settings.showMailAddress){
-          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <i class="octicon octicon-mail"></i> <a href="mailto:@account.mailAddress">@account.mailAddress</a>
-          </p>
-          @extraMailAddresses.map { mail =>
-            <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <i class="octicon octicon-mail"></i> <a href="mailto:@mail">@mail</a>
-            </p>
-          }
-        }
-        <p style="color: #999">
-          <i class="octicon octicon-clock"></i> Joined on @helpers.date(account.registeredDate)
-        </p>
-      </div>
-      @if(groupNames.nonEmpty){
-        <ul class="sidebar-menu">
-          <li class="header">Groups</li>
+        <div class="info">
+          <a href="#">@account.userName</a>
+        </div>
+      </div><!-- /.user-panel -->
+      <nav class="tm-2">
+        <ul class="nav nav-pills nav-sidebar" data-widget="treeview" role="menu" data-accordion="false">
+          <li class="nav-header">
+            <div>
+              <div class="font-weight-bold">@account.fullName</div>
+              @account.description.map { description =>
+              <div class="text-wrap mt-2">@description</div>
+              }
+              <div class="small mt-1">
+                @account.url.map { url =>
+                <div class="mt-1 text-truncate">
+                  @if(url.startsWith("http://") || url.startsWith("https://")){
+                  <a href="@url"><i class="octicon octicon-home"></i><span> @url</span></a>
+                  } else {
+                  <a href="#"><i class="octicon octicon-home"></i><span> @url</span></a>
+                  }
+                </div>
+                }
+                @if(context.settings.showMailAddress){
+                <div class="mt-1 text-truncate">
+                  <a href="mailto:@account.mailAddress"><i class="octicon octicon-mail"></i><span> @account.mailAddress</span></a>
+                </div>
+                @extraMailAddresses.map { mail =>
+                <div class="mt-1 text-truncate">
+                  <a href="mailto:@mail"><i class="octicon octicon-mail"></i><span> @mail</span></a>
+                </div>
+                }
+                }
+                <div class="mt-1">
+                  <i class="octicon octicon-clock"></i><span> Joined on @helpers.date(account.registeredDate)</span>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          @if(groupNames.nonEmpty){
+          <li class="nav-header">Groups</li>
           @groupNames.map { groupName =>
-            <li>@helpers.avatarLink(groupName, 20, tooltip = true, label = true)</li>
+          <li class="nav-item">
+            <a class="nav-link" href="@helpers.url(groupName)">
+              <i class="nav-icon">@helpers.avatar(groupName, 20, tooltip = true)</i>
+              <p>@groupName</p>
+            </a>
+          </li>
+          }
           }
         </ul>
-      }
+      </nav>
     </div>
-  </div>
+  </aside>
   <div class="content-wrapper">
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark"></h1>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="content body">
-      <ul class="nav nav-tabs" style="margin-bottom: 5px;">
-        <li@if(active == "repositories"){ class="active"}><a href="@helpers.url(account.userName)?tab=repositories">Repositories</a></li>
-        @if(account.isGroupAccount){
-          <li@if(active == "members"){ class="active"}><a href="@helpers.url(account.userName)?tab=members">Members</a></li>
-        } else {
-          <li@if(active == "activity"){ class="active"}><a href="@helpers.url(account.userName)?tab=activity">Public activity</a></li>
-        }
-        @*
-        <li@if(active == "webhooks"){ class="active"}><a href="@helpers.url(account.userName)?tab=webhooks">Webhooks</a></li>
-        *@
-        @gitbucket.core.plugin.PluginRegistry().getProfileTabs.map { tab =>
-          @tab(account, context).map { link =>
-            <li@if(active == link.id){ class="active"}><a href="@context.path/@link.path">@link.label</a></li>
-          }
-        }
-        @if(context.loginAccount.isDefined && context.loginAccount.get.userName == account.userName){
-          <li class="pull-right">
-            <div class="button-group">
-              <a href="@helpers.url(account.userName)/_edit" class="btn btn-default">Edit your profile</a>
-            </div>
-          </li>
-        }
-        @if(context.loginAccount.isDefined && account.isGroupAccount && isGroupManager){
-          <li class="pull-right">
-            <div class="button-group">
-              <a href="@helpers.url(account.userName)/_editgroup" class="btn btn-default">Edit group</a>
-            </div>
-          </li>
-        }
-      </ul>
-      @body
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <div class="card card-primary card-outline card-outline-tabs">
+              <div class="card-header p-0 border-bottom-0">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item"><a class="nav-link@if(active == "repositories"){ active}" href="@helpers.url(account.userName)?tab=repositories">Repositories</a></li>
+                  @if(account.isGroupAccount){
+                  <li class="nav-item"><a class="nav-link@if(active == "members"){ active}" href="@helpers.url(account.userName)?tab=members">Members</a></li>
+                  } else {
+                  <li class="nav-item"><a class="nav-link@if(active == "activity"){ active}" href="@helpers.url(account.userName)?tab=activity">Public activity</a></li>
+                  }
+                  @*
+                  <li class="nav-item"><a class="nav-link@if(active == "webhooks"){ active}" href="@helpers.url(account.userName)?tab=webhooks">Webhooks</a></li>
+                  *@
+                  @gitbucket.core.plugin.PluginRegistry().getProfileTabs.map { tab =>
+                  @tab(account, context).map { link =>
+                  <li class="nav-item"><a class="nav-link@if(active == link.id){ active}" href="@context.path/@link.path">@link.label</a></li>
+                  }
+                  }
+                  <li class="nav-item">
+                      @if(context.loginAccount.isDefined && context.loginAccount.get.userName == account.userName){
+                      <a class="nav-link" href="@helpers.url(account.userName)/_edit" class="btn btn-default btn-sm">Edit your profile</a>
+                      }
+                      @if(context.loginAccount.isDefined && account.isGroupAccount && isGroupManager){
+                      <a class="nav-link" href="@helpers.url(account.userName)/_editgroup" class="btn btn-default btn-sm">Edit group</a>
+                      }
+                  </li>
+                </ul><!-- /.nav-tabs -->
+              </div><!-- /.card-header -->
+              @body
+            </div><!-- /.card -->
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container -->
     </div>
   </div>
 }

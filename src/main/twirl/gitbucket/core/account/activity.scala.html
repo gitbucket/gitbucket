@@ -4,8 +4,14 @@
   extraMailAddresses: List[String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.account.html.main(account, groupNames, "activity", extraMailAddresses){
-  <div class="pull-right">
-    <a href="@context.path/@{account.userName}.atom"><img src="@helpers.assets("/common/images/feed.png")" alt="activities"></a>
+<div class="card-body">
+  <div class="row">
+    <div class="col">
+      <div class="float-right">
+        <a href="@context.path/@{account.userName}.atom"><img src="@helpers.assets("/common/images/feed.png")" alt="activities"></a>
+      </div>
+    </div>
   </div>
   @gitbucket.core.helper.html.activities(activities)
+</div>
 }

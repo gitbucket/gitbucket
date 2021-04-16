@@ -1,585 +1,45 @@
 /****************************************************************************/
 /* Common */
 /****************************************************************************/
-.wrapper { position: static; }
-
-body {
-  color: #333;
-}
-
-li p {
-  margin: 0px;
-}
-
-h1 {
-  font-size: 30px;
-  line-height: 32px;
-}
-
-h1.system-settings-title {
-  margin-top: 0px;
-  margin-bottom: 20px;
-}
-
-h2 {
-  font-size: 28px;
-  line-height: 30px;
-}
-
-h3 {
-  font-size: 26px;
-  line-height: 28px;
-}
-
-h4 {
-  font-size: 24px;
-}
-
-h5 {
-  font-size: 22px;
-}
-
-h6 {
-  font-size: 18px;
-}
-
-.octicon {
-  color : #999;
-  font-size: 14px;
-  text-align: center;
-}
-
-.mega-octicon {
-  color : #999;
-  text-align: center;
-  width: 32px;
-  height: 32px;
-}
-
-.octicon.active,.mega-octicon.active {
-  color : #333;
-}
-
-.octicon-cloud-download {
-  color: #333;
-  margin-right: 5px;
-}
-
-.head .octicon, .head .mega-octicon {
-  color : #BBB;
-}
-
-.align-right {
-  text-align: right;
-}
-
-blockquote p {
-  font-size: 15px;
-}
-
-.danger {
-  color: #900;
-}
-
-.warning {
-  color: #F28722;
-}
-
-.muted {
-  color: #777;
-}
-
-dl {
-  margin: 0px;
-}
-
-dd {
-  margin-left: 20px;
-}
-
-hr {
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-pre.reset {
-  /* defaults */
-  display: block;
-  font-family: monospace;
-  white-space: pre;
-  margin: 1em 0px;
-  /* bootstrap overrides */
-  padding: initial;
-  line-height: initial;
-  color: initial;
-  background-color: initial;
-  border: initial;
-  overflow: initial;
-  word-break: initial;
-  word-wrap: initial;
-  border-radius: initial;
-}
-
-label.radio, label.checkbox {
-  position: relative;
-  left: 24px;
-}
-
-div.content-wrapper {
-  background-color: white;
-}
-
-.table-scroll {
-  display: block;
-  position: relative;
-  overflow: scroll;
-}
 
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
-.main-header .logo img {
-  width: 24px;
-  height: 24px;
-  display: inline;
-  vertical-align: text-bottom;
-}
 
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
-div.head {
-  margin-bottom: 10px;
-  font-size: 18px;
-}
-
-div.head div.forked {
-  font-size: 65%;
-  margin-left: 36px;
-  color: #999999;
-}
-
-div.container {
-  width: 100%;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-div.main-center {
-  margin: 0 auto;
-}
-
-span.error {
-  color: red;
-}
-
-.small {
-  font-size: 90%;
-}
-
-.strong {
-  font-weight: bold;
-}
-
-.normal {
-  font-weight: normal;
-}
-
-a.commit-message, a.commit-id, a.username, a.issue-comment-count {
-  color: #333333;
-}
-
-a.omit {
-  background-color: #ddd;
-  padding-left: 8px;
-  padding-right: 8px;
-  font-weight: bold;
-}
-
-a.omit:hover {
-  background-color: #aaa;
-}
-
-div.show-more {
-  text-align: center;
-  border-top: 1px solid silver;
-}
-
-div.show-more a {
-  color: #7aa1d3;
-}
-
-.monospace {
-  font-family: Consolas, 'Courier New', Courier, Monaco, monospace;
-}
-
-table.table th {
-  background-color: #f5f5f5;
-}
-
-div.block-header {
-  font-size: large;
-  font-weight: bold;
-}
-
-div.block {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ddd;
-}
-
-h3 {
-  margin-top: 0px;
-}
-
-div.box-header {
-  background-color: #f5f5f5;
-  margin: 0;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border: 1px solid #d8d8d8;
-  border-bottom: none;
-  padding: 8px 8px 8px 8px;
-}
-
-.inline-comment div.box-header-small {
-  background: #f2f8fa;
-}
-
-.inline-comment div.box-content-bottom {
-  margin-bottom: 0px;
-}
-
-div.row {
-  margin-left: 0px;
-  margin-right: 0px;
-}
-
-/*
-ul.nav-tabs {
-  height: 42px;
-}
-*/
-
-ul.nav-pills .link {
-  color: #4078c0;
-}
-
-ul.nav-pills i.link {
-  line-height: 0px;
-  height: 0;
-}
-
-div.box-content {
-  background-color: white;
-  border: 1px solid #d8d8d8;
-  padding: 4px;
-  border-radius: 3px;
-}
-
-div.box-content-bottom {
-  background-color: white;
-  border: 1px solid #d8d8d8;
-  padding: 4px;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  margin-bottom: 20px;
-}
-
-div.box-content-bottom img {
-  max-width: 100%;
-}
-
-table.table th.box-header {
-  background-color: #f5f5f5;
-  padding: 2px;
-}
-
-th.box-header .octicon {
-  display: inline;
-}
-
-td.ellipsis-cell {
-  position: relative;
-}
-
-td.ellipsis-cell > * {
-  position: absolute;
-  left: 0;
-  right: 0;
-  padding-right: 5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-img.avatar {
-  border-radius: 4px;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-}
-
-img.avatar-mini {
-  border-radius: 2px;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-}
-
-div.activity-message {
-  margin-left: 20px;
-}
-
-fieldset.border-top {
-  border-top: 1px solid #eee;
-  margin-top: 10px;
-  padding-top: 10px;
-}
-
-div.account-image {
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.dropdown-filter-input {
-  border: solid 1px #ccc;
-  margin: 4px;
-  width: 96%;
-}
-
-ul.dropdown-menu {
-  padding: 2px 0;
-  overflow: auto;
-  max-height: 100vh;
-}
-
-ul.dropdown-menu li {
-  border-bottom: 1px solid #eee;
-}
-
-ul.dropdown-menu li a {
-  padding: 2px 10px;
-}
-
-ul.dropdown-menu li:last-child {
-  border-bottom: none;
-}
-
 span.highlight {
   background-color: #ffff88;
-}
-
-.fill-width {
-  width: 100%;
-}
-
-.dz-clickable {
-  cursor: pointer;
-}
-
-.btn .octicon {
-  color: #333;
-}
-
-.btn-success .octicon {
-  color: #fff;
-}
-
-.btn-warning .octicon {
-  color: #fff;
-}
-
-.btn-danger .octicon {
-  color: #900;
-}
-
-a.btn-danger:hover .octicon {
-  color: #fff;
-}
-
-.no-margin {
-  margin: 0px;
 }
 
 /****************************************************************************/
 /* Head Menu */
 /****************************************************************************/
-div.headbar {
-  padding-top: 4px;
-  margin-bottom: 8px;
-}
 
 /****************************************************************************/
 /* Create Repository */
 /****************************************************************************/
-.slash {
-  font-size: 20px;
-}
 
 /****************************************************************************/
 /* Sign-in form */
 /****************************************************************************/
-div.signin-form {
-  width: 300px;
-  margin: 30px auto;
-}
 
 /****************************************************************************/
 /* Account page */
 /****************************************************************************/
-.account-fullname {
-  margin-top: 20px;
-  font-size: 180%;
-  font-weight: bold;
-}
-
-.account-username {
-  margin-top: 10px;
-  font-size: 140%;
-  color: #888888;
-  font-weight: bold;
-}
 
 /****************************************************************************/
 /* Repositories */
 /****************************************************************************/
-div.repository-icon {
-  position: absolute;
-}
-
-div.repository-content {
-  margin-left: 40px;
-}
-
-table.branches>tbody>tr>td{
-  padding: 12px;
-  line-height: 30px;
-}
-
-.branches .muted-link{
-  color: #777;
-}
-
-.branches .muted-link:hover{
-  color: #4183c4;
-}
-
-.branches .branch-meta{
-  color: #aaa;
-  line-height: 20px;
-}
-
-.branches .branch-a-b-count{
-  color: rgba(0,0,0,0.5);
-}
-
-.branches .a-b-count-widget .count-half{
-  width:90px;
-  position: relative;
-  text-align: right;
-  float: left;
-}
-
-.branches .a-b-count-widget .count-half:last-child {
-  text-align: left;
-  border-left: 1px solid #bbb;
-}
-
-.branches .a-b-count-widget .count-half .count-value{
-  padding: 0 3px;
-}
-
-.branches .branch-a-b-count span.badge {
-  font-size: 100%;
-}
-
-div.branch-action a.label {
-  font-size: 100%;
-}
-
-td#upload-td {
-  padding: 0px;
-  background-color: #f4f4f4;
-  border: 1px #ddd solid;
-}
-
-div#upload-area {
-  text-align: center;
-  padding-top: 40px;
-  padding-bottom: 40px;
-  font-size: 120%;
-}
-
-ul#upload-files {
-  list-style: none;
-  padding-left: 0px;
-  margin-bottom: 0px;
-}
-
-li.upload-file {
-  border-top: 1px #f4f4f4 solid;
-  background-color: white;
-  padding: 4px;
-}
 
 /****************************************************************************/
 /* Activity */
 /****************************************************************************/
-div[class^="activity-icon"] i{
-    color: #BBB;
-}
 
 /****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
-p.description {
-  color: gray;
-}
-
-table.table-file-list td.latest-commit {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  background-color: white;
-}
-
-table.table-file-list td {
-  background-color: #F8F8F8;
-  font-size: small;
-}
-
-div.commit-avatar-image {
-  float: left;
-  margin-right: 4px;
-}
-
-pre.commit-description {
-  font-weight: normal;
-  border: none;
-  background-color: transparent;
-  padding: 2px;
-  margin: 0px;
-  white-space: pre-wrap;
-}
-
-#repository-url {
-  background-color: white;
-  cursor: default;
-  color: silver;
-  font-size: 8pt;
-  font-family: monospace;
-}
-
-ul#commit-file-list {
-  list-style-type: none;
-  padding-left: 0px;
-  margin-left: 0px;
-}
-
-ul#commit-file-list li.border {
-  padding-bottom: 2px;
-  border-top: 1px solid #eee;
-  clear: right;
-}
-
 li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {
   list-style-type: decimal;
   border-left: 1px solid #E5E5E5;
@@ -591,68 +51,9 @@ pre.blob {
   padding-left: 20px;
   font-size: 12px;
 }
-
-div.markdown-body pre.plain {
-  background: white;
-  font-size: 14px;
-}
-
-#readme {
-  margin-top: 20px;
-}
-
-#readme .box-content {
-  padding: 20px;
-}
-
-li.highlight,
-table.diff tr.highlight>th.delete, table.diff tr.highlight>th.insert, table.diff tr.highlight>th.equal,
-table.diff tr.highlight>td.delete, table.diff tr.highlight>td.insert, table.diff tr.highlight>td.equal {
-  background-color: #ffb;
-  !important
-}
-
-li.highlight-dark {
-  background-color: #4e0000;
-}
-
-span.simplified-path {
-  color: #888;
-}
-
-#branch-control-title {
-  margin: 5px 10px;
-  font-weight: bold;
-}
-
-#branch-control-close {
-  background: none;
-  border: none;
-  color: #aaa;
-  font-weight: bold;
-  line-height: 15px;
-}
-
-.btn-pullrequest-branch{
-  background: none;
-  border: 1px solid #0088cc;
-  color: #0088cc;
-}
-
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
-#search-filter-box {
-  font-size: 100%;
-}
-
-.btn-group.open .dropdown-toggle.flat {
-    background-image: none;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
-}
-
 a.button-link {
     font-weight: normal;
     color: gray;
@@ -667,65 +68,10 @@ a.selected {
     color: black;
 }
 
-span.issue-status {
-  text-align: center;
-  padding: 4px 8px 4px 8px;
-}
-
-table.table-issues {
-  margin-top: 12px;
-}
-
-table.table-issues td .octicon-issue-opened,
-table.table-issues td .octicon-git-pull-request .open {
-  color: #6CC644;
-}
-
-table.table-issues td .octicon-issue-closed,
-table.table-issues td .octicon-git-pull-request .closed{
-  color : #BD2C00;;
-}
-
 a.issue-title {
   color: #333;
   font-weight: bold;
   font-size: 120%;
-}
-
-.label-success {
-  background-color: #6cc644;
-}
-
-.label-important {
-  background-color: #bd2c00;
-}
-
-ul.label-list {
-  list-style-type: none;
-  padding-left: 0px;
-  margin-left: 0px;
-  font-size: 90%;
-}
-
-ul.label-list a {
-  padding-left: 6px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-  color: #444;
-}
-
-span.label-color {
-  border-radius: 2px;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-}
-
-a#clear-filter {
-  display: block;
-  color: #444;
-  font-weight: bold;
-  margin-bottom: 10px;
 }
 
 span.milestone-alert {
@@ -747,100 +93,11 @@ a.milestone-title {
 }
 
 div.milestone-menu {
- margin-top: 8px;
+ /*margin-top: 8px;*/
 }
 
 div.milestone-menu a.delete {
   color: #b00;
-}
-
-div.issue-info {
-  border-top: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
-  background-color: #f5f5f5;
-  padding: 8px;
-  margin-left: 0px;
-  margin-right: 0px;
-}
-
-h4#issueTitle {
-  font-size: large;
-  font-weight: bold;
-  margin-top: 2px;
-  margin-bottom: 0px;
-  padding: 0px;
-}
-
-div.issue-participants {
-  margin-bottom: 15px;
-  margin-left: 50px;
-}
-
-div.commit-comment-box textarea,
-div.issue-comment-box textarea{
-  height: 100px;
-  max-height: 300px;
-}
-/*
-div.commit-comment-box.panel-body {
-  padding-top: 8px;
-  padding-bottom: 0px;
-}
-*/
-div.commit-comment-box div.tabbable {
-  margin-top: 5px;
-}
-
-div.reply-comment-box {
-  margin-bottom: 5px;
-}
-
-div.issue-comment-action {
-  padding-bottom: 10px;
-  padding-top: 0px;
-  margin-left: 70px;
-  margin-bottom: 10px;
-  border-bottom: 4px solid #ddd;
-}
-
-div.issue-comment-action .octicon {
-  border-radius: 50%;
-  background-color: #f3f3f3;
-  color: #767676;
-  font-size: 18px;
-  margin-right: 7px;
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
-  text-align: center;
-}
-
-div.issue-reopened .octicon {
-  background-color: #6cc644;
-  color: #fff;
-}
-
-div.issue-comment-action .octicon.danger {
-  background-color: #bd2c00;
-  color: #fff;
-}
-
-.nav-pills > li > span.issue-label, .issue-priority {
-  display: block;
-  padding: 0px 8px 2px 8px;
-  margin-top: 2px;
-  -webkit-border-radius: 5px;
-     -moz-border-radius: 5px;
-          border-radius: 5px;
-}
-
-.issue-priority {
-  font-size: 90%;
-}
-
-.issue-priority-inline {
-  font-size: 100%;
-  display: inline;
 }
 
 div.attachable {
@@ -863,95 +120,11 @@ div.attachable div.clickable {
   background-color: white;
 }
 
-ul.task-list {
-  padding-left: 2em;
-  margin-left: 0;
-}
-
-li.task-list-item {
-  list-style-type: none;
-}
-
-li.task-list-item input.task-list-item-checkbox {
-  margin: 0 4px 0.25em -20px;
+.priority-badge{
+  padding: 8px;
+  border-radius: 4px;
   vertical-align: middle;
-}
-
-.discussion-item {
-    position: relative;
-    margin: 15px 0 15px 20px;
-    padding-left: 25px;
-}
-.discussion-item-header {
-    min-height: 30px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    color: #767676;
-    line-height: 20px;
-    word-wrap: break-word;
-}
-.discussion-item-icon {
-    float: left;
-    width: 32px;
-    height: 32px;
-    margin-top: -7px;
-    margin-left: -40px;
-    line-height: 28px;
-    color: #767676;
-    text-align: center;
-    background-color: #f3f3f3;
-    border: 2px solid #fff;
-    border-radius: 50%;
-}
-
-.discussion-item-content {
-  margin-left:36px;
-}
-
-.discussion-item-content-head{
-  padding-right:20px;
-  background-color: white;
-  float:left
-}
-
-pre.reset.discussion-item-content-text{
-  border-left: 1px solid rgb(238, 238, 238);
-  margin: 0 0 0 5px;
-  padding-left: 25px;
-}
-
-.discussion-item-commit .discussion-item-content {
-    font-size:12px;
-}
-
-.discussion-item-icon .octicon {
-  color: inherit;
-}
-
-.discussion-item-merge .discussion-item-icon {
-  background-color: #6e5494;
-  color: white;
-  padding-top: 1px;
-  padding-left: 3px;
-}
-
-.discussion-item-close .discussion-item-icon {
-  background-color: #bd2c00;
-  color: white;
-  padding-top: 1px;
-}
-
-.discussion-item-delete_branch .discussion-item-icon {
-  padding-left: 2px;
-  padding-top: 1px;
-  background-color: #767676;
-  color: white;
-}
-
-.discussion-item-reopen .discussion-item-icon {
-  background-color: #6cc644;
-  padding-top: 1px;
-  color: white;
+  display: inline-block;
 }
 
 .discussion-item-delete-comment .discussion-item-icon {
@@ -961,20 +134,18 @@ pre.reset.discussion-item-content-text{
 }
 
 .priority-sort-handle {
-  margin-top: 3px;
-  padding-right: 10px;
+  vertical-align: middle;
+  display: inline-block;
+  color:#999;
 }
 
 .priority-sort-handle i::before {
   cursor: move;
-  display: block;
-  width: 0.5em;
-  overflow: hidden;
+  vertical-align: middle;
   font-size: 2em;
 }
 
 .priority-default .octicon {
-  font-size: 1.5em;
   color: #ccc;
 }
 
@@ -985,6 +156,7 @@ pre.reset.discussion-item-content-text{
 /****************************************************************************/
 /* Pull request */
 /****************************************************************************/
+
 div.pullreq-info {
   border: 1px solid #ddd;
   background-color: #f8f8f8;
@@ -998,53 +170,18 @@ div.pullreq-info {
   display: none;
 }
 
+.create-pullreq{
+  background-color: #fff9ea
+}
+
 /****************************************************************************/
 /* Wiki */
 /****************************************************************************/
-.wiki-main {
-  margin-right: 260px;
-}
-
-h1.body-title {
-  margin-top: 0px;
-}
-
-a.absent {
-  color: #c00;
-}
-
-div.wiki-sidebar {
-  background-color: white;
-  border: 1px solid #d8d8d8;
-  padding: 8px 10px 0px 10px;
-  border-radius: 3px;
-  margin-bottom: 20px;
-  margin-top: 20px;
-}
-
-div.wiki-sidebar img {
-  max-width: 100%;
-}
-
-div.wiki-sidebar-dotted {
-  background-color: white;
-  border: 1px dashed #ddd;
-  padding: 10px 15px;
-  margin-bottom: 20px;
-  margin-top: 20px;
-  border-radius: 3px;
-  font-size: 14px;
-}
-
-div.wiki-footer {
-  margin-top: 50px;
-  background-color: #f5f5f5;
-  color: gray;
-}
 
 /****************************************************************************/
 /* Commit */
 /****************************************************************************/
+
 div.author-info div.committer {
   display: block;
   margin-left: 25px;
@@ -1124,10 +261,12 @@ div.author-info div.committer {
 /****************************************************************************/
 /* Diff */
 /****************************************************************************/
+
 table.diff {
   font-size: 12px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
   width: 100%;
+  border: 0;
 }
 
 table.diff thead {
@@ -1149,8 +288,11 @@ table.diff td.body {
 }
 
 table.diff th.line-num {
-  /*min-width: 20px;*/
   width: 20px;
+}
+
+table.diff tbody tr th, table.diff tbody tr td{
+  border-width: 0;
 }
 
 table.diff .add-comment {
@@ -1187,7 +329,6 @@ table.diff tr:hover td.body b.add-comment {
 .container-wide table.diff tr:hover th.line-num:hover + td b.add-comment {
   display: inline-block;
 }
-
 
 table.diff tbody tr.not-diff {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -1420,9 +561,21 @@ table.diff tbody tr.not-diff:hover td {
   padding-bottom: 18px;
   text-align: center;
 }
+
+.accordion-toggle:after {
+  font-family: 'Font Awesome 5 Free';
+  content: "\f107";
+  font-weight: 900;
+}
+
+.accordion-toggle.collapsed:after {
+  content: "\f105";
+}
+
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/
+
 ul.collaborator {
   list-style-type: none;
   margin: 0px;
@@ -1448,6 +601,7 @@ ul.collaborator a.remove {
 /****************************************************************************/
 /* Markdown */
 /****************************************************************************/
+
 div.markdown-body {
   line-height: 1.7;
   font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
@@ -1526,7 +680,6 @@ div.markdown-body code {
 }
 
 div.markdown-body table {
-  /*width: 100%;*/
   margin-bottom: 20px;
 }
 
@@ -1678,40 +831,8 @@ a.markdown-anchor-link span.octicon {
 /****************************************************************************/
 /* File finder */
 /****************************************************************************/
-#tree-finder-field {
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-  vertical-align: baseline;
-  font-size: 100%;
-  height: inherit;
-  width: 300px;
-}
-
-.find-input {
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-#tree-finder-results td {
-  padding:7px 6px;
-}
-
 #tree-finder-results td.icon {
-  width:16px; padding: 7px 2px 7px 6px;
-}
-
-#tree-finder-results .tree-browser-result .icon-chevron-right {
-  visibility: hidden;
-}
-
-#tree-finder-results .tree-browser-result.navigation-focus .icon-chevron-right {
-  visibility: visible;
-}
-
-#tree-finder-results .navigation-focus td {
-  background: #fff;
+  width:16px;
 }
 
 /****************************************************************************/
@@ -1725,12 +846,6 @@ a.markdown-anchor-link span.octicon {
   margin-left: 0;
   padding-left: 50px;
 }
-
-/*
-div.container.blame-container{
-  width:1270px;
-}
-*/
 
 .line-age-legend {
   display: none;
@@ -1855,18 +970,9 @@ div.container.blame-container{
 .heat8 { background-color:#c0513f }
 .heat9 { background-color:#a2503a }
 .heat10{ background-color:#793738 }
-
 /****************************************************************************/
 /* Mobile */
 /****************************************************************************/
-@media (max-width: 767px) {
-  .pc {
-    display: none;
-  }
-  .wiki-main {
-    margin-right: 0px;
-  }
-}
 
 /****************************************************************************/
 /* Print */
@@ -1884,32 +990,6 @@ div.container.blame-container{
   width: 20px;
   height: 20px;
 }
-
 /****************************************************************************/
 /* Suppress transition animation on load */
 /****************************************************************************/
-body.page-load * {
-  -webkit-transition: none !important;
-  -moz-transition: none !important;
-  -ms-transition: none !important;
-  -o-transition: none !important;
-  transition: none !important;
-}
-
-body:not(.sidebar-collapse) .main-sidebar li.menu-item-hover > a,
-body.sidebar-collapse .main-sidebar li:hover > a > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-right-container {
-  display: inline !important;
-  position: absolute;
-  top: 8px;
-  right: 0px;
-  font-size: 9px;
-}
-
-body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
-  padding: 2px 4px;
-}

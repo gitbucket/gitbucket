@@ -7,45 +7,53 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.pulls.html.menu("commits", issue, pullreq, commits.flatten.map(_._1), comments, changedFileSize, isManageable, repository){
-  <table class="table table-bordered table-hover">
-  @commits.map { day =>
-    <tr>
-      <th rowspan="@day.size" width="100">@helpers.date(day.head._1.commitTime)</th>
-      @day.zipWithIndex.map { case ((commit, status), i) =>
-        @if(i != 0){ <tr> }
-        <td>
-          <div class="pull-right text-right">
-            <a href="@helpers.url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
-            <a href="@helpers.url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
-          </div>
-          <div>
-            <div class="commit-avatar-image">@helpers.avatarLink(commit, 40)</div>
-            <div>
-              <a href="@helpers.url(repository)/commit/@commit.id" class="commit-message strong">@helpers.link(commit.summary, repository)</a>
-              @if(commit.description.isDefined){
-                <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
-              }
-              <br>
-              @if(commit.description.isDefined){
-                <pre id="description-@commit.id" style="display: none;" class="commit-description">@helpers.link(commit.description.get, repository)</pre>
-              }
-              <div>
-                @if(commit.isDifferentFromAuthor) {
-                  @helpers.user(commit.authorName, commit.authorEmailAddress, "username")
-                  <span class="muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
-                  <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
-                }
-                @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
-                <span class="muted">committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
-                @status.map { case (summary, statuses) =>
-                  @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
-                }
-              </div>
-            </div>
-          </div>
-        </td>
-        </tr>
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-bordered table-hover">
+      @commits.map { day =>
+        <tr>
+          <th rowspan="@day.size" width="150px">@helpers.date(day.head._1.commitTime)</th>
+          @day.zipWithIndex.map { case ((commit, status), i) =>
+            @if(i != 0){ <tr> }
+            <td>
+              <div class="row">
+                <div class="col-md-auto commit-avatar-image">
+                  @helpers.avatarLink(commit, 40)
+                </div><!-- /.col -->
+                <div class="col-md">
+                  <a href="@helpers.url(repository)/commit/@commit.id" class="commit-message font-weight-bold strong">@helpers.link(commit.summary, repository)</a>
+                  @if(commit.description.isDefined){
+                  <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
+                  }
+                  <br>
+                  @if(commit.description.isDefined){
+                  <pre id="description-@commit.id" style="display: none;" class="commit-description">@helpers.link(commit.description.get, repository)</pre>
+                  }
+                  <div>
+                    @if(commit.isDifferentFromAuthor) {
+                    @helpers.user(commit.authorName, commit.authorEmailAddress, "username")
+                    <span class="text-muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
+                    <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
+                    }
+                    @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
+                    <span class="text-muted">committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
+                    @status.map { case (summary, statuses) =>
+                    @gitbucket.core.helper.html.commitstatus(commit.id, summary, statuses)
+                    }
+                  </div>
+                </div><!-- /.col -->
+                <div class="col-md-auto text-right">
+                  <a href="@helpers.url(repository)/commit/@commit.id" class="monospace commit-message font-weight-bold strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
+                  <a href="@helpers.url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
+                </div><!-- /.col -->
+              </div><!-- /.row -->
+             </td>
+            </tr>
+          }
       }
-  }
-  </table>
+      </table>
+    </div><!-- ./card-body -->
+  </div><!-- ./card -->
+</div><!-- ./container -->
 }

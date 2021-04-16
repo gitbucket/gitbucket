@@ -5,46 +5,64 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
-    @if(isEditable) {
-      <div class="pull-right">
-        @if(pageName.isEmpty) {
-          <a class="btn" href="@helpers.url(repository)/wiki/_new">New Page</a>
-        } else {
-          <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
-          <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
-        }
-      </div>
-    }
-    <h1 class="wiki-title">
-    @if(pageName.isEmpty){
-      <span class="muted">History</span>
-    } else {
-      <span class="muted">History for</span> @pageName.get
-    }
-    </h1>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th colspan="3">
-            <div class="pull-left" style="padding-top: 4px;">Revisions</div>
-            <div class="pull-right">
-              <input type="button" id="compare" value="Compare Revisions" class="btn btn-sm btn-default"/>
-            </div>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-      @commits.map { commit =>
-        <tr>
-          <td style="width: 32px; text-align: center ;"><input type="checkbox" name="commitId" value="@commit.id" aria-label="Revision"></td>
-          <td style="width: 200px;">@helpers.avatarLink(commit, 20)&nbsp;@helpers.user(commit.authorName, commit.authorEmailAddress)</td>
-          <td>
-            <span class="muted">@gitbucket.core.helper.html.datetimeago(commit.authorTime):</span>&nbsp;@commit.shortMessage
-          </td>
-        </tr>
-      }
-      </tbody>
-    </table>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-auto">
+              <h4 class="wiki-title">
+                @if(pageName.isEmpty){
+                <span class="text-muted">History</span>
+                } else {
+                <span class="text-muted">History for</span> @pageName.get
+                }
+              </h4>
+            </div><!-- /.col -->
+            @if(isEditable) {
+            <div class="col">
+              <div class="float-right">
+                @if(pageName.isEmpty) {
+                <a class="btn" href="@helpers.url(repository)/wiki/_new">New Page</a>
+                } else {
+                <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
+                <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
+                }
+              </div>
+            </div><!-- /.col -->
+            }
+          </div><!-- /.row -->
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th colspan="3">
+                  <div class="float-left pt-1">Revisions</div>
+                  <div class="float-right">
+                    <input type="button" id="compare" value="Compare Revisions" class="btn btn-sm btn-default"/>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @commits.map { commit =>
+              <tr>
+                <td style="width: 32px; text-align: center ;"><input type="checkbox" name="commitId" value="@commit.id" aria-label="Revision"></td>
+                <td style="width: 200px;">@helpers.avatarLink(commit, 20)&nbsp;@helpers.user(commit.authorName, commit.authorEmailAddress)</td>
+                <td>
+                  <span class="text-muted">@gitbucket.core.helper.html.datetimeago(commit.authorTime):</span>&nbsp;@commit.shortMessage
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div><!-- /.card-body -->
+      </div><!-- /.card -->
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
     <script>
     $(function(){
       $('input[name=commitId]').click(function(){

@@ -3,49 +3,74 @@
   gneratedToken: Option[(gitbucket.core.model.AccessToken, String)])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Applications"){
   @gitbucket.core.account.html.menu("application", context.loginAccount.get.userName, false){
-    <div class="panel panel-default">
-      <div class="panel-heading strong">Personal access tokens</div>
-      <div class="panel-body">
-        @if(personalTokens.isEmpty && gneratedToken.isEmpty){
-          No tokens.
-        } else {
-          Tokens you have generated which can be used to access the GitBucket API.
-          <hr style="margin-top: 10px;">
-        }
-        @gneratedToken.map { case (token, tokenString) =>
-          <div class="alert alert-info">
-            Make sure to copy your new personal access token now. You won't be able to see it again!
-          </div>
-          <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
-          <div style="width: 50%;">
-            @gitbucket.core.helper.html.copy("generated-token", "generated-token-copy", tokenString){
-              <input type="text" value="@tokenString" class="form-control input-sm" id="generated-token" readonly>
-            }
-          </div>
-          <hr style="margin-top: 10px;">
-        }
-        @personalTokens.zipWithIndex.map { case (token, i) =>
-          @if(i != 0){
-            <hr>
-          }
-          <strong style="line-height: 30px;">@token.note</strong>
-          <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
-        }
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark"></h1>
       </div>
     </div>
-    <form method="POST" action="@context.path/@account.userName/_personalToken" validate="true" autocomplete="off">
-      <div class="panel panel-default">
-        <div class="panel-heading strong">Generate new token</div>
-        <div class="panel-body">
-          <fieldset>
-            <label for="note" class="strong">Token description</label>
-            <div><span id="error-note" class="error"></span></div>
-            <input type="text" name="note" id="note" class="form-control"/>
-            <p class="muted">What is this token for?</p>
-          </fieldset>
-          <input type="submit" class="btn btn-success" value="Generate token"/>
-        </div>
-      </div>
-    </form>
+  </div>
+</div><!-- /.content-header -->
+<div class="content body">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-header">
+            <h4>Personal access tokens</h4>
+          </div><!-- /.card-header -->
+          <form method="POST" action="@context.path/@account.userName/_personalToken" validate="true" autocomplete="off">
+            <div class="card-body">
+              <div>
+                @if(personalTokens.isEmpty && gneratedToken.isEmpty){
+                No tokens.
+                } else {
+                Tokens you have generated which can be used to access the GitBucket API.
+                <hr class="mt-3">
+                }
+                @gneratedToken.map { case (token, tokenString) =>
+                <div class="alert alert-info">
+                  Make sure to copy your new personal access token now. You won't be able to see it again!
+                </div>
+                <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger float-right">Delete</a>
+                <div style="width: 50%;">
+                  <strong style="line-height: 30px;">@token.note </strong>
+                  @gitbucket.core.helper.html.copy("generated-token", "generated-token-copy", tokenString){
+                  <input type="text" value="@tokenString" class="form-control input-sm" id="generated-token" readonly>
+                  }
+                </div>
+                <hr class="mt-3">
+                }
+                @personalTokens.zipWithIndex.map { case (token, i) =>
+                @if(i != 0){
+                <hr>
+                }
+                <strong style="line-height: 30px;">@token.note</strong>
+                <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger float-right">Delete</a>
+                }
+              </div>
+              <hr>
+              <div class="mt-4 mb-2">
+                <h4>Generate new token</h4>
+                <fieldset>
+                  <label for="note" class="font-weight-bold strong">Token description</label>
+                  <div><span id="error-note" class="error text-danger"></span></div>
+                  <input type="text" name="note" id="note" class="form-control"/>
+                  <p class="text-muted">What is this token for?</p>
+                </fieldset>
+              </div>
+            </div><!-- /.card-body -->
+            <div class="card-footer">
+              <div class="float-right">
+                <input type="submit" class="btn btn-success" value="Generate token"/>
+              </div>
+            </div><!-- /.card-footer -->
+          </form>
+        </div><!-- /.card -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+</div><!-- /.content -->
   }
 }

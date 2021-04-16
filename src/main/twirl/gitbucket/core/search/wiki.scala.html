@@ -8,16 +8,18 @@
   @gitbucket.core.search.html.menu("wiki", query, repository){
     @if(query.nonEmpty) {
       @if(wikis.isEmpty) {
-        <h4>We could not find any pages matching '@query'</h4>
+        <h6>We could not find any pages matching '@query'</h6>
       } else {
-        <h4>We've found @wikis.size @helpers.plural(wikis.size, "page")</h4>
+        <h6>We've found @wikis.size @helpers.plural(wikis.size, "page")</h6>
       }
     }
     @wikis.drop((page - 1) * RepositorySearchService.CodeLimit).take(RepositorySearchService.CodeLimit).map { file =>
       <div>
         <h5><a href="@helpers.url(repository)/wiki/@file.path">@file.path</a></h5>
-        <div class="small muted">Last committed @gitbucket.core.helper.html.datetimeago(file.lastModified)</div>
-        <pre class="prettyprint linenums:@file.highlightLineNumber" style="padding-left: 25px;">@Html(file.highlightText)</pre>
+        <div class="small text-muted">Last committed @gitbucket.core.helper.html.datetimeago(file.lastModified)</div>
+        <div class="p-1">
+          <pre class="bg-light p-0 prettyprint linenums:@file.highlightLineNumber">@Html(file.highlightText)</pre>
+        </div>
       </div>
     }
     @gitbucket.core.helper.html.paginator(page, wikis.size, RepositorySearchService.CodeLimit, 10,

@@ -6,43 +6,42 @@
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("branches", repository){
       @if(repository.branchList.isEmpty){
-        <div class="well">
-          <center>
-            <p><i class="octicon octicon-git-branch" style="font-size:300%"></i></p>
-            <p>You don’t have any branches</p>
-            <p>Before you can edit branch settings, you need to add a branch.</p>
-          </center>
+        <div class="card-body">
+          <div class="well">
+            <center>
+              <p><i class="octicon octicon-git-branch" style="font-size:300%"></i></p>
+              <p>You don’t have any branches</p>
+              <p>Before you can edit branch settings, you need to add a branch.</p>
+            </center>
+          </div>
         </div>
       } else {
-        @gitbucket.core.helper.html.information(info)
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Default branch</div>
-          <div class="panel-body">
+        <div class="card-body">
+          @gitbucket.core.helper.html.information(info)
+          <h3>Default branch</h3>
+          <div>
             <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made (unless you specify a different branch).</p>
             <form id="form" method="post" action="@helpers.url(repository)/settings/update_default_branch" validate="true" class="form-inline">
-              <span class="error" id="error-defaultBranch"></span>
-              <select name="defaultBranch" id="defaultBranch" class="form-control" aria-label="Default branch">
+              <span class="error text-danger" id="error-defaultBranch"></span>
+              <select name="defaultBranch" id="defaultBranch" class="form-control form-control-sm" aria-label="Default branch">
                 @repository.branchList.map { branch =>
                   <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
                 }
               </select>
-              <input type="submit" class="btn btn-default" value="Update" />
+              <input type="submit" class="btn btn-default ml-1 btn-sm" value="Update" />
             </form>
           </div>
-        </div>
-
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Protected branches</div>
-          <div class="panel-body">
+          <h3 class="mt-3">Protected branches</h3>
+          <div>
             <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally, require status checks before merging.
               <form class="form-inline">
-                <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control" aria-label="Protect branch">
+                <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control form-control-sm" aria-label="Protect branch">
                   <option>Choose a branch...</option>
                   @repository.branchList.map { branch =>
                     <option value="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)">@branch</option>
                   }
                 </select>
-                <span class="error" id="error-protectBranch"></span>
+                <span class="error text-danger" id="error-protectBranch"></span>
               </form>
             </p>
 
@@ -57,7 +56,6 @@
               }
             </table>
           </div>
-
         </div>
       }
     }
