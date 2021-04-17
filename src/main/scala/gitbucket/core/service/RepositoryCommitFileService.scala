@@ -78,9 +78,9 @@ trait RepositoryCommitFileService {
     content: Array[Byte],
     message: String,
     commit: String,
-    loginAccount: Account,
-    fullName: String,
-    mailAddress: String,
+    pusherAccount: Account,
+    committerName: String,
+    committerMailAddress: String,
     settings: SystemSettings
   )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
 
@@ -91,7 +91,7 @@ trait RepositoryCommitFileService {
       if (path.length == 0) oldFileName else s"${path}/${oldFileName}"
     }
 
-    _commitFile(repository, branch, message, loginAccount, fullName, mailAddress, settings) {
+    _commitFile(repository, branch, message, pusherAccount, committerName, committerMailAddress, settings) {
       case (git, headTip, builder, inserter) =>
         if (headTip.getName == commit) {
           val permission = JGitUtil
@@ -120,7 +120,7 @@ trait RepositoryCommitFileService {
     repository: RepositoryService.RepositoryInfo,
     branch: String,
     message: String,
-    loginAccount: Account,
+    pusherAccount: Account,
     committerName: String,
     committerMailAddress: String,
     settings: SystemSettings
@@ -156,7 +156,7 @@ trait RepositoryCommitFileService {
 
         // call pre-commit hook
         val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
-          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName, false)
+          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, pusherAccount.userName, false)
         }.headOption
 
         error match {
@@ -177,12 +177,12 @@ trait RepositoryCommitFileService {
             refUpdate.update()
 
             // update pull request
-            updatePullRequests(repository.owner, repository.name, branch, loginAccount, "synchronize", settings)
+            updatePullRequests(repository.owner, repository.name, branch, pusherAccount, "synchronize", settings)
 
             // record activity
             updateLastActivityDate(repository.owner, repository.name)
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            val pushInfo = PushInfo(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+            val pushInfo = PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
             recordActivity(pushInfo)
 
             // create issue comment by commit message
@@ -192,17 +192,17 @@ trait RepositoryCommitFileService {
             if (branch == repository.repository.defaultBranch) {
               closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
                 getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                  callIssuesWebHook("closed", repository, issue, loginAccount, settings)
+                  callIssuesWebHook("closed", repository, issue, pusherAccount, settings)
                   val closeIssueInfo = CloseIssueInfo(
                     repository.owner,
                     repository.name,
-                    loginAccount.userName,
+                    pusherAccount.userName,
                     issue.issueId,
                     issue.title
                   )
                   recordActivity(closeIssueInfo)
                   PluginRegistry().getIssueHooks
-                    .foreach(_.closedByCommitComment(issue, repository, message, loginAccount))
+                    .foreach(_.closedByCommitComment(issue, repository, message, pusherAccount))
                 }
               }
             }
@@ -217,7 +217,7 @@ trait RepositoryCommitFileService {
               getAccountByUserName(repository.owner).map { ownerAccount =>
                 WebHookPushPayload(
                   git,
-                  loginAccount,
+                  pusherAccount,
                   headName,
                   repository,
                   List(commit),

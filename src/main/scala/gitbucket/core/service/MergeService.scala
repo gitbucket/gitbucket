@@ -72,7 +72,7 @@ trait MergeService {
   )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
     val beforeCommitId = git.getRepository.resolve(s"refs/heads/${branch}")
     val afterCommitId = new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
-      .merge(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+      .merge(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress), loginAccount.userName)
     callWebHook(git, repository, branch, beforeCommitId, afterCommitId, loginAccount, settings)
     afterCommitId
   }
@@ -90,7 +90,7 @@ trait MergeService {
     val beforeCommitId = git.getRepository.resolve(s"refs/heads/${branch}")
     val afterCommitId =
       new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
-        .rebase(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress), commits)
+        .rebase(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress), loginAccount.userName, commits)
     callWebHook(git, repository, branch, beforeCommitId, afterCommitId, loginAccount, settings)
     afterCommitId
   }
@@ -108,7 +108,7 @@ trait MergeService {
     val beforeCommitId = git.getRepository.resolve(s"refs/heads/${branch}")
     val afterCommitId =
       new MergeCacheInfo(git, repository.owner, repository.name, branch, issueId, getReceiveHooks())
-        .squash(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+        .squash(message, new PersonIdent(loginAccount.fullName, loginAccount.mailAddress), loginAccount.userName)
     callWebHook(git, repository, branch, beforeCommitId, afterCommitId, loginAccount, settings)
     afterCommitId
   }
@@ -648,7 +648,7 @@ object MergeService {
     }
 
     // update branch from cache
-    def merge(message: String, committer: PersonIdent)(implicit s: Session): ObjectId = {
+    def merge(message: String, committer: PersonIdent, pusher: String)(implicit s: Session): ObjectId = {
       if (checkConflict().isDefined) {
         throw new RuntimeException("This pull request can't merge automatically.")
       }
@@ -665,7 +665,7 @@ object MergeService {
 
       // call pre-commit hooks
       val error = receiveHooks.flatMap { hook =>
-        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
+        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, pusher, true)
       }.headOption
 
       error.foreach { error =>
@@ -683,7 +683,7 @@ object MergeService {
       objectId
     }
 
-    def rebase(committer: PersonIdent, commits: Seq[RevCommit])(implicit s: Session): ObjectId = {
+    def rebase(committer: PersonIdent, pusher: String, commits: Seq[RevCommit])(implicit s: Session): ObjectId = {
       if (checkConflict().isDefined) {
         throw new RuntimeException("This pull request can't merge automatically.")
       }
@@ -719,7 +719,7 @@ object MergeService {
 
       // call pre-commit hooks
       val error = receiveHooks.flatMap { hook =>
-        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
+        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, pusher, true)
       }.headOption
 
       error.foreach { error =>
@@ -738,7 +738,7 @@ object MergeService {
       objectId
     }
 
-    def squash(message: String, committer: PersonIdent)(implicit s: Session): ObjectId = {
+    def squash(message: String, committer: PersonIdent, pusher: String)(implicit s: Session): ObjectId = {
       if (checkConflict().isDefined) {
         throw new RuntimeException("This pull request can't merge automatically.")
       }
@@ -769,7 +769,7 @@ object MergeService {
 
       // call pre-commit hooks
       val error = receiveHooks.flatMap { hook =>
-        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, committer.getName, true)
+        hook.preReceive(userName, repositoryName, receivePack, receiveCommand, pusher, true)
       }.headOption
 
       error.foreach { error =>
