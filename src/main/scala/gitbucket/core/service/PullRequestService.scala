@@ -244,7 +244,7 @@ trait PullRequestService {
     owner: String,
     repository: String,
     branch: String,
-    loginAccount: Account,
+    pusherAccount: Account,
     action: String,
     settings: SystemSettings
   )(
@@ -296,7 +296,7 @@ trait PullRequestService {
           action,
           getRepository(owner, repository).get,
           pullreq.requestBranch,
-          loginAccount,
+          pusherAccount,
           settings
         )
       }
