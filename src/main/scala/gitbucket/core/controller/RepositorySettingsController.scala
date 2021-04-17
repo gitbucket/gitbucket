@@ -342,7 +342,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
                 .map(
                   res =>
                     Map(
-                      "status" -> res.getStatusLine(),
+                      "status" -> res.getStatusLine.getStatusCode,
                       "body" -> EntityUtils.toString(res.getEntity()),
                       "headers" -> _headers(res.getAllHeaders())
                   )
