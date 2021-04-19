@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Cache
-      uses: actions/cache@v2.1.4
+      uses: actions/cache@v2.1.5
       env:
         cache-name: cache-sbt-libs
       with:
