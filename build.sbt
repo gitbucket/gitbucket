@@ -34,8 +34,8 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "4.0.0",
-  "commons-io"                      % "commons-io"                   % "2.8.0",
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.11",
+  "commons-io"                      % "commons-io"                   % "2.9.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.20",
@@ -63,13 +63,13 @@ libraryDependencies ++= Seq(
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "3.10.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.39.4" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.39.5" % "test",
   "org.testcontainers"              % "mysql"                        % "1.15.3" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.15.3" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
-  "org.kohsuke"                     % "github-api"                   % "1.128" % "test"
+  "org.kohsuke"                     % "github-api"                   % "1.129" % "test"
 )
 
 // Compiler settings
