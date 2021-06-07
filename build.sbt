@@ -31,10 +31,10 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % JgitVersion,
-  "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "4.0.0",
+  "org.scalatra"                    %% "scalatra"                    % ScalatraVersion cross CrossVersion.for3Use2_13,
+  "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion cross CrossVersion.for3Use2_13,
+  "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion cross CrossVersion.for3Use2_13,
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.11" cross CrossVersion.for3Use2_13,
   "commons-io"                      % "commons-io"                   % "2.9.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "1.26",
-  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12",
+  "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.3",
@@ -57,20 +57,29 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.14",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.7",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.8.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
-  "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "3.10.0" % "test",
+  "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
+  "org.mockito"                     % "mockito-core"                 % "3.11.0" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.39.5" % "test",
   "org.testcontainers"              % "mysql"                        % "1.15.3" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.15.3" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
-  "org.kohsuke"                     % "github-api"                   % "1.129" % "test"
+  "org.kohsuke"                     % "github-api"                   % "1.130" % "test"
 )
+
+libraryDependencies ~= {
+  _.map {
+    case x if x.name == "twirl-api" =>
+      x cross CrossVersion.for3Use2_13
+    case x =>
+      x
+  }
+}
 
 // Compiler settings
 scalacOptions := Seq(
