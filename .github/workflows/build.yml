@@ -28,6 +28,8 @@ jobs:
         distribution: adopt
     - name: Run tests
       run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
+    - name: Scala 3
+      run: sbt '++ 3.0.1-RC1!' update # TODO
     - name: Build executable
       run: sbt executable
     - name: Upload artifacts
