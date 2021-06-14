@@ -5,8 +5,8 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.35.3"
 val ScalatraVersion = "2.7.1"
-val JettyVersion = "9.4.41.v20210516"
-val JgitVersion = "5.11.1.202105131744-r"
+val JettyVersion = "9.4.42.v20210604"
+val JgitVersion = "5.12.0.202106070339-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -34,8 +34,8 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion cross CrossVersion.for3Use2_13,
-  "org.json4s"                      %% "json4s-jackson"              % "4.0.0" cross CrossVersion.for3Use2_13,
-  "commons-io"                      % "commons-io"                   % "2.9.0",
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.11" cross CrossVersion.for3Use2_13,
+  "commons-io"                      % "commons-io"                   % "2.10.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
   "org.apache.commons"              % "commons-compress"             % "1.20",
@@ -48,7 +48,7 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.3",
-  "org.postgresql"                  % "postgresql"                   % "42.2.20",
+  "org.postgresql"                  % "postgresql"                   % "42.2.21",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3",
   "com.typesafe"                    % "config"                       % "1.4.1",
@@ -57,12 +57,12 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.14",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.8.1",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.9",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
-  "org.mockito"                     % "mockito-core"                 % "3.11.0" % "test",
+  "org.mockito"                     % "mockito-core"                 % "3.11.1" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.39.5" % "test",
   "org.testcontainers"              % "mysql"                        % "1.15.3" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.15.3" % "test",

@@ -28,7 +28,7 @@ object EditorConfigUtil {
     }
 
     private def getRevTree: RevTree = {
-      Using.resource(repo.newObjectReader()) { reader: ObjectReader =>
+      Using.resource(repo.newObjectReader()) { (reader: ObjectReader) =>
         val revWalk = new RevWalk(reader)
         val id = repo.resolve(revStr)
         val commit = revWalk.parseCommit(id)
@@ -37,7 +37,7 @@ object EditorConfigUtil {
     }
 
     override def exists(): Boolean = {
-      Using.resource(repo.newObjectReader()) { reader: ObjectReader =>
+      Using.resource(repo.newObjectReader()) { (reader: ObjectReader) =>
         try {
           val treeWalk = Option(TreeWalk.forPath(reader, removeInitialSlash(path), getRevTree))
           treeWalk.isDefined
@@ -60,7 +60,7 @@ object EditorConfigUtil {
     }
 
     override def openReader(): Reader = {
-      Using.resource(repo.newObjectReader) { reader: ObjectReader =>
+      Using.resource(repo.newObjectReader) { (reader: ObjectReader) =>
         val treeWalk = TreeWalk.forPath(reader, removeInitialSlash(path), getRevTree)
         new InputStreamReader(reader.open(treeWalk.getObjectId(0)).openStream, StandardCharsets.UTF_8)
       }
