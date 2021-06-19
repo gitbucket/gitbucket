@@ -6,7 +6,6 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, ReleaseService, RepositoryService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
@@ -194,12 +193,11 @@ class FileUploadController
 
   private def execute(f: (FileItem, String) => Unit, mimeTypeChcker: (String) => Boolean) =
     fileParams.get("file") match {
-      case Some(file) if (mimeTypeChcker(file.name)) =>
-        defining(FileUtil.generateFileId) { fileId =>
-          f(file, fileId)
-          contentType = "text/plain"
-          Ok(fileId)
-        }
+      case Some(file) if mimeTypeChcker(file.name) =>
+        val fileId = FileUtil.generateFileId
+        f(file, fileId)
+        contentType = "text/plain"
+        Ok(fileId)
       case _ => BadRequest()
     }
 

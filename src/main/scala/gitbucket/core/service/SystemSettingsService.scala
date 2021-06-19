@@ -7,7 +7,6 @@ import com.nimbusds.oauth2.sdk.id.{ClientID, Issuer}
 import gitbucket.core.service.SystemSettingsService._
 import gitbucket.core.util.ConfigUtil._
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.SyntaxSugars._
 import scala.util.Using
 
 trait SystemSettingsService {
@@ -15,175 +14,173 @@ trait SystemSettingsService {
   def baseUrl(implicit request: HttpServletRequest): String = loadSystemSettings().baseUrl(request)
 
   def saveSystemSettings(settings: SystemSettings): Unit = {
-    defining(new java.util.Properties()) { props =>
-      settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
-      settings.information.foreach(x => props.setProperty(Information, x))
-      props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
-      props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
-      props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
-      props.setProperty(RepositoryOperationCreate, settings.repositoryOperation.create.toString)
-      props.setProperty(RepositoryOperationDelete, settings.repositoryOperation.delete.toString)
-      props.setProperty(RepositoryOperationRename, settings.repositoryOperation.rename.toString)
-      props.setProperty(RepositoryOperationTransfer, settings.repositoryOperation.transfer.toString)
-      props.setProperty(RepositoryOperationFork, settings.repositoryOperation.fork.toString)
-      props.setProperty(Gravatar, settings.gravatar.toString)
-      props.setProperty(Notification, settings.notification.toString)
-      props.setProperty(LimitVisibleRepositories, settings.limitVisibleRepositories.toString)
-      props.setProperty(SshEnabled, settings.ssh.enabled.toString)
-      settings.ssh.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
-      settings.ssh.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
-      props.setProperty(UseSMTP, settings.useSMTP.toString)
-      if (settings.useSMTP) {
-        settings.smtp.foreach { smtp =>
-          props.setProperty(SmtpHost, smtp.host)
-          smtp.port.foreach(x => props.setProperty(SmtpPort, x.toString))
-          smtp.user.foreach(props.setProperty(SmtpUser, _))
-          smtp.password.foreach(props.setProperty(SmtpPassword, _))
-          smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
-          smtp.starttls.foreach(x => props.setProperty(SmtpStarttls, x.toString))
-          smtp.fromAddress.foreach(props.setProperty(SmtpFromAddress, _))
-          smtp.fromName.foreach(props.setProperty(SmtpFromName, _))
+    val props = new java.util.Properties()
+    settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
+    settings.information.foreach(x => props.setProperty(Information, x))
+    props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
+    props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
+    props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
+    props.setProperty(RepositoryOperationCreate, settings.repositoryOperation.create.toString)
+    props.setProperty(RepositoryOperationDelete, settings.repositoryOperation.delete.toString)
+    props.setProperty(RepositoryOperationRename, settings.repositoryOperation.rename.toString)
+    props.setProperty(RepositoryOperationTransfer, settings.repositoryOperation.transfer.toString)
+    props.setProperty(RepositoryOperationFork, settings.repositoryOperation.fork.toString)
+    props.setProperty(Gravatar, settings.gravatar.toString)
+    props.setProperty(Notification, settings.notification.toString)
+    props.setProperty(LimitVisibleRepositories, settings.limitVisibleRepositories.toString)
+    props.setProperty(SshEnabled, settings.ssh.enabled.toString)
+    settings.ssh.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
+    settings.ssh.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
+    props.setProperty(UseSMTP, settings.useSMTP.toString)
+    if (settings.useSMTP) {
+      settings.smtp.foreach { smtp =>
+        props.setProperty(SmtpHost, smtp.host)
+        smtp.port.foreach(x => props.setProperty(SmtpPort, x.toString))
+        smtp.user.foreach(props.setProperty(SmtpUser, _))
+        smtp.password.foreach(props.setProperty(SmtpPassword, _))
+        smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
+        smtp.starttls.foreach(x => props.setProperty(SmtpStarttls, x.toString))
+        smtp.fromAddress.foreach(props.setProperty(SmtpFromAddress, _))
+        smtp.fromName.foreach(props.setProperty(SmtpFromName, _))
+      }
+    }
+    props.setProperty(LdapAuthentication, settings.ldapAuthentication.toString)
+    if (settings.ldapAuthentication) {
+      settings.ldap.foreach { ldap =>
+        props.setProperty(LdapHost, ldap.host)
+        ldap.port.foreach(x => props.setProperty(LdapPort, x.toString))
+        ldap.bindDN.foreach(x => props.setProperty(LdapBindDN, x))
+        ldap.bindPassword.foreach(x => props.setProperty(LdapBindPassword, x))
+        props.setProperty(LdapBaseDN, ldap.baseDN)
+        props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
+        ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
+        ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
+        ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x))
+        ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
+        ldap.ssl.foreach(x => props.setProperty(LdapSsl, x.toString))
+        ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
+      }
+    }
+    props.setProperty(OidcAuthentication, settings.oidcAuthentication.toString)
+    if (settings.oidcAuthentication) {
+      settings.oidc.foreach { oidc =>
+        props.setProperty(OidcIssuer, oidc.issuer.getValue)
+        props.setProperty(OidcClientId, oidc.clientID.getValue)
+        props.setProperty(OidcClientSecret, oidc.clientSecret.getValue)
+        oidc.jwsAlgorithm.foreach { x =>
+          props.setProperty(OidcJwsAlgorithm, x.getName)
         }
       }
-      props.setProperty(LdapAuthentication, settings.ldapAuthentication.toString)
-      if (settings.ldapAuthentication) {
-        settings.ldap.foreach { ldap =>
-          props.setProperty(LdapHost, ldap.host)
-          ldap.port.foreach(x => props.setProperty(LdapPort, x.toString))
-          ldap.bindDN.foreach(x => props.setProperty(LdapBindDN, x))
-          ldap.bindPassword.foreach(x => props.setProperty(LdapBindPassword, x))
-          props.setProperty(LdapBaseDN, ldap.baseDN)
-          props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
-          ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
-          ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
-          ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x))
-          ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
-          ldap.ssl.foreach(x => props.setProperty(LdapSsl, x.toString))
-          ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
-        }
-      }
-      props.setProperty(OidcAuthentication, settings.oidcAuthentication.toString)
-      if (settings.oidcAuthentication) {
-        settings.oidc.foreach { oidc =>
-          props.setProperty(OidcIssuer, oidc.issuer.getValue)
-          props.setProperty(OidcClientId, oidc.clientID.getValue)
-          props.setProperty(OidcClientSecret, oidc.clientSecret.getValue)
-          oidc.jwsAlgorithm.foreach { x =>
-            props.setProperty(OidcJwsAlgorithm, x.getName)
-          }
-        }
-      }
-      props.setProperty(SkinName, settings.skinName.toString)
-      settings.userDefinedCss.foreach(x => props.setProperty(UserDefinedCss, x))
-      props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
-      props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)
-      props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
-      props.setProperty(UploadMaxFileSize, settings.upload.maxFileSize.toString)
-      props.setProperty(UploadTimeout, settings.upload.timeout.toString)
-      props.setProperty(UploadLargeMaxFileSize, settings.upload.largeMaxFileSize.toString)
-      props.setProperty(UploadLargeTimeout, settings.upload.largeTimeout.toString)
-      props.setProperty(RepositoryViewerMaxFiles, settings.repositoryViewer.maxFiles.toString)
+    }
+    props.setProperty(SkinName, settings.skinName.toString)
+    settings.userDefinedCss.foreach(x => props.setProperty(UserDefinedCss, x))
+    props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
+    props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)
+    props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
+    props.setProperty(UploadMaxFileSize, settings.upload.maxFileSize.toString)
+    props.setProperty(UploadTimeout, settings.upload.timeout.toString)
+    props.setProperty(UploadLargeMaxFileSize, settings.upload.largeMaxFileSize.toString)
+    props.setProperty(UploadLargeTimeout, settings.upload.largeTimeout.toString)
+    props.setProperty(RepositoryViewerMaxFiles, settings.repositoryViewer.maxFiles.toString)
 
-      Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
-        props.store(out, null)
-      }
+    Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
+      props.store(out, null)
     }
   }
 
   def loadSystemSettings(): SystemSettings = {
-    defining(new java.util.Properties()) { props =>
-      if (GitBucketConf.exists) {
-        Using.resource(new java.io.FileInputStream(GitBucketConf)) { in =>
-          props.load(in)
-        }
+    val props = new java.util.Properties()
+    if (GitBucketConf.exists) {
+      Using.resource(new java.io.FileInputStream(GitBucketConf)) { in =>
+        props.load(in)
       }
-      SystemSettings(
-        getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
-        getOptionValue(props, Information, None),
-        getValue(props, AllowAccountRegistration, false),
-        getValue(props, AllowAnonymousAccess, true),
-        getValue(props, IsCreateRepoOptionPublic, true),
-        RepositoryOperation(
-          create = getValue(props, RepositoryOperationCreate, true),
-          delete = getValue(props, RepositoryOperationDelete, true),
-          rename = getValue(props, RepositoryOperationRename, true),
-          transfer = getValue(props, RepositoryOperationTransfer, true),
-          fork = getValue(props, RepositoryOperationFork, true)
-        ),
-        getValue(props, Gravatar, false),
-        getValue(props, Notification, false),
-        getValue(props, LimitVisibleRepositories, false),
-        Ssh(
-          getValue(props, SshEnabled, false),
-          getOptionValue[String](props, SshHost, None).map(_.trim),
-          getOptionValue(props, SshPort, Some(DefaultSshPort))
-        ),
-        getValue(
-          props,
-          UseSMTP,
-          getValue(props, Notification, false)
-        ), // handle migration scenario from only notification to useSMTP
-        if (getValue(props, UseSMTP, getValue(props, Notification, false))) {
-          Some(
-            Smtp(
-              getValue(props, SmtpHost, ""),
-              getOptionValue(props, SmtpPort, Some(DefaultSmtpPort)),
-              getOptionValue(props, SmtpUser, None),
-              getOptionValue(props, SmtpPassword, None),
-              getOptionValue[Boolean](props, SmtpSsl, None),
-              getOptionValue[Boolean](props, SmtpStarttls, None),
-              getOptionValue(props, SmtpFromAddress, None),
-              getOptionValue(props, SmtpFromName, None)
-            )
-          )
-        } else None,
-        getValue(props, LdapAuthentication, false),
-        if (getValue(props, LdapAuthentication, false)) {
-          Some(
-            Ldap(
-              getValue(props, LdapHost, ""),
-              getOptionValue(props, LdapPort, Some(DefaultLdapPort)),
-              getOptionValue(props, LdapBindDN, None),
-              getOptionValue(props, LdapBindPassword, None),
-              getValue(props, LdapBaseDN, ""),
-              getValue(props, LdapUserNameAttribute, ""),
-              getOptionValue(props, LdapAdditionalFilterCondition, None),
-              getOptionValue(props, LdapFullNameAttribute, None),
-              getOptionValue(props, LdapMailAddressAttribute, None),
-              getOptionValue[Boolean](props, LdapTls, None),
-              getOptionValue[Boolean](props, LdapSsl, None),
-              getOptionValue(props, LdapKeystore, None)
-            )
-          )
-        } else None,
-        getValue(props, OidcAuthentication, false),
-        if (getValue(props, OidcAuthentication, false)) {
-          Some(
-            OIDC(
-              getValue(props, OidcIssuer, ""),
-              getValue(props, OidcClientId, ""),
-              getValue(props, OidcClientSecret, ""),
-              getOptionValue(props, OidcJwsAlgorithm, None)
-            )
-          )
-        } else {
-          None
-        },
-        getValue(props, SkinName, "skin-blue"),
-        getOptionValue(props, UserDefinedCss, None),
-        getValue(props, ShowMailAddress, false),
-        WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
-        Upload(
-          getValue(props, UploadMaxFileSize, 3 * 1024 * 1024),
-          getValue(props, UploadTimeout, 3 * 10000),
-          getValue(props, UploadLargeMaxFileSize, 3 * 1024 * 1024),
-          getValue(props, UploadLargeTimeout, 3 * 10000)
-        ),
-        RepositoryViewerSettings(
-          getValue(props, RepositoryViewerMaxFiles, 0)
-        )
-      )
     }
+    SystemSettings(
+      getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
+      getOptionValue(props, Information, None),
+      getValue(props, AllowAccountRegistration, false),
+      getValue(props, AllowAnonymousAccess, true),
+      getValue(props, IsCreateRepoOptionPublic, true),
+      RepositoryOperation(
+        create = getValue(props, RepositoryOperationCreate, true),
+        delete = getValue(props, RepositoryOperationDelete, true),
+        rename = getValue(props, RepositoryOperationRename, true),
+        transfer = getValue(props, RepositoryOperationTransfer, true),
+        fork = getValue(props, RepositoryOperationFork, true)
+      ),
+      getValue(props, Gravatar, false),
+      getValue(props, Notification, false),
+      getValue(props, LimitVisibleRepositories, false),
+      Ssh(
+        getValue(props, SshEnabled, false),
+        getOptionValue[String](props, SshHost, None).map(_.trim),
+        getOptionValue(props, SshPort, Some(DefaultSshPort))
+      ),
+      getValue(
+        props,
+        UseSMTP,
+        getValue(props, Notification, false)
+      ), // handle migration scenario from only notification to useSMTP
+      if (getValue(props, UseSMTP, getValue(props, Notification, false))) {
+        Some(
+          Smtp(
+            getValue(props, SmtpHost, ""),
+            getOptionValue(props, SmtpPort, Some(DefaultSmtpPort)),
+            getOptionValue(props, SmtpUser, None),
+            getOptionValue(props, SmtpPassword, None),
+            getOptionValue[Boolean](props, SmtpSsl, None),
+            getOptionValue[Boolean](props, SmtpStarttls, None),
+            getOptionValue(props, SmtpFromAddress, None),
+            getOptionValue(props, SmtpFromName, None)
+          )
+        )
+      } else None,
+      getValue(props, LdapAuthentication, false),
+      if (getValue(props, LdapAuthentication, false)) {
+        Some(
+          Ldap(
+            getValue(props, LdapHost, ""),
+            getOptionValue(props, LdapPort, Some(DefaultLdapPort)),
+            getOptionValue(props, LdapBindDN, None),
+            getOptionValue(props, LdapBindPassword, None),
+            getValue(props, LdapBaseDN, ""),
+            getValue(props, LdapUserNameAttribute, ""),
+            getOptionValue(props, LdapAdditionalFilterCondition, None),
+            getOptionValue(props, LdapFullNameAttribute, None),
+            getOptionValue(props, LdapMailAddressAttribute, None),
+            getOptionValue[Boolean](props, LdapTls, None),
+            getOptionValue[Boolean](props, LdapSsl, None),
+            getOptionValue(props, LdapKeystore, None)
+          )
+        )
+      } else None,
+      getValue(props, OidcAuthentication, false),
+      if (getValue(props, OidcAuthentication, false)) {
+        Some(
+          OIDC(
+            getValue(props, OidcIssuer, ""),
+            getValue(props, OidcClientId, ""),
+            getValue(props, OidcClientSecret, ""),
+            getOptionValue(props, OidcJwsAlgorithm, None)
+          )
+        )
+      } else {
+        None
+      },
+      getValue(props, SkinName, "skin-blue"),
+      getOptionValue(props, UserDefinedCss, None),
+      getValue(props, ShowMailAddress, false),
+      WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
+      Upload(
+        getValue(props, UploadMaxFileSize, 3 * 1024 * 1024),
+        getValue(props, UploadTimeout, 3 * 10000),
+        getValue(props, UploadLargeMaxFileSize, 3 * 1024 * 1024),
+        getValue(props, UploadLargeTimeout, 3 * 10000)
+      ),
+      RepositoryViewerSettings(
+        getValue(props, RepositoryViewerMaxFiles, 0)
+      )
+    )
   }
 
 }
@@ -368,12 +365,11 @@ object SystemSettingsService {
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getConfigValue(key).getOrElse {
-      defining(props.getProperty(key)) { value =>
-        if (value == null || value.isEmpty) {
-          default
-        } else {
-          convertType(value).asInstanceOf[A]
-        }
+      val value = props.getProperty(key)
+      if (value == null || value.isEmpty) {
+        default
+      } else {
+        convertType(value).asInstanceOf[A]
       }
     }
   }
@@ -390,12 +386,11 @@ object SystemSettingsService {
 
   private def getOptionValue[A: ClassTag](props: java.util.Properties, key: String, default: Option[A]): Option[A] = {
     getConfigValue(key).orElse {
-      defining(props.getProperty(key)) { value =>
-        if (value == null || value.isEmpty) {
-          default
-        } else {
-          Some(convertType(value)).asInstanceOf[Option[A]]
-        }
+      val value = props.getProperty(key)
+      if (value == null || value.isEmpty) {
+        default
+      } else {
+        Some(convertType(value)).asInstanceOf[Option[A]]
       }
     }
   }

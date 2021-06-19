@@ -5,7 +5,6 @@ import java.security.SecureRandom
 import java.util.{Base64, UUID}
 
 import org.mozilla.universalchardet.UniversalDetector
-import SyntaxSugars._
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.io.input.BOMInputStream
@@ -45,11 +44,11 @@ object StringUtil {
     s"""$$pbkdf2-sha256$$${iter}$$${base64Encode(salt)}$$${base64Encode(s.getEncoded)}"""
   }
 
-  def sha1(value: String): String =
-    defining(java.security.MessageDigest.getInstance("SHA-1")) { md =>
-      md.update(value.getBytes)
-      md.digest.map(b => "%02x".format(b)).mkString
-    }
+  def sha1(value: String): String = {
+    val md = java.security.MessageDigest.getInstance("SHA-1")
+    md.update(value.getBytes)
+    md.digest.map(b => "%02x".format(b)).mkString
+  }
 
   def md5(value: String): String = {
     val md = java.security.MessageDigest.getInstance("MD5")
@@ -89,15 +88,15 @@ object StringUtil {
   def convertFromByteArray(content: Array[Byte]): String =
     IOUtils.toString(new BOMInputStream(new java.io.ByteArrayInputStream(content)), detectEncoding(content))
 
-  def detectEncoding(content: Array[Byte]): String =
-    defining(new UniversalDetector(null)) { detector =>
-      detector.handleData(content, 0, content.length)
-      detector.dataEnd()
-      detector.getDetectedCharset match {
-        case null => "UTF-8"
-        case e    => e
-      }
+  def detectEncoding(content: Array[Byte]): String = {
+    val detector = new UniversalDetector(null)
+    detector.handleData(content, 0, content.length)
+    detector.dataEnd()
+    detector.getDetectedCharset match {
+      case null => "UTF-8"
+      case e    => e
     }
+  }
 
   /**
    * Converts line separator in the given content.

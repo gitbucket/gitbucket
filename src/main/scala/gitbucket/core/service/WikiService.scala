@@ -5,7 +5,6 @@ import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.lib._
@@ -54,20 +53,19 @@ trait WikiService {
 
   def createWikiRepository(loginAccount: Account, owner: String, repository: String): Unit =
     LockUtil.lock(s"${owner}/${repository}/wiki") {
-      defining(Directory.getWikiRepositoryDir(owner, repository)) { dir =>
-        if (!dir.exists) {
-          JGitUtil.initRepository(dir)
-          saveWikiPage(
-            owner,
-            repository,
-            "Home",
-            "Home",
-            s"Welcome to the ${repository} wiki!!",
-            loginAccount,
-            "Initial Commit",
-            None
-          )
-        }
+      val dir = Directory.getWikiRepositoryDir(owner, repository)
+      if (!dir.exists) {
+        JGitUtil.initRepository(dir)
+        saveWikiPage(
+          owner,
+          repository,
+          "Home",
+          "Home",
+          s"Welcome to the ${repository} wiki!!",
+          loginAccount,
+          "Initial Commit",
+          None
+        )
       }
     }
 
