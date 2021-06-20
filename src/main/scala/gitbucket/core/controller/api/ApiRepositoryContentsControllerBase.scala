@@ -49,32 +49,31 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     getContents(repository, multiParams("splat").head, params.getOrElse("ref", repository.repository.defaultBranch))
   })
 
+  private def getFileInfo(git: Git, revision: String, pathStr: String, ignoreCase: Boolean): Option[FileInfo] = {
+    val (dirName, fileName) = pathStr.lastIndexOf('/') match {
+      case -1 =>
+        (".", pathStr)
+      case n =>
+        (pathStr.take(n), pathStr.drop(n + 1))
+    }
+    if (ignoreCase) {
+      getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
+        .find(_.name.toLowerCase.equals(fileName.toLowerCase))
+    } else {
+      getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
+        .find(_.name.equals(fileName))
+    }
+  }
+
   private def getContents(
     repository: RepositoryService.RepositoryInfo,
     path: String,
     refStr: String,
-    ignoreCase: Boolean = false
   ) = {
-    def getFileInfo(git: Git, revision: String, pathStr: String, ignoreCase: Boolean): Option[FileInfo] = {
-      val (dirName, fileName) = pathStr.lastIndexOf('/') match {
-        case -1 =>
-          (".", pathStr)
-        case n =>
-          (pathStr.take(n), pathStr.drop(n + 1))
-      }
-      if (ignoreCase) {
-        getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-          .find(_.name.toLowerCase.equals(fileName.toLowerCase))
-      } else {
-        getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-          .find(_.name.equals(fileName))
-      }
-    }
-
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
       if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path, ignoreCase)
+        getFileInfo(git, refStr, path, false)
           .flatMap { f =>
             val largeFile = params.get("large_file").exists(s => s.equals("true"))
             val content = getContentFromId(git, f.id, largeFile)
@@ -146,28 +145,32 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           }
           val paths = multiParams("splat").head.split("/")
           val path = paths.take(paths.size - 1).toList.mkString("/")
+          val fileInfo = Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+            getFileInfo(git, commit, path, false)
+          }
 
-          if (data.sha.isDefined && data.sha.get != commit) {
-            ApiError(
-              "The blob SHA is not matched.",
-              Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
-            )
-          } else {
-            val objectId = commitFile(
-              repository,
-              branch,
-              path,
-              Some(paths.last),
-              data.sha.map(_ => paths.last),
-              StringUtil.base64Decode(data.content),
-              data.message,
-              commit,
-              loginAccount,
-              data.committer.map(_.name).getOrElse(loginAccount.fullName),
-              data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
-              context.settings
-            )
-            ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
+          fileInfo match {
+            case Some(f) if !data.sha.contains(f.id.getName) =>
+              ApiError(
+                "The blob SHA is not matched.",
+                Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
+              )
+            case _ =>
+              val objectId = commitFile(
+                repository,
+                branch,
+                path,
+                Some(paths.last),
+                data.sha.map(_ => paths.last),
+                StringUtil.base64Decode(data.content),
+                data.message,
+                commit,
+                loginAccount,
+                data.committer.map(_.name).getOrElse(loginAccount.fullName),
+                data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
+                context.settings
+              )
+              ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
           }
         })
     }
