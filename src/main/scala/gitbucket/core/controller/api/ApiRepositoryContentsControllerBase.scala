@@ -35,7 +35,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
 
   /**
    * ii. Get contents
-   * https://developer.github.com/v3/repos/contents/#get-contents
+   * https://docs.github.com/en/rest/reference/repos#get-repository-content
    */
   get("/api/v3/repos/:owner/:repository/contents")(referrersOnly { repository =>
     getContents(repository, ".", params.getOrElse("ref", repository.repository.defaultBranch))
@@ -43,7 +43,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
 
   /**
    * ii. Get contents
-   * https://developer.github.com/v3/repos/contents/#get-contents
+   * https://docs.github.com/en/rest/reference/repos#get-repository-content
    */
   get("/api/v3/repos/:owner/:repository/contents/*")(referrersOnly { repository =>
     getContents(repository, multiParams("splat").head, params.getOrElse("ref", repository.repository.defaultBranch))
@@ -126,14 +126,13 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
       }
     }
   }
-  /*
+
+  /**
    * iii. Create a file or iv. Update a file
-   * https://developer.github.com/v3/repos/contents/#create-a-file
-   * https://developer.github.com/v3/repos/contents/#update-a-file
+   * https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents
    * if sha is presented, update a file else create a file.
    * requested #2112
    */
-
   put("/api/v3/repos/:owner/:repository/contents/*")(writableUsersOnly { repository =>
     context.withLoginAccount {
       loginAccount =>
@@ -147,10 +146,11 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           }
           val paths = multiParams("splat").head.split("/")
           val path = paths.take(paths.size - 1).toList.mkString("/")
+
           if (data.sha.isDefined && data.sha.get != commit) {
             ApiError(
               "The blob SHA is not matched.",
-              Some("https://developer.github.com/v3/repos/contents/#update-a-file")
+              Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
             )
           } else {
             val objectId = commitFile(
@@ -175,13 +175,14 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
 
   /*
    * v. Delete a file
-   * https://developer.github.com/v3/repos/contents/#delete-a-file
+   * https://docs.github.com/en/rest/reference/repos#delete-a-file
    * should be implemented
    */
 
   /*
- * vi. Get archive link
- * https://developer.github.com/v3/repos/contents/#get-archive-link
- */
+   * vi. Download a repository archive (tar/zip)
+   * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-tar
+   * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-zip
+   */
 
 }
