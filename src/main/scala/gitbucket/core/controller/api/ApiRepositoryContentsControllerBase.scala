@@ -1,9 +1,9 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiContents, ApiError, CreateAFile, JsonFormat}
+import gitbucket.core.api.{ApiCommit, ApiContents, ApiError, CreateAFile, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.JGitUtil.{FileInfo, getContentFromId, getFileList}
+import gitbucket.core.util.JGitUtil.{CommitInfo, FileInfo, getContentFromId, getFileList}
 import gitbucket.core.util._
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import gitbucket.core.util.Implicits._
@@ -146,32 +146,53 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           }
           val paths = multiParams("splat").head.split("/")
           val path = paths.take(paths.size - 1).toList.mkString("/")
-          val fileInfo = Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-            getFileInfo(git, commit, path, false)
-          }
+          Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
+            git =>
+              val fileInfo = getFileInfo(git, commit, path, false)
 
-          fileInfo match {
-            case Some(f) if !data.sha.contains(f.id.getName) =>
-              ApiError(
-                "The blob SHA is not matched.",
-                Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
-              )
-            case _ =>
-              val objectId = commitFile(
-                repository,
-                branch,
-                path,
-                Some(paths.last),
-                data.sha.map(_ => paths.last),
-                StringUtil.base64Decode(data.content),
-                data.message,
-                commit,
-                loginAccount,
-                data.committer.map(_.name).getOrElse(loginAccount.fullName),
-                data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
-                context.settings
-              )
-              ApiContents("file", paths.last, path, objectId.name, None, None)(RepositoryName(repository))
+              fileInfo match {
+                case Some(f) if !data.sha.contains(f.id.getName) =>
+                  ApiError(
+                    "The blob SHA is not matched.",
+                    Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
+                  )
+                case _ =>
+                  val (commitId, blobId) = commitFile(
+                    repository,
+                    branch,
+                    path,
+                    Some(paths.last),
+                    data.sha.map(_ => paths.last),
+                    StringUtil.base64Decode(data.content),
+                    data.message,
+                    commit,
+                    loginAccount,
+                    data.committer.map(_.name).getOrElse(loginAccount.fullName),
+                    data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
+                    context.settings
+                  )
+
+                  blobId match {
+                    case None =>
+                      ApiError("Failed to commit a file.", None)
+                    case Some(blobId) =>
+                      Map(
+                        "content" -> ApiContents(
+                          "file",
+                          paths.last,
+                          path,
+                          blobId.name,
+                          Some(data.content),
+                          Some("base64")
+                        )(RepositoryName(repository)),
+                        "commit" -> ApiCommit(
+                          git,
+                          RepositoryName(repository),
+                          new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+                        )
+                      )
+                  }
+              }
           }
         })
     }
