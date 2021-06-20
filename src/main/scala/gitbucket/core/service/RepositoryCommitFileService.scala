@@ -24,8 +24,10 @@ trait RepositoryCommitFileService {
     with WebHookPullRequestService
     with RepositoryService =>
 
-  // Create multiple files by callback function
-  // Returns commitId
+  /**
+   * Create multiple files by callback function.
+   * Returns commitId.
+   */
   def commitFiles(
     repository: RepositoryService.RepositoryInfo,
     branch: String,
@@ -40,8 +42,10 @@ trait RepositoryCommitFileService {
     )._1
   }
 
-  // Create a file from string content
-  // Returns commitId + blobId
+  /**
+   * Create a file from string content.
+   * Returns commitId + blobId.
+   */
   def commitFile(
     repository: RepositoryService.RepositoryInfo,
     branch: String,
@@ -71,8 +75,10 @@ trait RepositoryCommitFileService {
     )
   }
 
-  // Create a file from byte array content
-  // Returns commitId + blobId
+  /**
+   * Create a file from byte array content.
+   * Returns commitId + blobId.
+   */
   def commitFile(
     repository: RepositoryService.RepositoryInfo,
     branch: String,
