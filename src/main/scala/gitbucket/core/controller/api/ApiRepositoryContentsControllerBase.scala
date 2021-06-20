@@ -69,11 +69,12 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     repository: RepositoryService.RepositoryInfo,
     path: String,
     refStr: String,
+    ignoreCase: Boolean = false
   ) = {
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
       if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path, false)
+        getFileInfo(git, refStr, path, ignoreCase)
           .flatMap { f =>
             val largeFile = params.get("large_file").exists(s => s.equals("true"))
             val content = getContentFromId(git, f.id, largeFile)
