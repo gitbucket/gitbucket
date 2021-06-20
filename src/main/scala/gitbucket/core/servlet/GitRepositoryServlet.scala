@@ -12,7 +12,6 @@ import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -202,33 +201,28 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("requestURI: " + request.getRequestURI)
       logger.debug("pusher:" + pusher)
 
-      defining(request.paths) { paths =>
-        val owner = paths(1)
-        val repository = paths(2).stripSuffix(".git")
+      val paths = request.paths
+      val owner = paths(1)
+      val repository = paths(2).stripSuffix(".git")
 
-        logger.debug("repository:" + owner + "/" + repository)
+      logger.debug("repository:" + owner + "/" + repository)
 
-        val settings = loadSystemSettings()
-        val baseUrl = settings.baseUrl(request)
-        val sshUrl = settings.sshAddress.map { x =>
-          s"${x.genericUser}@${x.host}:${x.port}"
-        }
+      val settings = loadSystemSettings()
+      val baseUrl = settings.baseUrl(request)
+      val sshUrl = settings.sshAddress.map { x =>
+        s"${x.genericUser}@${x.host}:${x.port}"
+      }
 
-        if (!repository.endsWith(".wiki")) {
-          defining(request) { implicit r =>
-            val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
-            receivePack.setPreReceiveHook(hook)
-            receivePack.setPostReceiveHook(hook)
-          }
-        }
+      if (!repository.endsWith(".wiki")) {
+        val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
+        receivePack.setPreReceiveHook(hook)
+        receivePack.setPostReceiveHook(hook)
+      }
 
-        if (repository.endsWith(".wiki")) {
-          defining(request) { implicit r =>
-            receivePack.setPostReceiveHook(
-              new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl)
-            )
-          }
-        }
+      if (repository.endsWith(".wiki")) {
+        receivePack.setPostReceiveHook(
+          new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl)
+        )
       }
     }
 

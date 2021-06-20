@@ -4,7 +4,6 @@ import gitbucket.core.issues.html
 import gitbucket.core.model.Account
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.view
@@ -323,17 +322,15 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/:id/label/new")(writableUsersOnly { repository =>
-    defining(params("id").toInt) { issueId =>
-      registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
-      html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
-    }
+    val issueId = params("id").toInt
+    registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
+    html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
   })
 
   ajaxPost("/:owner/:repository/issues/:id/label/delete")(writableUsersOnly { repository =>
-    defining(params("id").toInt) { issueId =>
-      deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
-      html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
-    }
+    val issueId = params("id").toInt
+    deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt, true)
+    html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
   })
 
   ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>

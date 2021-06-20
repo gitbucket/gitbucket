@@ -2,7 +2,6 @@ package gitbucket.core.service
 
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -202,22 +201,19 @@ trait RepositoryService {
           )
 
           // Move git repository
-          defining(getRepositoryDir(oldUserName, oldRepositoryName)) { dir =>
-            if (dir.isDirectory) {
-              FileUtils.moveDirectory(dir, getRepositoryDir(newUserName, newRepositoryName))
-            }
+          val repoDir = getRepositoryDir(oldUserName, oldRepositoryName)
+          if (repoDir.isDirectory) {
+            FileUtils.moveDirectory(repoDir, getRepositoryDir(newUserName, newRepositoryName))
           }
           // Move wiki repository
-          defining(getWikiRepositoryDir(oldUserName, oldRepositoryName)) { dir =>
-            if (dir.isDirectory) {
-              FileUtils.moveDirectory(dir, getWikiRepositoryDir(newUserName, newRepositoryName))
-            }
+          val wikiDir = getWikiRepositoryDir(oldUserName, oldRepositoryName)
+          if (wikiDir.isDirectory) {
+            FileUtils.moveDirectory(wikiDir, getWikiRepositoryDir(newUserName, newRepositoryName))
           }
           // Move files directory
-          defining(getRepositoryFilesDir(oldUserName, oldRepositoryName)) { dir =>
-            if (dir.isDirectory) {
-              FileUtils.moveDirectory(dir, getRepositoryFilesDir(newUserName, newRepositoryName))
-            }
+          val filesDir = getRepositoryFilesDir(oldUserName, oldRepositoryName)
+          if (filesDir.isDirectory) {
+            FileUtils.moveDirectory(filesDir, getRepositoryFilesDir(newUserName, newRepositoryName))
           }
           // Delete parent directory
           FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(oldUserName, oldRepositoryName))

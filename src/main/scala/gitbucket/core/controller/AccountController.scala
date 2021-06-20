@@ -652,22 +652,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/:groupName/_editgroup")(managersOnly {
-    defining(params("groupName")) { groupName =>
-      getAccountByUserName(groupName, true).map { account =>
-        html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
-      } getOrElse NotFound()
-    }
+    val groupName = params("groupName")
+    getAccountByUserName(groupName, true).map { account =>
+      html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
+    } getOrElse NotFound()
   })
 
   get("/:groupName/_deletegroup")(managersOnly {
-    defining(params("groupName")) {
-      groupName =>
-        // Remove from GROUP_MEMBER
-        updateGroupMembers(groupName, Nil)
-        // Disable group
-        getAccountByUserName(groupName, false).foreach { account =>
-          updateGroup(groupName, account.description, account.url, true)
-        }
+    val groupName = params("groupName")
+    // Remove from GROUP_MEMBER
+    updateGroupMembers(groupName, Nil)
+    // Disable group
+    getAccountByUserName(groupName, false).foreach { account =>
+      updateGroup(groupName, account.description, account.url, true)
+    }
 //      // Remove repositories
 //      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
 //        deleteRepository(groupName, repositoryName)
@@ -675,28 +673,25 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
 //        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
 //      }
-    }
     redirect("/")
   })
 
   post("/:groupName/_editgroup", editGroupForm)(managersOnly { form =>
-    defining(
-      params("groupName"),
-      form.members
-        .split(",")
-        .map {
-          _.split(":") match {
-            case Array(userName, isManager) => (userName, isManager.toBoolean)
-          }
+    val groupName = params("groupName")
+    val members = form.members
+      .split(",")
+      .map {
+        _.split(":") match {
+          case Array(userName, isManager) => (userName, isManager.toBoolean)
         }
-        .toList
-    ) {
-      case (groupName, members) =>
-        getAccountByUserName(groupName, true).map { account =>
-          updateGroup(groupName, form.description, form.url, false)
+      }
+      .toList
 
-          // Update GROUP_MEMBER
-          updateGroupMembers(form.groupName, members)
+    getAccountByUserName(groupName, true).map { account =>
+      updateGroup(groupName, form.description, form.url, false)
+
+      // Update GROUP_MEMBER
+      updateGroupMembers(form.groupName, members)
 //        // Update COLLABORATOR for group repositories
 //        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
 //          removeCollaborators(form.groupName, repositoryName)
@@ -705,13 +700,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //          }
 //        }
 
-          updateImage(form.groupName, form.fileId, form.clearImage)
+      updateImage(form.groupName, form.fileId, form.clearImage)
 
-          flash.update("info", "Account information has been updated.")
-          redirect(s"/${groupName}/_editgroup")
+      flash.update("info", "Account information has been updated.")
+      redirect(s"/${groupName}/_editgroup")
 
-        } getOrElse NotFound()
-    }
+    } getOrElse NotFound()
   })
 
   /**

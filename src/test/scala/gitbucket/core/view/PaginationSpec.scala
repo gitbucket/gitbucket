@@ -15,11 +15,13 @@ class PaginationSpec extends AnyFunSpec {
 
   describe("omitLeft and omitRight") {
     it("should return true if pagination links at their side will be omitted") {
-      defining(Pagination(1, 100, 10, 6)) { pagination =>
+      {
+        val pagination = Pagination(1, 100, 10, 6)
         assert(pagination.omitLeft == false)
         assert(pagination.omitRight == true)
       }
-      defining(Pagination(9, 100, 10, 6)) { pagination =>
+      {
+        val pagination = Pagination(9, 100, 10, 6)
         assert(pagination.omitLeft == true)
         assert(pagination.omitRight == false)
       }
@@ -28,7 +30,8 @@ class PaginationSpec extends AnyFunSpec {
 
   describe("visibleFor") {
     it("should return true for visible pagination links") {
-      defining(Pagination(1, 100, 10, 6)) { pagination =>
+      {
+        val pagination = Pagination(1, 100, 10, 6)
         assert(pagination.visibleFor(1) == true)
         assert(pagination.visibleFor(2) == true)
         assert(pagination.visibleFor(3) == true)
@@ -40,7 +43,8 @@ class PaginationSpec extends AnyFunSpec {
         assert(pagination.visibleFor(9) == false)
         assert(pagination.visibleFor(10) == true)
       }
-      defining(Pagination(5, 100, 10, 6)) { pagination =>
+      {
+        val pagination = Pagination(5, 100, 10, 6)
         assert(pagination.visibleFor(1) == true)
         assert(pagination.visibleFor(2) == false)
         assert(pagination.visibleFor(3) == false)
@@ -52,7 +56,8 @@ class PaginationSpec extends AnyFunSpec {
         assert(pagination.visibleFor(9) == false)
         assert(pagination.visibleFor(10) == true)
       }
-      defining(Pagination(8, 100, 10, 6)) { pagination =>
+      {
+        val pagination = Pagination(8, 100, 10, 6)
         assert(pagination.visibleFor(1) == true)
         assert(pagination.visibleFor(2) == false)
         assert(pagination.visibleFor(3) == false)

@@ -158,11 +158,8 @@ abstract class ControllerBase
           org.scalatra.Unauthorized(
             redirect(
               "/signin?redirect=" + StringUtil.urlEncode(
-                defining(request.getQueryString) { queryString =>
-                  request.getRequestURI.substring(request.getContextPath.length) + (if (queryString != null)
-                                                                                      "?" + queryString
-                                                                                    else "")
-                }
+                request.getRequestURI
+                  .substring(request.getContextPath.length) + Option(request.getQueryString).map("?" + _).getOrElse("")
               )
             )
           )
@@ -316,14 +313,14 @@ case class Context(
    * If object has not been cached with the specified key then retrieves by given action.
    * Cached object are available during a request.
    */
-  def cache[A](key: String)(action: => A): A =
-    defining(Keys.Request.Cache(key)) { cacheKey =>
-      Option(request.getAttribute(cacheKey).asInstanceOf[A]).getOrElse {
-        val newObject = action
-        request.setAttribute(cacheKey, newObject)
-        newObject
-      }
+  def cache[A](key: String)(action: => A): A = {
+    val cacheKey = Keys.Request.Cache(key)
+    Option(request.getAttribute(cacheKey).asInstanceOf[A]).getOrElse {
+      val newObject = action
+      request.setAttribute(cacheKey, newObject)
+      newObject
     }
+  }
 
 }
 

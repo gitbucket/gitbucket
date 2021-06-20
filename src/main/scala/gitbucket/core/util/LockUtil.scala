@@ -2,7 +2,6 @@ package gitbucket.core.util
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.{ReentrantLock, Lock}
-import SyntaxSugars._
 
 object LockUtil {
 
@@ -24,7 +23,8 @@ object LockUtil {
   /**
    * Synchronizes a given function which modifies the working copy of the wiki repository.
    */
-  def lock[T](key: String)(f: => T): T = defining(getLockObject(key)) { lock =>
+  def lock[T](key: String)(f: => T): T = {
+    val lock = getLockObject(key)
     try {
       lock.lock()
       f
