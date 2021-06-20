@@ -183,9 +183,9 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
    */
 
   /*
-   * vi. Download a repository archive (tar/zip)
-   * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-tar
-   * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-zip
-   */
+ * vi. Download a repository archive (tar/zip)
+ * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-tar
+ * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-zip
+ */
 
 }
