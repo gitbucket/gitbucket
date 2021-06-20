@@ -28,7 +28,7 @@ object ApiContents {
               "file",
               fileInfo.name,
               fileInfo.path,
-              fileInfo.commitId,
+              fileInfo.id.getName,
               Some(Base64.getEncoder.encodeToString(arr)),
               Some("base64")
             )(repositoryName)
