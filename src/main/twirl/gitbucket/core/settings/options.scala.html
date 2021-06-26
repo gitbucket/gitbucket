@@ -138,11 +138,13 @@
               }
               <fieldset class="form-group">
                 <label for="defaultMergeOption">Default merge strategy</label>
-                <select name="defaultMergeOption" id="defaultMergeOption">
-                  <option value="merge-commit">Merge commit</option>
-                  <option value="squash">Squash</option>
-                  <option value="rebase">Rebase</option>
-                </select>
+                @defining(repository.repository.options.defaultMergeOption) { defaultMergeOption =>
+                  <select name="defaultMergeOption" id="defaultMergeOption">
+                    <option value="merge-commit" @if(defaultMergeOption == "merge-commit"){selected}>Merge commit</option>
+                    <option value="squash" @if(defaultMergeOption == "squash"){selected}>Squash</option>
+                    <option value="rebase" @if(defaultMergeOption == "rebase"){selected}>Rebase</option>
+                  </select>
+                }
                 <span id="error-defaultMergeOption" class="error"></span>
               </fieldset>
             </fieldset>
