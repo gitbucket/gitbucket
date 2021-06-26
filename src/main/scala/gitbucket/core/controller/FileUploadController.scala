@@ -131,7 +131,7 @@ class FileUploadController
     } getOrElse BadRequest()
   }
 
-  post("/release/:owner/:repository/:tag") {
+  post("/release/:owner/:repository/*") {
     setMultipartConfigForLargeFile()
     session
       .get(Keys.Session.LoginAccount)
@@ -139,7 +139,7 @@ class FileUploadController
         case _: Account =>
           val owner = params("owner")
           val repository = params("repository")
-          val tag = params("tag")
+          val tag = multiParams("splat").head
           execute(
             { (file, fileId) =>
               FileUtils.writeByteArrayToFile(

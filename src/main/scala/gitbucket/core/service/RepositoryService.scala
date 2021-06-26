@@ -816,11 +816,13 @@ object RepositoryService {
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)
 
     def splitPath(path: String): (String, String) = {
-      val id = branchList.collectFirst {
-        case branch if (path == branch || path.startsWith(branch + "/")) => branch
-      } orElse tags.collectFirst {
-        case tag if (path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-      } getOrElse path.split("/")(0)
+      val names = (branchList ++ tags.map(_.name)).sortBy(_.length).reverse
+
+      val id = names.collectFirst {
+        case name if (path == name || path.startsWith(name + "/")) => name
+      } getOrElse {
+        path.split("/")(0)
+      }
 
       (id, path.substring(id.length).stripPrefix("/"))
     }

@@ -15,14 +15,14 @@
         <tr>
           <td>
             <div class="col-md-2 text-right">
-              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)" class="strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
+              <a href="@helpers.url(repository)/tree/@helpers.urlEncode(tag.name)" class="strong"><i class="octicon octicon-tag"></i>@tag.name</a><br>
               <a href="@helpers.url(repository)/commit/@tag.id" class="monospace muted"><i class="octicon octicon-git-commit"></i>@tag.id.substring(0, 7)</a><br>
               <span class="muted">@gitbucket.core.helper.html.datetimeago(tag.time)</span>
             </div>
             <div class="col-md-10" style="border-left: 1px solid #eee">
               <div class="release-note markdown-body">
                 @release.map { case (release, assets) =>
-                  <h3><a href="@helpers.url(repository)/releases/@release.tag">@release.name</a></h3>
+                  <h3><a href="@helpers.url(repository)/releases/@helpers.urlEncode(release.tag)">@release.name</a></h3>
                   <p class="muted">
                     @helpers.avatarLink(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
                   </p>
