@@ -57,7 +57,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     externalWikiUrl: Option[String],
     allowFork: Boolean,
     mergeOptions: Seq[String],
-    defaultMergeOption: String
+    defaultMergeOption: String,
+    safeMode: Boolean
   )
 
   val optionsForm = mapping(
@@ -69,7 +70,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "externalWikiUrl" -> trim(label("External Wiki URL", optional(text(maxlength(200))))),
     "allowFork" -> trim(label("Allow Forking", boolean())),
     "mergeOptions" -> mergeOptions,
-    "defaultMergeOption" -> trim(label("Default merge strategy", text(required)))
+    "defaultMergeOption" -> trim(label("Default merge strategy", text(required))),
+    "safeMode" -> trim(label("XSS protection", boolean()))
   )(OptionsForm.apply).verifying { form =>
     if (!form.mergeOptions.contains(form.defaultMergeOption)) {
       Seq("defaultMergeOption" -> s"This merge strategy isn't enabled.")
@@ -150,7 +152,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.externalWikiUrl,
       form.allowFork,
       form.mergeOptions,
-      form.defaultMergeOption
+      form.defaultMergeOption,
+      form.safeMode
     )
     flash.update("info", "Repository settings has been updated.")
     redirect(s"/${repository.owner}/${repository.name}/settings/options")

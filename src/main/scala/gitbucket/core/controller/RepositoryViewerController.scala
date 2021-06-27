@@ -423,7 +423,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                     repository = repository,
                     pathList = paths.take(paths.size - 1).toList,
                     fileName = Some(paths.last),
-                    content = JGitUtil.getContentInfo(git, path, objectId),
+                    content = JGitUtil.getContentInfo(git, path, objectId, repository.repository.options.safeMode),
                     protectedBranch = protectedBranch,
                     commit = revCommit.getName,
                     newLineMode = info.newLineMode,
@@ -448,7 +448,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repository = repository,
             pathList = paths.take(paths.size - 1).toList,
             fileName = paths.last,
-            content = JGitUtil.getContentInfo(git, path, objectId),
+            content = JGitUtil.getContentInfo(git, path, objectId, repository.repository.options.safeMode),
             commit = revCommit.getName
           )
         } getOrElse NotFound()
@@ -693,7 +693,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 branch = id,
                 repository = repository,
                 pathList = path.split("/").toList,
-                content = JGitUtil.getContentInfo(git, path, objectId),
+                content = JGitUtil.getContentInfo(git, path, objectId, repository.repository.options.safeMode),
                 latestCommit = new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",

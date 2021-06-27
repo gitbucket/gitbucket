@@ -40,7 +40,7 @@ class FileUploadController
           .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
         session += Keys.Session.Upload(fileId) -> file.name
       },
-      FileUtil.isImage
+      FileUtil.isImage(_)
     )
   }
 
@@ -191,9 +191,9 @@ class FileUploadController
     }
   }
 
-  private def execute(f: (FileItem, String) => Unit, mimeTypeChcker: (String) => Boolean) =
+  private def execute(f: (FileItem, String) => Unit, mimeTypeChecker: (String) => Boolean) =
     fileParams.get("file") match {
-      case Some(file) if mimeTypeChcker(file.name) =>
+      case Some(file) if mimeTypeChecker(file.name) =>
         val fileId = FileUtil.generateFileId
         f(file, fileId)
         contentType = "text/plain"
