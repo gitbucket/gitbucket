@@ -134,6 +134,23 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(statusList.get(1).getState == GHCommitState.FAILURE)
         assert(statusList.get(1).getContext == "context")
       }
+
+      //get master ref
+      {
+        val ref = repo.getRef("heads/master")
+        assert(ref.getRef == "heads/master")
+        assert(ref.getUrl == "tbd")
+        assert(ref.getObject.getType == "commit")
+      }
+
+      //get tag v1.0
+      {
+        val ref = repo.getRef("heads/tags/v1.0")
+        assert(ref.getRef == "heads/tags/v1.0")
+        assert(ref.getUrl == "tbd")
+        assert(ref.getObject.getType == "tag")
+      }
+
     }
   }
 
