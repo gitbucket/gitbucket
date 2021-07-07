@@ -63,8 +63,8 @@ trait ReleaseControllerBase extends ControllerBase {
     )
   })
 
-  get("/:owner/:repository/releases/:tag")(referrersOnly { repository =>
-    val tagName = params("tag")
+  get("/:owner/:repository/releases/*")(referrersOnly { repository =>
+    val tagName = multiParams("splat").head
     getRelease(repository.owner, repository.name, tagName)
       .map { release =>
         html.release(
@@ -77,8 +77,8 @@ trait ReleaseControllerBase extends ControllerBase {
       .getOrElse(NotFound())
   })
 
-  get("/:owner/:repository/releases/:tag/assets/:fileId")(referrersOnly { repository =>
-    val tagName = params("tag")
+  get("/:owner/:repository/releases/*/assets/:fileId")(referrersOnly { repository =>
+    val tagName = multiParams("splat").head
     val fileId = params("fileId")
     (for {
       _ <- repository.tags.find(_.name == tagName)
@@ -93,8 +93,8 @@ trait ReleaseControllerBase extends ControllerBase {
     }).getOrElse(NotFound())
   })
 
-  get("/:owner/:repository/releases/:tag/create")(writableUsersOnly { repository =>
-    val tagName = params("tag")
+  get("/:owner/:repository/releases/*/create")(writableUsersOnly { repository =>
+    val tagName = multiParams("splat").head
     val previousTags = repository.tags.takeWhile(_.name != tagName).reverse
 
     repository.tags
@@ -105,10 +105,11 @@ trait ReleaseControllerBase extends ControllerBase {
       .getOrElse(NotFound())
   })
 
-  post("/:owner/:repository/releases/:tag/create", releaseForm)(writableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/releases/*/create", releaseForm)(writableUsersOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
-        val tagName = params("tag")
+        val tagName = multiParams("splat").head
+
         // Insert into RELEASE
         createRelease(repository.owner, repository.name, form.name, form.content, tagName, loginAccount)
 
@@ -151,8 +152,8 @@ trait ReleaseControllerBase extends ControllerBase {
     commitLog
   })
 
-  get("/:owner/:repository/releases/:tag/edit")(writableUsersOnly { repository =>
-    val tagName = params("tag")
+  get("/:owner/:repository/releases/*/edit")(writableUsersOnly { repository =>
+    val tagName = multiParams("splat").head
     val previousTags = repository.tags.takeWhile(_.name != tagName).reverse
 
     (for {
@@ -169,10 +170,10 @@ trait ReleaseControllerBase extends ControllerBase {
     }).getOrElse(NotFound())
   })
 
-  post("/:owner/:repository/releases/:tag/edit", releaseForm)(writableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/releases/*/edit", releaseForm)(writableUsersOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
-        val tagName = params("tag")
+        val tagName = multiParams("splat").head
 
         getRelease(repository.owner, repository.name, tagName)
           .map {
@@ -215,8 +216,8 @@ trait ReleaseControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/releases/:tag/delete")(writableUsersOnly { repository =>
-    val tagName = params("tag")
+  post("/:owner/:repository/releases/*/delete")(writableUsersOnly { repository =>
+    val tagName = multiParams("splat").head
     getRelease(repository.owner, repository.name, tagName).foreach { release =>
       FileUtils.deleteDirectory(
         new File(getReleaseFilesDir(repository.owner, repository.name), FileUtil.checkFilename(release.tag))
@@ -227,7 +228,6 @@ trait ReleaseControllerBase extends ControllerBase {
   })
 
   private def fetchReleases(repository: RepositoryService.RepositoryInfo, page: Int) = {
-
     import gitbucket.core.service.ReleaseService._
 
     val (offset, limit) = ((page - 1) * ReleaseLimit, ReleaseLimit)

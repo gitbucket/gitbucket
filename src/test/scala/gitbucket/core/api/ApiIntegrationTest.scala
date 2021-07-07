@@ -1,11 +1,15 @@
 package gitbucket.core.api
 
 import gitbucket.core.TestingGitBucketServer
+import org.apache.commons.io.IOUtils
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Using
 import org.kohsuke.github.{GHCommitState, GitHub}
 
+/**
+ * Need to run `sbt package` before running this test.
+ */
 class ApiIntegrationTest extends AnyFunSuite {
 
   test("create repository") {
@@ -130,6 +134,50 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(statusList.get(1).getState == GHCommitState.FAILURE)
         assert(statusList.get(1).getContext == "context")
       }
+    }
+  }
+
+  test("create and update contents") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+
+      val repo = github.createRepository("create_contents_test").autoInit(true).create()
+
+      val createResult =
+        repo
+          .createContent()
+          .branch("master")
+          .content("create")
+          .message("Create content")
+          .path("README.md")
+          .commit();
+
+      assert(createResult.getContent.isFile == true)
+      assert(IOUtils.toString(createResult.getContent.read(), "UTF-8") == "create")
+
+      val content1 = repo.getFileContent("README.md")
+      assert(content1.isFile == true)
+      assert(IOUtils.toString(content1.read(), "UTF-8") == "create")
+      assert(content1.getSha == createResult.getContent.getSha)
+
+      val updateResult =
+        repo
+          .createContent()
+          .branch("master")
+          .content("update")
+          .message("Update content")
+          .path("README.md")
+          .sha(content1.getSha)
+          .commit();
+
+      assert(updateResult.getContent.isFile == true)
+      assert(IOUtils.toString(updateResult.getContent.read(), "UTF-8") == "update")
+
+      val content2 = repo.getFileContent("README.md")
+      assert(content2.isFile == true)
+      assert(IOUtils.toString(content2.read(), "UTF-8") == "update")
+      assert(content2.getSha == updateResult.getContent.getSha)
+      assert(content1.getSha != content2.getSha)
     }
   }
 

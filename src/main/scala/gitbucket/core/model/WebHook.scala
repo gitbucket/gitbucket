@@ -8,7 +8,7 @@ object WebHookContentType {
 
   val values: Vector[WebHookContentType] = Vector(JSON, FORM)
 
-  private val map: Map[String, WebHookContentType] = values.map(enum => enum.code -> enum).toMap
+  private val map: Map[String, WebHookContentType] = values.map(e => e.code -> e).toMap
 
   def apply(code: String): WebHookContentType = map(code)
 

@@ -20,7 +20,6 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
 import gitbucket.core.util.JGitUtil.CommitInfo
-import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{HttpClientUtil, RepositoryName, StringUtil}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.apache.http.NameValuePair
@@ -127,7 +126,7 @@ trait WebHookService {
       ctype = ctype,
       token = token
     )
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
   }
@@ -145,7 +144,7 @@ trait WebHookService {
       .map(w => (w.ctype, w.token))
       .update((ctype, token))
     RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
   }
@@ -164,7 +163,7 @@ trait WebHookService {
       .map(w => (w.url, w.ctype, w.token))
       .update((url, ctype, token))
     RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
   }
@@ -229,7 +228,7 @@ trait WebHookService {
     token: Option[String]
   )(implicit s: Session): Unit = {
     AccountWebHooks insert AccountWebHook(owner, url, ctype, token)
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       AccountWebHookEvents insert AccountWebHookEvent(owner, url, event)
     }
   }
@@ -243,7 +242,7 @@ trait WebHookService {
   )(implicit s: Session): Unit = {
     AccountWebHooks.filter(_.byPrimaryKey(owner, url)).map(w => (w.ctype, w.token)).update((ctype, token))
     AccountWebHookEvents.filter(_.byAccountWebHook(owner, url)).delete
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       AccountWebHookEvents insert AccountWebHookEvent(owner, url, event)
     }
   }

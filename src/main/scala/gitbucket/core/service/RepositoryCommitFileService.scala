@@ -23,23 +23,29 @@ trait RepositoryCommitFileService {
     with PullRequestService
     with WebHookPullRequestService
     with RepositoryService =>
-  import RepositoryCommitFileService._
 
+  /**
+   * Create multiple files by callback function.
+   * Returns commitId.
+   */
   def commitFiles(
     repository: RepositoryService.RepositoryInfo,
-    files: Seq[CommitFile],
     branch: String,
-    path: String,
     message: String,
     loginAccount: Account,
     settings: SystemSettings
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit
-  )(implicit s: Session, c: JsonFormat.Context) = {
-    // prepend path to the filename
-    _commitFile(repository, branch, message, loginAccount, loginAccount.fullName, loginAccount.mailAddress, settings)(f)
+  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+    _createFiles(repository, branch, message, loginAccount, loginAccount.fullName, loginAccount.mailAddress, settings)(
+      f
+    )._1
   }
 
+  /**
+   * Create a file from string content.
+   * Returns commitId + blobId.
+   */
   def commitFile(
     repository: RepositoryService.RepositoryInfo,
     branch: String,
@@ -52,7 +58,7 @@ trait RepositoryCommitFileService {
     commit: String,
     loginAccount: Account,
     settings: SystemSettings
-  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+  )(implicit s: Session, c: JsonFormat.Context): (ObjectId, Option[ObjectId]) = {
     commitFile(
       repository,
       branch,
@@ -69,6 +75,10 @@ trait RepositoryCommitFileService {
     )
   }
 
+  /**
+   * Create a file from byte array content.
+   * Returns commitId + blobId.
+   */
   def commitFile(
     repository: RepositoryService.RepositoryInfo,
     branch: String,
@@ -82,7 +92,7 @@ trait RepositoryCommitFileService {
     committerName: String,
     committerMailAddress: String,
     settings: SystemSettings
-  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+  )(implicit s: Session, c: JsonFormat.Context): (ObjectId, Option[ObjectId]) = {
 
     val newPath = newFileName.map { newFileName =>
       if (path.length == 0) newFileName else s"${path}/${newFileName}"
@@ -91,7 +101,7 @@ trait RepositoryCommitFileService {
       if (path.length == 0) oldFileName else s"${path}/${oldFileName}"
     }
 
-    _commitFile(repository, branch, message, pusherAccount, committerName, committerMailAddress, settings) {
+    _createFiles(repository, branch, message, pusherAccount, committerName, committerMailAddress, settings) {
       case (git, headTip, builder, inserter) =>
         if (headTip.getName == commit) {
           val permission = JGitUtil
@@ -105,18 +115,23 @@ trait RepositoryCommitFileService {
             }
             .flatten
             .headOption
-
-          newPath.foreach { newPath =>
-            builder.add(JGitUtil.createDirCacheEntry(newPath, permission.map { bits =>
+            .map { bits =>
               FileMode.fromBits(bits)
-            } getOrElse FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content)))
+            }
+            .getOrElse(FileMode.REGULAR_FILE)
+
+          val objectId = newPath.map { newPath =>
+            val objectId = inserter.insert(Constants.OBJ_BLOB, content)
+            builder.add(JGitUtil.createDirCacheEntry(newPath, permission, objectId))
+            objectId
           }
           builder.finish()
-        }
+          objectId
+        } else None
     }
   }
 
-  private def _commitFile(
+  private def _createFiles[R](
     repository: RepositoryService.RepositoryInfo,
     branch: String,
     message: String,
@@ -125,8 +140,8 @@ trait RepositoryCommitFileService {
     committerMailAddress: String,
     settings: SystemSettings
   )(
-    f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit
-  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+    f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
+  )(implicit s: Session, c: JsonFormat.Context): (ObjectId, R) = {
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
@@ -135,7 +150,7 @@ trait RepositoryCommitFileService {
         val headName = s"refs/heads/${branch}"
         val headTip = git.getRepository.resolve(headName)
 
-        f(git, headTip, builder, inserter)
+        val result = f(git, headTip, builder, inserter)
 
         val commitId = JGitUtil.createNewCommit(
           git,
@@ -228,7 +243,7 @@ trait RepositoryCommitFileService {
               }
             }
         }
-        commitId
+        (commitId, result)
       }
     }
   }

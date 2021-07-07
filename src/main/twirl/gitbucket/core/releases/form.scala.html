@@ -44,7 +44,7 @@
             @release.map { case (release, assets) =>
               @assets.map { asset =>
                 <li>
-                  <a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.encodeRefName(tag.name)/@asset.fileName"><i class="octicon octicon-file"></i>@asset.label</a>
+                  <a href="@context.baseUrl/@repository.owner/@repository.name/_release/@helpers.urlEncode(tag.name)/@asset.fileName"><i class="octicon octicon-file"></i>@asset.label</a>
                   <a href="#" class="remove pull-right" style="padding-top: 0px;">(remove)</a>
                   <input type="hidden" name="file:@asset.fileName" value="@asset.label"/>
                 </li>
@@ -56,9 +56,9 @@
           </div>
           <div class="align-right" style="margin-top: 12px;">
             @if(release.isEmpty){
-              <input type="submit" class="btn btn-success" value="Submit new release" formaction="@helpers.url(repository)/releases/@helpers.encodeRefName(tag.name)/create"/>
+              <input type="submit" class="btn btn-success" value="Submit new release" formaction="@helpers.url(repository)/releases/@helpers.urlEncode(tag.name)/create"/>
             } else {
-              <input type="submit" class="btn btn-success" value="Update release" formaction="@helpers.url(repository)/releases/@helpers.encodeRefName(tag.name)/edit"/>
+              <input type="submit" class="btn btn-success" value="Update release" formaction="@helpers.url(repository)/releases/@helpers.urlEncode(tag.name)/edit"/>
             }
           </div>
         </div>

@@ -1,7 +1,6 @@
 package gitbucket.core.util
 
 import gitbucket.core.model.Account
-import SyntaxSugars._
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.Ldap
 import com.novell.ldap._
@@ -246,20 +245,18 @@ object LDAPUtil {
     userNameAttribute: String,
     userName: String,
     mailAttribute: String
-  ): Option[String] =
-    defining(
-      conn.search(
-        userDN,
-        LDAPConnection.SCOPE_BASE,
-        userNameAttribute + "=" + userName,
-        Array[String](mailAttribute),
-        false
-      )
-    ) { results =>
-      if (results.hasMore) {
-        Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
-      } else None
-    }
+  ): Option[String] = {
+    val results = conn.search(
+      userDN,
+      LDAPConnection.SCOPE_BASE,
+      userNameAttribute + "=" + userName,
+      Array[String](mailAttribute),
+      false
+    )
+    if (results.hasMore) {
+      Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
+    } else None
+  }
 
   private def findFullName(
     conn: LDAPConnection,
@@ -267,20 +264,18 @@ object LDAPUtil {
     userNameAttribute: String,
     userName: String,
     nameAttribute: String
-  ): Option[String] =
-    defining(
-      conn.search(
-        userDN,
-        LDAPConnection.SCOPE_BASE,
-        userNameAttribute + "=" + userName,
-        Array[String](nameAttribute),
-        false
-      )
-    ) { results =>
-      if (results.hasMore) {
-        Option(results.next.getAttribute(nameAttribute)).map(_.getStringValue)
-      } else None
-    }
+  ): Option[String] = {
+    val results = conn.search(
+      userDN,
+      LDAPConnection.SCOPE_BASE,
+      userNameAttribute + "=" + userName,
+      Array[String](nameAttribute),
+      false
+    )
+    if (results.hasMore) {
+      Option(results.next.getAttribute(nameAttribute)).map(_.getStringValue)
+    } else None
+  }
 
   case class LDAPUserInfo(userName: String, fullName: String, mailAddress: String)
 

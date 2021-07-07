@@ -3,26 +3,24 @@ package gitbucket.core.util
 import org.apache.commons.io.FileUtils
 import org.apache.tika.Tika
 import java.io.File
-import SyntaxSugars._
 import scala.util.Random
 
 object FileUtil {
 
-  def getMimeType(name: String): String =
-    defining(new Tika()) { tika =>
-      tika.detect(name) match {
-        case null     => "application/octet-stream"
-        case mimeType => mimeType
-      }
+  def getMimeType(name: String): String = {
+    val tika = new Tika()
+    tika.detect(name) match {
+      case null     => "application/octet-stream"
+      case mimeType => mimeType
     }
+  }
 
   def getMimeType(name: String, bytes: Array[Byte]): String = {
-    defining(getMimeType(name)) { mimeType =>
-      if (mimeType == "application/octet-stream" && isText(bytes)) {
-        "text/plain"
-      } else {
-        mimeType
-      }
+    val mimeType = getMimeType(name)
+    if (mimeType == "application/octet-stream" && isText(bytes)) {
+      "text/plain"
+    } else {
+      mimeType
     }
   }
 

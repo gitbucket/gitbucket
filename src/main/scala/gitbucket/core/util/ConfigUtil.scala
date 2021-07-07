@@ -1,7 +1,5 @@
 package gitbucket.core.util
 
-import gitbucket.core.util.SyntaxSugars.defining
-
 import scala.reflect.ClassTag
 
 object ConfigUtil {
@@ -30,12 +28,12 @@ object ConfigUtil {
     }
   }
 
-  def convertType[A: ClassTag](value: String): A =
-    defining(implicitly[ClassTag[A]].runtimeClass) { c =>
-      if (c == classOf[Boolean]) value.toBoolean
-      else if (c == classOf[Long]) value.toLong
-      else if (c == classOf[Int]) value.toInt
-      else value
-    }.asInstanceOf[A]
+  def convertType[A: ClassTag](value: String): A = {
+    val c = implicitly[ClassTag[A]].runtimeClass
+    if (c == classOf[Boolean]) value.toBoolean
+    else if (c == classOf[Long]) value.toLong
+    else if (c == classOf[Int]) value.toInt
+    else value
+  }.asInstanceOf[A]
 
 }
