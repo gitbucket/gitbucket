@@ -24,13 +24,18 @@ object FileUtil {
     }
   }
 
-  def getSafeMimeType(name: String): String = {
-    getMimeType(name)
+  def getSafeMimeType(name: String, safeMode: Boolean = true): String = {
+    val mimeType = getMimeType(name)
       .replace("text/html", "text/plain")
-      .replace("image/svg+xml", "text/plain; charset=UTF-8")
+
+    if (safeMode) {
+      mimeType.replace("image/svg+xml", "text/plain; charset=UTF-8")
+    } else {
+      mimeType
+    }
   }
 
-  def isImage(name: String): Boolean = getSafeMimeType(name).startsWith("image/")
+  def isImage(name: String, safeMode: Boolean = true): Boolean = getSafeMimeType(name, safeMode).startsWith("image/")
 
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 

@@ -2,7 +2,6 @@ package gitbucket.core.api
 
 import java.util.{Calendar, Date, TimeZone}
 
-import gitbucket.core.api.ApiBranchProtection.EnforcementLevel
 import gitbucket.core.model._
 import gitbucket.core.plugin.PluginInfo
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchInfo
@@ -69,7 +68,8 @@ object ApiSpecModels {
       externalWikiUrl = Some("https://external.com/gitbucket"),
       allowFork = true,
       mergeOptions = "merge-commit,squash,rebase",
-      defaultMergeOption = "merge-commit"
+      defaultMergeOption = "merge-commit",
+      safeMode = true
     )
   )
 

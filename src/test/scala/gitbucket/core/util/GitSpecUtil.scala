@@ -93,7 +93,7 @@ object GitSpecUtil {
       }
       _getPathObjectId
     }
-    JGitUtil.getContentInfo(git, path, objectId)
+    JGitUtil.getContentInfo(git, path, objectId, true)
   }
 
   def mergeAndCommit(git: Git, into: String, branch: String, message: String = null): Unit = {

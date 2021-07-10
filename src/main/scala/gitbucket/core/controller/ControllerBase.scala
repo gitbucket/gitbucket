@@ -253,7 +253,7 @@ abstract class ControllerBase
     repository: RepositoryService.RepositoryInfo
   ): Unit = {
     JGitUtil.getObjectLoaderFromId(git, objectId) { loader =>
-      contentType = FileUtil.getSafeMimeType(path)
+      contentType = FileUtil.getSafeMimeType(path, repository.repository.options.safeMode)
 
       if (loader.isLarge) {
         response.setContentLength(loader.getSize.toInt)

@@ -24,6 +24,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val allowFork = column[Boolean]("ALLOW_FORK")
     val mergeOptions = column[String]("MERGE_OPTIONS")
     val defaultMergeOption = column[String]("DEFAULT_MERGE_OPTION")
+    val safeMode = column[Boolean]("SAFE_MODE")
 
     def * =
       (
@@ -41,7 +42,16 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           parentUserName.?,
           parentRepositoryName.?
         ),
-        (issuesOption, externalIssuesUrl.?, wikiOption, externalWikiUrl.?, allowFork, mergeOptions, defaultMergeOption)
+        (
+          issuesOption,
+          externalIssuesUrl.?,
+          wikiOption,
+          externalWikiUrl.?,
+          allowFork,
+          mergeOptions,
+          defaultMergeOption,
+          safeMode
+        )
       ).shaped.<>(
         {
           case (repository, options) =>
@@ -112,5 +122,6 @@ case class RepositoryOptions(
   externalWikiUrl: Option[String],
   allowFork: Boolean,
   mergeOptions: String,
-  defaultMergeOption: String
+  defaultMergeOption: String,
+  safeMode: Boolean
 )
