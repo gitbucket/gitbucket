@@ -4,58 +4,119 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.helper.html.dropdown(
   value  = if(branch.length == 40) branch.substring(0, 10) else branch,
-  prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
+  prefix = if(repository.branchList.contains(branch)) "branch" else if (repository.tags.map(_.name).contains(branch)) "tag" else "tree",
+  style = "min-width: 200px;",
   maxValueWidth = "200px"
 ) {
-  <li><div id="branch-control-title">Switch branches<button id="branch-control-close" class="pull-right">&times</button></div></li>
-  <li><input id="branch-control-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="Find or create branch ..."/></li>
-  @body
-  @if(hasWritePermission) {
-    <li id="create-branch" style="display: none;">
-      <a><form action="@helpers.url(repository)/branches" method="post" style="margin: 0;">
-        <span class="strong">Create branch:&nbsp;<span class="new-branch"></span></span>
-        <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
-        <input type="hidden" name="new">
-        <input type="hidden" name="from" value="@branch">
-      </form></a>
+  <li>
+    <ul class="nav nav-tabs">
+      <li class="active" id="branch-control-tab-branches"><a href="javascript:void(0);" class="nav-item" id="nav-item-branches">Branches</a></li>
+      <li id="branch-control-tab-tags"><a href="javascript:void(0);" class="nav-item" id="nav-item-tags">Tags</a></li>
+      <li><button id="branch-control-close" class="pull-right">&times</button></li>
+    </ul>
+    <li>
+      <input id="branch-control-input" type="text" class="form-control input-sm dropdown-filter-input"/>
     </li>
-  }
+    @body
+    @if(hasWritePermission) {
+      <li id="create-branch" style="display: none;">
+        <a><form action="@helpers.url(repository)/branches" method="post" style="margin: 0;">
+          <span class="strong">Create branch:&nbsp;<span class="new-branch"></span></span>
+          <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
+          <input type="hidden" name="new">
+          <input type="hidden" name="from" value="@branch">
+        </form></a>
+      </li>
+    }
+  </li>
 }
 <script>
   $(function(){
     $('#branch-control-input').parent().click(function(e) {
       e.stopPropagation();
     });
+
     $('#branch-control-close').click(function() {
       $('[data-toggle="dropdown"]').parent().removeClass('open');
     });
+
     $('#branch-control-input').keyup(function() {
-      var inputVal = $('#branch-control-input').val();
-      $.each($('#branch-control-input').parent().parent().find('a'), function(index, elem) {
-        if (!inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0) {
-          $(elem).parent().show();
-        } else {
-          $(elem).parent().hide();
-        }
-      });
-      @if(hasWritePermission) {
-        if (inputVal) {
-          $('#create-branch').parent().find('li:last-child').show().find('.new-branch').text(inputVal);
-        } else {
-          $('#create-branch').parent().find('li:last-child').hide();
-        }
-      }
+      updateBranchControlListFilter();
     });
+
     @if(hasWritePermission) {
       $('#create-branch').click(function() {
         $(this).find('input[name="new"]').val($('.dropdown-menu input').val())
         $(this).find('form').submit()
        });
     }
+
     $('.btn-group').click(function() {
       $('#branch-control-input').val('');
-      $('.dropdown-menu li').show();
+      //$('.dropdown-menu li').show();
       $('#create-branch').hide();
     });
+
+    $('#nav-item-branches').click(function(e) {
+      e.stopPropagation();
+      updateBranchControlList('branches');
+    });
+
+    $('#nav-item-tags').click(function(e) {
+      e.stopPropagation();
+      updateBranchControlList('tags');
+    });
+
+    function updateBranchControlList(active) {
+      if (active == 'branches') {
+        $('li#branch-control-tab-branches').addClass('active');
+        $('li#branch-control-tab-tags').removeClass('active');
+
+        $('li.branch-control-item-branch').show();
+        $('li.branch-control-item-branch > a').addClass('active');
+
+        $('li.branch-control-item-tag').hide();
+        $('li.branch-control-item-tag > a').removeClass('active');
+        @if(hasWritePermission) {
+          $('#branch-control-input').attr('placeholder', 'Find or create branch ...');
+        } else {
+          $('#branch-control-input').attr('placeholder', 'Find branch ...');
+        }
+      } else if (active == 'tags') {
+        $('li#branch-control-tab-branches').removeClass('active');
+        $('li#branch-control-tab-tags').addClass('active');
+
+        $('li.branch-control-item-branch').hide();
+        $('li.branch-control-item-branch > a').removeClass('active');
+
+        $('li.branch-control-item-tag').show();
+        $('li.branch-control-item-tag > a').addClass('active');
+        $('#branch-control-input').attr('placeholder', 'Find tag ...');
+      }
+      updateBranchControlListFilter();
+    }
+
+    function updateBranchControlListFilter() {
+      const inputVal = $('#branch-control-input').val();
+      $.each($('#branch-control-input').parent().parent().find('a.active').not('.nav-item'), function(index, elem) {
+        if (!inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0) {
+          $(elem).parent().show();
+        } else {
+          $(elem).parent().hide();
+        }
+      });
+      if ($('li#branch-control-tab-branches.active').length > 0) {
+        @if(hasWritePermission) {
+          if (inputVal) {
+            $('#create-branch').parent().find('li:last-child').show().find('.new-branch').text(inputVal);
+          } else {
+            $('#create-branch').parent().find('li:last-child').hide();
+          }
+        }
+      }
+    }
+
+    // Initialize the branch control list
+    updateBranchControlList('branches');
   });
 </script>
