@@ -60,7 +60,8 @@ trait RepositoryService {
           externalWikiUrl = None,
           allowFork = true,
           mergeOptions = "merge-commit,squash,rebase",
-          defaultMergeOption = "merge-commit"
+          defaultMergeOption = "merge-commit",
+          safeMode = true
         )
       )
 
@@ -460,7 +461,7 @@ trait RepositoryService {
           .filter { case (t1, t2) => t2.removed === false.bind }
           .map { case (t1, t2) => t1 }
       // for Normal Users
-      case Some(x) if (!x.isAdmin || limit) =>
+      case Some(x) =>
         Repositories
           .join(Accounts)
           .on(_.userName === _.userName)
@@ -550,7 +551,8 @@ trait RepositoryService {
     externalWikiUrl: Option[String],
     allowFork: Boolean,
     mergeOptions: Seq[String],
-    defaultMergeOption: String
+    defaultMergeOption: String,
+    safeMode: Boolean
   )(implicit s: Session): Unit = {
 
     Repositories
@@ -566,6 +568,7 @@ trait RepositoryService {
           r.allowFork,
           r.mergeOptions,
           r.defaultMergeOption,
+          r.safeMode,
           r.updatedDate
         )
       }
@@ -579,6 +582,7 @@ trait RepositoryService {
         allowFork,
         mergeOptions.mkString(","),
         defaultMergeOption,
+        safeMode,
         currentDate
       )
   }

@@ -239,7 +239,8 @@ class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
           externalWikiUrl = None,
           allowFork = true,
           mergeOptions = "merge-commit,squash,rebase",
-          defaultMergeOption = "merge-commit"
+          defaultMergeOption = "merge-commit",
+          safeMode = true
         )
       ),
       issueCount = 0,

@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.35.3"
 val ScalatraVersion = "2.7.1"
-val JettyVersion = "9.4.42.v20210604"
+val JettyVersion = "9.4.43.v20210629"
 val JgitVersion = "5.12.0.202106070339-r"
 
 lazy val root = (project in file("."))
@@ -34,21 +34,21 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion cross CrossVersion.for3Use2_13,
-  "org.json4s"                      %% "json4s-jackson"              % "4.0.1" cross CrossVersion.for3Use2_13,
-  "commons-io"                      % "commons-io"                   % "2.10.0",
+  "org.json4s"                      %% "json4s-jackson"              % "3.6.11" cross CrossVersion.for3Use2_13,
+  "commons-io"                      % "commons-io"                   % "2.11.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
-  "org.apache.commons"              % "commons-compress"             % "1.20",
+  "org.apache.commons"              % "commons-compress"             % "1.21",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.8.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "1.26",
+  "org.apache.tika"                 % "tika-core"                    % "1.27",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.3",
-  "org.postgresql"                  % "postgresql"                   % "42.2.22",
+  "org.postgresql"                  % "postgresql"                   % "42.2.23",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.3",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3",
   "com.typesafe"                    % "config"                       % "1.4.1",
@@ -57,7 +57,7 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.14",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.9",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.9.1",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
