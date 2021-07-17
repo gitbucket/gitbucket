@@ -61,31 +61,12 @@ Support
 - If you can't find same question and report, send it to our [Gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.35.x
+What's New in 4.36.x
 -------------
-### 4.35.3 - 14 Jan 2021
-- Fix a bug that Wiki page cannot be deleted
-- Fix a deployment issue on Tomcat
-
-### 4.35.2 - 30 Dec 2020
-- Upgrade gitbucket-notifications-plugin to 1.10.0
-- Upgrade oauth2-oidc-sdk to 8.29.1 to solve dependency issue
-
-### 4.35.1 - 29 Dec 2020
-
-- Fix database migration issue which happens if webhook is configured
-- Call push webhook when pull request is merged
-- Show commit status at commits tab of pull request
-
-### 4.35.0 - 25 Dec 2020
-
-- Editor and source viewer color theme
-- Auto completion for issues and pull requests
-- Upload image from clipboard
-- Close multiple issues by commit comment
-- Create pull request from online editor
-- Milestone overview
-- Commit status at various places
-- WebAPI coverage improvements
+### 4.36.0 - 17 Jul 2021
+- Tag selector in the repository viewer
+- Link iusses/pull requests of other repositories
+- Files and lines can be linked in the diff view
+- Option to disable XSS protection
 
 See the [change log](CHANGELOG.md) for all of the updates.
