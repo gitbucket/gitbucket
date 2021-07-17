@@ -3,7 +3,7 @@ All changes to the project will be documented in this file.
 
 ### 4.36.0 - 17 Jul 2021
 - Tag selector in the repository viewer
-- Link iusses/pull requests of other repositories
+- Link issues/pull requests of other repositories
 - Files and lines can be linked in the diff view
 - Option to disable XSS protection
 

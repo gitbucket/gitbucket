@@ -65,7 +65,7 @@ What's New in 4.36.x
 -------------
 ### 4.36.0 - 17 Jul 2021
 - Tag selector in the repository viewer
-- Link iusses/pull requests of other repositories
+- Link issues/pull requests of other repositories
 - Files and lines can be linked in the diff view
 - Option to disable XSS protection
 
