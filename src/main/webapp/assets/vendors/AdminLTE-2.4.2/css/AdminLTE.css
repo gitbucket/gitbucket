@@ -172,13 +172,6 @@ h6,
 a {
   color: #337ab7;
 }
-a:hover,
-a:active,
-a:focus {
-  outline: none;
-  text-decoration: none;
-  color: #23527c;
-}
 /* Page Header */
 .page-header {
   margin: 10px 0 20px 0;
