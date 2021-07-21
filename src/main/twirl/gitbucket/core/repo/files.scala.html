@@ -80,7 +80,10 @@
       <div class="pull-left">
         @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
           @repository.branchList.map { x =>
-            <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+            <li class="branch-control-item-branch"><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+          }
+          @repository.tags.map { x =>
+            <li class="branch-control-item-tag"><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x.name)">@gitbucket.core.helper.html.checkicon(x.name == branch) @x.name</a></li>
           }
         }
         @if(pathList.nonEmpty){

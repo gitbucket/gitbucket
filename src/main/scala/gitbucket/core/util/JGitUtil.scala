@@ -1047,13 +1047,13 @@ object JGitUtil {
     !loader.isLarge && new String(loader.getBytes(), "UTF-8").startsWith("version https://git-lfs.github.com/spec/v1")
   }
 
-  def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
+  def getContentInfo(git: Git, path: String, objectId: ObjectId, safeMode: Boolean): ContentInfo = {
     // Viewer
     Using.resource(git.getRepository.getObjectDatabase) { db =>
       val loader = db.open(objectId)
       val isLfs = isLfsPointer(loader)
       val large = FileUtil.isLarge(loader.getSize)
-      val viewer = if (FileUtil.isImage(path)) "image" else if (large) "large" else "other"
+      val viewer = if (FileUtil.isImage(path, safeMode)) "image" else if (large) "large" else "other"
       val bytes = if (viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
       val size = Some(getContentSize(loader))
 

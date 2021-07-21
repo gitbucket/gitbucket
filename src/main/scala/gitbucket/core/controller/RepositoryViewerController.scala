@@ -423,7 +423,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                     repository = repository,
                     pathList = paths.take(paths.size - 1).toList,
                     fileName = Some(paths.last),
-                    content = JGitUtil.getContentInfo(git, path, objectId),
+                    content = JGitUtil.getContentInfo(git, path, objectId, repository.repository.options.safeMode),
                     protectedBranch = protectedBranch,
                     commit = revCommit.getName,
                     newLineMode = info.newLineMode,
@@ -448,7 +448,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repository = repository,
             pathList = paths.take(paths.size - 1).toList,
             fileName = paths.last,
-            content = JGitUtil.getContentInfo(git, path, objectId),
+            content = JGitUtil.getContentInfo(git, path, objectId, repository.repository.options.safeMode),
             commit = revCommit.getName
           )
         } getOrElse NotFound()
@@ -693,7 +693,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 branch = id,
                 repository = repository,
                 pathList = path.split("/").toList,
-                content = JGitUtil.getContentInfo(git, path, objectId),
+                content = JGitUtil.getContentInfo(git, path, objectId, repository.repository.options.safeMode),
                 latestCommit = new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
                 hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
                 isBlame = request.paths(2) == "blame",
@@ -1223,34 +1223,37 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
           if (treeWalk != null) {
             while (treeWalk.next()) {
-              val entryPath =
-                if (path.isEmpty) baseName + "/" + treeWalk.getPathString
-                else path.split("/").last + treeWalk.getPathString.substring(path.length)
-              val mode = treeWalk.getFileMode.getBits
-              JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
-                val tempFile = File.createTempFile("gitbucket", ".archive")
-                val size = Using.resource(new FileOutputStream(tempFile)) { out =>
-                  IOUtils.copy(
-                    EolStreamTypeUtil.wrapInputStream(
-                      in,
-                      EolStreamTypeUtil
-                        .detectStreamType(
-                          OperationType.CHECKOUT_OP,
-                          git.getRepository.getConfig.get(WorkingTreeOptions.KEY),
-                          treeWalk.getAttributes
-                        )
-                    ),
-                    out
-                  )
-                }
+              if (treeWalk.getFileMode != FileMode.GITLINK) {
+                val entryPath =
+                  if (path.isEmpty) baseName + "/" + treeWalk.getPathString
+                  else path.split("/").last + treeWalk.getPathString.substring(path.length)
+                val mode = treeWalk.getFileMode.getBits
 
-                val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
-                archive.putArchiveEntry(entry)
-                Using.resource(new FileInputStream(tempFile)) { in =>
-                  IOUtils.copy(in, archive)
+                JGitUtil.openFile(git, repository, commit.getTree, treeWalk.getPathString) { in =>
+                  val tempFile = File.createTempFile("gitbucket", ".archive")
+                  val size = Using.resource(new FileOutputStream(tempFile)) { out =>
+                    IOUtils.copy(
+                      EolStreamTypeUtil.wrapInputStream(
+                        in,
+                        EolStreamTypeUtil
+                          .detectStreamType(
+                            OperationType.CHECKOUT_OP,
+                            git.getRepository.getConfig.get(WorkingTreeOptions.KEY),
+                            treeWalk.getAttributes
+                          )
+                      ),
+                      out
+                    )
+                  }
+
+                  val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
+                  archive.putArchiveEntry(entry)
+                  Using.resource(new FileInputStream(tempFile)) { in =>
+                    IOUtils.copy(in, archive)
+                  }
+                  archive.closeArchiveEntry()
+                  tempFile.delete()
                 }
-                archive.closeArchiveEntry()
-                tempFile.delete()
               }
             }
           }
