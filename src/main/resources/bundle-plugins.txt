@@ -1,4 +1,4 @@
 notifications:1.10.0
-gist:4.20.0
+gist:4.21.0
 emoji:4.6.0
 pages:1.9.0
