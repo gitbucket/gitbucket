@@ -1,8 +1,9 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiObject, ApiRef, CreateARef, JsonFormat, UpdateARef}
+import gitbucket.core.api.{ApiObject, ApiRef, ApiTag, CreateARef, JsonFormat, UpdateARef}
 import gitbucket.core.controller.ControllerBase
+import gitbucket.core.service.RepositoryService
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.ReferrerAuthenticator
+import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName}
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
@@ -23,24 +24,28 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#get-a-reference
    */
   get("/api/v3/repos/:owner/:repository/git/ref/*")(referrersOnly { repository =>
-    getRef()
+    getRef(repository)
   })
 
   // Some versions of GHE support this path
   get("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     logger.warn("git/refs/ endpoint may not be compatible with GitHub API v3. Consider using git/ref/ endpoint instead")
-    getRef()
+    getRef(repository)
   })
 
-  private def getRef() = {
+  private def getRef(repository: RepositoryService.RepositoryInfo) = {
     val revstr = multiParams("splat").head
+    logger.debug(s"getting refs path '${revstr}'")
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository().findRef(revstr)
 
       if (ref != null) {
         val sha = ref.getObjectId().name()
         JsonFormat(ApiRef(revstr, ApiObject(sha)))
-
+      } else if (revstr == "tags") {
+        JsonFormat(
+          repository.tags.map(tagInfo => ApiTag(tagInfo.name, RepositoryName(repository), tagInfo.id))
+        )
       } else {
         val refs = git
           .getRepository()
