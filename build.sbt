@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.8.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
-  "org.apache.sshd"                 % "apache-sshd"                  % "2.1.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
+  "org.apache.sshd"                 % "apache-sshd"                  % "2.7.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "2.0.0",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
