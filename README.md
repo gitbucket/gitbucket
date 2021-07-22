@@ -63,6 +63,9 @@ Support
 
 What's New in 4.36.x
 -------------
+### 4.36.1 - 22 Jul 2021
+- Bump gitbucket-gist-plugin to 4.21.0
+
 ### 4.36.0 - 17 Jul 2021
 - Tag selector in the repository viewer
 - Link issues/pull requests of other repositories
