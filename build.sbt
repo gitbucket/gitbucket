@@ -4,7 +4,7 @@ import com.jsuereth.sbtpgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.36.1"
-val ScalatraVersion = "2.7.1"
+val ScalatraVersion = "2.8.0"
 val JettyVersion = "9.4.43.v20210629"
 val JgitVersion = "5.12.0.202106070339-r"
 
@@ -28,13 +28,15 @@ resolvers ++= Seq(
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 
+libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"
+
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % JgitVersion,
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion cross CrossVersion.for3Use2_13,
-  "org.json4s"                      %% "json4s-jackson"              % "3.6.11" cross CrossVersion.for3Use2_13,
+  "org.json4s"                      %% "json4s-jackson"              % "4.0.1" cross CrossVersion.for3Use2_13,
   "commons-io"                      % "commons-io"                   % "2.11.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.3",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
