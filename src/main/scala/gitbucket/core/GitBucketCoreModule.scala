@@ -84,7 +84,7 @@ object GitBucketCoreModule
       new Version(
         "4.34.0",
         new Migration() {
-          override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
+          override def migrate(moduleId: String, version: String, context: java.util.Map[String, AnyRef]): Unit = {
             implicit val formats: Formats = Serialization.formats(NoTypeHints)
             import JDBCUtil._
 
