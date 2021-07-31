@@ -202,7 +202,7 @@ executableKey := {
   manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
   manifest.getMainAttributes put (AttrName.MAIN_CLASS, "JettyLauncher")
   val outputFile = workDir / warName
-  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest)
+  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest, None)
 
   // generate checksums
   Seq(
