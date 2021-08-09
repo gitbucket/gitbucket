@@ -40,7 +40,7 @@ object RepositoryCreationService {
   }
 
   def getCreationError(owner: String, repository: String): Option[String] = {
-    Option(Creating.remove(s"${owner}/${repository}")).getOrElse(None)
+    Option(Creating.remove(s"${owner}/${repository}")).flatten
   }
 
 }

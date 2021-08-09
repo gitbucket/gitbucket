@@ -47,7 +47,7 @@ trait AccountService {
           case _ => None
         }
       case account if (!account.isGroupAccount && account.password == sha1(password)) => Some(account)
-    } getOrElse None
+    }.flatten
   }
 
   /**
