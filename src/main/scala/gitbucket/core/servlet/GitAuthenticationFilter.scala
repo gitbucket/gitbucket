@@ -139,7 +139,7 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
       case _ =>
         () =>
           {
-            logger.debug(s"Not enough path arguments: ${request.paths}")
+            logger.debug(s"Not enough path arguments: ${request.paths.mkString(", ")}")
             response.sendError(HttpServletResponse.SC_NOT_FOUND)
           }
     }
