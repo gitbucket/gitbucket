@@ -153,9 +153,9 @@ object ProtectedBranchService {
             Some("Cannot force-push to a protected branch")
           case ReceiveCommand.Type.UPDATE | ReceiveCommand.Type.UPDATE_NONFASTFORWARD if needStatusCheck(pusher) =>
             unSuccessedContexts(command.getNewId.name) match {
-              case s if s.size == 1 => Some(s"""Required status check "${s.toSeq(0)}" is expected""")
-              case s if s.size >= 1 => Some(s"${s.size} of ${contexts.size} required status checks are expected")
-              case _                => None
+              case s if s.sizeIs == 1 => Some(s"""Required status check "${s.toSeq(0)}" is expected""")
+              case s if s.sizeIs >= 1 => Some(s"${s.size} of ${contexts.size} required status checks are expected")
+              case _                  => None
             }
           case ReceiveCommand.Type.DELETE =>
             Some("Cannot delete a protected branch")
