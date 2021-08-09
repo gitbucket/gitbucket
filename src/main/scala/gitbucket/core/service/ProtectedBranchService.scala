@@ -71,7 +71,7 @@ object ProtectedBranchService {
       pusher: String,
       mergePullRequest: Boolean
     )(implicit session: Session): Option[String] = {
-      if (mergePullRequest == true) {
+      if (mergePullRequest) {
         None
       } else {
         checkBranchProtection(owner, repository, receivePack, command, pusher)

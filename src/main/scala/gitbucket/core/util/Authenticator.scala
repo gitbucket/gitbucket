@@ -38,7 +38,7 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
         case Some(x) if (repository.owner == x.userName) => action(repository)
         // TODO Repository management is allowed for only group managers?
         case Some(x) if (getGroupMembers(repository.owner).exists { m =>
-              m.userName == x.userName && m.isManager == true
+              m.userName == x.userName && m.isManager
             }) =>
           action(repository)
         case Some(x) if (getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN)).contains(x.userName)) =>

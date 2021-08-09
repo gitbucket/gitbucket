@@ -336,7 +336,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   )(implicit context: Context): Html = {
 
     val avatarHtml = avatar(userName, size, tooltip, mailAddress)
-    val contentHtml = if (label == true) Html(avatarHtml.body + " " + userName) else avatarHtml
+    val contentHtml = if (label) Html(avatarHtml.body + " " + userName) else avatarHtml
 
     userWithContent(userName, mailAddress)(contentHtml)
   }
@@ -446,14 +446,14 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
               }
               result.append(c)
             }
-            case '>' if tag == true => {
+            case '>' if tag => {
               tag = false
               result.append(c)
             }
             case _ if tag == false => {
               text.append(c)
             }
-            case _ if tag == true => {
+            case _ if tag => {
               result.append(c)
             }
           }
