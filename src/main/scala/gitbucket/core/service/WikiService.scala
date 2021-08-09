@@ -255,8 +255,7 @@ trait WikiService {
               created = false
               updated = JGitUtil
                 .getContentFromId(git, tree.getEntryObjectId, true)
-                .map(new String(_, "UTF-8") != content)
-                .getOrElse(false)
+                .exists(new String(_, "UTF-8") != content)
             }
           }
         }

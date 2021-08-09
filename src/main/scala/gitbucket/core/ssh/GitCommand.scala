@@ -144,11 +144,9 @@ class DefaultGitUploadPack(owner: String, repoName: String)
 
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
-      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""))
-        .map { repositoryInfo =>
-          !repositoryInfo.repository.isPrivate || isReadableUser(authType, repositoryInfo)
-        }
-        .getOrElse(false)
+      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).exists { repositoryInfo =>
+        !repositoryInfo.repository.isPrivate || isReadableUser(authType, repositoryInfo)
+      }
     }
 
     if (execute) {
@@ -169,11 +167,9 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, ss
 
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
-      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""))
-        .map { repositoryInfo =>
-          isWritableUser(authType, repositoryInfo)
-        }
-        .getOrElse(false)
+      getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).exists { repositoryInfo =>
+        isWritableUser(authType, repositoryInfo)
+      }
     }
 
     if (execute) {
