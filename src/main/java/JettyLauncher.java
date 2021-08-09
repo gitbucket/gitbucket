@@ -19,18 +19,13 @@ public class JettyLauncher {
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
 
-        String host = null;
-        String port = null;
-        InetSocketAddress address = null;
-        String contextPath = "/";
-        String tmpDirPath="";
+        String host = getEnvironmentVariable("gitbucket.host");
+        String port = getEnvironmentVariable("gitbucket.port");
+        InetSocketAddress address;
+        String contextPath = getEnvironmentVariable("gitbucket.prefix");
+        String tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
         boolean forceHttps = false;
         boolean saveSessions = false;
-
-        host = getEnvironmentVariable("gitbucket.host");
-        port = getEnvironmentVariable("gitbucket.port");
-        contextPath = getEnvironmentVariable("gitbucket.prefix");
-        tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
 
         for(String arg: args) {
             if(arg.equals("--save_sessions")) {
