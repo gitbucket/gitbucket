@@ -509,10 +509,11 @@ trait PullRequestService {
   def getPullRequestComments(userName: String, repositoryName: String, issueId: Int, commits: Seq[CommitInfo])(
     implicit s: Session
   ): Seq[Comment] = {
-    (commits
-      .map(commit => getCommitComments(userName, repositoryName, commit.id, true))
-      .flatten ++ getComments(userName, repositoryName, issueId))
-      .groupBy {
+    (commits.flatMap(commit => getCommitComments(userName, repositoryName, commit.id, true)) ++ getComments(
+      userName,
+      repositoryName,
+      issueId
+    )).groupBy {
         case x: IssueComment                        => (Some(x.commentId), None, None, None)
         case x: CommitComment if x.fileName.isEmpty => (Some(x.commentId), None, None, None)
         case x: CommitComment                       => (None, x.fileName, x.originalOldLine, x.originalNewLine)

@@ -494,8 +494,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               (repository.userName, repository.repositoryName, repository.defaultBranch)
             },
             commits.flatten
-              .map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false))
-              .flatten
+              .flatMap(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false))
               .toList,
             originId,
             forkedId,
