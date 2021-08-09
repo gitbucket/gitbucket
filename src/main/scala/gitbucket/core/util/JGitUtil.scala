@@ -37,9 +37,8 @@ object JGitUtil {
 
   private val logger = LoggerFactory.getLogger(JGitUtil.getClass)
 
-  implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] = new Releasable[ObjectDatabase] {
-    override def release(resource: ObjectDatabase): Unit = resource.close()
-  }
+  implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] =
+    _.close()
 
   /**
    * The repository data.
