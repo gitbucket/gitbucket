@@ -3,7 +3,6 @@ package gitbucket.core
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.Connection
-import java.util
 import java.util.UUID
 
 import gitbucket.core.model.Activity
