@@ -86,7 +86,7 @@ trait ApiReleaseControllerBase extends ControllerBase {
   /**
    * vi. Edit a release
    * https://developer.github.com/v3/repos/releases/#edit-a-release
-   * Incompatiblity info: GitHub API requires :release_id, but GitBucket API requires :tag_name
+   * Incompatibility info: GitHub API requires :release_id, but GitBucket API requires :tag_name
    */
   patch("/api/v3/repos/:owner/:repository/releases/:tag")(writableUsersOnly { repository =>
     (for {
@@ -103,7 +103,7 @@ trait ApiReleaseControllerBase extends ControllerBase {
   /**
    * vii. Delete a release
    * https://developer.github.com/v3/repos/releases/#delete-a-release
-   * Incompatiblity info: GitHub API requires :release_id, but GitBucket API requires :tag_name
+   * Incompatibility info: GitHub API requires :release_id, but GitBucket API requires :tag_name
    */
   delete("/api/v3/repos/:owner/:repository/releases/:tag")(writableUsersOnly { repository =>
     val tag = params("tag")
