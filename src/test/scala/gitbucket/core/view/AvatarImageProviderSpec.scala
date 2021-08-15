@@ -35,7 +35,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 32).toString ==
-          """<img src="https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?s=32&d=retro&r=g" class="avatar" style="width: 32px; height: 32px;" alt="@user" />"""
+          """<img src="https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?s=32&d=retro&r=g" class="avatar" style="width: 32px; height: 32px;"
+            |     alt="@user" />""".stripMargin
       )
     }
 
@@ -47,7 +48,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 32).toString ==
-          s"""<img src="/user/_avatar?${date}" class="avatar" style="width: 32px; height: 32px;" alt="@user" />"""
+          s"""<img src="/user/_avatar?${date}" class="avatar" style="width: 32px; height: 32px;"
+             |     alt="@user" />""".stripMargin
       )
     }
 
@@ -59,7 +61,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 32).toString ==
-          s"""<img src="/user/_avatar?${date}" class="avatar" style="width: 32px; height: 32px;" alt="@user" />"""
+          s"""<img src="/user/_avatar?${date}" class="avatar" style="width: 32px; height: 32px;"
+             |     alt="@user" />""".stripMargin
       )
     }
 
@@ -69,7 +72,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 20, "hoge@hoge.com").toString ==
-          """<img src="https://www.gravatar.com/avatar/4712f9b0e63f56ad952ad387eaa23b9c?s=20&d=retro&r=g" class="avatar-mini" style="width: 20px; height: 20px;" alt="@user" />"""
+          """<img src="https://www.gravatar.com/avatar/4712f9b0e63f56ad952ad387eaa23b9c?s=20&d=retro&r=g" class="avatar-mini" style="width: 20px; height: 20px;"
+            |     alt="@user" />""".stripMargin
       )
     }
 
@@ -79,7 +83,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 20).toString ==
-          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;" alt="@user" />"""
+          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
+            |     alt="@user" />""".stripMargin
       )
     }
 
@@ -89,7 +94,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 20, "hoge@hoge.com").toString ==
-          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;" alt="@user" />"""
+          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
+            |     alt="@user" />""".stripMargin
       )
     }
 
@@ -99,7 +105,27 @@ class AvatarImageProviderSpec extends AnyFunSpec {
 
       assert(
         provider.toHtml("user", 20, "hoge@hoge.com", true).toString ==
-          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;" data-toggle="tooltip" title="user" alt="@user" />"""
+          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
+            |     alt="@user"
+            |     data-toggle="tooltip" title="user" />""".stripMargin
+      )
+    }
+
+    it("should escape user name") {
+      implicit val context = Context(createSystemSettings(false), None, request)
+      val provider = new AvatarImageProviderImpl(None)
+
+      assert(
+        provider.toHtml("""<user>"<name>""", 20, "hoge@hoge.com").toString ==
+          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
+            |     alt="@&lt;user&gt;&quot;&lt;name&gt;" />""".stripMargin
+      )
+
+      assert(
+        provider.toHtml("""<user>"<name>""", 20, "hoge@hoge.com", true).toString ==
+          """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
+            |     alt="@&lt;user&gt;&quot;&lt;name&gt;"
+            |     data-toggle="tooltip" title="&lt;user&gt;&quot;&lt;name&gt;" />""".stripMargin
       )
     }
   }
