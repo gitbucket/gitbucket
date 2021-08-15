@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import java.io.FileInputStream
-
 import gitbucket.core.admin.html
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService._
@@ -50,8 +49,20 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "limitVisibleRepositories" -> trim(label("limitVisibleRepositories", boolean())),
     "ssh" -> mapping(
       "enabled" -> trim(label("SSH access", boolean())),
-      "host" -> trim(label("SSH host", optional(text()))),
-      "port" -> trim(label("SSH port", optional(number())))
+      "bindAddress" -> mapping(
+        "host" -> trim(label("Bind SSH host", optional(text()))),
+        "port" -> trim(label("Bind SSH port", optional(number()))),
+      )(
+        (hostOption, portOption) =>
+          hostOption.map(h => SshAddress(h, portOption.getOrElse(DefaultSshPort), GenericSshUser))
+      ),
+      "publicAddress" -> mapping(
+        "host" -> trim(label("Public SSH host", optional(text()))),
+        "port" -> trim(label("Public SSH port", optional(number()))),
+      )(
+        (hostOption, portOption) =>
+          hostOption.map(h => SshAddress(h, portOption.getOrElse(PublicSshPort), GenericSshUser))
+      ),
     )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
@@ -116,8 +127,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
         Some("baseUrl" -> "Base URL is required if SSH access is enabled.")
       } else None,
-      if (settings.ssh.enabled && settings.ssh.sshHost.isEmpty) {
-        Some("sshHost" -> "SSH host is required if SSH access is enabled.")
+      if (settings.ssh.enabled && settings.ssh.bindAddress.isEmpty) {
+        Some("ssh.bindAddress.host" -> "SSH bind host is required if SSH access is enabled.")
       } else None
     ).flatten
   }
@@ -308,12 +319,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
 
-    if (form.sshAddress != context.settings.sshAddress) {
+    if (form.ssh.bindAddress != context.settings.sshBindAddress) {
       SshServer.stop()
       for {
-        sshAddress <- form.sshAddress
+        bindAddress <- form.ssh.bindAddress
+        publicAddress <- form.ssh.publicAddress.orElse(form.ssh.bindAddress)
         baseUrl <- form.baseUrl
-      } SshServer.start(sshAddress, baseUrl)
+      } SshServer.start(bindAddress, publicAddress, baseUrl)
     }
 
     flash.update("info", "System settings has been updated.")

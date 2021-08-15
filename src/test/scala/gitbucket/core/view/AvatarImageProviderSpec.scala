@@ -166,8 +166,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
       limitVisibleRepositories = false,
       ssh = Ssh(
         enabled = false,
-        sshHost = None,
-        sshPort = None
+        bindAddress = None,
+        publicAddress = None
       ),
       useSMTP = false,
       smtp = None,

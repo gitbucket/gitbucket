@@ -19,22 +19,40 @@
   <label class="checkbox">
     <input type="checkbox" id="sshEnabled" name="ssh.enabled"@if(context.settings.ssh.enabled){ checked}/>
     Enable SSH access to git repository
-    <span class="muted normal">(Both SSH host and Base URL are required if SSH access is enabled)</span>
+    <span class="muted normal">(Both SSH bind host and Base URL are required if SSH access is enabled)</span>
   </label>
 </fieldset>
 <div class="ssh">
-  <div class="form-group">
-    <label class="control-label col-md-2" for="sshHost">SSH host</label>
-    <div class="col-md-10">
-      <input type="text" id="sshHost" name="ssh.host" class="form-control" value="@context.settings.ssh.sshHost"/>
-      <span id="error-ssh_host" class="error"></span>
+  <div class="bindAddress">
+    <div class="form-group">
+      <label class="control-label col-md-2" for="sshBindHost">SSH bind host</label>
+      <div class="col-md-10">
+        <input type="text" id="sshBindHost" name="ssh.bindAddress.host" class="form-control" value="@context.settings.ssh.bindAddress.map(_.host)"/>
+        <span id="error-ssh_bindAddress_host" class="error"></span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-md-2" for="sshBindPort">SSH bind port</label>
+      <div class="col-md-10">
+        <input type="text" id="sshBindPort" name="ssh.bindAddress.port" class="form-control" value="@context.settings.ssh.bindAddress.map(_.port)"/>
+        <span id="error-ssh_bindAddress_port" class="error"></span>
+      </div>
     </div>
   </div>
-  <div class="form-group">
-    <label class="control-label col-md-2" for="sshPort">SSH port</label>
-    <div class="col-md-10">
-      <input type="text" id="sshPort" name="ssh.port" class="form-control" value="@context.settings.ssh.sshPort"/>
-      <span id="error-ssh_port" class="error"></span>
+  <div class="publicAddress">
+    <div class="form-group">
+      <label class="control-label col-md-2" for="sshPublicHost">SSH public host</label>
+      <div class="col-md-10">
+        <input type="text" id="sshPublicHost" name="ssh.publicAddress.host" class="form-control" value="@context.settings.ssh.publicAddress.map(_.host)"/>
+        <span id="error-ssh_publicAddress_host" class="error"></span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-md-2" for="sshPublicPort">SSH public port</label>
+      <div class="col-md-10">
+        <input type="text" id="sshPublicPort" name="ssh.publicAddress.port" class="form-control" value="@context.settings.ssh.publicAddress.map(_.port)"/>
+        <span id="error-ssh_publicAddress_port" class="error"></span>
+      </div>
     </div>
   </div>
 </div>

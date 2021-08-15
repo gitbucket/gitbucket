@@ -12,6 +12,7 @@ import gitbucket.core.util.JGitUtil.FileInfo
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Repository => _}
+
 import scala.util.Using
 
 trait RepositoryService {
@@ -835,12 +836,10 @@ object RepositoryService {
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String =
     s"${context.baseUrl}/git/${owner}/${name}.git"
+
   def sshUrl(owner: String, name: String)(implicit context: Context): Option[String] =
-    if (context.settings.ssh.enabled) {
-      context.settings.sshAddress.map { x =>
-        s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git"
-      }
-    } else None
+    context.settings.sshUrl(owner, name)
+
   def openRepoUrl(openUrl: String)(implicit context: Context): String =
     s"github-${context.platform}://openRepo/${openUrl}"
 
