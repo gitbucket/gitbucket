@@ -1,6 +1,9 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.36.2 - 16 Aug 2021
+- Escape user name in avatar image tag
+
 ### 4.36.1 - 22 Jul 2021
 - Bump gitbucket-gist-plugin to 4.21.0
 
