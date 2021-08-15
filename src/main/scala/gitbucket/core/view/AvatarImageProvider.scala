@@ -45,11 +45,14 @@ trait AvatarImageProvider { self: RequestCache =>
 
     if (tooltip) {
       Html(
-        s"""<img src="${src}" class="${if (size > 20) { "avatar" } else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;" data-toggle="tooltip" title="${userName}" alt="@${userName}" />"""
+        s"""<img src="${src}" class="${if (size > 20) { "avatar" } else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
+           |     alt="@${StringUtil.escapeHtml(userName)}"
+           |     data-toggle="tooltip" title="${StringUtil.escapeHtml(userName)}" />""".stripMargin
       )
     } else {
       Html(
-        s"""<img src="${src}" class="${if (size > 20) { "avatar" } else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;" alt="@${userName}" />"""
+        s"""<img src="${src}" class="${if (size > 20) { "avatar" } else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
+           |     alt="@${StringUtil.escapeHtml(userName)}" />""".stripMargin
       )
     }
   }
