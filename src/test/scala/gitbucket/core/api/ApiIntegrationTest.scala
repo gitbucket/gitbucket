@@ -150,7 +150,7 @@ class ApiIntegrationTest extends AnyFunSuite {
           .content("create")
           .message("Create content")
           .path("README.md")
-          .commit();
+          .commit()
 
       assert(createResult.getContent.isFile == true)
       assert(IOUtils.toString(createResult.getContent.read(), "UTF-8") == "create")
@@ -168,7 +168,7 @@ class ApiIntegrationTest extends AnyFunSuite {
           .message("Update content")
           .path("README.md")
           .sha(content1.getSha)
-          .commit();
+          .commit()
 
       assert(updateResult.getContent.isFile == true)
       assert(IOUtils.toString(updateResult.getContent.read(), "UTF-8") == "update")

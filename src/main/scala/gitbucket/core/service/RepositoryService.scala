@@ -766,7 +766,8 @@ trait RepositoryService {
           JGitUtil.getContentFromId(git, file.id, true).collect {
             case bytes if FileUtil.isText(bytes) => StringUtil.convertFromByteArray(bytes)
           }
-        } getOrElse None
+        }
+        .flatten
     } getOrElse ""
   }
 }

@@ -52,7 +52,7 @@ object EditorConfigUtil {
     }
 
     override def getParent: ResourcePath = {
-      Option(path.getParentPath).map { new JGitResourcePath(repo, revStr, _) }.getOrElse(null)
+      Option(path.getParentPath).map { new JGitResourcePath(repo, revStr, _) }.orNull
     }
 
     override def openRandomReader(): Resource.RandomReader = {
@@ -70,7 +70,7 @@ object EditorConfigUtil {
   private class JGitResourcePath(repo: Repository, revStr: String, path: Ec4jPath) extends ResourcePath {
 
     override def getParent: ResourcePath = {
-      Option(path.getParentPath).map { new JGitResourcePath(repo, revStr, _) }.getOrElse(null)
+      Option(path.getParentPath).map { new JGitResourcePath(repo, revStr, _) }.orNull
     }
 
     override def getPath: Ec4jPath = {

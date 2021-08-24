@@ -25,7 +25,7 @@ object RepositoryCreationService {
   private val Creating = new ConcurrentHashMap[String, Option[String]]()
 
   def isCreating(owner: String, repository: String): Boolean = {
-    Option(Creating.get(s"${owner}/${repository}")).map(_.isEmpty).getOrElse(false)
+    Option(Creating.get(s"${owner}/${repository}")).exists(_.isEmpty)
   }
 
   def startCreation(owner: String, repository: String): Unit = {
@@ -40,7 +40,7 @@ object RepositoryCreationService {
   }
 
   def getCreationError(owner: String, repository: String): Option[String] = {
-    Option(Creating.remove(s"${owner}/${repository}")).getOrElse(None)
+    Option(Creating.remove(s"${owner}/${repository}")).flatten
   }
 
 }

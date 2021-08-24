@@ -3,7 +3,6 @@ package gitbucket.core
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.Connection
-import java.util
 import java.util.UUID
 
 import gitbucket.core.model.Activity
@@ -84,7 +83,7 @@ object GitBucketCoreModule
       new Version(
         "4.34.0",
         new Migration() {
-          override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
+          override def migrate(moduleId: String, version: String, context: java.util.Map[String, AnyRef]): Unit = {
             implicit val formats: Formats = Serialization.formats(NoTypeHints)
             import JDBCUtil._
 
@@ -118,5 +117,7 @@ object GitBucketCoreModule
       new Version("4.35.1"),
       new Version("4.35.2"),
       new Version("4.35.3"),
-      new Version("4.36.0", new LiquibaseMigration("update/gitbucket-core_4.36.xml"))
+      new Version("4.36.0", new LiquibaseMigration("update/gitbucket-core_4.36.xml")),
+      new Version("4.36.1"),
+      new Version("4.36.2")
     )

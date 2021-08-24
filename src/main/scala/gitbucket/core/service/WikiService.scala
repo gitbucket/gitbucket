@@ -145,7 +145,7 @@ trait WikiService {
           if (!p.getErrors.isEmpty) {
             throw new PatchFormatException(p.getErrors())
           }
-          val revertInfo = (p.getFiles.asScala.map { fh =>
+          val revertInfo = p.getFiles.asScala.flatMap { fh =>
             fh.getChangeType match {
               case DiffEntry.ChangeType.MODIFY => {
                 val source =
@@ -174,7 +174,7 @@ trait WikiService {
               }
               case _ => Nil
             }
-          }).flatten
+          }
 
           if (revertInfo.nonEmpty) {
             val builder = DirCache.newInCore.builder()
@@ -255,8 +255,7 @@ trait WikiService {
               created = false
               updated = JGitUtil
                 .getContentFromId(git, tree.getEntryObjectId, true)
-                .map(new String(_, "UTF-8") != content)
-                .getOrElse(false)
+                .exists(new String(_, "UTF-8") != content)
             }
           }
         }

@@ -37,9 +37,8 @@ object JGitUtil {
 
   private val logger = LoggerFactory.getLogger(JGitUtil.getClass)
 
-  implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] = new Releasable[ObjectDatabase] {
-    override def release(resource: ObjectDatabase): Unit = resource.close()
-  }
+  implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] =
+    _.close()
 
   /**
    * The repository data.
@@ -1259,7 +1258,7 @@ object JGitUtil {
         val blame = blamer.call()
         var blameMap = Map[String, JGitUtil.BlameInfo]()
         var idLine = List[(String, Int)]()
-        0.to(blame.getResultContents().size() - 1).map { i =>
+        0.until(blame.getResultContents().size()).foreach { i =>
           val c = blame.getSourceCommit(i)
           if (!blameMap.contains(c.name)) {
             blameMap += c.name -> JGitUtil.BlameInfo(

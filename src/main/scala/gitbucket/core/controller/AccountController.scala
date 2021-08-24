@@ -434,7 +434,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   post("/:userName/_personalToken", personalTokenForm)(oneselfOnly { form =>
     val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
+    getAccountByUserName(userName).foreach { x =>
       val (tokenId, token) = generateAccessToken(userName, form.note)
       flash.update("generatedToken", (tokenId, token))
     }

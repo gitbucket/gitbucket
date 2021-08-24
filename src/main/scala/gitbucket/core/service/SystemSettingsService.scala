@@ -72,7 +72,7 @@ trait SystemSettingsService {
         }
       }
     }
-    props.setProperty(SkinName, settings.skinName.toString)
+    props.setProperty(SkinName, settings.skinName)
     settings.userDefinedCss.foreach(x => props.setProperty(UserDefinedCss, x))
     props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
     props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)

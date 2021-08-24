@@ -336,7 +336,7 @@ trait IssuesService {
     implicit s: Session
   ) =
     Issues filter { t1 =>
-      (if (repos.size == 1) {
+      (if (repos.sizeIs == 1) {
          t1.byRepository(repos.head._1, repos.head._2)
        } else {
          ((t1.userName ++ "/" ++ t1.repositoryName) inSetBind (repos.map { case (owner, repo) => s"$owner/$repo" }))

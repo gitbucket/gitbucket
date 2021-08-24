@@ -184,8 +184,7 @@ object StringUtil {
     def removeUserName(baseUrl: String): String = baseUrl.replaceFirst("(https?://).+@", "$1")
 
     gitRepositoryUrl match {
-      case GitBucketUrlPattern(base, user, repository)
-          if baseUrl.map(removeUserName(base).startsWith).getOrElse(false) =>
+      case GitBucketUrlPattern(base, user, repository) if baseUrl.exists(removeUserName(base).startsWith) =>
         s"${removeUserName(base)}/$user/$repository"
       case GitHubUrlPattern(_, user, repository)    => s"https://github.com/$user/$repository"
       case BitBucketUrlPattern(_, user, repository) => s"https://bitbucket.org/$user/$repository"

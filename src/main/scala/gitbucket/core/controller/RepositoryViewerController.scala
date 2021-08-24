@@ -685,7 +685,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         getPathObjectId(git, path, revCommit).map {
           objectId =>
             if (raw) {
-              // Download (This route is left for backword compatibility)
+              // Download (This route is left for backward compatibility)
               responseRawFile(git, objectId, path, repository)
             } else {
               val info = EditorConfigUtil.getEditorConfigInfo(git, id, path)

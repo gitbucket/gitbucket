@@ -20,15 +20,15 @@ public class PatchUtil {
     public static String apply(String source, String patch, FileHeader fh)
             throws IOException, PatchApplyException {
         RawText rt = new RawText(source.getBytes("UTF-8"));
-        List<String> oldLines = new ArrayList<String>(rt.size());
+        List<String> oldLines = new ArrayList<>(rt.size());
         for (int i = 0; i < rt.size(); i++)
             oldLines.add(rt.getString(i));
-        List<String> newLines = new ArrayList<String>(oldLines);
+        List<String> newLines = new ArrayList<>(oldLines);
         for (HunkHeader hh : fh.getHunks()) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             out.write(patch.getBytes("UTF-8"), hh.getStartOffset(), hh.getEndOffset() - hh.getStartOffset());
             RawText hrt = new RawText(out.toByteArray());
-            List<String> hunkLines = new ArrayList<String>(hrt.size());
+            List<String> hunkLines = new ArrayList<>(hrt.size());
             for (int i = 0; i < hrt.size(); i++)
                 hunkLines.add(hrt.getString(i));
             int pos = 0;
