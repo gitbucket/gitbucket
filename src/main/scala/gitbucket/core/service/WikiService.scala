@@ -75,13 +75,15 @@ trait WikiService {
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
     Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       if (!JGitUtil.isEmpty(git)) {
-        JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
+        val fileName = pageName + ".md"
+        JGitUtil.getLatestCommitFromPath(git, fileName, "master").map { latestCommit =>
+          val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
           WikiPageInfo(
-            file.name,
-            StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
-            file.author,
-            file.time,
-            file.commitId
+            fileName,
+            StringUtil.convertFromByteArray(content.getOrElse(Array.empty)),
+            latestCommit.getAuthorIdent.getName,
+            latestCommit.getAuthorIdent.getWhen,
+            latestCommit.getName
           )
         }
       } else None
