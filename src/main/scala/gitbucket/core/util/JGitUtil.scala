@@ -512,7 +512,7 @@ object JGitUtil {
   /**
    * Returns the first line of the commit message.
    */
-  private def getSummaryMessage(fullMessage: String, shortMessage: String): String = {
+  def getSummaryMessage(fullMessage: String, shortMessage: String): String = {
     val i = fullMessage.trim.indexOf('\n')
     val firstLine = if (i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage
     if (firstLine.length > shortMessage.length) shortMessage else firstLine
