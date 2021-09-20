@@ -48,7 +48,7 @@ libraryDependencies ++= Seq(
   "org.apache.tika"                 % "tika-core"                    % "2.1.0",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
-  "com.h2database"                  % "h2"                           % "1.4.199",
+  "com.h2database"                  % "h2"                           % "1.4.200",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.4",
   "org.postgresql"                  % "postgresql"                   % "42.2.23",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.6",
