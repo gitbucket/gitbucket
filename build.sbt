@@ -28,8 +28,6 @@ resolvers ++= Seq(
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 
-libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"
-
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % JgitVersion,
