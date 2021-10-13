@@ -6,6 +6,8 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.SecuredRedirectHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.FileSessionDataStore;
@@ -36,6 +38,8 @@ public class JettyLauncher {
 
         int HTTP_PORT = 8080;
         int HTTPS_PORT = 8443;
+
+        boolean REDIRECT_HTTPS = false;
     }
 
     private interface Connectors {
@@ -54,6 +58,7 @@ public class JettyLauncher {
         String keyStorePath = getEnvironmentVariable("gitbucket.keyStorePath");
         String keyStorePassword = getEnvironmentVariable("gitbucket.keyStorePassword");
         String keyManagerPassword = getEnvironmentVariable("gitbucket.keyManagerPassword");
+        String redirectHttps = getEnvironmentVariable("gitbucket.redirectHttps");
         String contextPath = getEnvironmentVariable("gitbucket.prefix");
         String tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
         boolean saveSessions = false;
@@ -86,6 +91,9 @@ public class JettyLauncher {
                             break;
                         case "--key_manager_password":
                             keyManagerPassword = dim[1];
+                            break;
+                        case "--redirect_https":
+                            redirectHttps = dim[1];
                             break;
                         case "--prefix":
                             contextPath = dim[1];
@@ -209,9 +217,15 @@ public class JettyLauncher {
         context.setServer(server);
         context.setWar(location.toExternalForm());
 
-        Handler handler = addStatisticsHandler(context);
+        final HandlerList handlers = new HandlerList();
 
-        server.setHandler(handler);
+        if (fallback(redirectHttps, Defaults.REDIRECT_HTTPS, Boolean::parseBoolean)) {
+            handlers.addHandler(new SecuredRedirectHandler());
+        }
+
+        handlers.addHandler(addStatisticsHandler(context));
+
+        server.setHandler(handlers);
         server.setStopAtShutdown(true);
         server.setStopTimeout(7_000);
         server.start();
