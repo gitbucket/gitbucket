@@ -63,8 +63,8 @@ public class JettyLauncher {
                 saveSessions = true;
             }
             if(arg.startsWith("--") && arg.contains("=")) {
-                String[] dim = arg.split("=");
-                if(dim.length >= 2) {
+                String[] dim = arg.split("=", 2);
+                if(dim.length == 2) {
                     switch (dim[0]) {
                         case "--connectors":
                             connectors = dim[1];
