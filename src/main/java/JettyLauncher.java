@@ -1,30 +1,61 @@
-import org.eclipse.jetty.server.ConnectionFactory;
-import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.FileSessionDataStore;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.net.URL;
-import java.net.InetSocketAddress;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toSet;
 
 public class JettyLauncher {
+
+    private interface Defaults {
+
+        String CONNECTORS = "http";
+        String HOST = "0.0.0.0";
+
+        int HTTP_PORT = 8080;
+        int HTTPS_PORT = 8443;
+    }
+
+    private interface Connectors {
+
+        String HTTP = "http";
+        String HTTPS = "https";
+    }
+
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
 
+        String connectors = getEnvironmentVariable("gitbucket.connectors");
         String host = getEnvironmentVariable("gitbucket.host");
         String port = getEnvironmentVariable("gitbucket.port");
-        InetSocketAddress address;
+        String securePort = getEnvironmentVariable("gitbucket.securePort");
+        String keyStorePath = getEnvironmentVariable("gitbucket.keyStorePath");
+        String keyStorePassword = getEnvironmentVariable("gitbucket.keyStorePassword");
+        String keyManagerPassword = getEnvironmentVariable("gitbucket.keyManagerPassword");
         String contextPath = getEnvironmentVariable("gitbucket.prefix");
         String tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
-        boolean forceHttps = false;
         boolean saveSessions = false;
 
         for(String arg: args) {
@@ -35,11 +66,26 @@ public class JettyLauncher {
                 String[] dim = arg.split("=");
                 if(dim.length >= 2) {
                     switch (dim[0]) {
+                        case "--connectors":
+                            connectors = dim[1];
+                            break;
                         case "--host":
                             host = dim[1];
                             break;
                         case "--port":
                             port = dim[1];
+                            break;
+                        case "--secure_port":
+                            securePort = dim[1];
+                            break;
+                        case "--key_store_path":
+                            keyStorePath = dim[1];
+                            break;
+                        case "--key_store_password":
+                            keyStorePassword = dim[1];
+                            break;
+                        case "--key_manager_password":
+                            keyManagerPassword = dim[1];
                             break;
                         case "--prefix":
                             contextPath = dim[1];
@@ -62,38 +108,69 @@ public class JettyLauncher {
             contextPath = "/" + contextPath;
         }
 
-        if(host != null) {
-            address = new InetSocketAddress(host, getPort(port));
-        } else {
-            address = new InetSocketAddress(getPort(port));
+        final String hostName = InetAddress.getByName(fallback(host, Defaults.HOST)).getHostName();
+
+        final Server server = new Server();
+
+        final Set<String> connectorsSet = Stream.of(fallback(connectors, Defaults.CONNECTORS)
+            .toLowerCase().split(",")).map(String::trim).collect(toSet());
+
+        final List<ServerConnector> connectorInstances = new ArrayList<>();
+
+        final HttpConfiguration httpConfig = new HttpConfiguration();
+        httpConfig.setSendServerVersion(false);
+        if (connectorsSet.contains(Connectors.HTTPS)) {
+            httpConfig.setSecurePort(fallback(securePort, Defaults.HTTPS_PORT, Integer::parseInt));
         }
 
-        Server server = new Server(address);
+        if (connectorsSet.contains(Connectors.HTTP)) {
+            final ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+            connector.setHost(hostName);
+            connector.setPort(fallback(port, Defaults.HTTP_PORT, Integer::parseInt));
 
-//        SelectChannelConnector connector = new SelectChannelConnector();
-//        if(host != null) {
-//            connector.setHost(host);
-//        }
-//        connector.setMaxIdleTime(1000 * 60 * 60);
-//        connector.setSoLingerTime(-1);
-//        connector.setPort(port);
-//        server.addConnector(connector);
-
-        // Disabling Server header
-        for (Connector connector : server.getConnectors()) {
-            for (ConnectionFactory factory : connector.getConnectionFactories()) {
-                if (factory instanceof HttpConnectionFactory) {
-                    ((HttpConnectionFactory) factory).getHttpConfiguration().setSendServerVersion(false);
-                }
-            }
+            connectorInstances.add(connector);
         }
+
+        if (connectorsSet.contains(Connectors.HTTPS)) {
+            final SslContextFactory sslContextFactory = new SslContextFactory.Server();
+
+            sslContextFactory.setKeyStorePath(requireNonNull(keyStorePath,
+                "You must specify a path to an SSL keystore via the --key_store_path command line argument" +
+                    " or GITBUCKET_KEYSTOREPATH environment variable."));
+
+            sslContextFactory.setKeyStorePassword(requireNonNull(keyStorePassword,
+                "You must specify a an SSL keystore password via the --key_store_password argument" +
+                    " or GITBUCKET_KEYSTOREPASSWORD environment variable."));
+
+            sslContextFactory.setKeyManagerPassword(requireNonNull(keyManagerPassword,
+                "You must specify a key manager password via the --key_manager_password' argument" +
+                    " or GITBUCKET_KEYMANAGERPASSWORD environment variable."));
+
+            final HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+            final ServerConnector connector = new ServerConnector(server,
+                new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                new HttpConnectionFactory(httpsConfig));
+
+            connector.setHost(hostName);
+            connector.setPort(fallback(securePort, Defaults.HTTPS_PORT, Integer::parseInt));
+
+            connectorInstances.add(connector);
+        }
+
+        require(!connectorInstances.isEmpty(),
+            "No server connectors could be configured, please check your --connectors command line argument" +
+                " or GITBUCKET_CONNECTORS environment variable.");
+
+        server.setConnectors(connectorInstances.toArray(new ServerConnector[0]));
 
         WebAppContext context = new WebAppContext();
 
         if(saveSessions) {
             File sessDir = new File(getGitBucketHome(), "sessions");
             if(!sessDir.exists()){
-                sessDir.mkdirs();
+                mkdir(sessDir);
             }
             SessionHandler sessions = context.getSessionHandler();
             SessionCache cache = new DefaultSessionCache(sessions);
@@ -107,7 +184,7 @@ public class JettyLauncher {
         if(tmpDirPath == null || tmpDirPath.equals("")){
             tmpDir = new File(getGitBucketHome(), "tmp");
             if(!tmpDir.exists()){
-                tmpDir.mkdirs();
+                mkdir(tmpDir);
             }
         } else {
             tmpDir = new File(tmpDirPath);
@@ -131,9 +208,6 @@ public class JettyLauncher {
         context.setDescriptor(location.toExternalForm() + "/WEB-INF/web.xml");
         context.setServer(server);
         context.setWar(location.toExternalForm());
-        if (forceHttps) {
-            context.setInitParameter("org.scalatra.ForceHttps", "true");
-        }
 
         Handler handler = addStatisticsHandler(context);
 
@@ -165,11 +239,28 @@ public class JettyLauncher {
         }
     }
 
-    private static int getPort(String port){
-        if(port == null) {
-            return 8080;
-        } else {
-            return Integer.parseInt(port);
+    private static <T, R> T fallback(R value, T defaultValue, Function<R, T> converter) {
+        return value == null ? defaultValue : converter.apply(value);
+    }
+
+    private static <T> T fallback(T value, T defaultValue) {
+        return fallback(value, defaultValue, identity());
+    }
+
+    private static void require(boolean condition, String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    private static <T> T requireNonNull(T value, String message) {
+        require(value != null, message);
+        return value;
+    }
+
+    private static void mkdir(File dir) {
+        if (!dir.mkdirs()) {
+            throw new RuntimeException("Unable to create directory: " + dir);
         }
     }
 
