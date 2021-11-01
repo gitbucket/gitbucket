@@ -17,7 +17,8 @@ case class ApiIssue(
   state: String,
   created_at: Date,
   updated_at: Date,
-  body: String
+  body: String,
+  milestone: Option[ApiMilestone]
 )(repositoryName: RepositoryName, isPullRequest: Boolean) {
   val id = 0 // dummy id
   val assignees = List(assignee).flatten
@@ -43,7 +44,8 @@ object ApiIssue {
     repositoryName: RepositoryName,
     user: ApiUser,
     assignee: Option[ApiUser],
-    labels: List[ApiLabel]
+    labels: List[ApiLabel],
+    milestone: Option[ApiMilestone]
   ): ApiIssue =
     ApiIssue(
       number = issue.issueId,
@@ -51,6 +53,7 @@ object ApiIssue {
       user = user,
       assignee = assignee,
       labels = labels,
+      milestone = milestone,
       state = if (issue.closed) { "closed" } else { "open" },
       body = issue.content.getOrElse(""),
       created_at = issue.registeredDate,

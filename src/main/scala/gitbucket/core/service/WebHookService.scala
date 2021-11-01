@@ -35,6 +35,7 @@ import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+import gitbucket.core.view.helpers.getApiMilestone
 import org.apache.http.client.entity.EntityBuilder
 import org.apache.http.entity.ContentType
 
@@ -394,7 +395,8 @@ trait WebHookPullRequestService extends WebHookService {
             ApiUser(issueUser),
             issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
-              .map(ApiLabel(_, RepositoryName(repository)))
+              .map(ApiLabel(_, RepositoryName(repository))),
+            getApiMilestone(repository, issue.milestoneId getOrElse (0))
           ),
           sender = ApiUser(sender)
         )
@@ -576,6 +578,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
         commenter <- users.get(issueComment.commentedUserName)
         assignedUser = issue.assignedUserName.flatMap(users.get(_))
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
+        milestone = getApiMilestone(repository, issue.milestoneId getOrElse (0))
       } yield {
         WebHookIssueCommentPayload(
           issue = issue,
@@ -586,7 +589,8 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
           repositoryUser = repoOwner,
           assignedUser = assignedUser,
           sender = sender,
-          labels = labels
+          labels = labels,
+          milestone = milestone
         )
       }
     }
@@ -760,7 +764,8 @@ object WebHookService {
       repositoryUser: Account,
       assignedUser: Option[Account],
       sender: Account,
-      labels: List[Label]
+      labels: List[Label],
+      milestone: Option[ApiMilestone]
     ): WebHookIssueCommentPayload =
       WebHookIssueCommentPayload(
         action = "created",
@@ -770,7 +775,8 @@ object WebHookService {
           RepositoryName(repository),
           ApiUser(issueUser),
           assignedUser.map(ApiUser(_)),
-          labels.map(ApiLabel(_, RepositoryName(repository)))
+          labels.map(ApiLabel(_, RepositoryName(repository))),
+          milestone
         ),
         comment =
           ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(commentUser), issue.isPullRequest),
