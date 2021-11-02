@@ -121,7 +121,8 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
       repositoryUser = account,
       assignedUser = Some(account),
       sender = account,
-      labels = List(label)
+      labels = List(label),
+      milestone = Some(apiMilestone)
     )
     val expected = s"""{
         |"action":"created",
