@@ -177,6 +177,16 @@ object ApiSpecModels {
     updatedDate = date1
   )
 
+  val milestone = Milestone(
+    userName = repo1Name.owner,
+    repositoryName = repo1Name.name,
+    milestoneId = 1,
+    title = "Test milestone",
+    description = Some("Milestone description"),
+    dueDate = Some(date1),
+    closedDate = Some(date1)
+  )
+
   // APIs
 
   val apiUser = ApiUser(account)
@@ -193,12 +203,20 @@ object ApiSpecModels {
     repositoryName = repo1Name
   )
 
+  val apiMilestone = ApiMilestone(
+    repository = repository,
+    milestone = milestone,
+    open_issue_count = 1,
+    closed_issue_count = 1
+  )
+
   val apiIssue = ApiIssue(
     issue = issue,
     repositoryName = repo1Name,
     user = apiUser,
     assignee = Some(apiUser),
-    labels = List(apiLabel)
+    labels = List(apiLabel),
+    milestone = Some(apiMilestone)
   )
 
   val apiNotAssignedIssue = ApiIssue(
@@ -206,7 +224,8 @@ object ApiSpecModels {
     repositoryName = repo1Name,
     user = apiUser,
     assignee = None,
-    labels = List(apiLabel)
+    labels = List(apiLabel),
+    milestone = Some(apiMilestone)
   )
 
   val apiIssuePR = ApiIssue(
@@ -214,7 +233,8 @@ object ApiSpecModels {
     repositoryName = repo1Name,
     user = apiUser,
     assignee = Some(apiUser),
-    labels = List(apiLabel)
+    labels = List(apiLabel),
+    milestone = Some(apiMilestone)
   )
 
   val apiComment = ApiComment(
@@ -471,6 +491,19 @@ object ApiSpecModels {
   val jsonLabel =
     """{"name":"bug","color":"f29513","url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/labels/bug"}"""
 
+  val jsonMilestone = """{
+      |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/milestones/1",
+      |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/milestone/1",
+      |"id":1,
+      |"number":1,
+      |"state":"closed",
+      |"title":"Test milestone",
+      |"description":"Milestone description",
+      |"open_issues":1,"closed_issues":1,
+      |"closed_at":"2011-04-14T16:00:49Z",
+      |"due_on":"2011-04-14T16:00:49Z"
+      |}""".stripMargin
+
   val jsonIssue = s"""{
        |"number":1347,
        |"title":"Found a bug",
@@ -481,6 +514,7 @@ object ApiSpecModels {
        |"created_at":"2011-04-14T16:00:49Z",
        |"updated_at":"2011-04-14T16:00:49Z",
        |"body":"I'm having a problem with this.",
+       |"milestone":$jsonMilestone,
        |"id":0,
        |"assignees":[$jsonUser],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
@@ -496,6 +530,7 @@ object ApiSpecModels {
        |"created_at":"2011-04-14T16:00:49Z",
        |"updated_at":"2011-04-14T16:00:49Z",
        |"body":"I'm having a problem with this.",
+       |"milestone":$jsonMilestone,
        |"id":0,
        |"assignees":[],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
@@ -512,6 +547,7 @@ object ApiSpecModels {
        |"created_at":"2011-04-14T16:00:49Z",
        |"updated_at":"2011-04-14T16:00:49Z",
        |"body":"Please pull these awesome changes",
+       |"milestone":$jsonMilestone,
        |"id":0,
        |"assignees":[$jsonUser],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",

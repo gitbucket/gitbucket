@@ -47,7 +47,8 @@ trait ApiIssueControllerBase extends ControllerBase {
           user = ApiUser(issueUser),
           assignee = assignedUser.map(ApiUser(_)),
           labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
-            .map(ApiLabel(_, RepositoryName(repository)))
+            .map(ApiLabel(_, RepositoryName(repository))),
+          issue.milestoneId.flatMap { getApiMilestone(repository, _) }
         )
     })
   })
@@ -69,7 +70,8 @@ trait ApiIssueControllerBase extends ControllerBase {
           RepositoryName(repository),
           ApiUser(openedUser),
           issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
-          getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository)))
+          getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository))),
+          issue.milestoneId.flatMap { getApiMilestone(repository, _) }
         )
       )
     }) getOrElse NotFound()
@@ -103,7 +105,8 @@ trait ApiIssueControllerBase extends ControllerBase {
             ApiUser(loginAccount),
             issue.assignedUserName.flatMap(getAccountByUserName(_)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
-              .map(ApiLabel(_, RepositoryName(repository)))
+              .map(ApiLabel(_, RepositoryName(repository))),
+            issue.milestoneId.flatMap { getApiMilestone(repository, _) }
           )
         )
       }) getOrElse NotFound()
