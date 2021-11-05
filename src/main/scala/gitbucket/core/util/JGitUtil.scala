@@ -675,11 +675,10 @@ object JGitUtil {
     df.setDiffComparator(RawTextComparator.DEFAULT)
     df.setDetectRenames(true)
     getDiffEntries(git, from, to)
-      .map { entry =>
+      .foreach { entry =>
         df.format(entry)
-        new String(out.toByteArray, "UTF-8")
       }
-      .mkString("\n")
+    new String(out.toByteArray, "UTF-8")
   }
 
   private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {
