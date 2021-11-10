@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <dropForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT"/>
+  <modifyDataType columnName="URL" newDataType="varchar(400)" tableName="WEB_HOOK_EVENT"/>
+  <modifyDataType columnName="URL" newDataType="varchar(400)" tableName="WEB_HOOK"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
+</changeSet>
