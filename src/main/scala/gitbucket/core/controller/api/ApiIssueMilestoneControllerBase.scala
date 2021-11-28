@@ -2,7 +2,6 @@ package gitbucket.core.controller.api
 import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.MilestonesService
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import org.scalatra.NoContent

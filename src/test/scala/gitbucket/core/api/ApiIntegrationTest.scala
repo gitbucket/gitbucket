@@ -5,7 +5,7 @@ import org.apache.commons.io.IOUtils
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Using
-import org.kohsuke.github.{GHCommitState, GitHub}
+import org.kohsuke.github.GHCommitState
 
 /**
  * Need to run `sbt package` before running this test.
