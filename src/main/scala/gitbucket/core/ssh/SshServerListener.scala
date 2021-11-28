@@ -14,24 +14,24 @@ object SshServer {
   private val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
   private val active = new AtomicBoolean(false)
 
-  private def configure(sshAddress: SshAddress, baseUrl: String) = {
-    server.setPort(sshAddress.port)
+  private def configure(bindAddress: SshAddress, publicAddress: SshAddress, baseUrl: String) = {
+    server.setPort(bindAddress.port)
     val provider = new SimpleGeneratorHostKeyProvider(
       java.nio.file.Paths.get(s"${Directory.GitBucketHome}/gitbucket.ser")
     )
     provider.setAlgorithm("RSA")
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
-    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(sshAddress.genericUser))
+    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(bindAddress.genericUser))
     server.setCommandFactory(
-      new GitCommandFactory(baseUrl, Some(s"${sshAddress.genericUser}@${sshAddress.host}:${sshAddress.port}"))
+      new GitCommandFactory(baseUrl, publicAddress)
     )
-    server.setShellFactory(new NoShell(sshAddress))
+    server.setShellFactory(new NoShell(publicAddress))
   }
 
-  def start(sshAddress: SshAddress, baseUrl: String) = {
+  def start(bindAddress: SshAddress, publicAddress: SshAddress, baseUrl: String) = {
     if (active.compareAndSet(false, true)) {
-      configure(sshAddress, baseUrl)
+      configure(bindAddress, publicAddress, baseUrl)
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
     }
@@ -59,13 +59,14 @@ class SshServerListener extends ServletContextListener with SystemSettingsServic
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val settings = loadSystemSettings()
-    if (settings.sshAddress.isDefined && settings.baseUrl.isEmpty) {
+    if (settings.sshBindAddress.isDefined && settings.baseUrl.isEmpty) {
       logger.error("Could not start SshServer because the baseUrl is not configured.")
     }
     for {
-      sshAddress <- settings.sshAddress
+      bindAddress <- settings.sshBindAddress
+      publicAddress <- settings.sshPublicAddress
       baseUrl <- settings.baseUrl
-    } SshServer.start(sshAddress, baseUrl)
+    } SshServer.start(bindAddress, publicAddress, baseUrl)
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {

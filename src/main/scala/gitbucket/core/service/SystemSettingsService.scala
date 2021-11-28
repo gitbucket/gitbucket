@@ -4,9 +4,10 @@ import javax.servlet.http.HttpServletRequest
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.oauth2.sdk.auth.Secret
 import com.nimbusds.oauth2.sdk.id.{ClientID, Issuer}
-import gitbucket.core.service.SystemSettingsService._
+import gitbucket.core.service.SystemSettingsService.{getOptionValue, _}
 import gitbucket.core.util.ConfigUtil._
 import gitbucket.core.util.Directory._
+
 import scala.util.Using
 
 trait SystemSettingsService {
@@ -29,8 +30,14 @@ trait SystemSettingsService {
     props.setProperty(Notification, settings.notification.toString)
     props.setProperty(LimitVisibleRepositories, settings.limitVisibleRepositories.toString)
     props.setProperty(SshEnabled, settings.ssh.enabled.toString)
-    settings.ssh.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
-    settings.ssh.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
+    settings.ssh.bindAddress.foreach { bindAddress =>
+      props.setProperty(SshBindAddressHost, bindAddress.host.trim())
+      props.setProperty(SshBindAddressPort, bindAddress.port.toString)
+    }
+    settings.ssh.publicAddress.foreach { publicAddress =>
+      props.setProperty(SshPublicAddressHost, publicAddress.host.trim())
+      props.setProperty(SshPublicAddressPort, publicAddress.port.toString)
+    }
     props.setProperty(UseSMTP, settings.useSMTP.toString)
     if (settings.useSMTP) {
       settings.smtp.foreach { smtp =>
@@ -95,6 +102,10 @@ trait SystemSettingsService {
         props.load(in)
       }
     }
+    loadSystemSettings(props)
+  }
+
+  def loadSystemSettings(props: java.util.Properties): SystemSettings = {
     SystemSettings(
       getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
       getOptionValue(props, Information, None),
@@ -112,9 +123,20 @@ trait SystemSettingsService {
       getValue(props, Notification, false),
       getValue(props, LimitVisibleRepositories, false),
       Ssh(
-        getValue(props, SshEnabled, false),
-        getOptionValue[String](props, SshHost, None).map(_.trim),
-        getOptionValue(props, SshPort, Some(DefaultSshPort))
+        enabled = getValue(props, SshEnabled, false),
+        bindAddress = {
+          // try the new-style configuration first
+          getOptionValue[String](props, SshBindAddressHost, None)
+            .map(h => SshAddress(h, getValue(props, SshBindAddressPort, DefaultSshPort), GenericSshUser))
+            .orElse(
+              // otherwise try to get old-style configuration
+              getOptionValue[String](props, SshHost, None)
+                .map(_.trim)
+                .map(h => SshAddress(h, getValue(props, SshPort, DefaultSshPort), GenericSshUser))
+            )
+        },
+        publicAddress = getOptionValue[String](props, SshPublicAddressHost, None)
+          .map(h => SshAddress(h, getValue(props, SshPublicAddressPort, PublicSshPort), GenericSshUser))
       ),
       getValue(
         props,
@@ -182,7 +204,6 @@ trait SystemSettingsService {
       )
     )
   }
-
 }
 
 object SystemSettingsService {
@@ -214,7 +235,6 @@ object SystemSettingsService {
     upload: Upload,
     repositoryViewer: RepositoryViewerSettings
   ) {
-
     def baseUrl(request: HttpServletRequest): String =
       baseUrl.getOrElse(parseBaseUrl(request)).stripSuffix("/")
 
@@ -231,11 +251,17 @@ object SystemSettingsService {
         .fold(base)(_ + base.dropWhile(_ != ':'))
     }
 
-    def sshAddress: Option[SshAddress] =
-      ssh.sshHost.collect {
-        case host if ssh.enabled =>
-          SshAddress(host, ssh.sshPort.getOrElse(DefaultSshPort), "git")
-      }
+    def sshBindAddress: Option[SshAddress] =
+      ssh.bindAddress
+
+    def sshPublicAddress: Option[SshAddress] =
+      ssh.publicAddress.orElse(ssh.bindAddress)
+
+    def sshUrl: Option[String] =
+      ssh.getUrl
+
+    def sshUrl(owner: String, name: String): Option[String] =
+      ssh.getUrl(owner: String, name: String)
   }
 
   case class RepositoryOperation(
@@ -248,9 +274,35 @@ object SystemSettingsService {
 
   case class Ssh(
     enabled: Boolean,
-    sshHost: Option[String],
-    sshPort: Option[Int]
-  )
+    bindAddress: Option[SshAddress],
+    publicAddress: Option[SshAddress]
+  ) {
+
+    def getUrl: Option[String] =
+      if (enabled) {
+        publicAddress.map(_.getUrl).orElse(bindAddress.map(_.getUrl))
+      } else {
+        None
+      }
+
+    def getUrl(owner: String, name: String): Option[String] =
+      if (enabled) {
+        publicAddress
+          .map(_.getUrl(owner, name))
+          .orElse(bindAddress.map(_.getUrl(owner, name)))
+      } else {
+        None
+      }
+  }
+
+  object Ssh {
+    def apply(
+      enabled: Boolean,
+      bindAddress: Option[SshAddress],
+      publicAddress: Option[SshAddress]
+    ): Ssh =
+      new Ssh(enabled, bindAddress, publicAddress.orElse(bindAddress))
+  }
 
   case class Ldap(
     host: String,
@@ -296,7 +348,25 @@ object SystemSettingsService {
     password: Option[String]
   )
 
-  case class SshAddress(host: String, port: Int, genericUser: String)
+  case class SshAddress(host: String, port: Int, genericUser: String) {
+
+    def isDefaultPort: Boolean =
+      port == PublicSshPort
+
+    def getUrl: String =
+      if (isDefaultPort) {
+        s"${genericUser}@${host}"
+      } else {
+        s"${genericUser}@${host}:${port}"
+      }
+
+    def getUrl(owner: String, name: String): String =
+      if (isDefaultPort) {
+        s"${genericUser}@${host}:${owner}/${name}.git"
+      } else {
+        s"ssh://${genericUser}@${host}:${port}/${owner}/${name}.git"
+      }
+  }
 
   case class WebHook(blockPrivateAddress: Boolean, whitelist: Seq[String])
 
@@ -304,6 +374,8 @@ object SystemSettingsService {
 
   case class RepositoryViewerSettings(maxFiles: Int)
 
+  val GenericSshUser = "git"
+  val PublicSshPort = 22
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
@@ -325,6 +397,10 @@ object SystemSettingsService {
   private val SshEnabled = "ssh"
   private val SshHost = "ssh.host"
   private val SshPort = "ssh.port"
+  private val SshBindAddressHost = "ssh.bindAddress.host"
+  private val SshBindAddressPort = "ssh.bindAddress.port"
+  private val SshPublicAddressHost = "ssh.publicAddress.host"
+  private val SshPublicAddressPort = "ssh.publicAddress.port"
   private val UseSMTP = "useSMTP"
   private val SmtpHost = "smtp.host"
   private val SmtpPort = "smtp.port"

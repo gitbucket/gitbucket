@@ -3,7 +3,6 @@ package gitbucket.core.servlet
 import java.io.File
 import java.util
 import java.util.Date
-
 import scala.util.Using
 import gitbucket.core.api
 import gitbucket.core.api.JsonFormat.Context
@@ -209,9 +208,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
       val settings = loadSystemSettings()
       val baseUrl = settings.baseUrl(request)
-      val sshUrl = settings.sshAddress.map { x =>
-        s"${x.genericUser}@${x.host}:${x.port}"
-      }
+      val sshUrl = settings.sshUrl(owner, repository)
 
       if (!repository.endsWith(".wiki")) {
         val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)

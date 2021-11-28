@@ -17,6 +17,7 @@ class NoShell(sshAddress: SshAddress) extends ShellFactory {
     private var callback: ExitCallback = null
 
     override def start(channel: ChannelSession, env: Environment): Unit = {
+      val placeholderAddress = sshAddress.getUrl("OWNER", "REPOSITORY_NAME")
       val message =
         """
           | Welcome to
@@ -32,8 +33,8 @@ class NoShell(sshAddress: SshAddress) extends ShellFactory {
           |
           | Please use:
           |
-          | git clone ssh://%s@%s:%d/OWNER/REPOSITORY_NAME.git
-        """.stripMargin.format(sshAddress.genericUser, sshAddress.host, sshAddress.port).replace("\n", "\r\n") + "\r\n"
+          | git clone %s
+        """.stripMargin.format(placeholderAddress).replace("\n", "\r\n") + "\r\n"
       err.write(Constants.encode(message))
       err.flush()
       in.close()

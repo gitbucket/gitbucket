@@ -22,9 +22,7 @@ object Implicits {
   implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session = Database.getSession(request)
 
   implicit def context2ApiJsonFormatContext(implicit context: Context): JsonFormat.Context =
-    JsonFormat.Context(context.baseUrl, context.settings.sshAddress.map { x =>
-      s"${x.genericUser}@${x.host}:${x.port}"
-    })
+    JsonFormat.Context(context.baseUrl, context.settings.sshUrl)
 
   implicit class RichSeq[A](private val seq: Seq[A]) extends AnyVal {
 

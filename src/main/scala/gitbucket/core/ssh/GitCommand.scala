@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import java.io.{File, InputStream, OutputStream}
 import org.eclipse.jgit.api.Git
 import Directory._
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.ssh.PublicKeyAuthenticator.AuthType
 import org.apache.sshd.server.channel.ChannelSession
 import org.eclipse.jgit.transport.{ReceivePack, UploadPack}
@@ -24,6 +25,8 @@ import scala.util.Using
 object GitCommand {
   val DefaultCommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-\+_.]+).git'\Z""".r
   val SimpleCommandRegex = """\Agit-(upload|receive)-pack '/(.+\.git)'\Z""".r
+  val DefaultCommandRegexPort22 = """\Agit-(upload|receive)-pack '/?([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-\+_.]+).git'\Z""".r
+  val SimpleCommandRegexPort22 = """\Agit-(upload|receive)-pack '/?(.+\.git)'\Z""".r
 }
 
 abstract class GitCommand extends Command with ServerSessionAware {
@@ -161,7 +164,7 @@ class DefaultGitUploadPack(owner: String, repoName: String)
   }
 }
 
-class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, sshUrl: Option[String])
+class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, sshAddress: SshAddress)
     extends DefaultGitCommand(owner, repoName)
     with RepositoryService
     with AccountService
@@ -179,7 +182,8 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, ss
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
         if (!repoName.endsWith(".wiki")) {
-          val hook = new CommitLogHook(owner, repoName, userName(authType), baseUrl, sshUrl)
+          val hook =
+            new CommitLogHook(owner, repoName, userName(authType), baseUrl, Some(sshAddress.getUrl(owner, repoName)))
           receive.setPreReceiveHook(hook)
           receive.setPostReceiveHook(hook)
         }
@@ -229,7 +233,7 @@ class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting)
   }
 }
 
-class GitCommandFactory(baseUrl: String, sshUrl: Option[String]) extends CommandFactory {
+class GitCommandFactory(baseUrl: String, sshAddress: SshAddress) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
   override def createCommand(channel: ChannelSession, command: String): Command = {
@@ -240,19 +244,24 @@ class GitCommandFactory(baseUrl: String, sshUrl: Option[String]) extends Command
       case f if f.isDefinedAt(command) => f(command)
     }
 
-    pluginCommand match {
-      case Some(x) => x
-      case None =>
-        command match {
-          case SimpleCommandRegex("upload", repoName) if (pluginRepository(repoName)) =>
-            new PluginGitUploadPack(repoName, routing(repoName))
-          case SimpleCommandRegex("receive", repoName) if (pluginRepository(repoName)) =>
-            new PluginGitReceivePack(repoName, routing(repoName))
-          case DefaultCommandRegex("upload", owner, repoName) => new DefaultGitUploadPack(owner, repoName)
-          case DefaultCommandRegex("receive", owner, repoName) =>
-            new DefaultGitReceivePack(owner, repoName, baseUrl, sshUrl)
-          case _ => new UnknownCommand(command)
+    pluginCommand.getOrElse {
+      val (simpleRegex, defaultRegex) =
+        if (sshAddress.isDefaultPort) {
+          (SimpleCommandRegexPort22, DefaultCommandRegexPort22)
+        } else {
+          (SimpleCommandRegex, DefaultCommandRegex)
         }
+      command match {
+        case simpleRegex("upload", repoName) if pluginRepository(repoName) =>
+          new PluginGitUploadPack(repoName, routing(repoName))
+        case simpleRegex("receive", repoName) if pluginRepository(repoName) =>
+          new PluginGitReceivePack(repoName, routing(repoName))
+        case defaultRegex("upload", owner, repoName) =>
+          new DefaultGitUploadPack(owner, repoName)
+        case defaultRegex("receive", owner, repoName) =>
+          new DefaultGitReceivePack(owner, repoName, baseUrl, sshAddress)
+        case _ => new UnknownCommand(command)
+      }
     }
   }
 
