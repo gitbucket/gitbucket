@@ -1,8 +1,7 @@
 package gitbucket.core.ssh
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ServletContextEvent, ServletContextListener}
-
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.util.Directory
@@ -11,10 +10,14 @@ import org.slf4j.LoggerFactory
 
 object SshServer {
   private val logger = LoggerFactory.getLogger(SshServer.getClass)
-  private val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
-  private val active = new AtomicBoolean(false)
+  private val server = new AtomicReference[org.apache.sshd.server.SshServer](null)
 
-  private def configure(bindAddress: SshAddress, publicAddress: SshAddress, baseUrl: String) = {
+  private def configure(
+    bindAddress: SshAddress,
+    publicAddress: SshAddress,
+    baseUrl: String
+  ): org.apache.sshd.server.SshServer = {
+    val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
     server.setPort(bindAddress.port)
     val provider = new SimpleGeneratorHostKeyProvider(
       java.nio.file.Paths.get(s"${Directory.GitBucketHome}/gitbucket.ser")
@@ -27,24 +30,28 @@ object SshServer {
       new GitCommandFactory(baseUrl, publicAddress)
     )
     server.setShellFactory(new NoShell(publicAddress))
+    server
   }
 
-  def start(bindAddress: SshAddress, publicAddress: SshAddress, baseUrl: String) = {
-    if (active.compareAndSet(false, true)) {
-      configure(bindAddress, publicAddress, baseUrl)
-      server.start()
-      logger.info(s"Start SSH Server Listen on ${server.getPort}")
+  def start(bindAddress: SshAddress, publicAddress: SshAddress, baseUrl: String): Unit = {
+    this.server.synchronized {
+      val server = configure(bindAddress, publicAddress, baseUrl)
+      if (this.server.compareAndSet(null, server)) {
+        server.start()
+        logger.info(s"Start SSH Server Listen on ${server.getPort}")
+      }
     }
   }
 
-  def stop() = {
-    if (active.compareAndSet(true, false)) {
-      server.stop(true)
-      logger.info("SSH Server is stopped.")
+  def stop(): Unit = {
+    this.server.synchronized {
+      val server = this.server.getAndSet(null)
+      if (server != null) {
+        server.stop()
+        logger.info("SSH Server is stopped.")
+      }
     }
   }
-
-  def isActive = active.get
 }
 
 /*

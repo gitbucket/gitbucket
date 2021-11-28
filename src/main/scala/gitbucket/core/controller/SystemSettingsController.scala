@@ -319,7 +319,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
 
-    if (form.ssh.bindAddress != context.settings.sshBindAddress) {
+    if (form.ssh.bindAddress != context.settings.sshBindAddress || form.ssh.publicAddress != context.settings.sshPublicAddress) {
       SshServer.stop()
       for {
         bindAddress <- form.ssh.bindAddress
