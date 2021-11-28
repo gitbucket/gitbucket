@@ -20,13 +20,23 @@ class GitCommandFactorySpec extends AnyWordSpec with Matchers {
     "receiving a git-receive-pack command" should {
       "return DefaultGitReceivePack" when {
         "the path matches owner/repo" in new MockContext {
-          assert(factory.createCommand(channel, "git-receive-pack '/owner/repo.git'").isInstanceOf[DefaultGitReceivePack])
-          assert(factory.createCommand(channel, "git-receive-pack '/owner/repo.wiki.git'").isInstanceOf[DefaultGitReceivePack])
+          assert(
+            factory.createCommand(channel, "git-receive-pack '/owner/repo.git'").isInstanceOf[DefaultGitReceivePack]
+          )
+          assert(
+            factory
+              .createCommand(channel, "git-receive-pack '/owner/repo.wiki.git'")
+              .isInstanceOf[DefaultGitReceivePack]
+          )
         }
         "the leading slash is left off and running on port 22" in new MockContext {
           override val sshPort: Int = 22
-          assert(factory.createCommand(channel, "git-receive-pack 'owner/repo.git'").isInstanceOf[DefaultGitReceivePack])
-          assert(factory.createCommand(channel, "git-receive-pack 'owner/repo.wiki.git'").isInstanceOf[DefaultGitReceivePack])
+          assert(
+            factory.createCommand(channel, "git-receive-pack 'owner/repo.git'").isInstanceOf[DefaultGitReceivePack]
+          )
+          assert(
+            factory.createCommand(channel, "git-receive-pack 'owner/repo.wiki.git'").isInstanceOf[DefaultGitReceivePack]
+          )
         }
       }
       "return UnknownCommand" when {
@@ -38,7 +48,9 @@ class GitCommandFactorySpec extends AnyWordSpec with Matchers {
           assert(factory.createCommand(channel, "git-receive-pack 'apples.git'").isInstanceOf[UnknownCommand])
         }
         "the path is malformed" in new MockContext {
-          assert(factory.createCommand(channel, "git-receive-pack '/owner/repo/wrong.git'").isInstanceOf[UnknownCommand])
+          assert(
+            factory.createCommand(channel, "git-receive-pack '/owner/repo/wrong.git'").isInstanceOf[UnknownCommand]
+          )
           assert(factory.createCommand(channel, "git-receive-pack '/owner:repo.wiki.git'").isInstanceOf[UnknownCommand])
           assert(factory.createCommand(channel, "git-receive-pack '/oranges'").isInstanceOf[UnknownCommand])
         }
@@ -48,12 +60,16 @@ class GitCommandFactorySpec extends AnyWordSpec with Matchers {
       "return DefaultGitUploadPack" when {
         "the path matches owner/repo" in new MockContext {
           assert(factory.createCommand(channel, "git-upload-pack '/owner/repo.git'").isInstanceOf[DefaultGitUploadPack])
-          assert(factory.createCommand(channel, "git-upload-pack '/owner/repo.wiki.git'").isInstanceOf[DefaultGitUploadPack])
+          assert(
+            factory.createCommand(channel, "git-upload-pack '/owner/repo.wiki.git'").isInstanceOf[DefaultGitUploadPack]
+          )
         }
         "the leading slash is left off and running on port 22" in new MockContext {
           override val sshPort = 22
           assert(factory.createCommand(channel, "git-upload-pack 'owner/repo.git'").isInstanceOf[DefaultGitUploadPack])
-          assert(factory.createCommand(channel, "git-upload-pack 'owner/repo.wiki.git'").isInstanceOf[DefaultGitUploadPack])
+          assert(
+            factory.createCommand(channel, "git-upload-pack 'owner/repo.wiki.git'").isInstanceOf[DefaultGitUploadPack]
+          )
         }
       }
       "return UnknownCommand" when {
