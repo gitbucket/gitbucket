@@ -341,8 +341,11 @@ trait IssuesService {
        } else {
          ((t1.userName ++ "/" ++ t1.repositoryName) inSetBind (repos.map { case (owner, repo) => s"$owner/$repo" }))
        }) &&
-      (t1.closed === (condition.state == "closed").bind)
-        .&&(t1.milestoneId.? isEmpty, condition.milestone == Some(None))
+      (condition.state match {
+        case "open"   => t1.closed === false
+        case "closed" => t1.closed === true
+        case _        => t1.closed === true || t1.closed === false
+      }).&&(t1.milestoneId.? isEmpty, condition.milestone == Some(None))
         .&&(t1.priorityId.? isEmpty, condition.priority == Some(None))
         .&&(t1.assignedUserName.? isEmpty, condition.assigned == Some(None))
         .&&(t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
@@ -939,7 +942,7 @@ object IssuesService {
           case x      => Some(x)
         },
         param(request, "mentioned"),
-        param(request, "state", Seq("open", "closed")).getOrElse("open"),
+        param(request, "state", Seq("open", "closed", "all")).getOrElse("open"),
         param(request, "sort", Seq("created", "comments", "updated", "priority")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
         param(request, "visibility"),
@@ -960,7 +963,7 @@ object IssuesService {
           case x      => Some(x)
         },
         param(request, "mentioned"),
-        param(request, "state", Seq("open", "closed")).getOrElse("open"),
+        param(request, "state", Seq("open", "closed", "all")).getOrElse("open"),
         param(request, "sort", Seq("created", "comments", "updated", "priority")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
         param(request, "visibility"),

@@ -1,20 +1,22 @@
 package gitbucket.core.ssh
 
 import gitbucket.core.service.SystemSettingsService.SshAddress
-import org.apache.sshd.common.Factory
+import org.apache.sshd.server.channel.ChannelSession
 import org.apache.sshd.server.{Environment, ExitCallback}
 import org.apache.sshd.server.command.Command
-import java.io.{OutputStream, InputStream}
+import org.apache.sshd.server.shell.ShellFactory
+
+import java.io.{InputStream, OutputStream}
 import org.eclipse.jgit.lib.Constants
 
-class NoShell(sshAddress: SshAddress) extends Factory[Command] {
-  override def create(): Command = new Command() {
+class NoShell(sshAddress: SshAddress) extends ShellFactory {
+  override def createShell(channel: ChannelSession): Command = new Command() {
     private var in: InputStream = null
     private var out: OutputStream = null
     private var err: OutputStream = null
     private var callback: ExitCallback = null
 
-    override def start(env: Environment): Unit = {
+    override def start(channel: ChannelSession, env: Environment): Unit = {
       val placeholderAddress = sshAddress.getUrl("OWNER", "REPOSITORY_NAME")
       val message =
         """
@@ -41,7 +43,7 @@ class NoShell(sshAddress: SshAddress) extends Factory[Command] {
       callback.onExit(127)
     }
 
-    override def destroy(): Unit = {}
+    override def destroy(channel: ChannelSession): Unit = {}
 
     override def setInputStream(in: InputStream): Unit = {
       this.in = in

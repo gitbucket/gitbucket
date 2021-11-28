@@ -382,7 +382,7 @@ object JGitUtil {
     path: String = ".",
     baseUrl: Option[String] = None,
     commitCount: Int = 0,
-    maxFiles: Int = 100
+    maxFiles: Int = 5
   ): List[FileInfo] = {
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val objectId = git.getRepository.resolve(revision)
@@ -658,9 +658,13 @@ object JGitUtil {
    */
   def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String): Map[String, RevCommit] = {
     val start = getRevCommitFromId(git, git.getRepository.resolve(revision))
-    paths.map { path =>
+    paths.flatMap { path =>
       val commit = git.log.add(start).addPath(path).setMaxCount(1).call.iterator.next
-      (path, commit)
+      if (commit == null) {
+        None
+      } else {
+        Some((path, commit))
+      }
     }.toMap
   }
 
@@ -671,11 +675,10 @@ object JGitUtil {
     df.setDiffComparator(RawTextComparator.DEFAULT)
     df.setDetectRenames(true)
     getDiffEntries(git, from, to)
-      .map { entry =>
+      .foreach { entry =>
         df.format(entry)
-        new String(out.toByteArray, "UTF-8")
       }
-      .mkString("\n")
+    new String(out.toByteArray, "UTF-8")
   }
 
   private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {

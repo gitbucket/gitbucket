@@ -5,9 +5,9 @@ import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.{AccountService, DeployKeyService, RepositoryService, SystemSettingsService}
 import gitbucket.core.servlet.{CommitLogHook, Database}
 import gitbucket.core.util.Directory
-import org.apache.sshd.server.{Environment, ExitCallback, SessionAware}
+import org.apache.sshd.server.{Environment, ExitCallback}
 import org.apache.sshd.server.command.{Command, CommandFactory}
-import org.apache.sshd.server.session.ServerSession
+import org.apache.sshd.server.session.{ServerSession, ServerSessionAware}
 import org.slf4j.LoggerFactory
 
 import java.io.{File, InputStream, OutputStream}
@@ -15,6 +15,7 @@ import org.eclipse.jgit.api.Git
 import Directory._
 import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.ssh.PublicKeyAuthenticator.AuthType
+import org.apache.sshd.server.channel.ChannelSession
 import org.eclipse.jgit.transport.{ReceivePack, UploadPack}
 import org.apache.sshd.server.shell.UnknownCommand
 import org.eclipse.jgit.errors.RepositoryNotFoundException
@@ -28,7 +29,7 @@ object GitCommand {
   val SimpleCommandRegexPort22 = """\Agit-(upload|receive)-pack '/?(.+\.git)'\Z""".r
 }
 
-abstract class GitCommand extends Command with SessionAware {
+abstract class GitCommand extends Command with ServerSessionAware {
 
   private val logger = LoggerFactory.getLogger(classOf[GitCommand])
 
@@ -61,12 +62,12 @@ abstract class GitCommand extends Command with SessionAware {
     }
   }
 
-  final override def start(env: Environment): Unit = {
+  final override def start(channel: ChannelSession, env: Environment): Unit = {
     val thread = new Thread(newTask())
     thread.start()
   }
 
-  override def destroy(): Unit = {}
+  override def destroy(channel: ChannelSession): Unit = {}
 
   override def setExitCallback(callback: ExitCallback): Unit = {
     this.callback = callback
@@ -235,7 +236,7 @@ class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting)
 class GitCommandFactory(baseUrl: String, sshAddress: SshAddress) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
-  override def createCommand(command: String): Command = {
+  override def createCommand(channel: ChannelSession, command: String): Command = {
     import GitCommand._
     logger.debug(s"command: $command")
 

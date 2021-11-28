@@ -86,7 +86,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val newForm = mapping(
     "userName" -> trim(label("User name", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password" -> trim(label("Password", text(required, maxlength(20)))),
+    "password" -> trim(label("Password", text(required, maxlength(40)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
     "extraMailAddresses" -> list(
@@ -98,7 +98,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   )(AccountNewForm.apply)
 
   val editForm = mapping(
-    "password" -> trim(label("Password", optional(text(maxlength(20))))),
+    "password" -> trim(label("Password", optional(text(maxlength(40))))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
     "extraMailAddresses" -> list(

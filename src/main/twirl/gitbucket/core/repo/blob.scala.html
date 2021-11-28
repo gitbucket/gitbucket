@@ -244,7 +244,7 @@ function updateHighlighting() {
   const isDark = @{highlighterTheme.contains("dark").toString};
   if (hash.match(/#L\d+(-L\d+)?/)) {
     if (isDark) {
-      $('li.highlight').removeClass('highlight-dark');
+      $('li.highlight-dark').removeClass('highlight-dark');
     } else {
       $('li.highlight').removeClass('highlight');
     }
