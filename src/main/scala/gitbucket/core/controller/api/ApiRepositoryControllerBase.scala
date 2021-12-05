@@ -16,6 +16,7 @@ import scala.util.Using
 
 trait ApiRepositoryControllerBase extends ControllerBase {
   self: RepositoryService
+    with ApiGitReferenceControllerBase
     with RepositoryCreationService
     with AccountService
     with OwnerAuthenticator
@@ -184,9 +185,11 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    * https://docs.github.com/en/rest/reference/repos#list-repository-tags
    */
   get("/api/v3/repos/:owner/:repository/tags")(referrersOnly { repository =>
-    JsonFormat(
-      repository.tags.map(tagInfo => ApiTag(tagInfo.name, RepositoryName(repository), tagInfo.id))
-    )
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      JsonFormat(
+        self.getRef("tags", repository)
+      )
+    }
   })
 
   /*

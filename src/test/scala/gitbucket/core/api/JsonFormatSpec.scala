@@ -8,6 +8,12 @@ class JsonFormatSpec extends AnyFunSuite {
   implicit val format = JsonFormat.jsonFormats
 
   private def expected(json: String) = json.replaceAll("\n", "")
+  def normalizeJson(json: String) = {
+    org.json4s.jackson.parseJson(json)
+  }
+  def assertEqualJson(actual: String, expected: String) = {
+    assert(normalizeJson(actual) == normalizeJson(expected))
+  }
 
   test("apiUser") {
     assert(JsonFormat(apiUser) == expected(jsonUser))
@@ -76,8 +82,11 @@ class JsonFormatSpec extends AnyFunSuite {
   test("apiPusher") {
     assert(JsonFormat(apiPusher) == expected(jsonPusher))
   }
-  test("apiRef") {
-    assert(JsonFormat(apiRef) == expected(jsonRef))
+  test("apiRefHead") {
+    assertEqualJson(JsonFormat(apiRefHeadsMaster)(gitHubContext), jsonRefHeadsMaster)
+  }
+  test("apiRefTag") {
+    assertEqualJson(JsonFormat(apiRefTag)(gitHubContext), jsonRefTag)
   }
   test("apiReleaseAsset") {
     assert(JsonFormat(apiReleaseAsset) == expected(jsonReleaseAsset))

@@ -432,9 +432,29 @@ object ApiSpecModels {
 
   val apiPusher = ApiPusher(account)
 
-  val apiRef = ApiRef(
-    ref = "refs/heads/featureA",
-    `object` = ApiObject(sha1)
+  //have both urls as https, as the expected samples are using https
+  val gitHubContext = JsonFormat.Context("https://api.github.com", Some("https://api.github.com"))
+
+  val apiRefHeadsMaster = ApiRef(
+    ref = "refs/heads/master",
+    url = ApiPath("/repos/gitbucket/gitbucket/git/refs/heads/master"),
+    node_id = "MDM6UmVmOTM1MDc0NjpyZWZzL2hlYWRzL21hc3Rlcg==",
+    `object` = ApiRefCommit(
+      sha = "6b2d124d092402f2c2b7131caada05ead9e7de6d",
+      `type` = "commit",
+      url = ApiPath("/repos/gitbucket/gitbucket/git/commits/6b2d124d092402f2c2b7131caada05ead9e7de6d")
+    )
+  )
+
+  val apiRefTag = ApiRef(
+    ref = "refs/tags/1.0",
+    url = ApiPath("/repos/gitbucket/gitbucket/git/refs/tags/1.0"),
+    node_id = "MDM6UmVmOTM1MDc0NjpyZWZzL3RhZ3MvMS4w",
+    `object` = ApiRefCommit(
+      sha = "1f164ecf2f59190afc8d7204a221c739e707df4c",
+      `type` = "tag",
+      url = ApiPath("/repos/gitbucket/gitbucket/git/tags/1f164ecf2f59190afc8d7204a221c739e707df4c")
+    )
   )
 
   val assetFileName = "010203040a0b0c0d"
@@ -765,7 +785,32 @@ object ApiSpecModels {
 
   val jsonPusher = """{"name":"octocat","email":"octocat@example.com"}"""
 
+  //I checked all refs in gitbucket repo, and there appears to be only type "commit" and type "tag"
   val jsonRef = """{"ref":"refs/heads/featureA","object":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
+
+  val jsonRefHeadsMaster =
+    """{
+      |"ref": "refs/heads/master",
+      |"node_id": "MDM6UmVmOTM1MDc0NjpyZWZzL2hlYWRzL21hc3Rlcg==",
+      |"url": "https://api.github.com/repos/gitbucket/gitbucket/git/refs/heads/master",
+      |"object": {
+      |"sha": "6b2d124d092402f2c2b7131caada05ead9e7de6d",
+      |"type": "commit",
+      |"url": "https://api.github.com/repos/gitbucket/gitbucket/git/commits/6b2d124d092402f2c2b7131caada05ead9e7de6d"
+      |}
+      |}""".stripMargin
+
+  val jsonRefTag =
+    """{
+      |"ref": "refs/tags/1.0",
+      |"node_id": "MDM6UmVmOTM1MDc0NjpyZWZzL3RhZ3MvMS4w",
+      |"url": "https://api.github.com/repos/gitbucket/gitbucket/git/refs/tags/1.0",
+      |"object": {
+      |"sha": "1f164ecf2f59190afc8d7204a221c739e707df4c",
+      |"type": "tag",
+      |"url": "https://api.github.com/repos/gitbucket/gitbucket/git/tags/1f164ecf2f59190afc8d7204a221c739e707df4c"
+      |}
+      |}""".stripMargin
 
   val jsonReleaseAsset =
     s"""{

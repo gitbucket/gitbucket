@@ -1,9 +1,10 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiObject, ApiRef, CreateARef, JsonFormat, UpdateARef}
+import gitbucket.core.api.{ApiRef, CreateARef, JsonFormat, UpdateARef}
 import gitbucket.core.controller.ControllerBase
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.ReferrerAuthenticator
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.RefUpdate.Result
@@ -23,37 +24,43 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#get-a-reference
    */
   get("/api/v3/repos/:owner/:repository/git/ref/*")(referrersOnly { repository =>
-    getRef()
+    val revstr = multiParams("splat").head
+    getRef(revstr, repository)
   })
 
   // Some versions of GHE support this path
   get("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     logger.warn("git/refs/ endpoint may not be compatible with GitHub API v3. Consider using git/ref/ endpoint instead")
-    getRef()
+    val revstr = multiParams("splat").head
+    getRef(revstr, repository)
   })
 
-  private def getRef() = {
-    val revstr = multiParams("splat").head
-    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-      val ref = git.getRepository().findRef(revstr)
+  protected def getRef(revstr: String, repository: RepositoryInfo): String = {
+    logger.debug(s"getRef: path '${revstr}'")
 
-      if (ref != null) {
-        val sha = ref.getObjectId().name()
-        JsonFormat(ApiRef(revstr, ApiObject(sha)))
+    val name = RepositoryName(repository)
+    val result = JsonFormat(revstr match {
+      case tags if tags == "tags" =>
+        repository.tags.map(ApiRef.fromTag(name, _))
+      case other =>
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          git.getRepository().findRef(other) match {
+            case null =>
+              val refs = git
+                .getRepository()
+                .getRefDatabase()
+                .getRefsByPrefix("refs/")
+                .asScala
 
-      } else {
-        val refs = git
-          .getRepository()
-          .getRefDatabase()
-          .getRefsByPrefix("refs/")
-          .asScala
+              refs.map(ApiRef.fromRef(name, _))
+            case hit =>
+              ApiRef.fromRef(name, hit)
+          }
+        }
+    })
 
-        JsonFormat(refs.map { ref =>
-          val sha = ref.getObjectId().name()
-          ApiRef(revstr, ApiObject(sha))
-        })
-      }
-    }
+    logger.debug(s"json result: $result")
+    result
   }
 
   /*
@@ -65,17 +72,17 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * iii. Create a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-reference
    */
-  post("/api/v3/repos/:owner/:repository/git/refs")(referrersOnly { _ =>
+  post("/api/v3/repos/:owner/:repository/git/refs")(referrersOnly { repository =>
     extractFromJsonBody[CreateARef].map {
       data =>
-        Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.owner))) { git =>
           val ref = git.getRepository.findRef(data.ref)
           if (ref == null) {
             val update = git.getRepository.updateRef(data.ref)
             update.setNewObjectId(ObjectId.fromString(data.sha))
             val result = update.update()
             result match {
-              case Result.NEW => JsonFormat(ApiRef(update.getName, ApiObject(update.getNewObjectId.getName)))
+              case Result.NEW => JsonFormat(ApiRef.fromRef(RepositoryName(repository.owner, repository.name), ref))
               case _          => UnprocessableEntity(result.name())
             }
           } else {
@@ -89,11 +96,11 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * iv. Update a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#update-a-reference
    */
-  patch("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { _ =>
+  patch("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     val refName = multiParams("splat").mkString("/")
     extractFromJsonBody[UpdateARef].map {
       data =>
-        Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.owner))) { git =>
           val ref = git.getRepository.findRef(refName)
           if (ref == null) {
             UnprocessableEntity("Ref does not exist.")
@@ -104,7 +111,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
             val result = update.update()
             result match {
               case Result.FORCED | Result.FAST_FORWARD | Result.NO_CHANGE =>
-                JsonFormat(ApiRef(update.getName, ApiObject(update.getNewObjectId.getName)))
+                JsonFormat(ApiRef.fromRef(RepositoryName(repository), update.getRef))
               case _ => UnprocessableEntity(result.name())
             }
           }
@@ -116,7 +123,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * v. Delete a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#delete-a-reference
    */
-  delete("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { _ =>
+  delete("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
     val refName = multiParams("splat").mkString("/")
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository.findRef(refName)
