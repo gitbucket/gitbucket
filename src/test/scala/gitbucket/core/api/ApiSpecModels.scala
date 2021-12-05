@@ -6,7 +6,6 @@ import gitbucket.core.model._
 import gitbucket.core.plugin.PluginInfo
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchInfo
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.DatabaseConfig.url
 import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, FileInfo, TagInfo}
 import gitbucket.core.util.RepositoryName
 import org.eclipse.jgit.diff.DiffEntry.ChangeType

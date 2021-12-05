@@ -1,6 +1,6 @@
 package gitbucket.core.api
 
-import gitbucket.core.util.JGitUtil.{CommitInfo, TagInfo}
+import gitbucket.core.util.JGitUtil.TagInfo
 import gitbucket.core.util.RepositoryName
 import org.eclipse.jgit.lib.Ref
 
@@ -21,14 +21,14 @@ object ApiRef {
 
   def fromRef(
     repositoryName: RepositoryName,
-    commit: Ref
+    ref: Ref
   ): ApiRef =
     ApiRef(
-      ref = commit.getName,
-      url = ApiPath(s"/${repositoryName.fullName}/refs/${commit.getName}"),
+      ref = ref.getName,
+      url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/git/${ref.getName}"),
       `object` = ApiRefCommit(
-        sha = commit.getObjectId.getName,
-        url = ApiPath(s"/${repositoryName.fullName}/commits/${commit.getObjectId.getName}"),
+        sha = ref.getObjectId.getName,
+        url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/git/commits/${ref.getObjectId.getName}"),
         `type` = "commit"
       )
     )
@@ -39,10 +39,10 @@ object ApiRef {
   ): ApiRef =
     ApiRef(
       ref = s"refs/tags/${tagInfo.name}",
-      url = ApiPath(s"/${repositoryName.fullName}/refs/tags/${tagInfo.name}"),
+      url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/refs/tags/${tagInfo.name}"),
       `object` = ApiRefCommit(
         sha = tagInfo.id,
-        url = ApiPath(s"/${repositoryName.fullName}/tags/${tagInfo.id}"),
+        url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/git/tags/${tagInfo.id}"), // TODO This URL is not yet available?
         `type` = "commit"
       )
     )
