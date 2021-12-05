@@ -4,7 +4,7 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName}
+import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName, WritableUsersAuthenticator}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.RefUpdate.Result
@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator =>
+  self: ReferrerAuthenticator with WritableUsersAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[ApiGitReferenceControllerBase])
 
@@ -96,7 +96,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * iv. Update a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#update-a-reference
    */
-  patch("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/git/refs/*")(writableUsersOnly { repository =>
     val refName = multiParams("splat").mkString("/")
     extractFromJsonBody[UpdateARef].map {
       data =>
@@ -123,7 +123,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * v. Delete a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#delete-a-reference
    */
-  delete("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/git/refs/*")(writableUsersOnly { _ =>
     val refName = multiParams("splat").mkString("/")
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository.findRef(refName)
