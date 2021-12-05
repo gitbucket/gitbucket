@@ -83,8 +83,20 @@ object ApiSpecModels {
     milestoneCount = 1,
     branchList = Seq("master", "develop"),
     tags = Seq(
-      TagInfo(name = "v1.0", time = date("2015-05-05T23:40:27Z"), id = "id1", message = "1.0 released"),
-      TagInfo(name = "v2.0", time = date("2016-05-05T23:40:27Z"), id = "id2", message = "2.0 released")
+      TagInfo(
+        name = "v1.0",
+        time = date("2015-05-05T23:40:27Z"),
+        commitId = "id1",
+        message = "1.0 released",
+        objectId = "id1"
+      ),
+      TagInfo(
+        name = "v2.0",
+        time = date("2016-05-05T23:40:27Z"),
+        commitId = "id2",
+        message = "2.0 released",
+        objectId = "id2"
+      )
     ),
     managers = Seq("myboss")
   )

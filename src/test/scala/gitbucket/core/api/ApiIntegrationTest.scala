@@ -2,10 +2,13 @@ package gitbucket.core.api
 
 import gitbucket.core.TestingGitBucketServer
 import org.apache.commons.io.IOUtils
+import org.eclipse.jgit.api.Git
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Using
 import org.kohsuke.github.GHCommitState
+
+import java.io.File
 
 /**
  * Need to run `sbt package` before running this test.
@@ -145,13 +148,16 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(ref.getObject.getType == "commit")
       }
 
-//      // get tag v1.0
-//      {
-//        val ref = repo.getRef("heads/tags/v1.0")
-//        assert(ref.getRef == "heads/tags/v1.0")
-//        assert(ref.getUrl == "tbd")
-//        assert(ref.getObject.getType == "tag")
-//      }
+      // get tag v1.0
+      {
+        Using.resource(Git.open(new File(server.getDirectory(), "repositories/root/create_status_test"))) { git =>
+          git.tag().setName("v1.0").call()
+        }
+        val ref = repo.getRef("tags/v1.0")
+        assert(ref.getRef == "refs/tags/v1.0")
+        assert(ref.getUrl.toString == "http://localhost:19999/api/v3/repos/root/create_status_test/git/refs/tags/v1.0")
+        assert(ref.getObject.getType == "tag")
+      }
     }
   }
 

@@ -39,11 +39,11 @@ object ApiRef {
   ): ApiRef =
     ApiRef(
       ref = s"refs/tags/${tagInfo.name}",
-      url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/refs/tags/${tagInfo.name}"),
+      url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/git/refs/tags/${tagInfo.name}"),
       `object` = ApiRefCommit(
-        sha = tagInfo.id,
-        url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/git/tags/${tagInfo.id}"), // TODO This URL is not yet available?
-        `type` = "commit"
+        sha = tagInfo.objectId,
+        url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/git/tags/${tagInfo.objectId}"), // TODO This URL is not yet available?
+        `type` = "tag"
       )
     )
 }

@@ -138,7 +138,7 @@ trait ReleaseControllerBase extends ControllerBase {
 
   get("/:owner/:repository/changelog/*...*")(writableUsersOnly { repository =>
     val Seq(previousTag, currentTag) = multiParams("splat")
-    val previousTagId = repository.tags.collectFirst { case x if x.name == previousTag => x.id }.getOrElse("")
+    val previousTagId = repository.tags.collectFirst { case x if x.name == previousTag => x.commitId }.getOrElse("")
 
     val commitLog = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       val commits = JGitUtil.getCommitLog(git, previousTagId, currentTag).reverse

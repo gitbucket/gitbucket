@@ -52,6 +52,8 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   def client(login: String, password: String): GitHub =
     GitHub.connectToEnterprise(s"http://localhost:${port}/api/v3", login, password)
 
+  def getDirectory(): File = dir
+
   private def addStatisticsHandler(handler: Handler) = { // The graceful shutdown is implemented via the statistics handler.
     // See the following: https://bugs.eclipse.org/bugs/show_bug.cgi?id=420142
     val statisticsHandler = new StatisticsHandler
