@@ -579,7 +579,7 @@ trait PullRequestService {
       case (oldGit, newGit) =>
         if (originRepository.branchList.contains(originId)) {
           val forkedId2 =
-            forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
+            forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.commitId }.getOrElse(forkedId)
 
           val originId2 = JGitUtil.getForkedCommitId(
             oldGit,
@@ -596,9 +596,9 @@ trait PullRequestService {
 
         } else {
           val originId2 =
-            originRepository.tags.collectFirst { case x if x.name == originId => x.id }.getOrElse(originId)
+            originRepository.tags.collectFirst { case x if x.name == originId => x.commitId }.getOrElse(originId)
           val forkedId2 =
-            forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.id }.getOrElse(forkedId)
+            forkedRepository.tags.collectFirst { case x if x.name == forkedId => x.commitId }.getOrElse(forkedId)
 
           (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
         }

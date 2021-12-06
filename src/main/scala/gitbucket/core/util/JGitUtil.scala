@@ -228,10 +228,11 @@ object JGitUtil {
    *
    * @param name the tag name
    * @param time the tagged date
-   * @param id the commit id
+   * @param commitId the commit id
    * @param message the message of the tagged commit
+   * @param objectId the tag object id
    */
-  case class TagInfo(name: String, time: Date, id: String, message: String)
+  case class TagInfo(name: String, time: Date, commitId: String, message: String, objectId: String)
 
   /**
    * The submodule data
@@ -347,7 +348,8 @@ object JGitUtil {
                     ref.getName.stripPrefix("refs/tags/"),
                     revCommit.getCommitterIdent.getWhen,
                     revCommit.getName,
-                    revCommit.getShortMessage
+                    revCommit.getShortMessage,
+                    ref.getObjectId.getName
                   )
                 )
               } catch {

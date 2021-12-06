@@ -1,10 +1,10 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiRef, CreateARef, JsonFormat, UpdateARef}
+import gitbucket.core.api.{ApiError, ApiRef, CreateARef, JsonFormat, UpdateARef}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName}
+import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName, WritableUsersAuthenticator}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.RefUpdate.Result
@@ -15,9 +15,22 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator =>
+  self: ReferrerAuthenticator with WritableUsersAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[ApiGitReferenceControllerBase])
+
+  get("/api/v3/repos/:owner/:repository/git/refs")(referrersOnly { repository =>
+    val result = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val refs = git
+        .getRepository()
+        .getRefDatabase()
+        .getRefsByPrefix("refs")
+        .asScala
+
+      refs.map(ApiRef.fromRef(RepositoryName(s"${repository.owner}/${repository.name}"), _))
+    }
+    JsonFormat(result)
+  })
 
   /*
    * i. Get a reference
@@ -34,34 +47,6 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
     val revstr = multiParams("splat").head
     getRef(revstr, repository)
   })
-
-  protected def getRef(revstr: String, repository: RepositoryInfo): String = {
-    logger.debug(s"getRef: path '${revstr}'")
-
-    val name = RepositoryName(repository)
-    val result = JsonFormat(revstr match {
-      case tags if tags == "tags" =>
-        repository.tags.map(ApiRef.fromTag(name, _))
-      case other =>
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          git.getRepository().findRef(other) match {
-            case null =>
-              val refs = git
-                .getRepository()
-                .getRefDatabase()
-                .getRefsByPrefix("refs/")
-                .asScala
-
-              refs.map(ApiRef.fromRef(name, _))
-            case hit =>
-              ApiRef.fromRef(name, hit)
-          }
-        }
-    })
-
-    logger.debug(s"json result: $result")
-    result
-  }
 
   /*
    * ii. Get all references
@@ -96,7 +81,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * iv. Update a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#update-a-reference
    */
-  patch("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/git/refs/*")(writableUsersOnly { repository =>
     val refName = multiParams("splat").mkString("/")
     extractFromJsonBody[UpdateARef].map {
       data =>
@@ -123,7 +108,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * v. Delete a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#delete-a-reference
    */
-  delete("/api/v3/repos/:owner/:repository/git/refs/*")(referrersOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/git/refs/*")(writableUsersOnly { _ =>
     val refName = multiParams("splat").mkString("/")
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val ref = git.getRepository.findRef(refName)
@@ -140,4 +125,34 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
       }
     }
   })
+
+  private def notFound(): ApiError = {
+    response.setStatus(404)
+    ApiError("Not Found")
+  }
+
+  protected def getRef(revstr: String, repository: RepositoryInfo): AnyRef = {
+    logger.debug(s"getRef: path '${revstr}'")
+
+    val name = RepositoryName(repository)
+    val result = JsonFormat(revstr match {
+      case "tags" => repository.tags.map(ApiRef.fromTag(name, _))
+      case x if x.startsWith("tags/") =>
+        val tagName = x.substring("tags/".length)
+        repository.tags.find(_.name == tagName) match {
+          case Some(tagInfo) => ApiRef.fromTag(name, tagInfo)
+          case None          => notFound()
+        }
+      case other =>
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          git.getRepository().findRef(other) match {
+            case null => notFound()
+            case ref  => ApiRef.fromRef(name, ref)
+          }
+        }
+    })
+
+    logger.debug(s"json result: $result")
+    result
+  }
 }
