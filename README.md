@@ -61,18 +61,15 @@ Support
 - If you can't find same question and report, send it to our [Gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.36.x
+What's New in 4.37.x
 -------------
-### 4.36.2 - 16 Aug 2021
-- Escape user name in avatar image tag
-
-### 4.36.1 - 22 Jul 2021
-- Bump gitbucket-gist-plugin to 4.21.0
-
-### 4.36.0 - 17 Jul 2021
-- Tag selector in the repository viewer
-- Link issues/pull requests of other repositories
-- Files and lines can be linked in the diff view
-- Option to disable XSS protection
+### 4.37.0 - 11 Dec 2021
+- Enhance Git Reference APIs
+- Add milestone data to issue list API
+- Support "all" in issue list API
+- Support EDDSA in signed commit verification
+- Support custom SSH url
+- Relax max passward length limitation
+- Relax max webhook url length limitation
 
 See the [change log](CHANGELOG.md) for all of the updates.
