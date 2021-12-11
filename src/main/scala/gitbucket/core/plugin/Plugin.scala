@@ -1,14 +1,15 @@
 package gitbucket.core.plugin
 
 import javax.servlet.ServletContext
-
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import io.github.gitbucket.solidbase.model.Version
+import org.apache.sshd.server.channel.ChannelSession
 import org.apache.sshd.server.command.Command
 import play.twirl.api.Html
+
 import scala.util.Using
 
 /**
@@ -323,7 +324,7 @@ abstract class Plugin {
   /**
    * Override to add ssh command providers.
    */
-  val sshCommandProviders: Seq[PartialFunction[String, Command]] = Nil
+  val sshCommandProviders: Seq[PartialFunction[String, ChannelSession => Command]] = Nil
 
   /**
    * Override to add ssh command providers.
@@ -332,7 +333,7 @@ abstract class Plugin {
     registry: PluginRegistry,
     context: ServletContext,
     settings: SystemSettings
-  ): Seq[PartialFunction[String, Command]] = Nil
+  ): Seq[PartialFunction[String, ChannelSession => Command]] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
