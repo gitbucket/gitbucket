@@ -1,6 +1,15 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.37.0 - 11 Dec 2021
+- Enhance Git Reference APIs
+- Add milestone data to issue list API
+- Support "all" in issue list API
+- Support EDDSA in signed commit verification
+- Support custom SSH url
+- Relax max passward length limitation
+- Relax max webhook url length limitation
+
 ### 4.36.2 - 16 Aug 2021
 - Escape user name in avatar image tag
 
