@@ -244,7 +244,7 @@ class GitCommandFactory(baseUrl: String, sshAddress: SshAddress) extends Command
       case f if f.isDefinedAt(command) => f(command)
     }
 
-    pluginCommand.getOrElse {
+    pluginCommand.map(_.apply(channel)).getOrElse {
       val (simpleRegex, defaultRegex) =
         if (sshAddress.isDefaultPort) {
           (SimpleCommandRegexPort22, DefaultCommandRegexPort22)
