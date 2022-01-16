@@ -63,6 +63,9 @@ Support
 
 What's New in 4.37.x
 -------------
+### 4.37.2 - 16 Jan 2022
+- Security fix
+
 ### 4.37.1 - 14 Dec 2021
 - Update gist-plugin and notification-plugin
 - Fix SSHCommand extension point for apache-sshd 2.x

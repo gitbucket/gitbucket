@@ -121,5 +121,6 @@ object GitBucketCoreModule
       new Version("4.36.1"),
       new Version("4.36.2"),
       new Version("4.37.0", new LiquibaseMigration("update/gitbucket-core_4.37.xml")),
-      new Version("4.37.1")
+      new Version("4.37.1"),
+      new Version("4.37.2")
     )
