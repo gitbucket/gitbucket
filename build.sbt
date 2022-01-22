@@ -24,7 +24,6 @@ coverageExcludedPackages := ".*\\.html\\..*"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
-  Resolver.jcenterRepo,
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 
