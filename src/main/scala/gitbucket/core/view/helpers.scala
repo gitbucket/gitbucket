@@ -276,7 +276,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * URL encode except '/'.
    */
-  def encodeRefName(value: String): String = StringUtil.urlEncode(value).replace("%2F", "/")
+  def encodeRefName(value: String): String = StringUtil.encodeRefName(value)
 
   def urlEncode(value: String): String = StringUtil.urlEncode(value)
 

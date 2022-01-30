@@ -74,6 +74,11 @@ object StringUtil {
 
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 
+  /**
+   * URL encode except '/'.
+   */
+  def encodeRefName(value: String): String = urlEncode(value).replace("%2F", "/")
+
   def splitWords(value: String): Array[String] = value.split("[ \\t　]+")
 
   def isInteger(value: String): Boolean = allCatch opt { value.toInt } map (_ => true) getOrElse (false)
