@@ -157,7 +157,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
                     Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
                   )
                 case _ =>
-                  val (commitId, blobId) = commitFile(
+                  commitFile(
                     repository,
                     branch,
                     path,
@@ -170,12 +170,12 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
                     data.committer.map(_.name).getOrElse(loginAccount.fullName),
                     data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
                     context.settings
-                  )
-
-                  blobId match {
-                    case None =>
+                  ) match {
+                    case Left(error) =>
+                      ApiError(s"Failed to commit a file: ${error}", None)
+                    case Right((_, None)) =>
                       ApiError("Failed to commit a file.", None)
-                    case Some(blobId) =>
+                    case Right((commitId, Some(blobId))) =>
                       Map(
                         "content" -> ApiContents(
                           "file",

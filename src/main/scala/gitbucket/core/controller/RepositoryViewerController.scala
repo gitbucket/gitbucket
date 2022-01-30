@@ -329,50 +329,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/upload", uploadForm)(writableUsersOnly { (form, repository) =>
-    context.withLoginAccount {
-      loginAccount =>
-        val files = form.uploadFiles
-          .split("\n")
-          .map { line =>
-            val i = line.indexOf(':')
-            CommitFile(line.substring(0, i).trim, line.substring(i + 1).trim)
-          }
-          .toSeq
-
-        val newFiles = files.map { file =>
-          file.copy(name = if (form.path.length == 0) file.name else s"${form.path}/${file.name}")
-        }
-
-        if (form.newBranch) {
-          val newBranchName = createNewBranchForPullRequest(repository, form.branch, loginAccount)
-          val objectId = _commit(newBranchName, newFiles, loginAccount)
-          val issueId =
-            createIssueAndPullRequest(
-              repository,
-              form.branch,
-              newBranchName,
-              form.commit,
-              objectId.name,
-              form.message,
-              loginAccount
-            )
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          _commit(form.branch, newFiles, loginAccount)
-          if (form.path.length == 0) {
-            redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}")
-          } else {
-            redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}/${form.path}")
-          }
-        }
-    }
-
     def _commit(
       branchName: String,
       //files: Seq[CommitFile],
       newFiles: Seq[CommitFile],
       loginAccount: Account
-    ): ObjectId = {
+    ): Either[String, ObjectId] = {
       commitFiles(
         repository = repository,
         branch = branchName,
@@ -398,6 +360,52 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             builder.finish()
           }
       }
+    }
+
+    context.withLoginAccount {
+      loginAccount =>
+        val files = form.uploadFiles
+          .split("\n")
+          .map { line =>
+            val i = line.indexOf(':')
+            CommitFile(line.substring(0, i).trim, line.substring(i + 1).trim)
+          }
+          .toSeq
+
+        val newFiles = files.map { file =>
+          file.copy(name = if (form.path.length == 0) file.name else s"${form.path}/${file.name}")
+        }
+
+        if (form.newBranch) {
+          val newBranchName = createNewBranchForPullRequest(repository, form.branch, loginAccount)
+          _commit(newBranchName, newFiles, loginAccount) match {
+            case Right(objectId) =>
+              val issueId =
+                createIssueAndPullRequest(
+                  repository,
+                  form.branch,
+                  newBranchName,
+                  form.commit,
+                  objectId.name,
+                  form.message,
+                  loginAccount
+                )
+              redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
+        } else {
+          _commit(form.branch, newFiles, loginAccount) match {
+            case Right(_) =>
+              if (form.path.length == 0) {
+                redirect(s"/${repository.owner}/${repository.name}/tree/${encodeRefName(form.branch)}")
+              } else {
+                redirect(
+                  s"/${repository.owner}/${repository.name}/tree/${encodeRefName(form.branch)}/${encodeRefName(form.path)}"
+                )
+              }
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
+        }
     }
   })
 
@@ -456,32 +464,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/create", editorForm)(writableUsersOnly { (form, repository) =>
-    context.withLoginAccount {
-      loginAccount =>
-        if (form.newBranch) {
-          val newBranchName = createNewBranchForPullRequest(repository, form.branch, loginAccount)
-          val objectId = _commit(newBranchName, loginAccount)
-          val issueId =
-            createIssueAndPullRequest(
-              repository,
-              form.branch,
-              newBranchName,
-              form.commit,
-              objectId.name,
-              form.message,
-              loginAccount
-            )
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-        } else {
-          _commit(form.branch, loginAccount)
-          redirect(
-            s"/${repository.owner}/${repository.name}/blob/${form.branch}/${if (form.path.length == 0) urlEncode(form.newFileName)
-            else s"${form.path}/${urlEncode(form.newFileName)}"}"
-          )
-        }
-    }
-
-    def _commit(branchName: String, loginAccount: Account): ObjectId = {
+    def _commit(branchName: String, loginAccount: Account): Either[String, ObjectId] = {
       commitFile(
         repository = repository,
         branch = branchName,
@@ -494,37 +477,48 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         commit = form.commit,
         loginAccount = loginAccount,
         settings = context.settings
-      )._1
+      ).map(_._1)
     }
-  })
 
-  post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
         if (form.newBranch) {
           val newBranchName = createNewBranchForPullRequest(repository, form.branch, loginAccount)
-          val objectId = _commit(newBranchName, loginAccount)
-          val issueId =
-            createIssueAndPullRequest(
-              repository,
-              form.branch,
-              newBranchName,
-              form.commit,
-              objectId.name,
-              form.message,
-              loginAccount
-            )
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+          _commit(newBranchName, loginAccount) match {
+            case Right(objectId) =>
+              val issueId =
+                createIssueAndPullRequest(
+                  repository,
+                  form.branch,
+                  newBranchName,
+                  form.commit,
+                  objectId.name,
+                  form.message,
+                  loginAccount
+                )
+              redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
         } else {
-          _commit(form.branch, loginAccount)
-          redirect(
-            s"/${repository.owner}/${repository.name}/blob/${urlEncode(form.branch)}/${if (form.path.length == 0) urlEncode(form.newFileName)
-            else s"${form.path}/${urlEncode(form.newFileName)}"}"
-          )
+          _commit(form.branch, loginAccount) match {
+            case Right(_) =>
+              if (form.path.length == 0) {
+                redirect(
+                  s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${urlEncode(form.newFileName)}"
+                )
+              } else {
+                redirect(
+                  s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.path)}/${urlEncode(form.newFileName)}"
+                )
+              }
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
         }
     }
+  })
 
-    def _commit(branchName: String, loginAccount: Account): ObjectId = {
+  post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
+    def _commit(branchName: String, loginAccount: Account): Either[String, ObjectId] = {
       commitFile(
         repository = repository,
         branch = branchName,
@@ -541,37 +535,48 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         commit = form.commit,
         loginAccount = loginAccount,
         settings = context.settings
-      )._1
+      ).map(_._1)
     }
-  })
 
-  post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
         if (form.newBranch) {
           val newBranchName = createNewBranchForPullRequest(repository, form.branch, loginAccount)
-          val objectId = _commit(newBranchName, loginAccount)
-          val issueId =
-            createIssueAndPullRequest(
-              repository,
-              form.branch,
-              newBranchName,
-              form.commit,
-              objectId.name,
-              form.message,
-              loginAccount
-            )
-          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+          _commit(newBranchName, loginAccount) match {
+            case Right(objectId) =>
+              val issueId =
+                createIssueAndPullRequest(
+                  repository,
+                  form.branch,
+                  newBranchName,
+                  form.commit,
+                  objectId.name,
+                  form.message,
+                  loginAccount
+                )
+              redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
         } else {
-          _commit(form.branch, loginAccount)
-          redirect(
-            s"/${repository.owner}/${repository.name}/tree/${form.branch}${if (form.path.length == 0) ""
-            else "/" + form.path}"
-          )
+          _commit(form.branch, loginAccount) match {
+            case Right(_) =>
+              if (form.path.length == 0) {
+                redirect(
+                  s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${urlEncode(form.newFileName)}"
+                )
+              } else {
+                redirect(
+                  s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.path)}/${urlEncode(form.newFileName)}"
+                )
+              }
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
         }
     }
+  })
 
-    def _commit(branchName: String, loginAccount: Account): ObjectId = {
+  post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
+    def _commit(branchName: String, loginAccount: Account): Either[String, ObjectId] = {
       commitFile(
         repository = repository,
         branch = branchName,
@@ -584,7 +589,41 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         commit = form.commit,
         loginAccount = loginAccount,
         settings = context.settings
-      )._1
+      ).map(_._1)
+    }
+
+    context.withLoginAccount {
+      loginAccount =>
+        if (form.newBranch) {
+          val newBranchName = createNewBranchForPullRequest(repository, form.branch, loginAccount)
+          _commit(newBranchName, loginAccount) match {
+            case Right(objectId) =>
+              val issueId =
+                createIssueAndPullRequest(
+                  repository,
+                  form.branch,
+                  newBranchName,
+                  form.commit,
+                  objectId.name,
+                  form.message,
+                  loginAccount
+                )
+              redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
+        } else {
+          _commit(form.branch, loginAccount) match {
+            case Right(_) =>
+              if (form.path.length == 0) {
+                redirect(s"/${repository.owner}/${repository.name}/tree/${encodeRefName(form.branch)}")
+              } else {
+                redirect(
+                  s"/${repository.owner}/${repository.name}/tree/${encodeRefName(form.branch)}/${encodeRefName(form.path)}"
+                )
+              }
+            case Left(error) => Forbidden(gitbucket.core.html.error(error))
+          }
+        }
     }
   })
 

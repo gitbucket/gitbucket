@@ -36,10 +36,10 @@ trait RepositoryCommitFileService {
     settings: SystemSettings
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit
-  )(implicit s: Session, c: JsonFormat.Context): ObjectId = {
+  )(implicit s: Session, c: JsonFormat.Context): Either[String, ObjectId] = {
     _createFiles(repository, branch, message, loginAccount, loginAccount.fullName, loginAccount.mailAddress, settings)(
       f
-    )._1
+    ).map(_._1)
   }
 
   /**
@@ -58,7 +58,7 @@ trait RepositoryCommitFileService {
     commit: String,
     loginAccount: Account,
     settings: SystemSettings
-  )(implicit s: Session, c: JsonFormat.Context): (ObjectId, Option[ObjectId]) = {
+  )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, Option[ObjectId])] = {
     commitFile(
       repository,
       branch,
@@ -92,7 +92,7 @@ trait RepositoryCommitFileService {
     committerName: String,
     committerMailAddress: String,
     settings: SystemSettings
-  )(implicit s: Session, c: JsonFormat.Context): (ObjectId, Option[ObjectId]) = {
+  )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, Option[ObjectId])] = {
 
     val newPath = newFileName.map { newFileName =>
       if (path.length == 0) newFileName else s"${path}/${newFileName}"
@@ -141,7 +141,7 @@ trait RepositoryCommitFileService {
     settings: SystemSettings
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
-  )(implicit s: Session, c: JsonFormat.Context): (ObjectId, R) = {
+  )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, R)] = {
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
@@ -177,11 +177,11 @@ trait RepositoryCommitFileService {
         error match {
           case Some(error) =>
             // commit is rejected
-            // TODO Notify commit failure to edited user
             val refUpdate = git.getRepository.updateRef(headName)
             refUpdate.setNewObjectId(headTip)
             refUpdate.setForceUpdate(true)
             refUpdate.update()
+            Left(error)
 
           case None =>
             // update refs
@@ -242,8 +242,8 @@ trait RepositoryCommitFileService {
                 )
               }
             }
+            Right((commitId, result))
         }
-        (commitId, result)
       }
     }
   }
