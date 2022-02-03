@@ -1,14 +1,14 @@
 # Changelog
 All changes to the project will be documented in this file.
 
-### 4.37.2 - 16 Jan 2022
+## 4.37.2 - 16 Jan 2022
 - Security fix
 
-### 4.37.1 - 14 Dec 2021
+## 4.37.1 - 14 Dec 2021
 - Update gist-plugin and notification-plugin
 - Fix SSHCommand extension point for apache-sshd 2.x
 
-### 4.37.0 - 11 Dec 2021
+## 4.37.0 - 11 Dec 2021
 - Enhance Git Reference APIs
 - Add milestone data to issue list API
 - Support "all" in issue list API
@@ -17,32 +17,32 @@ All changes to the project will be documented in this file.
 - Relax max passward length limitation
 - Relax max webhook url length limitation
 
-### 4.36.2 - 16 Aug 2021
+## 4.36.2 - 16 Aug 2021
 - Escape user name in avatar image tag
 
-### 4.36.1 - 22 Jul 2021
+## 4.36.1 - 22 Jul 2021
 - Bump gitbucket-gist-plugin to 4.21.0
 
-### 4.36.0 - 17 Jul 2021
+## 4.36.0 - 17 Jul 2021
 - Tag selector in the repository viewer
 - Link issues/pull requests of other repositories
 - Files and lines can be linked in the diff view
 - Option to disable XSS protection
 
-### 4.35.3 - 14 Jan 2021
+## 4.35.3 - 14 Jan 2021
 - Fix a bug that Wiki page cannot be deleted
 - Fix a deployment issue on Tomcat
 
-### 4.35.2 - 30 Dec 2020
+## 4.35.2 - 30 Dec 2020
 - Upgrade gitbucket-notifications-plugin to 1.10.0
 - Upgrade oauth2-oidc-sdk to 8.29.1 to solve dependency issue
 
-### 4.35.1 - 29 Dec 2020
+## 4.35.1 - 29 Dec 2020
 - Fix database migration issue which happens if webhook is configured
 - Call push webhook when pull request is merged
 - Show commit status at commits tab of pull request
 
-### 4.35.0 - 25 Dec 2020
+## 4.35.0 - 25 Dec 2020
 - Editor and source viewer color theme
 - Auto completion for issues and pull requests
 - Upload image from clipboard
