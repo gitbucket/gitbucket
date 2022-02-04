@@ -64,7 +64,7 @@ Support
 What's New in 4.37.x
 -------------
 ### 4.37.2 - 16 Jan 2022
-- Security fix
+- Fixed a security issue reported by [Positive Technologies](https://www.ptsecurity.com/ww-en/). Great thanks for their detailed report and close support!
 
 ### 4.37.1 - 14 Dec 2021
 - Update gist-plugin and notification-plugin
