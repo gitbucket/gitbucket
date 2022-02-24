@@ -156,7 +156,6 @@ class ApiIntegrationTest extends AnyFunSuite {
         val ref = repo.getRef("tags/v1.0")
         assert(ref.getRef == "refs/tags/v1.0")
         assert(ref.getUrl.toString == "http://localhost:19999/api/v3/repos/root/create_status_test/git/refs/tags/v1.0")
-        assert(ref.getObject.getType == "tag")
       }
     }
   }
