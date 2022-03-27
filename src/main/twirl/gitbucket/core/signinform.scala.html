@@ -24,6 +24,9 @@
           <label for="password">Password:</label>
           <span id="error-password" class="error"></span>
           <input type="password" name="password" id="password" class="form-control" value="@password"/>
+          @if(systemSettings.basicBehavior.allowResetPassword){
+            <a href="@context.path/reset">Forgot password?</a>
+          }
         </div>
         <input type="hidden" name="hash"/>
         <div>
@@ -33,11 +36,11 @@
     </li>
   </ul>
 </div>
-@if(systemSettings.allowAccountRegistration){
+@if(systemSettings.basicBehavior.allowAccountRegistration){
   <div class="panel panel-default">
     <ul class="list-group list-group-flush">
       <li class="list-group-item text-center">
-        Don't have an account? <a href="@context.path/register">Create one.</a>
+        <a href="@context.path/register">Create account</a>
       </li>
     </ul>
   </div>

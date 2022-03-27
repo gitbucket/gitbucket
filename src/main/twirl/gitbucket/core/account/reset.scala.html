@@ -1,0 +1,16 @@
+@()(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Reset your password"){
+  <div class="content-wrapper main-center">
+    <div class="content body">
+      <h2>Reset your password</h2>
+      <form action="@context.path/reset" method="POST" validate="true" autocomplete="off">
+        <fieldset class="form-group">
+          Enter your email address to reset your password.
+          <input type="text" name="mailAddress" id="mailAddress" class="form-control" value=""  value="" style="max-width: 400px;"/>
+          <span id="error-mailAddress" class="error"></span>
+        </fieldset>
+        <input type="submit" class="btn btn-success" value="Submit"/>
+      </form>
+    </div>
+  </div>
+}

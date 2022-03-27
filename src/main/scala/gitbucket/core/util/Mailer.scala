@@ -41,7 +41,7 @@ class Mailer(settings: SystemSettings) {
     htmlMsg: Option[String] = None,
     loginAccount: Option[Account] = None
   ): Option[HtmlEmail] = {
-    if (settings.notification) {
+    if (settings.basicBehavior.notification) {
       settings.smtp.map { smtp =>
         val email = new HtmlEmail
         email.setHostName(smtp.host)

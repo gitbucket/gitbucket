@@ -29,7 +29,7 @@ trait PreProcessControllerBase extends ControllerBase {
    * If anonymous access is allowed, pass all requests.
    * But if it's not allowed, demands authentication except some paths.
    */
-  get(!context.settings.allowAnonymousAccess, context.loginAccount.isEmpty) {
+  get(!context.settings.basicBehavior.allowAnonymousAccess, context.loginAccount.isEmpty) {
     if (!context.currentPath.startsWith("/assets") && !context.currentPath.startsWith("/signin") &&
         !context.currentPath.startsWith("/register") && !context.currentPath.endsWith("/info/refs") &&
         !context.currentPath.startsWith("/plugin-assets") &&

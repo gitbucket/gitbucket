@@ -108,12 +108,27 @@
 <label class="strong">Account registration</label>
 <fieldset>
   <label class="radio">
-    <input type="radio" name="allowAccountRegistration" value="true"@if(context.settings.allowAccountRegistration){ checked}>
+    <input type="radio" name="basicBehavior.allowAccountRegistration" value="true"@if(context.settings.basicBehavior.allowAccountRegistration){ checked}>
     <span class="strong">Allow</span> <span class="normal">- Users can create accounts by themselves.</span>
   </label>
   <label class="radio">
-    <input type="radio" name="allowAccountRegistration" value="false"@if(!context.settings.allowAccountRegistration){ checked}>
+    <input type="radio" name="basicBehavior.allowAccountRegistration" value="false"@if(!context.settings.basicBehavior.allowAccountRegistration){ checked}>
     <span class="strong">Deny</span> <span class="normal">- Only administrators can create accounts.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Reset password -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Reset password</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowResetPassword" value="true"@if(context.settings.basicBehavior.allowResetPassword){ checked}>
+    <span class="strong">Allow</span> <span class="normal">- Allow users to reset password. (SMTP setting is required)</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowResetPassword" value="false"@if(!context.settings.basicBehavior.allowResetPassword){ checked}>
+    <span class="strong">Deny</span> <span class="normal">- Doesn't allow users to reset password.</span>
   </label>
 </fieldset>
 <!--====================================================================-->
@@ -126,11 +141,11 @@
     <label class="control-label col-md-2">Create</label>
     <div class="col-md-10">
       <label class="radio">
-        <input type="radio" name="repositoryOperation.create" value="true"@if(context.settings.repositoryOperation.create){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.create" value="true"@if(context.settings.basicBehavior.repositoryOperation.create){ checked}>
         <span class="strong">All users</span> <span class="normal">- All users can create repository.</span>
       </label>
       <label class="radio">
-        <input type="radio" name="repositoryOperation.create" value="false"@if(!context.settings.repositoryOperation.create){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.create" value="false"@if(!context.settings.basicBehavior.repositoryOperation.create){ checked}>
         <span class="strong">Admin only</span> <span class="normal">- Only administrators can create repository.</span>
       </label>
     </div>
@@ -139,11 +154,11 @@
     <label class="control-label col-md-2">Delete</label>
     <div class="col-md-10">
       <label class="radio">
-        <input type="radio" name="repositoryOperation.delete" value="true"@if(context.settings.repositoryOperation.delete){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.delete" value="true"@if(context.settings.basicBehavior.repositoryOperation.delete){ checked}>
         <span class="strong">All users</span> <span class="normal">- All users can delete repository.</span>
       </label>
       <label class="radio">
-        <input type="radio" name="repositoryOperation.delete" value="false"@if(!context.settings.repositoryOperation.delete){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.delete" value="false"@if(!context.settings.basicBehavior.repositoryOperation.delete){ checked}>
         <span class="strong">Admin only</span> <span class="normal">- Only administrators can delete repository.</span>
       </label>
     </div>
@@ -152,11 +167,11 @@
     <label class="control-label col-md-2">Rename</label>
     <div class="col-md-10">
       <label class="radio">
-        <input type="radio" name="repositoryOperation.rename" value="true"@if(context.settings.repositoryOperation.rename){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.rename" value="true"@if(context.settings.basicBehavior.repositoryOperation.rename){ checked}>
         <span class="strong">All users</span> <span class="normal">- All users can rename repository.</span>
       </label>
       <label class="radio">
-        <input type="radio" name="repositoryOperation.rename" value="false"@if(!context.settings.repositoryOperation.rename){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.rename" value="false"@if(!context.settings.basicBehavior.repositoryOperation.rename){ checked}>
         <span class="strong">Admin only</span> <span class="normal">- Only administrators can rename repository.</span>
       </label>
     </div>
@@ -165,11 +180,11 @@
     <label class="control-label col-md-2">Transfer</label>
     <div class="col-md-10">
       <label class="radio">
-        <input type="radio" name="repositoryOperation.transfer" value="true"@if(context.settings.repositoryOperation.transfer){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.transfer" value="true"@if(context.settings.basicBehavior.repositoryOperation.transfer){ checked}>
         <span class="strong">All users</span> <span class="normal">- All users can transfer repository.</span>
       </label>
       <label class="radio">
-        <input type="radio" name="repositoryOperation.transfer" value="false"@if(!context.settings.repositoryOperation.transfer){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.transfer" value="false"@if(!context.settings.basicBehavior.repositoryOperation.transfer){ checked}>
         <span class="strong">Admin only</span> <span class="normal">- Only administrators can transfer repository.</span>
       </label>
     </div>
@@ -178,11 +193,11 @@
     <label class="control-label col-md-2">Fork</label>
     <div class="col-md-10">
       <label class="radio">
-        <input type="radio" name="repositoryOperation.fork" value="true"@if(context.settings.repositoryOperation.fork){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.fork" value="true"@if(context.settings.basicBehavior.repositoryOperation.fork){ checked}>
         <span class="strong">All users</span> <span class="normal">- All users can fork repository.</span>
       </label>
       <label class="radio">
-        <input type="radio" name="repositoryOperation.fork" value="false"@if(!context.settings.repositoryOperation.fork){ checked}>
+        <input type="radio" name="basicBehavior.repositoryOperation.fork" value="false"@if(!context.settings.basicBehavior.repositoryOperation.fork){ checked}>
         <span class="strong">Admin only</span> <span class="normal">- Only administrators can fork repository.</span>
       </label>
     </div>
@@ -192,11 +207,11 @@
 <label class="strong">Default visibility when creating a new repository</label>
 <fieldset>
   <label class="radio">
-    <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
+    <input type="radio" name="basicBehavior.isCreateRepoOptionPublic" value="true"@if(context.settings.basicBehavior.isCreateRepoOptionPublic){ checked}>
     <span class="strong">Public</span> <span class="normal">- All users and guests can read the repository.</span>
   </label>
   <label class="radio">
-    <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
+    <input type="radio" name="basicBehavior.isCreateRepoOptionPublic" value="false"@if(!context.settings.basicBehavior.isCreateRepoOptionPublic){ checked}>
     <span class="strong">Private</span> <span class="normal">- Only collaborators can read the repository.</span>
   </label>
 </fieldset>
@@ -207,11 +222,11 @@
 <label class="strong">Anonymous access</label>
 <fieldset>
   <label class="radio">
-    <input type="radio" name="allowAnonymousAccess" value="true"@if(context.settings.allowAnonymousAccess){ checked}>
+    <input type="radio" name="basicBehavior.allowAnonymousAccess" value="true"@if(context.settings.basicBehavior.allowAnonymousAccess){ checked}>
     <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories and user/group profiles.</span>
   </label>
   <label class="radio">
-    <input type="radio" name="allowAnonymousAccess" value="false"@if(!context.settings.allowAnonymousAccess){ checked}>
+    <input type="radio" name="basicBehavior.allowAnonymousAccess" value="false"@if(!context.settings.basicBehavior.allowAnonymousAccess){ checked}>
     <span class="strong">Deny</span> <span class="normal">- Users must authenticate before viewing any information.</span>
   </label>
 </fieldset>
@@ -272,11 +287,11 @@
 <label><span class="strong">Show repositories in sidebar</span></label>
 <fieldset>
   <label class="radio">
-    <input type="radio" name="limitVisibleRepositories" value="false"@if(!context.settings.limitVisibleRepositories){ checked}>
+    <input type="radio" name="basicBehavior.limitVisibleRepositories" value="false"@if(!context.settings.basicBehavior.limitVisibleRepositories){ checked}>
     <span class="strong">All</span> <span class="normal">- Show all visible repositories in sidebar.</span>
   </label>
   <label class="radio">
-    <input type="radio" name="limitVisibleRepositories" value="true"@if(context.settings.limitVisibleRepositories){ checked}>
+    <input type="radio" name="basicBehavior.limitVisibleRepositories" value="true"@if(context.settings.basicBehavior.limitVisibleRepositories){ checked}>
     <span class="strong">Limited</span> <span class="normal">- Show only owned repositories in sidebar.</span>
   </label>
 </fieldset>

@@ -7,8 +7,13 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.{LDAPUtil, StringUtil}
 import StringUtil._
+import com.nimbusds.jose.{Algorithm, JWSAlgorithm, JWSHeader}
+import com.nimbusds.jose.crypto.{MACSigner, MACVerifier}
+import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+
+import java.security.SecureRandom
 
 trait AccountService {
 
@@ -337,6 +342,33 @@ trait AccountService {
     }
   }
 
+  def generateResetPasswordToken(mailAddress: String): String = {
+    val claimsSet = new JWTClaimsSet.Builder()
+      .claim("mailAddress", mailAddress)
+      .expirationTime(new java.util.Date(System.currentTimeMillis() + 10 * 1000))
+      .build()
+
+    val signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet)
+    signedJWT.sign(new MACSigner(AccountService.jwtSecretKey))
+
+    signedJWT.serialize()
+  }
+
+  def decodeResetPasswordToken(token: String): Option[String] = {
+    try {
+      val signedJWT = SignedJWT.parse(token)
+      val verifier = new MACVerifier(AccountService.jwtSecretKey)
+      if (signedJWT.verify(verifier) && new java.util.Date().before(signedJWT.getJWTClaimsSet().getExpirationTime())) {
+        Some(signedJWT.getPayload.toJSONObject.get("mailAddress").toString)
+      } else None
+    } catch {
+      case _: Exception => None
+    }
+  }
 }
 
-object AccountService extends AccountService
+object AccountService extends AccountService {
+  // 256-bit key for HS256 which must be pre-shared
+  val jwtSecretKey = new Array[Byte](32)
+  new SecureRandom().nextBytes(jwtSecretKey)
+}
