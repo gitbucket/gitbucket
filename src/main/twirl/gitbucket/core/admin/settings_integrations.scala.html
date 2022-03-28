@@ -6,7 +6,7 @@
 <label class="strong">Services</label>
 <fieldset>
   <label class="checkbox">
-    <input type="checkbox" name="gravatar"@if(context.settings.gravatar){ checked}/>
+    <input type="checkbox" name="basicBehavior.gravatar"@if(context.settings.basicBehavior.gravatar){ checked}/>
     Use Gravatar for profile images
   </label>
 </fieldset>
@@ -132,7 +132,7 @@
 <label class="strong">Notifications</label>
 <fieldset>
   <label class="checkbox" for="notification">
-    <input type="checkbox" id="notification" name="notification"@if(context.settings.notification){ checked}/>
+    <input type="checkbox" id="notification" name="basicBehavior.notification"@if(context.settings.basicBehavior.notification){ checked}/>
     Send notifications
   </label>
 </fieldset>

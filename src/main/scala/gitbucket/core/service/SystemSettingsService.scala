@@ -18,17 +18,18 @@ trait SystemSettingsService {
     val props = new java.util.Properties()
     settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
     settings.information.foreach(x => props.setProperty(Information, x))
-    props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
-    props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
-    props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
-    props.setProperty(RepositoryOperationCreate, settings.repositoryOperation.create.toString)
-    props.setProperty(RepositoryOperationDelete, settings.repositoryOperation.delete.toString)
-    props.setProperty(RepositoryOperationRename, settings.repositoryOperation.rename.toString)
-    props.setProperty(RepositoryOperationTransfer, settings.repositoryOperation.transfer.toString)
-    props.setProperty(RepositoryOperationFork, settings.repositoryOperation.fork.toString)
-    props.setProperty(Gravatar, settings.gravatar.toString)
-    props.setProperty(Notification, settings.notification.toString)
-    props.setProperty(LimitVisibleRepositories, settings.limitVisibleRepositories.toString)
+    props.setProperty(AllowAccountRegistration, settings.basicBehavior.allowAccountRegistration.toString)
+    props.setProperty(AllowResetPassword, settings.basicBehavior.allowResetPassword.toString)
+    props.setProperty(AllowAnonymousAccess, settings.basicBehavior.allowAnonymousAccess.toString)
+    props.setProperty(IsCreateRepoOptionPublic, settings.basicBehavior.isCreateRepoOptionPublic.toString)
+    props.setProperty(RepositoryOperationCreate, settings.basicBehavior.repositoryOperation.create.toString)
+    props.setProperty(RepositoryOperationDelete, settings.basicBehavior.repositoryOperation.delete.toString)
+    props.setProperty(RepositoryOperationRename, settings.basicBehavior.repositoryOperation.rename.toString)
+    props.setProperty(RepositoryOperationTransfer, settings.basicBehavior.repositoryOperation.transfer.toString)
+    props.setProperty(RepositoryOperationFork, settings.basicBehavior.repositoryOperation.fork.toString)
+    props.setProperty(Gravatar, settings.basicBehavior.gravatar.toString)
+    props.setProperty(Notification, settings.basicBehavior.notification.toString)
+    props.setProperty(LimitVisibleRepositories, settings.basicBehavior.limitVisibleRepositories.toString)
     props.setProperty(SshEnabled, settings.ssh.enabled.toString)
     settings.ssh.bindAddress.foreach { bindAddress =>
       props.setProperty(SshBindAddressHost, bindAddress.host.trim())
@@ -109,19 +110,22 @@ trait SystemSettingsService {
     SystemSettings(
       getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
       getOptionValue(props, Information, None),
-      getValue(props, AllowAccountRegistration, false),
-      getValue(props, AllowAnonymousAccess, true),
-      getValue(props, IsCreateRepoOptionPublic, true),
-      RepositoryOperation(
-        create = getValue(props, RepositoryOperationCreate, true),
-        delete = getValue(props, RepositoryOperationDelete, true),
-        rename = getValue(props, RepositoryOperationRename, true),
-        transfer = getValue(props, RepositoryOperationTransfer, true),
-        fork = getValue(props, RepositoryOperationFork, true)
+      BasicBehavior(
+        getValue(props, AllowAccountRegistration, false),
+        getValue(props, AllowResetPassword, false),
+        getValue(props, AllowAnonymousAccess, true),
+        getValue(props, IsCreateRepoOptionPublic, true),
+        RepositoryOperation(
+          create = getValue(props, RepositoryOperationCreate, true),
+          delete = getValue(props, RepositoryOperationDelete, true),
+          rename = getValue(props, RepositoryOperationRename, true),
+          transfer = getValue(props, RepositoryOperationTransfer, true),
+          fork = getValue(props, RepositoryOperationFork, true)
+        ),
+        getValue(props, Gravatar, false),
+        getValue(props, Notification, false),
+        getValue(props, LimitVisibleRepositories, false)
       ),
-      getValue(props, Gravatar, false),
-      getValue(props, Notification, false),
-      getValue(props, LimitVisibleRepositories, false),
       Ssh(
         enabled = getValue(props, SshEnabled, false),
         bindAddress = {
@@ -214,13 +218,7 @@ object SystemSettingsService {
   case class SystemSettings(
     baseUrl: Option[String],
     information: Option[String],
-    allowAccountRegistration: Boolean,
-    allowAnonymousAccess: Boolean,
-    isCreateRepoOptionPublic: Boolean,
-    repositoryOperation: RepositoryOperation,
-    gravatar: Boolean,
-    notification: Boolean,
-    limitVisibleRepositories: Boolean,
+    basicBehavior: BasicBehavior,
     ssh: Ssh,
     useSMTP: Boolean,
     smtp: Option[Smtp],
@@ -263,6 +261,17 @@ object SystemSettingsService {
     def sshUrl(owner: String, name: String): Option[String] =
       ssh.getUrl(owner: String, name: String)
   }
+
+  case class BasicBehavior(
+    allowAccountRegistration: Boolean,
+    allowResetPassword: Boolean,
+    allowAnonymousAccess: Boolean,
+    isCreateRepoOptionPublic: Boolean,
+    repositoryOperation: RepositoryOperation,
+    gravatar: Boolean,
+    notification: Boolean,
+    limitVisibleRepositories: Boolean,
+  )
 
   case class RepositoryOperation(
     create: Boolean,
@@ -383,6 +392,7 @@ object SystemSettingsService {
   private val BaseURL = "base_url"
   private val Information = "information"
   private val AllowAccountRegistration = "allow_account_registration"
+  private val AllowResetPassword = "allow_reset_password"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
   private val RepositoryOperationCreate = "repository_operation_create"

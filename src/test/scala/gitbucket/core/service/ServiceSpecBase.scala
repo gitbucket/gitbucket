@@ -8,11 +8,18 @@ import liquibase.database.jvm.JdbcConnection
 import gitbucket.core.model._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.commons.io.FileUtils
+
 import java.sql.DriverManager
 import java.io.File
-
 import gitbucket.core.controller.Context
-import gitbucket.core.service.SystemSettingsService.{RepositoryOperation, RepositoryViewerSettings, Ssh, SystemSettings}
+import gitbucket.core.service.SystemSettingsService.{
+  BasicBehavior,
+  RepositoryOperation,
+  RepositoryViewerSettings,
+  Ssh,
+  SystemSettings
+}
+
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 import org.mockito.Mockito._
 
@@ -32,19 +39,22 @@ trait ServiceSpecBase {
     SystemSettings(
       baseUrl = None,
       information = None,
-      allowAccountRegistration = false,
-      allowAnonymousAccess = true,
-      isCreateRepoOptionPublic = true,
-      repositoryOperation = RepositoryOperation(
-        create = true,
-        delete = true,
-        rename = true,
-        transfer = true,
-        fork = true
+      basicBehavior = BasicBehavior(
+        allowAccountRegistration = false,
+        allowResetPassword = false,
+        allowAnonymousAccess = true,
+        isCreateRepoOptionPublic = true,
+        repositoryOperation = RepositoryOperation(
+          create = true,
+          delete = true,
+          rename = true,
+          transfer = true,
+          fork = true
+        ),
+        gravatar = false,
+        notification = false,
+        limitVisibleRepositories = false,
       ),
-      gravatar = false,
-      notification = false,
-      limitVisibleRepositories = false,
       ssh = Ssh(
         enabled = false,
         bindAddress = None,

@@ -1,0 +1,17 @@
+@(token: String)(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Reset your password"){
+  <div class="content-wrapper main-center">
+    <div class="content body">
+      <h2>Reset your password</h2>
+      <form action="@context.path/reset/form" method="POST" validate="true" autocomplete="off">
+        <fieldset class="form-group">
+          Enter new password:
+          <input type="password" name="password" id="password" class="form-control" value="" style="max-width: 400px;"/>
+          <span id="error-password" class="error"></span>
+        </fieldset>
+        <input type="submit" class="btn btn-success" value="Submit"/>
+        <input type="hidden" name="token" id="token" value="@token"/>
+      </form>
+    </div>
+  </div>
+}

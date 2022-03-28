@@ -40,7 +40,7 @@ trait DashboardControllerBase extends ControllerBase {
         context.loginAccount,
         None,
         withoutPhysicalInfo = true,
-        limit = context.settings.limitVisibleRepositories
+        limit = context.settings.basicBehavior.limitVisibleRepositories
       )
       html.repos(getGroupNames(loginAccount.userName), repos, repos)
     }
@@ -129,7 +129,7 @@ trait DashboardControllerBase extends ControllerBase {
         context.loginAccount,
         None,
         withoutPhysicalInfo = true,
-        limit = context.settings.limitVisibleRepositories
+        limit = context.settings.basicBehavior.limitVisibleRepositories
       )
     )
   }
@@ -171,7 +171,7 @@ trait DashboardControllerBase extends ControllerBase {
         context.loginAccount,
         None,
         withoutPhysicalInfo = true,
-        limit = context.settings.limitVisibleRepositories
+        limit = context.settings.basicBehavior.limitVisibleRepositories
       )
     )
   }

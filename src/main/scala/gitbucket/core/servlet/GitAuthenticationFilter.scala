@@ -98,29 +98,30 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
         Database() withSession { implicit session =>
           getRepository(repositoryOwner, repositoryName.replaceFirst("(\\.wiki)?\\.git$", "")) match {
             case Some(repository) => {
-              val execute = if (!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess) {
-                // Authentication is not required
-                true
-              } else {
-                // Authentication is required
-                val passed = for {
-                  authorizationHeader <- Option(request.getHeader("Authorization"))
-                  account <- authenticateByHeader(authorizationHeader, settings)
-                } yield
-                  if (isUpdating) {
-                    if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
-                      request.setAttribute(Keys.Request.UserName, account.userName)
-                      request.setAttribute(Keys.Request.RepositoryLockKey, s"${repository.owner}/${repository.name}")
-                      true
-                    } else false
-                  } else if (repository.repository.isPrivate) {
-                    if (hasGuestRole(repository.owner, repository.name, Some(account))) {
-                      request.setAttribute(Keys.Request.UserName, account.userName)
-                      true
-                    } else false
-                  } else true
-                passed.getOrElse(false)
-              }
+              val execute =
+                if (!isUpdating && !repository.repository.isPrivate && settings.basicBehavior.allowAnonymousAccess) {
+                  // Authentication is not required
+                  true
+                } else {
+                  // Authentication is required
+                  val passed = for {
+                    authorizationHeader <- Option(request.getHeader("Authorization"))
+                    account <- authenticateByHeader(authorizationHeader, settings)
+                  } yield
+                    if (isUpdating) {
+                      if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
+                        request.setAttribute(Keys.Request.UserName, account.userName)
+                        request.setAttribute(Keys.Request.RepositoryLockKey, s"${repository.owner}/${repository.name}")
+                        true
+                      } else false
+                    } else if (repository.repository.isPrivate) {
+                      if (hasGuestRole(repository.owner, repository.name, Some(account))) {
+                        request.setAttribute(Keys.Request.UserName, account.userName)
+                        true
+                      } else false
+                    } else true
+                  passed.getOrElse(false)
+                }
 
               if (execute) { () =>
                 chain.doFilter(request, response)

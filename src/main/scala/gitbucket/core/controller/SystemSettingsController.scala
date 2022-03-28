@@ -34,19 +34,22 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   private val form = mapping(
     "baseUrl" -> trim(label("Base URL", optional(text()))),
     "information" -> trim(label("Information", optional(text()))),
-    "allowAccountRegistration" -> trim(label("Account registration", boolean())),
-    "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
-    "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
-    "repositoryOperation" -> mapping(
-      "create" -> trim(label("Allow all users to create repository", boolean())),
-      "delete" -> trim(label("Allow all users to delete repository", boolean())),
-      "rename" -> trim(label("Allow all users to rename repository", boolean())),
-      "transfer" -> trim(label("Allow all users to transfer repository", boolean())),
-      "fork" -> trim(label("Allow all users to fork repository", boolean()))
-    )(RepositoryOperation.apply),
-    "gravatar" -> trim(label("Gravatar", boolean())),
-    "notification" -> trim(label("Notification", boolean())),
-    "limitVisibleRepositories" -> trim(label("limitVisibleRepositories", boolean())),
+    "basicBehavior" -> mapping(
+      "allowAccountRegistration" -> trim(label("Account registration", boolean())),
+      "allowResetPassword" -> trim(label("Reset password", boolean())),
+      "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
+      "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
+      "repositoryOperation" -> mapping(
+        "create" -> trim(label("Allow all users to create repository", boolean())),
+        "delete" -> trim(label("Allow all users to delete repository", boolean())),
+        "rename" -> trim(label("Allow all users to rename repository", boolean())),
+        "transfer" -> trim(label("Allow all users to transfer repository", boolean())),
+        "fork" -> trim(label("Allow all users to fork repository", boolean()))
+      )(RepositoryOperation.apply),
+      "gravatar" -> trim(label("Gravatar", boolean())),
+      "notification" -> trim(label("Notification", boolean())),
+      "limitVisibleRepositories" -> trim(label("limitVisibleRepositories", boolean())),
+    )(BasicBehavior.apply),
     "ssh" -> mapping(
       "enabled" -> trim(label("SSH access", boolean())),
       "bindAddress" -> mapping(
@@ -334,7 +337,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
     try {
-      new Mailer(context.settings.copy(smtp = Some(form.smtp), notification = true)).send(
+      new Mailer(
+        context.settings.copy(
+          smtp = Some(form.smtp),
+          basicBehavior = context.settings.basicBehavior.copy(notification = true)
+        )
+      ).send(
         to = form.testAddress,
         subject = "Test message from GitBucket",
         textMsg = "This is a test message from GitBucket.",

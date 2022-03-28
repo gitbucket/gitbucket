@@ -69,7 +69,7 @@ trait IndexControllerBase extends ControllerBase {
             Some(account),
             None,
             withoutPhysicalInfo = true,
-            limit = context.settings.limitVisibleRepositories
+            limit = context.settings.basicBehavior.limitVisibleRepositories
           ),
           showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
             account.userName
@@ -289,11 +289,11 @@ trait IndexControllerBase extends ControllerBase {
         context.loginAccount,
         None,
         withoutPhysicalInfo = true,
-        limit = context.settings.limitVisibleRepositories
+        limit = context.settings.basicBehavior.limitVisibleRepositories
       )
 
     val repositories = {
-      context.settings.limitVisibleRepositories match {
+      context.settings.basicBehavior.limitVisibleRepositories match {
         case true =>
           getVisibleRepositories(
             context.loginAccount,
