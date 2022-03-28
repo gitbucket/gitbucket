@@ -136,6 +136,8 @@ public class JettyLauncher {
         }
         if (jettyIdleTimeout != null && jettyIdleTimeout.trim().length() != 0) {
             httpConfig.setIdleTimeout(Long.parseLong(jettyIdleTimeout.trim()));
+        } else {
+            httpConfig.setIdleTimeout(300000L); // default is 5min
         }
 
         if (connectorsSet.contains(Connectors.HTTP)) {
