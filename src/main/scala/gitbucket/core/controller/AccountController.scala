@@ -693,7 +693,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       decodeResetPasswordToken(form.token)
         .flatMap { mailAddress =>
           getAccountByMailAddress(mailAddress).map { account =>
-            updateAccount(account.copy(password = form.password))
+            updateAccount(account.copy(password = pbkdf2_sha256(form.password)))
             html.resetcomplete()
           }
         }
