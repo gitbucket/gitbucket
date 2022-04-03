@@ -1,3 +1,4 @@
+@import org.json4s.scalap.scalasig.ClassFileParser.field
 @(issue: Option[gitbucket.core.model.Issue],
   comments: List[gitbucket.core.model.Comment],
   issueLabels: List[gitbucket.core.model.Label],
@@ -6,6 +7,7 @@
   priorities: List[gitbucket.core.model.Priority],
   defaultPriority: Option[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
+  customFields: List[(gitbucket.core.model.CustomField, Option[gitbucket.core.model.IssueCustomField])],
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -147,6 +149,25 @@
 @if(issue.isEmpty){
   <input type="hidden" name="assignedUserName" value=""/>
 }
+
+@customFields.map { case (field, value) =>
+  <hr/>
+  <div style="margin-bottom: 14px;">
+    <span class="muted small strong">@field.fieldName</span>
+    <div class="pull-right">
+      @gitbucket.core.model.CustomFieldBehavior(field.fieldType).map { behavior =>
+        @if(issue.nonEmpty) {
+          @Html(behavior.fieldHtml(repository, issue.get.issueId, field.fieldId, value.map(_.value).getOrElse(""), isManageable))
+        }
+        @if(issue.isEmpty) {
+          @Html(behavior.createHtml(repository, field.fieldId))
+        }
+      }
+    </div>
+  </div>
+  <span id="custom-field-@field.fieldId-error" class="error custom-field-error"></span>
+}
+
 @issue.map { issue =>
   @gitbucket.core.plugin.PluginRegistry().getIssueSidebars.map { sidebarComponent =>
     @sidebarComponent(issue, repository, context)
@@ -167,7 +188,7 @@
 $(function(){
 @issue.map { issue =>
   $('a.toggle-label').click(function(){
-    var path = switchLabel($(this));
+    const path = switchLabel($(this));
     $.post('@helpers.url(repository)/issues/@issue.issueId/label/' + path,
       { labelId : $(this).data('label-id') },
       function(data){
@@ -178,8 +199,8 @@ $(function(){
   });
 
   $('a.milestone').click(function(){
-    var title = $(this).data('title');
-    var milestoneId = $(this).data('id');
+    const title = $(this).data('title');
+    const milestoneId = $(this).data('id');
     $.post('@helpers.url(repository)/issues/@issue.issueId/milestone',
       { milestoneId: milestoneId },
       function(data){
@@ -189,11 +210,11 @@ $(function(){
   });
 
   $('a.priority').click(function(){
-    var priorityName = $(this).data('name');
-    var priorityId = $(this).data('id');
-    var description = $(this).attr('title');
-    var color = $(this).data('color');
-    var fontColor = $(this).data('font-color');
+    const priorityName = $(this).data('name');
+    const priorityId = $(this).data('id');
+    const description = $(this).attr('title');
+    const color = $(this).data('color');
+    const fontColor = $(this).data('font-color');
     $.post('@helpers.url(repository)/issues/@issue.issueId/priority',
       { priorityId: priorityId },
       function(data){
@@ -203,8 +224,8 @@ $(function(){
   });
 
   $('a.assign').click(function(){
-    var $this = $(this);
-    var userName = $this.data('name');
+    const $this = $(this);
+    const userName = $this.data('name');
     $.post('@helpers.url(repository)/issues/@issue.issueId/assign',
       { assignedUserName: userName },
       function(){
@@ -215,7 +236,7 @@ $(function(){
 }.getOrElse {
   $('a.toggle-label').click(function(){
     switchLabel($(this));
-    var labelNames = Array();
+    const labelNames = Array();
     $('a.toggle-label').each(function(i, e){
       if($(e).children('i').hasClass('octicon-check') == true){
         labelNames.push($(e).text().trim());
@@ -232,32 +253,32 @@ $(function(){
   });
 
   $('a.milestone').click(function(){
-    var title = $(this).data('title');
-    var milestoneId = $(this).data('id');
+    const title = $(this).data('title');
+    const milestoneId = $(this).data('id');
     displayMilestone(title, milestoneId);
     $('input[name=milestoneId]').val(milestoneId);
   });
 
   $('a.priority').click(function(){
-    var priorityName = $(this).data('name');
-    var priorityId = $(this).data('id');
-    var description = $(this).attr('title');
-    var color = $(this).data('color');
-    var fontColor = $(this).data('font-color');
+    const priorityName = $(this).data('name');
+    const priorityId = $(this).data('id');
+    const description = $(this).attr('title');
+    const color = $(this).data('color');
+    const fontColor = $(this).data('font-color');
     displayPriority(priorityName, priorityId, description, color, fontColor);
     $('input[name=priorityId]').val(priorityId);
   });
 
   $('a.assign').click(function(){
-    var $this = $(this);
-    var userName = $this.data('name');
+    const $this = $(this);
+    const userName = $this.data('name');
     displayAssignee($this, userName);
     $('input[name=assignedUserName]').val(userName);
   });
 }
 
   function switchLabel($this){
-    var i = $this.children('i');
+    const i = $this.children('i');
     if(i.hasClass('octicon-check')){
       i.removeClass('octicon-check');
       return 'delete';

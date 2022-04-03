@@ -16,7 +16,8 @@
   milestones: List[gitbucket.core.model.Milestone],
   priorities: List[gitbucket.core.model.Priority],
   defaultPriority: Option[gitbucket.core.model.Priority],
-  labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
+  labels: List[gitbucket.core.model.Label],
+  customFields: List[gitbucket.core.model.CustomField])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
@@ -101,7 +102,19 @@
               </div>
             </div>
             <div class="col-md-3">
-              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), priorities, defaultPriority, labels, hasOriginWritePermission, repository)
+              @gitbucket.core.issues.html.issueinfo(
+                issue = None,
+                comments = Nil,
+                issueLabels = Nil,
+                collaborators = collaborators,
+                milestones = milestones.map((_, 0, 0)),
+                priorities = priorities,
+                defaultPriority = defaultPriority,
+                labels = labels,
+                customFields = customFields.map((_, None)),
+                isManageable = hasOriginWritePermission,
+                repository = repository
+              )
             </div>
           </div>
         </form>

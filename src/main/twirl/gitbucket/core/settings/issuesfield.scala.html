@@ -1,0 +1,28 @@
+@(customField: gitbucket.core.model.CustomField)
+<tr id="field-row-@customField.fieldId">
+  <td>
+    <div class="row" id="field-@customField.fieldId">
+      <div class="col-md-4 strong">
+        @customField.fieldName
+      </div>
+      <div class="col-md-4">
+        @customField.fieldType
+      </div>
+      <div class="col-md-2">
+        @if(customField.enableForIssues) {
+          Issues &nbsp;&nbsp;
+        }
+        @if(customField.enableForPullRequests) {
+          Pull requests
+        }
+      </div>
+      <div class="col-md-2">
+        <div class="pull-right">
+          <a href="javascript:void(0);" onclick="editField(@customField.fieldId)">Edit</a>
+            &nbsp;&nbsp;
+          <a href="javascript:void(0);" onclick="deleteField(@customField.fieldId)">Delete</a>
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>

@@ -1,0 +1,55 @@
+@(customFields: List[gitbucket.core.model.CustomField],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Issues", Some(repository)) {
+  @gitbucket.core.html.menu("settings", repository) {
+    @gitbucket.core.settings.html.menu("issues", repository) {
+      <div class="pull-right" style="margin-bottom: 10px;">
+        <a class="btn btn-success" href="javascript:void(0);" id="new-field-button">New field</a>
+      </div>
+      <table class="table table-bordered table-hover table-issues" id="new-field-table" style="display: none;">
+        <tr><td></td></tr>
+      </table>
+      <table class="table table-bordered table-hover">
+        <tr id="field-row-header">
+          <th>@customFields.size custom fields</th>
+        </tr>
+        @customFields.map { customField =>
+          @gitbucket.core.settings.html.issuesfield(customField)
+        }
+      </table>
+    }
+  }
+}
+<script>
+$(function(){
+  $('#new-field-button').click(function(e){
+    if($('#edit-field-area-new').length != 0){
+      $('div#edit-field-area-new').remove();
+      $('#new-field-table').hide();
+    } else {
+      $.get('@helpers.url(repository)/settings/issues/fields/new',
+        function(data){
+          $('#new-field-table').show().find('tr td').append(data);
+        }
+      );
+    }
+  });
+});
+
+function deleteField(fieldId){
+  if(confirm('Once you delete this field, there is no going back.\nAre you sure?')){
+    $.post('@helpers.url(repository)/settings/issues/fields/' + fieldId + '/delete', function(){
+      $('tr#field-row-' + fieldId).remove();
+    });
+  }
+}
+
+function editField(fieldId){
+  $.get('@helpers.url(repository)/settings/issues/fields/' + fieldId + '/edit',
+    function(data){
+      $('#field-' + fieldId).hide().parent().append(data);
+    }
+  );
+}
+</script>

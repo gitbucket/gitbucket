@@ -12,6 +12,9 @@
       <a href="@helpers.url(repository)/settings/branches">Branches</a>
     </li>
   }
+  <li@if(active=="issues"){ class="active"}>
+    <a href="@helpers.url(repository)/settings/issues">Issues</a>
+  </li>
   <li@if(active=="hooks"){ class="active"}>
     <a href="@helpers.url(repository)/settings/hooks">Service Hooks</a>
   </li>
