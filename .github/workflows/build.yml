@@ -33,7 +33,7 @@ jobs:
     - name: Build executable
       run: sbt executable
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: gitbucket-java${{ matrix.java }}-${{ github.sha }}
         path: ./target/executable/gitbucket.*
