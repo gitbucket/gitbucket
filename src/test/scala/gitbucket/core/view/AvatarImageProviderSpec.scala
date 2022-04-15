@@ -2,12 +2,12 @@ package gitbucket.core.view
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache
 import gitbucket.core.service.SystemSettingsService.{
+  BasicBehavior,
   RepositoryOperation,
   RepositoryViewerSettings,
   Ssh,
@@ -151,19 +151,22 @@ class AvatarImageProviderSpec extends AnyFunSpec {
     SystemSettings(
       baseUrl = None,
       information = None,
-      allowAccountRegistration = false,
-      allowAnonymousAccess = true,
-      isCreateRepoOptionPublic = true,
-      repositoryOperation = RepositoryOperation(
-        create = true,
-        delete = true,
-        rename = true,
-        transfer = true,
-        fork = true
+      basicBehavior = BasicBehavior(
+        allowAccountRegistration = false,
+        allowResetPassword = false,
+        allowAnonymousAccess = true,
+        isCreateRepoOptionPublic = true,
+        repositoryOperation = RepositoryOperation(
+          create = true,
+          delete = true,
+          rename = true,
+          transfer = true,
+          fork = true
+        ),
+        gravatar = useGravatar,
+        notification = false,
+        limitVisibleRepositories = false
       ),
-      gravatar = useGravatar,
-      notification = false,
-      limitVisibleRepositories = false,
       ssh = Ssh(
         enabled = false,
         bindAddress = None,

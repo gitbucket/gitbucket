@@ -128,6 +128,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "highlighterTheme" -> trim(label("Theme", text(required)))
   )(SyntaxHighlighterThemeForm.apply)
 
+  val resetPasswordEmailForm = mapping(
+    "mailAddress" -> trim(label("Email", text(required)))
+  )(ResetPasswordEmailForm.apply)
+
+  val resetPasswordForm = mapping(
+    "token" -> trim(label("Token", text(required))),
+    "password" -> trim(label("Password", text(required, maxlength(40))))
+  )(ResetPasswordForm.apply)
+
   case class NewGroupForm(
     groupName: String,
     description: Option[String],
@@ -142,6 +151,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     fileId: Option[String],
     members: String,
     clearImage: Boolean
+  )
+  case class ResetPasswordEmailForm(
+    mailAddress: String
+  )
+  case class ResetPasswordForm(
+    token: String,
+    password: String
   )
 
   val newGroupForm = mapping(
@@ -602,7 +618,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/register") {
-    if (context.settings.allowAccountRegistration) {
+    if (context.settings.basicBehavior.allowAccountRegistration) {
       if (context.loginAccount.isDefined) {
         redirect("/")
       } else {
@@ -612,7 +628,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   post("/register", newForm) { form =>
-    if (context.settings.allowAccountRegistration) {
+    if (context.settings.basicBehavior.allowAccountRegistration) {
       createAccount(
         form.userName,
         pbkdf2_sha256(form.password),
@@ -625,6 +641,63 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       updateImage(form.userName, form.fileId, false)
       updateAccountExtraMailAddresses(form.userName, form.extraMailAddresses.filter(_ != ""))
       redirect("/signin")
+    } else NotFound()
+  }
+
+  get("/reset") {
+    if (context.settings.basicBehavior.allowResetPassword) {
+      html.reset()
+    } else NotFound()
+  }
+
+  post("/reset", resetPasswordEmailForm) { form =>
+    if (context.settings.basicBehavior.allowResetPassword) {
+      getAccountByMailAddress(form.mailAddress).foreach { account =>
+        val token = generateResetPasswordToken(form.mailAddress)
+        val mailer = new Mailer(context.settings)
+        mailer.send(
+          form.mailAddress,
+          "Reset password",
+          s"""Hello, ${account.fullName}!
+            |
+            |You requested to reset the password for your GitBucket account.
+            |If you are not sure about the request, you can ignore this email.
+            |Otherwise, click the following link to set the new password:
+            |${context.baseUrl}/reset/form/${token}
+            |""".stripMargin
+        )
+      }
+      redirect("/reset/sent")
+    } else NotFound()
+  }
+
+  get("/reset/sent") {
+    if (context.settings.basicBehavior.allowResetPassword) {
+      html.resetsent()
+    } else NotFound()
+  }
+
+  get("/reset/form/:token") {
+    if (context.settings.basicBehavior.allowResetPassword) {
+      val token = params("token")
+      decodeResetPasswordToken(token)
+        .map { _ =>
+          html.resetform(token)
+        }
+        .getOrElse(NotFound())
+    } else NotFound()
+  }
+
+  post("/reset/form", resetPasswordForm) { form =>
+    if (context.settings.basicBehavior.allowResetPassword) {
+      decodeResetPasswordToken(form.token)
+        .flatMap { mailAddress =>
+          getAccountByMailAddress(mailAddress).map { account =>
+            updateAccount(account.copy(password = pbkdf2_sha256(form.password)))
+            html.resetcomplete()
+          }
+        }
+        .getOrElse(NotFound())
     } else NotFound()
   }
 
@@ -713,7 +786,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   get("/new")(usersOnly {
     context.withLoginAccount { loginAccount =>
-      html.newrepo(getGroupsByUserName(loginAccount.userName), context.settings.isCreateRepoOptionPublic)
+      html.newrepo(getGroupsByUserName(loginAccount.userName), context.settings.basicBehavior.isCreateRepoOptionPublic)
     }
   })
 
@@ -723,7 +796,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     context.withLoginAccount {
       loginAccount =>
-        if (context.settings.repositoryOperation.create || loginAccount.isAdmin) {
+        if (context.settings.basicBehavior.repositoryOperation.create || loginAccount.isAdmin) {
           LockUtil.lock(s"${form.owner}/${form.name}") {
             if (getRepository(form.owner, form.name).isDefined) {
               // redirect to the repository if repository already exists
@@ -753,7 +826,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
     context.withLoginAccount {
       loginAccount =>
-        if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
+        if (repository.repository.options.allowFork && (context.settings.basicBehavior.repositoryOperation.fork || loginAccount.isAdmin)) {
           val loginUserName = loginAccount.userName
           val groups = getGroupsByUserName(loginUserName)
           groups match {
@@ -780,7 +853,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
-        if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
+        if (repository.repository.options.allowFork && (context.settings.basicBehavior.repositoryOperation.fork || loginAccount.isAdmin)) {
           val loginUserName = loginAccount.userName
           val accountName = form.accountName
 

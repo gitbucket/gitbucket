@@ -61,6 +61,7 @@ public class JettyLauncher {
         String redirectHttps = getEnvironmentVariable("gitbucket.redirectHttps");
         String contextPath = getEnvironmentVariable("gitbucket.prefix");
         String tmpDirPath = getEnvironmentVariable("gitbucket.tempDir");
+        String jettyIdleTimeout = getEnvironmentVariable("gitbucket.jettyIdleTimeout");
         boolean saveSessions = false;
 
         for(String arg: args) {
@@ -107,6 +108,9 @@ public class JettyLauncher {
                         case "--plugin_dir":
                             System.setProperty("gitbucket.pluginDir", dim[1]);
                             break;
+                        case "--jetty_idle_timeout":
+                            jettyIdleTimeout = dim[1];
+                            break;
                     }
                 }
             }
@@ -129,6 +133,11 @@ public class JettyLauncher {
         httpConfig.setSendServerVersion(false);
         if (connectorsSet.contains(Connectors.HTTPS)) {
             httpConfig.setSecurePort(fallback(securePort, Defaults.HTTPS_PORT, Integer::parseInt));
+        }
+        if (jettyIdleTimeout != null && jettyIdleTimeout.trim().length() != 0) {
+            httpConfig.setIdleTimeout(Long.parseLong(jettyIdleTimeout.trim()));
+        } else {
+            httpConfig.setIdleTimeout(300000L); // default is 5min
         }
 
         if (connectorsSet.contains(Connectors.HTTP)) {

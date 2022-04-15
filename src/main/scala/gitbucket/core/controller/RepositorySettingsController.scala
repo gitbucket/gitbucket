@@ -390,7 +390,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
-        if (context.settings.repositoryOperation.rename || loginAccount.isAdmin) {
+        if (context.settings.basicBehavior.repositoryOperation.rename || loginAccount.isAdmin) {
           if (repository.name != form.repositoryName) {
             // Update database and move git repository
             renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
@@ -414,7 +414,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
     context.withLoginAccount {
       loginAccount =>
-        if (context.settings.repositoryOperation.transfer || loginAccount.isAdmin) {
+        if (context.settings.basicBehavior.repositoryOperation.transfer || loginAccount.isAdmin) {
           // Change repository owner
           if (repository.owner != form.newOwner) {
             // Update database and move git repository
@@ -438,7 +438,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
     context.withLoginAccount { loginAccount =>
-      if (context.settings.repositoryOperation.delete || loginAccount.isAdmin) {
+      if (context.settings.basicBehavior.repositoryOperation.delete || loginAccount.isAdmin) {
         // Delete the repository and related files
         deleteRepository(repository.repository)
         redirect(s"/${repository.owner}")

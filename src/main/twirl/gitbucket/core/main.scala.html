@@ -104,7 +104,7 @@
                   <ul class="dropdown-menu pull-right" style="width: auto;">
                     <li>
                       <ul class="menu">
-                        @if(context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin){
+                        @if(context.settings.basicBehavior.repositoryOperation.create || context.loginAccount.get.isAdmin){
                           <li><a href="@context.path/new">New repository</a></li>
                         }
                         <li><a href="@context.path/groups/new">New group</a></li>

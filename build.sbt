@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.37.2"
 val ScalatraVersion = "2.8.2"
-val JettyVersion = "9.4.45.v20220203"
+val JettyVersion = "9.4.46.v20220331"
 val JgitVersion = "5.13.0.202109080827-r"
 
 lazy val root = (project in file("."))
@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra"                    % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion cross CrossVersion.for3Use2_13,
   "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion cross CrossVersion.for3Use2_13,
-  "org.json4s"                      %% "json4s-jackson"              % "4.0.4" cross CrossVersion.for3Use2_13,
+  "org.json4s"                      %% "json4s-jackson"              % "4.0.5" cross CrossVersion.for3Use2_13,
   "commons-io"                      % "commons-io"                   % "2.11.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.4",
   "io.github.gitbucket"             % "markedj"                      % "1.0.16",
@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.5",
-  "org.postgresql"                  % "postgresql"                   % "42.3.3",
+  "org.postgresql"                  % "postgresql"                   % "42.3.4",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.11",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                       % "1.4.2",
@@ -56,15 +56,15 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.17",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.31",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.33",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
   "org.mockito"                     % "mockito-core"                 % "4.4.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.3" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.16.3" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.16.3" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.5" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.17.1" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.17.1" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
