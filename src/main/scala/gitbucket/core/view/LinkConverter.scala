@@ -10,18 +10,30 @@ trait LinkConverter { self: RequestCache =>
   /**
    * Creates a link to the issue or the pull request from the issue id.
    */
-  protected def createIssueLink(repository: RepositoryService.RepositoryInfo, issueId: Int, title: String)(
+  protected def createIssueLink(owner: String, repository: String, issueId: Int, title: String)(
     implicit context: Context
   ): String = {
-    val userName = repository.repository.userName
-    val repositoryName = repository.repository.repositoryName
-
-    getIssueFromCache(userName, repositoryName, issueId.toString) match {
+    getIssueFromCache(owner, repository, issueId.toString) match {
       case Some(issue) =>
-        s"""<a href="${context.path}/${userName}/${repositoryName}/${if (issue.isPullRequest) "pull" else "issues"}/${issueId}"><strong>${StringUtil
+        s"""<a href="${context.path}/${owner}/${repository}/${if (issue.isPullRequest) "pull" else "issues"}/${issueId}"><strong>${StringUtil
           .escapeHtml(title)}</strong> #${issueId}</a>"""
       case None =>
         s"Unknown #${issueId}"
+    }
+  }
+
+  /**
+   * Creates a global link to the issue or the pull request from the issue id.
+   */
+  protected def createGlobalIssueLink(owner: String, repository: String, issueId: Int, title: String)(
+    implicit context: Context
+  ): String = {
+    getIssueFromCache(owner, repository, issueId.toString) match {
+      case Some(issue) =>
+        s"""<a href="${context.path}/${owner}/${repository}/${if (issue.isPullRequest) "pull" else "issues"}/${issueId}"><strong>${StringUtil
+          .escapeHtml(title)}</strong> ${owner}/${repository}#${issueId}</a>"""
+      case None =>
+        s"Unknown ${owner}/${repository}#${issueId}"
     }
   }
 

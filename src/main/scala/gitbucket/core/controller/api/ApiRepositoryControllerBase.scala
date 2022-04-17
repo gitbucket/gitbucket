@@ -8,6 +8,7 @@ import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jgit.api.Git
+import org.scalatra.Forbidden
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -15,6 +16,7 @@ import scala.util.Using
 
 trait ApiRepositoryControllerBase extends ControllerBase {
   self: RepositoryService
+    with ApiGitReferenceControllerBase
     with RepositoryCreationService
     with AccountService
     with OwnerAuthenticator
@@ -26,7 +28,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /**
    * i. List your repositories
-   * https://developer.github.com/v3/repos/#list-your-repositories
+   * https://docs.github.com/en/rest/reference/repos#list-repositories-for-the-authenticated-user
    */
   get("/api/v3/user/repos")(usersOnly {
     JsonFormat(getVisibleRepositories(context.loginAccount, Option(context.loginAccount.get.userName)).map { r =>
@@ -36,7 +38,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /**
    * ii. List user repositories
-   * https://developer.github.com/v3/repos/#list-user-repositories
+   * https://docs.github.com/en/rest/reference/repos#list-repositories-for-a-user
    */
   get("/api/v3/users/:userName/repos") {
     JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("userName"))).map { r =>
@@ -46,7 +48,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /**
    * iii. List organization repositories
-   * https://developer.github.com/v3/repos/#list-organization-repositories
+   * https://docs.github.com/en/rest/reference/repos#list-organization-repositories
    */
   get("/api/v3/orgs/:orgName/repos") {
     JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("orgName"))).map { r =>
@@ -56,7 +58,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /**
    * iv. List all public repositories
-   * https://developer.github.com/v3/repos/#list-public-repositories
+   * https://docs.github.com/en/rest/reference/repos#list-public-repositories
    */
   get("/api/v3/repositories") {
     JsonFormat(getPublicRepositories().map { r =>
@@ -66,13 +68,12 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /*
    * v. Create
-   * https://developer.github.com/v3/repos/#create
    * Implemented with two methods (user/orgs)
    */
 
   /**
    * Create user repository
-   * https://developer.github.com/v3/repos/#create
+   * https://docs.github.com/en/rest/reference/repos#create-a-repository-for-the-authenticated-user
    */
   post("/api/v3/user/repos")(usersOnly {
     val owner = context.loginAccount.get.userName
@@ -80,7 +81,12 @@ trait ApiRepositoryControllerBase extends ControllerBase {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
       LockUtil.lock(s"${owner}/${data.name}") {
-        if (getRepository(owner, data.name).isEmpty) {
+        if (getRepository(owner, data.name).isDefined) {
+          ApiError(
+            "A repository with this name already exists on this account",
+            Some("https://developer.github.com/v3/repos/#create")
+          )
+        } else {
           val f = createRepository(
             context.loginAccount.get,
             owner,
@@ -95,11 +101,6 @@ trait ApiRepositoryControllerBase extends ControllerBase {
             getRepository(owner, data.name)(session).get
           }
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
-        } else {
-          ApiError(
-            "A repository with this name already exists on this account",
-            Some("https://developer.github.com/v3/repos/#create")
-          )
         }
       }
     }) getOrElse NotFound()
@@ -107,15 +108,22 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /**
    * Create group repository
-   * https://developer.github.com/v3/repos/#create
+   * https://docs.github.com/en/rest/reference/repos#create-an-organization-repository
    */
-  post("/api/v3/orgs/:org/repos")(managersOnly {
+  post("/api/v3/orgs/:org/repos")(usersOnly {
     val groupName = params("org")
     (for {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
       LockUtil.lock(s"${groupName}/${data.name}") {
-        if (getRepository(groupName, data.name).isEmpty) {
+        if (getRepository(groupName, data.name).isDefined) {
+          ApiError(
+            "A repository with this name already exists for this group",
+            Some("https://developer.github.com/v3/repos/#create")
+          )
+        } else if (!canCreateRepository(groupName, context.loginAccount.get)) {
+          Forbidden()
+        } else {
           val f = createRepository(
             context.loginAccount.get,
             groupName,
@@ -129,11 +137,6 @@ trait ApiRepositoryControllerBase extends ControllerBase {
             getRepository(groupName, data.name).get
           }
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
-        } else {
-          ApiError(
-            "A repository with this name already exists for this group",
-            Some("https://developer.github.com/v3/repos/#create")
-          )
         }
       }
     }) getOrElse NotFound()
@@ -141,7 +144,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /*
    * vi. Get
-   * https://developer.github.com/v3/repos/#get
+   * https://docs.github.com/en/rest/reference/repos#get-a-repository
    */
   get("/api/v3/repos/:owner/:repository")(referrersOnly { repository =>
     JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(repository.owner).get)))
@@ -149,32 +152,32 @@ trait ApiRepositoryControllerBase extends ControllerBase {
 
   /*
    * vii. Edit
-   * https://developer.github.com/v3/repos/#edit
+   * https://docs.github.com/en/rest/reference/repos#update-a-repository
    */
 
   /*
    * viii. List all topics for a repository
-   * https://developer.github.com/v3/repos/#list-all-topics-for-a-repository
+   * https://docs.github.com/en/rest/reference/repos#get-all-repository-topics
    */
 
   /*
    * ix. Replace all topics for a repository
-   * https://developer.github.com/v3/repos/#replace-all-topics-for-a-repository
+   * https://docs.github.com/en/rest/reference/repos#replace-all-repository-topics
    */
 
   /*
    * x. List contributors
-   * https://developer.github.com/v3/repos/#list-contributors
+   * https://docs.github.com/en/rest/reference/repos#list-repository-contributors
    */
 
   /*
    * xi. List languages
-   * https://developer.github.com/v3/repos/#list-languages
+   * https://docs.github.com/en/rest/reference/repos#list-repository-languages
    */
 
   /*
    * xii. List teams
-   * https://developer.github.com/v3/repos/#list-teams
+   * https://docs.github.com/en/rest/reference/repos#list-repository-teams
    */
 
   /*
@@ -182,19 +185,21 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    * https://docs.github.com/en/rest/reference/repos#list-repository-tags
    */
   get("/api/v3/repos/:owner/:repository/tags")(referrersOnly { repository =>
-    JsonFormat(
-      repository.tags.map(tagInfo => ApiTag(tagInfo.name, RepositoryName(repository), tagInfo.id))
-    )
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      JsonFormat(
+        self.getRef("tags", repository)
+      )
+    }
   })
 
   /*
    * xiv. Delete a repository
-   * https://developer.github.com/v3/repos/#delete-a-repository
+   * https://docs.github.com/en/rest/reference/repos#delete-a-repository
    */
 
   /*
    * xv. Transfer a repository
-   * https://developer.github.com/v3/repos/#transfer-a-repository
+   * https://docs.github.com/en/rest/reference/repos#transfer-a-repository
    */
 
   /**

@@ -19,8 +19,9 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
   override def destroy(): Unit = {}
 
   override def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    implicit val request = req.asInstanceOf[HttpServletRequest]
-    implicit val session = req.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
+    implicit val request: HttpServletRequest = req.asInstanceOf[HttpServletRequest]
+    implicit val session: slick.jdbc.JdbcBackend#Session =
+      req.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
     val response = res.asInstanceOf[HttpServletResponse]
     Option(request.getHeader("Authorization"))
       .map {

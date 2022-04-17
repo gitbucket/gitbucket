@@ -32,7 +32,7 @@
             <td style="padding-top: 15px; padding-bottom: 15px;">
               <div class="milestone row">
                 <div class="col-md-4">
-                  <a href="@helpers.url(repository)/issues?milestone=@helpers.urlEncode(milestone.title)&state=open" class="milestone-title">@milestone.title</a>
+                  <a href="@helpers.url(repository)/milestone/@milestone.milestoneId" class="milestone-title">@milestone.title</a>
                   <div>
                     @if(milestone.closedDate.isDefined){
                       <span class="muted">Closed @gitbucket.core.helper.html.datetimeago(milestone.closedDate.get)</span>

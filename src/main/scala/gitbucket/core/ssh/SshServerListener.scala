@@ -1,9 +1,7 @@
 package gitbucket.core.ssh
 
-import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ServletContextEvent, ServletContextListener}
-
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.util.Directory
@@ -12,40 +10,48 @@ import org.slf4j.LoggerFactory
 
 object SshServer {
   private val logger = LoggerFactory.getLogger(SshServer.getClass)
-  private val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
-  private val active = new AtomicBoolean(false)
+  private val server = new AtomicReference[org.apache.sshd.server.SshServer](null)
 
-  private def configure(sshAddress: SshAddress, baseUrl: String) = {
-    server.setPort(sshAddress.port)
+  private def configure(
+    bindAddress: SshAddress,
+    publicAddress: SshAddress,
+    baseUrl: String
+  ): org.apache.sshd.server.SshServer = {
+    val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
+    server.setPort(bindAddress.port)
     val provider = new SimpleGeneratorHostKeyProvider(
       java.nio.file.Paths.get(s"${Directory.GitBucketHome}/gitbucket.ser")
     )
     provider.setAlgorithm("RSA")
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
-    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(sshAddress.genericUser))
+    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(bindAddress.genericUser))
     server.setCommandFactory(
-      new GitCommandFactory(baseUrl, Some(s"${sshAddress.genericUser}@${sshAddress.host}:${sshAddress.port}"))
+      new GitCommandFactory(baseUrl, publicAddress)
     )
-    server.setShellFactory(new NoShell(sshAddress))
+    server.setShellFactory(new NoShell(publicAddress))
+    server
   }
 
-  def start(sshAddress: SshAddress, baseUrl: String) = {
-    if (active.compareAndSet(false, true)) {
-      configure(sshAddress, baseUrl)
-      server.start()
-      logger.info(s"Start SSH Server Listen on ${server.getPort}")
+  def start(bindAddress: SshAddress, publicAddress: SshAddress, baseUrl: String): Unit = {
+    this.server.synchronized {
+      val server = configure(bindAddress, publicAddress, baseUrl)
+      if (this.server.compareAndSet(null, server)) {
+        server.start()
+        logger.info(s"Start SSH Server Listen on ${server.getPort}")
+      }
     }
   }
 
-  def stop() = {
-    if (active.compareAndSet(true, false)) {
-      server.stop(true)
-      logger.info("SSH Server is stopped.")
+  def stop(): Unit = {
+    this.server.synchronized {
+      val server = this.server.getAndSet(null)
+      if (server != null) {
+        server.stop()
+        logger.info("SSH Server is stopped.")
+      }
     }
   }
-
-  def isActive = active.get
 }
 
 /*
@@ -60,13 +66,14 @@ class SshServerListener extends ServletContextListener with SystemSettingsServic
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val settings = loadSystemSettings()
-    if (settings.sshAddress.isDefined && settings.baseUrl.isEmpty) {
+    if (settings.sshBindAddress.isDefined && settings.baseUrl.isEmpty) {
       logger.error("Could not start SshServer because the baseUrl is not configured.")
     }
     for {
-      sshAddress <- settings.sshAddress
+      bindAddress <- settings.sshBindAddress
+      publicAddress <- settings.sshPublicAddress
       baseUrl <- settings.baseUrl
-    } SshServer.start(sshAddress, baseUrl)
+    } SshServer.start(bindAddress, publicAddress, baseUrl)
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {

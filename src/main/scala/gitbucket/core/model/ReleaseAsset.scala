@@ -2,9 +2,7 @@ package gitbucket.core.model
 
 import java.util.Date
 
-trait ReleaseAssetComponent extends TemplateComponent {
-  self: Profile =>
-
+trait ReleaseAssetComponent extends TemplateComponent { self: Profile =>
   import profile.api._
   import self._
 
@@ -21,7 +19,8 @@ trait ReleaseAssetComponent extends TemplateComponent {
     val updatedDate = column[Date]("UPDATED_DATE")
 
     def * =
-      (userName, repositoryName, tag, releaseAssetId, fileName, label, size, uploader, registeredDate, updatedDate) <> (ReleaseAsset.tupled, ReleaseAsset.unapply)
+      (userName, repositoryName, tag, releaseAssetId, fileName, label, size, uploader, registeredDate, updatedDate)
+        .<>(ReleaseAsset.tupled, ReleaseAsset.unapply)
     def byPrimaryKey(owner: String, repository: String, tag: String, fileName: String) =
       byTag(owner, repository, tag) && (this.fileName === fileName.bind)
     def byTag(owner: String, repository: String, tag: String) =

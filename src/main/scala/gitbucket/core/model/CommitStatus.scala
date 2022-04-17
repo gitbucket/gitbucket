@@ -4,7 +4,8 @@ trait CommitStatusComponent extends TemplateComponent { self: Profile =>
   import profile.api._
   import self._
 
-  implicit val commitStateColumnType = MappedColumnType.base[CommitState, String](b => b.name, i => CommitState(i))
+  implicit val commitStateColumnType: BaseColumnType[CommitState] =
+    MappedColumnType.base[CommitState, String](b => b.name, i => CommitState(i))
 
   lazy val CommitStatuses = TableQuery[CommitStatuses]
   class CommitStatuses(tag: Tag) extends Table[CommitStatus](tag, "COMMIT_STATUS") with CommitTemplate {
@@ -29,7 +30,7 @@ trait CommitStatusComponent extends TemplateComponent { self: Profile =>
         creator,
         registeredDate,
         updatedDate
-      ) <> ((CommitStatus.apply _).tupled, CommitStatus.unapply)
+      ).<>((CommitStatus.apply _).tupled, CommitStatus.unapply)
     def byPrimaryKey(id: Int) = commitStatusId === id.bind
   }
 }
@@ -77,7 +78,7 @@ object CommitState {
 
   val values: Vector[CommitState] = Vector(PENDING, SUCCESS, ERROR, FAILURE)
 
-  private val map: Map[String, CommitState] = values.map(enum => enum.name -> enum).toMap
+  private val map: Map[String, CommitState] = values.map(e => e.name -> e).toMap
 
   def apply(name: String): CommitState = map(name)
 

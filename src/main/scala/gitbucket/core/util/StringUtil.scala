@@ -5,7 +5,6 @@ import java.security.SecureRandom
 import java.util.{Base64, UUID}
 
 import org.mozilla.universalchardet.UniversalDetector
-import SyntaxSugars._
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.io.input.BOMInputStream
@@ -45,11 +44,11 @@ object StringUtil {
     s"""$$pbkdf2-sha256$$${iter}$$${base64Encode(salt)}$$${base64Encode(s.getEncoded)}"""
   }
 
-  def sha1(value: String): String =
-    defining(java.security.MessageDigest.getInstance("SHA-1")) { md =>
-      md.update(value.getBytes)
-      md.digest.map(b => "%02x".format(b)).mkString
-    }
+  def sha1(value: String): String = {
+    val md = java.security.MessageDigest.getInstance("SHA-1")
+    md.update(value.getBytes)
+    md.digest.map(b => "%02x".format(b)).mkString
+  }
 
   def md5(value: String): String = {
     val md = java.security.MessageDigest.getInstance("MD5")
@@ -75,6 +74,11 @@ object StringUtil {
 
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 
+  /**
+   * URL encode except '/'.
+   */
+  def encodeRefName(value: String): String = urlEncode(value).replace("%2F", "/")
+
   def splitWords(value: String): Array[String] = value.split("[ \\t　]+")
 
   def isInteger(value: String): Boolean = allCatch opt { value.toInt } map (_ => true) getOrElse (false)
@@ -89,15 +93,15 @@ object StringUtil {
   def convertFromByteArray(content: Array[Byte]): String =
     IOUtils.toString(new BOMInputStream(new java.io.ByteArrayInputStream(content)), detectEncoding(content))
 
-  def detectEncoding(content: Array[Byte]): String =
-    defining(new UniversalDetector(null)) { detector =>
-      detector.handleData(content, 0, content.length)
-      detector.dataEnd()
-      detector.getDetectedCharset match {
-        case null => "UTF-8"
-        case e    => e
-      }
+  def detectEncoding(content: Array[Byte]): String = {
+    val detector = new UniversalDetector(null)
+    detector.handleData(content, 0, content.length)
+    detector.dataEnd()
+    detector.getDetectedCharset match {
+      case null => "UTF-8"
+      case e    => e
     }
+  }
 
   /**
    * Converts line separator in the given content.
@@ -145,6 +149,19 @@ object StringUtil {
       .distinct
 
   /**
+   * Extract issue id like ```owner/repository#issueId``` from the given message.
+   *
+   *@param message the message which may contains issue id
+   * @return the iterator of issue id
+   */
+  def extractGlobalIssueId(message: String): List[(Option[String], Option[String], Option[String])] =
+    "\\s?([\\w-\\.]+)?\\/?([\\w\\-\\.]+)?#(\\d+)\\s?".r
+      .findAllIn(message)
+      .matchData
+      .map(i => (Option(i.group(1)), Option(i.group(2)), Option(i.group(3))))
+      .toList
+
+  /**
    * Extract close issue id like ```close #issueId ``` from the given message.
    *
    * @param message the message which may contains close command
@@ -172,8 +189,7 @@ object StringUtil {
     def removeUserName(baseUrl: String): String = baseUrl.replaceFirst("(https?://).+@", "$1")
 
     gitRepositoryUrl match {
-      case GitBucketUrlPattern(base, user, repository)
-          if baseUrl.map(removeUserName(base).startsWith).getOrElse(false) =>
+      case GitBucketUrlPattern(base, user, repository) if baseUrl.exists(removeUserName(base).startsWith) =>
         s"${removeUserName(base)}/$user/$repository"
       case GitHubUrlPattern(_, user, repository)    => s"https://github.com/$user/$repository"
       case BitBucketUrlPattern(_, user, repository) => s"https://bitbucket.org/$user/$repository"

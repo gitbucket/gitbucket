@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.dashboard.html
+import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.{Keys, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
@@ -21,52 +22,76 @@ class DashboardController
     with WebHookPullRequestService
     with WebHookPullRequestReviewCommentService
     with MilestonesService
+    with CommitStatusService
     with UsersAuthenticator
     with RequestCache
 
 trait DashboardControllerBase extends ControllerBase {
-  self: IssuesService with PullRequestService with RepositoryService with AccountService with UsersAuthenticator =>
+  self: IssuesService
+    with PullRequestService
+    with RepositoryService
+    with AccountService
+    with CommitStatusService
+    with UsersAuthenticator =>
 
   get("/dashboard/repos")(usersOnly {
-    val repos = getVisibleRepositories(
-      context.loginAccount,
-      None,
-      withoutPhysicalInfo = true,
-      limit = context.settings.limitVisibleRepositories
-    )
-    html.repos(getGroupNames(context.loginAccount.get.userName), repos, repos)
+    context.withLoginAccount { loginAccount =>
+      val repos = getVisibleRepositories(
+        context.loginAccount,
+        None,
+        withoutPhysicalInfo = true,
+        limit = context.settings.basicBehavior.limitVisibleRepositories
+      )
+      html.repos(getGroupNames(loginAccount.userName), repos, repos)
+    }
   })
 
   get("/dashboard/issues")(usersOnly {
-    searchIssues("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/issues/assigned")(usersOnly {
-    searchIssues("assigned")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "assigned")
+    }
   })
 
   get("/dashboard/issues/created_by")(usersOnly {
-    searchIssues("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/issues/mentioned")(usersOnly {
-    searchIssues("mentioned")
+    context.withLoginAccount { loginAccount =>
+      searchIssues(loginAccount, "mentioned")
+    }
   })
 
   get("/dashboard/pulls")(usersOnly {
-    searchPullRequests("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/pulls/created_by")(usersOnly {
-    searchPullRequests("created_by")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "created_by")
+    }
   })
 
   get("/dashboard/pulls/assigned")(usersOnly {
-    searchPullRequests("assigned")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "assigned")
+    }
   })
 
   get("/dashboard/pulls/mentioned")(usersOnly {
-    searchPullRequests("mentioned")
+    context.withLoginAccount { loginAccount =>
+      searchPullRequests(loginAccount, "mentioned")
+    }
   })
 
   private def getOrCreateCondition(key: String, filter: String, userName: String) = {
@@ -79,19 +104,20 @@ trait DashboardControllerBase extends ControllerBase {
     }
   }
 
-  private def searchIssues(filter: String) = {
+  private def searchIssues(loginAccount: Account, filter: String) = {
     import IssuesService._
 
-    val userName = context.loginAccount.get.userName
+    val userName = loginAccount.userName
     val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
     val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page = IssueSearchCondition.page(request)
+    val issues = searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos: _*)
 
     html.issues(
-      searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      issues.map(issue => (issue, None)),
       page,
-      countIssue(condition.copy(state = "open"), false, userRepos: _*),
-      countIssue(condition.copy(state = "closed"), false, userRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, userRepos: _*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, userRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
@@ -103,25 +129,37 @@ trait DashboardControllerBase extends ControllerBase {
         context.loginAccount,
         None,
         withoutPhysicalInfo = true,
-        limit = context.settings.limitVisibleRepositories
+        limit = context.settings.basicBehavior.limitVisibleRepositories
       )
     )
   }
 
-  private def searchPullRequests(filter: String) = {
+  private def searchPullRequests(loginAccount: Account, filter: String) = {
     import IssuesService._
     import PullRequestService._
 
-    val userName = context.loginAccount.get.userName
+    val userName = loginAccount.userName
     val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
     val allRepos = getAllRepositories(userName)
     val page = IssueSearchCondition.page(request)
+    val issues = searchIssue(
+      condition,
+      IssueSearchOption.PullRequests,
+      (page - 1) * PullRequestLimit,
+      PullRequestLimit,
+      allRepos: _*
+    )
+    val status = issues.map { issue =>
+      issue.commitId.flatMap { commitId =>
+        getCommitStatusWithSummary(issue.issue.userName, issue.issue.repositoryName, commitId)
+      }
+    }
 
     html.pulls(
-      searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+      issues.zip(status),
       page,
-      countIssue(condition.copy(state = "open"), true, allRepos: _*),
-      countIssue(condition.copy(state = "closed"), true, allRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, allRepos: _*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, allRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
@@ -133,7 +171,7 @@ trait DashboardControllerBase extends ControllerBase {
         context.loginAccount,
         None,
         withoutPhysicalInfo = true,
-        limit = context.settings.limitVisibleRepositories
+        limit = context.settings.basicBehavior.limitVisibleRepositories
       )
     )
   }

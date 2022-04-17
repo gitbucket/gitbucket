@@ -33,13 +33,18 @@
                   You choose who can see and commit to this repository.
                 </div>
               </label>
-            </fieldset>
-            <fieldset class="form-group">
               <label class="checkbox" for="allowFork">
                 <input type="checkbox" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
                 Forks<br>
                 <div class="normal muted">
                   Allow users who can access this repository to fork it.
+                </div>
+              </label>
+              <label class="checkbox" for="safeMode">
+                <input type="checkbox" id="safeMode" name="safeMode"@if(repository.repository.options.safeMode){ checked}/>
+                XSS protection<br>
+                <div class="normal muted">
+                  Render any images in the repository viewer. Don't disable this option in the public environment.
                 </div>
               </label>
             </fieldset>
@@ -138,11 +143,13 @@
               }
               <fieldset class="form-group">
                 <label for="defaultMergeOption">Default merge strategy</label>
-                <select name="defaultMergeOption" id="defaultMergeOption">
-                  <option value="merge-commit">Merge commit</option>
-                  <option value="squash">Squash</option>
-                  <option value="rebase">Rebase</option>
-                </select>
+                @defining(repository.repository.options.defaultMergeOption) { defaultMergeOption =>
+                  <select name="defaultMergeOption" id="defaultMergeOption">
+                    <option value="merge-commit" @if(defaultMergeOption == "merge-commit"){selected}>Merge commit</option>
+                    <option value="squash" @if(defaultMergeOption == "squash"){selected}>Squash</option>
+                    <option value="rebase" @if(defaultMergeOption == "rebase"){selected}>Rebase</option>
+                  </select>
+                }
                 <span id="error-defaultMergeOption" class="error"></span>
               </fieldset>
             </fieldset>

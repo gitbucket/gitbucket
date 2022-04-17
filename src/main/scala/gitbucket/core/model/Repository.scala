@@ -24,6 +24,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val allowFork = column[Boolean]("ALLOW_FORK")
     val mergeOptions = column[String]("MERGE_OPTIONS")
     val defaultMergeOption = column[String]("DEFAULT_MERGE_OPTION")
+    val safeMode = column[Boolean]("SAFE_MODE")
 
     def * =
       (
@@ -41,47 +42,58 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           parentUserName.?,
           parentRepositoryName.?
         ),
-        (issuesOption, externalIssuesUrl.?, wikiOption, externalWikiUrl.?, allowFork, mergeOptions, defaultMergeOption)
-      ).shaped <> ({
-        case (repository, options) =>
-          Repository(
-            repository._1,
-            repository._2,
-            repository._3,
-            repository._4,
-            repository._5,
-            repository._6,
-            repository._7,
-            repository._8,
-            repository._9,
-            repository._10,
-            repository._11,
-            repository._12,
-            RepositoryOptions.tupled.apply(options)
-          )
-      }, { (r: Repository) =>
-        Some(
-          (
+        (
+          issuesOption,
+          externalIssuesUrl.?,
+          wikiOption,
+          externalWikiUrl.?,
+          allowFork,
+          mergeOptions,
+          defaultMergeOption,
+          safeMode
+        )
+      ).shaped.<>(
+        {
+          case (repository, options) =>
+            Repository(
+              repository._1,
+              repository._2,
+              repository._3,
+              repository._4,
+              repository._5,
+              repository._6,
+              repository._7,
+              repository._8,
+              repository._9,
+              repository._10,
+              repository._11,
+              repository._12,
+              RepositoryOptions.tupled.apply(options)
+            )
+        }, { (r: Repository) =>
+          Some(
             (
-              r.userName,
-              r.repositoryName,
-              r.isPrivate,
-              r.description,
-              r.defaultBranch,
-              r.registeredDate,
-              r.updatedDate,
-              r.lastActivityDate,
-              r.originUserName,
-              r.originRepositoryName,
-              r.parentUserName,
-              r.parentRepositoryName
-            ),
-            (
-              RepositoryOptions.unapply(r.options).get
+              (
+                r.userName,
+                r.repositoryName,
+                r.isPrivate,
+                r.description,
+                r.defaultBranch,
+                r.registeredDate,
+                r.updatedDate,
+                r.lastActivityDate,
+                r.originUserName,
+                r.originRepositoryName,
+                r.parentUserName,
+                r.parentRepositoryName
+              ),
+              (
+                RepositoryOptions.unapply(r.options).get
+              )
             )
           )
-        )
-      })
+        }
+      )
 
     def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
   }
@@ -110,5 +122,6 @@ case class RepositoryOptions(
   externalWikiUrl: Option[String],
   allowFork: Boolean,
   mergeOptions: String,
-  defaultMergeOption: String
+  defaultMergeOption: String,
+  safeMode: Boolean
 )

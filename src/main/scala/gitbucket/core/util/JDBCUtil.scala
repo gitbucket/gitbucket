@@ -83,7 +83,9 @@ object JDBCUtil {
               }
               if (c == ';' && !stringLiteral) {
                 val sql = new String(out.toByteArray, "UTF-8")
-                conn.update(sql.trim)
+                if (sql != null && !sql.isEmpty()) {
+                  conn.update(sql.trim)
+                }
                 out = new ByteArrayOutputStream()
               } else {
                 out.write(c)
@@ -202,7 +204,7 @@ object JDBCUtil {
     }
 
     private def allTablesOrderByDependencies(meta: DatabaseMetaData): Seq[String] = {
-      val tables = allTableNames.map { tableName =>
+      val tables = allTableNames().map { tableName =>
         TableDependency(tableName, childTables(meta, tableName))
       }
 
@@ -225,7 +227,7 @@ object JDBCUtil {
         if (noPreds.isEmpty) {
           if (hasPreds.isEmpty) done else sys.error(hasPreds.toString)
         } else {
-          val found = noPreds.map { _._1 }
+          val found = noPreds.keys
           tsort(hasPreds.map { case (k, v) => (k, v -- found) }, done ++ found)
         }
       }

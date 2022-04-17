@@ -40,7 +40,7 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
                   diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
                   author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
                   committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
-                  commentCount = getCommitComment(repository.owner, repository.name, commitInfo.id.toString).size
+                  commentCount = getCommitComment(repository.owner, repository.name, commitInfo.id).size
                 )
             })
         }

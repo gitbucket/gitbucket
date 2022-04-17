@@ -71,7 +71,7 @@ class AccessTokenServiceSpec extends AnyFunSuite with ServiceSpecBase {
     withTestDB { implicit session =>
       val tokenIt = List("token1", "token1", "token1", "token2").iterator
       val service = new AccessTokenService {
-        override def makeAccessTokenString: String = tokenIt.next
+        override def makeAccessTokenString: String = tokenIt.next()
       }
 
       assert(service.generateAccessToken("root", "note1")._2 == "token1")

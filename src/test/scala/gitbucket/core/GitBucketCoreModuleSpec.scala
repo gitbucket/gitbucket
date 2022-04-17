@@ -9,6 +9,7 @@ import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.junit.runner.Description
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Tag
+import org.testcontainers.utility.DockerImageName
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
@@ -50,7 +51,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   Seq("11", "10").foreach { tag =>
     test(s"Migration PostgreSQL $tag", ExternalDBTest) {
-      val container = PostgreSQLContainer(s"postgres:$tag")
+      val container = PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
 
       container.start()
       try {

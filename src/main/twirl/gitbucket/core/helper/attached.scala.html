@@ -61,6 +61,30 @@ $(function(){
     }
   }
 });
+
+  $('#@textareaId').bind('paste', function(e){
+    const items = e.originalEvent.clipboardData.items;
+    for (var i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') != -1) {
+        const file = item.getAsFile();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        $.ajax({
+          url: '@context.path/upload/file/@repository.owner/@repository.name',
+          type: 'POST',
+          contentType: false,
+          processData: false,
+          data: formData,
+          success: function(id) {
+            const attachFile = `\n![${file.name.split('.')[0]}](@context.baseUrl/@repository.owner/@repository.name/_attached/${id})`;
+            $('#@textareaId').val($('#@textareaId').val() + attachFile);
+          }
+        });
+      }
+    }
+  });
 </script>
 }
 @dropzone(clickable: Boolean, textareaId: Option[String]) = {

@@ -1,5 +1,5 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiGroup, CreateAGroup, ApiRepository, ApiUser, JsonFormat}
+import gitbucket.core.api.{ApiGroup, CreateAGroup, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.Implicits._

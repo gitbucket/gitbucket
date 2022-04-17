@@ -1,8 +1,7 @@
 package gitbucket.core.controller
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
-
 import gitbucket.core.settings.html
 import gitbucket.core.model.{RepositoryWebHook, WebHook}
 import gitbucket.core.service._
@@ -21,7 +20,7 @@ import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 
 import scala.util.Using
-import org.scalatra.Forbidden
+import org.scalatra.{Forbidden, Ok}
 
 class RepositorySettingsController
     extends RepositorySettingsControllerBase
@@ -31,6 +30,7 @@ class RepositorySettingsController
     with ProtectedBranchService
     with CommitStatusService
     with DeployKeyService
+    with CustomFieldsService
     with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator
@@ -43,6 +43,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     with ProtectedBranchService
     with CommitStatusService
     with DeployKeyService
+    with CustomFieldsService
     with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator =>
@@ -57,7 +58,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     externalWikiUrl: Option[String],
     allowFork: Boolean,
     mergeOptions: Seq[String],
-    defaultMergeOption: String
+    defaultMergeOption: String,
+    safeMode: Boolean
   )
 
   val optionsForm = mapping(
@@ -69,7 +71,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "externalWikiUrl" -> trim(label("External Wiki URL", optional(text(maxlength(200))))),
     "allowFork" -> trim(label("Allow Forking", boolean())),
     "mergeOptions" -> mergeOptions,
-    "defaultMergeOption" -> trim(label("Default merge strategy", text(required)))
+    "defaultMergeOption" -> trim(label("Default merge strategy", text(required))),
+    "safeMode" -> trim(label("XSS protection", boolean()))
   )(OptionsForm.apply).verifying { form =>
     if (!form.mergeOptions.contains(form.defaultMergeOption)) {
       Seq("defaultMergeOption" -> s"This merge strategy isn't enabled.")
@@ -119,6 +122,21 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "newOwner" -> trim(label("New owner", text(required, transferUser)))
   )(TransferOwnerShipForm.apply)
 
+  // for custom field
+  case class CustomFieldForm(
+    fieldName: String,
+    fieldType: String,
+    enableForIssues: Boolean,
+    enableForPullRequests: Boolean
+  )
+
+  val customFieldForm = mapping(
+    "fieldName" -> trim(label("Field name", text(required, maxlength(100)))),
+    "fieldType" -> trim(label("Field type", text(required))),
+    "enableForIssues" -> trim(label("Enable for issues", boolean(required))),
+    "enableForPullRequests" -> trim(label("Enable for pull requests", boolean(required))),
+  )(CustomFieldForm.apply)
+
   /**
    * Redirect to the Options page.
    */
@@ -150,7 +168,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.externalWikiUrl,
       form.allowFork,
       form.mergeOptions,
-      form.defaultMergeOption
+      form.defaultMergeOption,
+      form.safeMode
     )
     flash.update("info", "Repository settings has been updated.")
     redirect(s"/${repository.owner}/${repository.name}/settings/options")
@@ -186,7 +205,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
-      val lastWeeks = getRecentStatuesContexts(
+      val lastWeeks = getRecentStatusContexts(
         repository.owner,
         repository.name,
         Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))
@@ -342,7 +361,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
                 .map(
                   res =>
                     Map(
-                      "status" -> res.getStatusLine(),
+                      "status" -> res.getStatusLine.getStatusCode,
                       "body" -> EntityUtils.toString(res.getEntity()),
                       "headers" -> _headers(res.getAllHeaders())
                   )
@@ -385,54 +404,62 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Rename repository.
    */
   post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
-    if (context.settings.repositoryOperation.rename || context.loginAccount.get.isAdmin) {
-      if (repository.name != form.repositoryName) {
-        // Update database and move git repository
-        renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-        // Record activity log
-        val renameInfo = RenameRepositoryInfo(
-          repository.owner,
-          form.repositoryName,
-          context.loginAccount.get.userName,
-          repository.name
-        )
-        recordActivity(renameInfo)
-      }
-      redirect(s"/${repository.owner}/${form.repositoryName}")
-    } else Forbidden()
+    context.withLoginAccount {
+      loginAccount =>
+        if (context.settings.basicBehavior.repositoryOperation.rename || loginAccount.isAdmin) {
+          if (repository.name != form.repositoryName) {
+            // Update database and move git repository
+            renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+            // Record activity log
+            val renameInfo = RenameRepositoryInfo(
+              repository.owner,
+              form.repositoryName,
+              loginAccount.userName,
+              repository.name
+            )
+            recordActivity(renameInfo)
+          }
+          redirect(s"/${repository.owner}/${form.repositoryName}")
+        } else Forbidden()
+    }
   })
 
   /**
    * Transfer repository ownership.
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
-    if (context.settings.repositoryOperation.transfer || context.loginAccount.get.isAdmin) {
-      // Change repository owner
-      if (repository.owner != form.newOwner) {
-        // Update database and move git repository
-        renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-        // Record activity log
-        val renameInfo = RenameRepositoryInfo(
-          form.newOwner,
-          repository.name,
-          context.loginAccount.get.userName,
-          repository.owner
-        )
-        recordActivity(renameInfo)
-      }
-      redirect(s"/${form.newOwner}/${repository.name}")
-    } else Forbidden()
+    context.withLoginAccount {
+      loginAccount =>
+        if (context.settings.basicBehavior.repositoryOperation.transfer || loginAccount.isAdmin) {
+          // Change repository owner
+          if (repository.owner != form.newOwner) {
+            // Update database and move git repository
+            renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+            // Record activity log
+            val renameInfo = RenameRepositoryInfo(
+              form.newOwner,
+              repository.name,
+              loginAccount.userName,
+              repository.owner
+            )
+            recordActivity(renameInfo)
+          }
+          redirect(s"/${form.newOwner}/${repository.name}")
+        } else Forbidden()
+    }
   })
 
   /**
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    if (context.settings.repositoryOperation.delete || context.loginAccount.get.isAdmin) {
-      // Delete the repository and related files
-      deleteRepository(repository.repository)
-      redirect(s"/${repository.owner}")
-    } else Forbidden()
+    context.withLoginAccount { loginAccount =>
+      if (context.settings.basicBehavior.repositoryOperation.delete || loginAccount.isAdmin) {
+        // Delete the repository and related files
+        deleteRepository(repository.repository)
+        redirect(s"/${repository.owner}")
+      } else Forbidden()
+    }
   })
 
   /**
@@ -464,6 +491,58 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     val deployKeyId = params("id").toInt
     deleteDeployKey(repository.owner, repository.name, deployKeyId)
     redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
+  })
+
+  /** Custom fields for issues and pull requests */
+  get("/:owner/:repository/settings/issues")(ownerOnly { repository =>
+    val customFields = getCustomFields(repository.owner, repository.name)
+    html.issues(customFields, repository)
+  })
+
+  /** New custom field form */
+  get("/:owner/:repository/settings/issues/fields/new")(ownerOnly { repository =>
+    html.issuesfieldform(None, repository)
+  })
+
+  /** Add custom field */
+  ajaxPost("/:owner/:repository/settings/issues/fields/new", customFieldForm)(ownerOnly { (form, repository) =>
+    val fieldId = createCustomField(
+      repository.owner,
+      repository.name,
+      form.fieldName,
+      form.fieldType,
+      form.enableForIssues,
+      form.enableForPullRequests
+    )
+    html.issuesfield(getCustomField(repository.owner, repository.name, fieldId).get)
+  })
+
+  /** Edit custom field form */
+  ajaxGet("/:owner/:repository/settings/issues/fields/:fieldId/edit")(ownerOnly { repository =>
+    getCustomField(repository.owner, repository.name, params("fieldId").toInt).map { customField =>
+      html.issuesfieldform(Some(customField), repository)
+    } getOrElse NotFound()
+  })
+
+  /** Update custom field */
+  ajaxPost("/:owner/:repository/settings/issues/fields/:fieldId/edit", customFieldForm)(ownerOnly {
+    (form, repository) =>
+      updateCustomField(
+        repository.owner,
+        repository.name,
+        params("fieldId").toInt,
+        form.fieldName,
+        form.fieldType,
+        form.enableForIssues,
+        form.enableForPullRequests
+      )
+      html.issuesfield(getCustomField(repository.owner, repository.name, params("fieldId").toInt).get)
+  })
+
+  /** Delete custom field */
+  ajaxPost("/:owner/:repository/settings/issues/fields/:fieldId/delete")(ownerOnly { repository =>
+    deleteCustomField(repository.owner, repository.name, params("fieldId").toInt)
+    Ok()
   })
 
   /**

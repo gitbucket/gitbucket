@@ -5,7 +5,6 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.model.Role
 import RepositoryService.RepositoryInfo
 import Implicits._
-import SyntaxSugars._
 
 /**
  * Allows only oneself and administrators.
@@ -39,7 +38,7 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
         case Some(x) if (repository.owner == x.userName) => action(repository)
         // TODO Repository management is allowed for only group managers?
         case Some(x) if (getGroupMembers(repository.owner).exists { m =>
-              m.userName == x.userName && m.isManager == true
+              m.userName == x.userName && m.isManager
             }) =>
           action(repository)
         case Some(x) if (getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN)).contains(x.userName)) =>
@@ -113,13 +112,10 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService w
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
-      context.loginAccount match {
-        case Some(x) if (x.isAdmin)                                                          => action(repository)
-        case Some(x) if (!repository.repository.isPrivate)                                   => action(repository)
-        case Some(x) if (userName == x.userName)                                             => action(repository)
-        case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-        case Some(x) if (getCollaboratorUserNames(userName, repoName).contains(x.userName))  => action(repository)
-        case _                                                                               => Unauthorized()
+      if (isReadable(repository.repository, context.loginAccount) || !repository.repository.isPrivate) {
+        action(repository)
+      } else {
+        Unauthorized()
       }
     } getOrElse NotFound()
   }

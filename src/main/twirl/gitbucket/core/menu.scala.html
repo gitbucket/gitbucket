@@ -75,7 +75,7 @@
             @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
               @repositoryHeaderComponent(repository, context)
             }
-            @if(repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || context.loginAccount.map(_.isAdmin).getOrElse(false))) {
+            @if(repository.repository.options.allowFork && (context.settings.basicBehavior.repositoryOperation.fork || context.loginAccount.map(_.isAdmin).getOrElse(false))) {
               @if(context.loginAccount.isEmpty){
                 <a class="btn btn-default btn-sm" href="@context.path/signin?redirect=@helpers.urlEncode(s"${context.path}/${repository.owner}/${repository.name}")">
                   <span class="strong"><i class="octicon octicon-repo-forked"></i>Fork</span><span class="muted">: @repository.forkedCount</span>

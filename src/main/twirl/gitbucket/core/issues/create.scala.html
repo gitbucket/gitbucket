@@ -3,6 +3,7 @@
   priorities: List[gitbucket.core.model.Priority],
   defaultPriority: Option[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
+  customFields: List[gitbucket.core.model.CustomField],
   isManageable: Boolean,
   content: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
@@ -27,13 +28,36 @@
             elastic            = true
           )
           <div class="align-right">
-            <input type="submit" class="btn btn-success" value="Submit new issue"/>
+            <input type="submit" class="btn btn-success" value="Submit new issue" onclick="javascript:return checkCustomFieldErrors();"/>
           </div>
         </div>
         <div class="col-md-3">
-          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, isManageable, repository)
+          @gitbucket.core.issues.html.issueinfo(
+            issue = None,
+            comments = Nil,
+            issueLabels = Nil,
+            collaborators = collaborators,
+            milestones = milestones.map(x => (x, 0, 0)),
+            priorities= priorities,
+            defaultPriority = defaultPriority,
+            labels = labels,
+            customFields = customFields.map((_, None)),
+            isManageable = isManageable,
+            repository = repository
+          )
         </div>
       </div>
     </form>
+    <script>
+      function checkCustomFieldErrors() {
+        let error = false;
+        $('.custom-field-error').each(function(i, e) {
+          if ($(e).text() != '') {
+            error = true;
+          }
+        });
+        return !error;
+      }
+    </script>
   }
 }

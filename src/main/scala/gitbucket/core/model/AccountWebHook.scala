@@ -3,7 +3,7 @@ package gitbucket.core.model
 trait AccountWebHookComponent extends TemplateComponent { self: Profile =>
   import profile.api._
 
-  private implicit val whContentTypeColumnType =
+  private implicit val whContentTypeColumnType: BaseColumnType[WebHookContentType] =
     MappedColumnType.base[WebHookContentType, String](whct => whct.code, code => WebHookContentType.valueOf(code))
 
   lazy val AccountWebHooks = TableQuery[AccountWebHooks]
@@ -12,7 +12,7 @@ trait AccountWebHookComponent extends TemplateComponent { self: Profile =>
     val url = column[String]("URL")
     val token = column[Option[String]]("TOKEN")
     val ctype = column[WebHookContentType]("CTYPE")
-    def * = (userName, url, ctype, token) <> ((AccountWebHook.apply _).tupled, AccountWebHook.unapply)
+    def * = (userName, url, ctype, token).<>((AccountWebHook.apply _).tupled, AccountWebHook.unapply)
 
     def byPrimaryKey(userName: String, url: String) = (this.userName === userName.bind) && (this.url === url.bind)
   }

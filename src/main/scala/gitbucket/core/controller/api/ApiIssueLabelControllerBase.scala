@@ -121,7 +121,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
   post("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
     JsonFormat(for {
-      data <- extractFromJsonBody[Seq[String]];
+      data <- extractFromJsonBody[Seq[String]]
       issueId <- params("id").toIntOpt
     } yield {
       data.map { labelName =>
@@ -160,7 +160,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
   put("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
     JsonFormat(for {
-      data <- extractFromJsonBody[Seq[String]];
+      data <- extractFromJsonBody[Seq[String]]
       issueId <- params("id").toIntOpt
     } yield {
       deleteAllIssueLabels(repository.owner, repository.name, issueId, true)

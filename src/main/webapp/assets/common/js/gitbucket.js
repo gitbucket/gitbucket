@@ -74,19 +74,24 @@ function displayErrors(data, elem){
  * @param outputId {String} element id of output element
  * @param viewType {Number} 0: split, 1: unified
  * @param ignoreSpace {Number} 0: include, 1: ignore
+ * @param fileHash {SString} hash used for links to line numbers
  */
-function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
-  var old = $('#' + oldTextId), head = $('#' + newTextId);
-  var render = new JsDiffRender({
-    oldText    : old.data('val'),
+function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace, fileHash) {
+  const old = $('#' + oldTextId), head = $('#' + newTextId);
+  let oldTextValue, headTextValue;
+  old.is("textarea") ? (oldTextValue = old.data('val')) : (oldTextValue = old.attr('data-val'));
+  head.is("textarea") ? (headTextValue = head.data('val')) : (headTextValue = head.attr('data-val'));
+  const render = new JsDiffRender({
+    oldText    : oldTextValue,
     oldTextName: old.data('file-name'),
-    newText    : head.data('val'),
+    newText    : headTextValue,
     newTextName: head.data('file-name'),
     ignoreSpace: ignoreSpace,
-    contextSize: 4
+    contextSize: 4,
+    fileHash   : fileHash
   });
-  var diff = render[viewType == 1 ? "unified" : "split"]();
-  if(viewType == 1){
+  const diff = render[viewType == 1 ? "unified" : "split"]();
+  if (viewType == 1) {
     diff.find('tr:last').after($('<tr><td></td><td></td><td></td></tr>'));
   } else {
     diff.find('tr:last').after($('<tr><td></td><td></td><td></td><td></td></tr>'));
@@ -100,222 +105,224 @@ function jqSelectorEscape(val) {
     return val.replace(/[!"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~]/g, '\\$&');
 }
 
-function JsDiffRender(params){
-  var baseTextLines = (params.oldText==="")?[]:params.oldText.split(/\r\n|\r|\n/);
-  var headTextLines = (params.newText==="")?[]:params.newText.split(/\r\n|\r|\n/);
-  var sm, ctx;
-  if(params.ignoreSpace){
-    var ignoreSpace = function(a){ return a.replace(/\s+/g,''); };
+function JsDiffRender(params) {
+  const baseTextLines = (params.oldText==="")?[]:params.oldText.split(/\r\n|\r|\n/);
+  const headTextLines = (params.newText==="")?[]:params.newText.split(/\r\n|\r|\n/);
+  let sm, ctx;
+  if (params.ignoreSpace) {
+    const ignoreSpace = function(a){ return a.replace(/\s+/g,''); };
     sm = new difflib.SequenceMatcher(
       $.map(baseTextLines, ignoreSpace),
       $.map(headTextLines, ignoreSpace));
     ctx = this.flatten(sm.get_opcodes(), headTextLines, baseTextLines, function(text){ return ignoreSpace(text) === ""; });
-  }else{
+  } else {
     sm = new difflib.SequenceMatcher(baseTextLines, headTextLines);
     ctx = this.flatten(sm.get_opcodes(), headTextLines, baseTextLines, function(){ return false; });
   }
-  var oplines = this.fold(ctx, params.contextSize);
+  const oplines = this.fold(ctx, params.contextSize);
 
   function prettyDom(text, fileName){
-    var dom = null;
-    return function(ln){
-      if(dom===null){
-        var html = prettyPrintOne(
+    let dom = null;
+    return function(ln) {
+      if(dom === null) {
+        const html = prettyPrintOne(
           text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;').replace(/^\n/, '\n\n'),
           (/\.([^.]*)$/.exec(fileName)||[])[1],
           true);
-        var re = /<li[^>]*id="?L([0-9]+)"?[^>]*>(.*?)<\/li>/gi, h;
-        dom=[];
-        while(h=re.exec(html)){
-          dom[h[1]]=h[2];
+        const re = /<li[^>]*id="?L([0-9]+)"?[^>]*>(.*?)<\/li>/gi;
+        let h;
+        dom = [];
+        while (h = re.exec(html)) {
+          dom[h[1]] = h[2];
         }
       }
       return dom[ln];
     };
   }
-  return this.renders(oplines, prettyDom(params.oldText, params.oldTextName), prettyDom(params.newText, params.newTextName));
+  return this.renders(oplines, prettyDom(params.oldText, params.oldTextName), prettyDom(params.newText, params.newTextName), params.fileHash);
 }
 $.extend(JsDiffRender.prototype,{
-  renders: function(oplines, baseTextDom, headTextDom){
+  renders: function(oplines, baseTextDom, headTextDom, fileHash){
     return {
-      split:function(){
-        var table = $('<table class="diff">');
-        table.attr({add:oplines.add, del:oplines.del});
-        var tbody = $('<tbody>').appendTo(table);
-        for(var i=0;i<oplines.length;i++){
-          var o = oplines[i];
-          switch(o.change){
-          case 'skip':
-            $('<tr>').html('<th class="skip"></th><td colspan="3" class="skip">...</td>').appendTo(tbody);
-            break;
-          case 'delete':
-          case 'insert':
-          case 'equal':
-            $('<tr>').append(
-              lineNum('old',o.base, o.change),
-              $('<td class="body">').html(o.base ? baseTextDom(o.base): "").addClass(o.change),
-              lineNum('new',o.head, o.change),
-              $('<td class="body">').html(o.head ? headTextDom(o.head): "").addClass(o.change)
+      split: function(){
+        const table = $('<table class="diff">');
+        table.attr({ add: oplines.add, del: oplines.del });
+        const tbody = $('<tbody>').appendTo(table);
+        for (let i = 0; i < oplines.length; i++) {
+          const o = oplines[i];
+          switch (o.change) {
+            case 'skip':
+              $('<tr>').html('<th class="skip"></th><td colspan="3" class="skip">...</td>').appendTo(tbody);
+              break;
+            case 'delete':
+            case 'insert':
+            case 'equal':
+              $('<tr>').append(
+                lineNum('old', o.base, o.change, fileHash),
+                $('<td class="body">').html(o.base ? baseTextDom(o.base): "").addClass(o.change),
+                lineNum('new', o.head, o.change, fileHash),
+                $('<td class="body">').html(o.head ? headTextDom(o.head): "").addClass(o.change)
               ).appendTo(tbody);
-            break;
-          case 'replace':
-            var ld = lineDiff(baseTextDom(o.base), headTextDom(o.head));
-            $('<tr>').append(
-              lineNum('old',o.base, 'delete'),
-              $('<td class="body">').append(ld.base).addClass('delete'),
-              lineNum('new',o.head, 'insert'),
-              $('<td class="body">').append(ld.head).addClass('insert')
+              break;
+            case 'replace':
+              const ld = lineDiff(baseTextDom(o.base), headTextDom(o.head));
+              $('<tr>').append(
+                lineNum('old', o.base, 'delete', fileHash),
+                $('<td class="body">').append(ld.base).addClass('delete'),
+                lineNum('new', o.head, 'insert', fileHash),
+                $('<td class="body">').append(ld.head).addClass('insert')
               ).appendTo(tbody);
-            break;
+              break;
           }
         }
         return table;
       },
-      unified:function(){
-        var table = $('<table class="diff inlinediff">');
-        table.attr({add:oplines.add, del:oplines.del});
-        var tbody = $('<tbody>').appendTo(table);
-        for(var i=0;i<oplines.length;i++){
-          var o = oplines[i];
-          switch(o.change){
-          case 'skip':
-            tbody.append($('<tr>').html('<th colspan="2" class="skip"></th><td class="skip"></td>'));
-            break;
-          case 'delete':
-          case 'insert':
-          case 'equal':
-            tbody.append($('<tr>').append(
-              lineNum('old',o.base, o.change),
-              lineNum('new',o.head, o.change),
-              $('<td class="body">').addClass(o.change).html(o.head ? headTextDom(o.head) : baseTextDom(o.base))));
-            break;
-          case 'replace':
-            var deletes = [];
-            while(oplines[i] && oplines[i].change == 'replace'){
-              if(oplines[i].base && oplines[i].head){
-                var ld = lineDiff(baseTextDom(oplines[i].base), headTextDom(oplines[i].head));
-                tbody.append($('<tr>').append(lineNum('old', oplines[i].base, 'delete'),'<th class="delete">',$('<td class="body delete">').append(ld.base)));
-                deletes.push($('<tr>').append('<th class="insert">',lineNum('new',oplines[i].head, 'insert'),$('<td class="body insert">').append(ld.head)));
-              }else if(oplines[i].base){
-                tbody.append($('<tr>').append(lineNum('old', oplines[i].base, 'delete'),'<th class="delete">',$('<td class="body delete">').html(baseTextDom(oplines[i].base))));
-              }else if(oplines[i].head){
-                deletes.push($('<tr>').append('<th class="insert">',lineNum('new',oplines[i].head, 'insert'),$('<td class="body insert">').html(headTextDom(oplines[i].head))));
+      unified: function(){
+        const table = $('<table class="diff inlinediff">');
+        table.attr({ add: oplines.add, del: oplines.del });
+        const tbody = $('<tbody>').appendTo(table);
+        for (let i = 0; i < oplines.length; i++) {
+          const o = oplines[i];
+          switch (o.change) {
+            case 'skip':
+              tbody.append($('<tr>').html('<th colspan="2" class="skip"></th><td class="skip"></td>'));
+              break;
+            case 'delete':
+            case 'insert':
+            case 'equal':
+              tbody.append($('<tr>').append(
+                lineNum('old', o.base, o.change, fileHash),
+                lineNum('new', o.head, o.change, fileHash),
+                $('<td class="body">').addClass(o.change).html(o.head ? headTextDom(o.head) : baseTextDom(o.base))));
+              break;
+            case 'replace':
+              const deletes = [];
+              while (oplines[i] && oplines[i].change == 'replace') {
+                if (oplines[i].base && oplines[i].head) {
+                  const ld = lineDiff(baseTextDom(oplines[i].base), headTextDom(oplines[i].head));
+                  tbody.append($('<tr>').append(lineNum('old', oplines[i].base, 'delete', fileHash), '<th class="delete">', $('<td class="body delete">').append(ld.base)));
+                  deletes.push($('<tr>').append('<th class="insert">',lineNum('new', oplines[i].head, 'insert', fileHash),$('<td class="body insert">').append(ld.head)));
+                } else if(oplines[i].base) {
+                  tbody.append($('<tr>').append(lineNum('old', oplines[i].base, 'delete', fileHash), '<th class="delete">', $('<td class="body delete">').html(baseTextDom(oplines[i].base))));
+                } else if(oplines[i].head) {
+                  deletes.push($('<tr>').append('<th class="insert">',lineNum('new', oplines[i].head, 'insert', fileHash), $('<td class="body insert">').html(headTextDom(oplines[i].head))));
+                }
+                i++;
               }
-              i++;
-            }
-            tbody.append(deletes);
-            i--;
-            break;
+              tbody.append(deletes);
+              i--;
+              break;
           }
         }
         return table;
       }
     };
-    function lineNum(type, num, klass){
-      var cell = $('<th class="line-num">').addClass(type+'line').addClass(klass);
-      if(num){
-        cell.attr('line-number',num);
+    function lineNum(type, num, klass, hash) {
+      const cell = $('<th class="line-num">').addClass(type + 'line').addClass(klass);
+      if (num) {
+        cell.attr('line-number', num);
+        cell.attr('id', hash + '-' + (type == 'old' ? 'L' : 'R') + num);
       }
       return cell;
     }
-    function lineDiff(b,n){
-      var bc = $('<diff>').html(b).children();
-      var nc = $('<diff>').html(n).children();
-      var textE = function(){ return $(this).text(); };
-      var sm = new difflib.SequenceMatcher(bc.map(textE), nc.map(textE));
-      var op = sm.get_opcodes();
-      if(op.length==1 || sm.ratio()<0.5){
-        return {base:bc,head:nc};
+    function lineDiff(b, n) {
+      const bc = $('<diff>').html(b).children();
+      const nc = $('<diff>').html(n).children();
+      const textE = function(){ return $(this).text(); };
+      const sm = new difflib.SequenceMatcher(bc.map(textE), nc.map(textE));
+      const op = sm.get_opcodes();
+      if (op.length == 1 || sm.ratio() < 0.5) {
+        return { base:bc, head:nc };
       }
-      var ret = { base : [], head: []};
-      for(var i=0;i<op.length;i++){
-        var o = op[i];
-        switch(o[0]){
-        case 'equal':
-          ret.base=ret.base.concat(bc.slice(o[1],o[2]));
-          ret.head=ret.head.concat(nc.slice(o[3],o[4]));
-          break;
-        case 'delete':
-        case 'insert':
-        case 'replace':
-          if(o[2]!=o[1]){
-            ret.base.push($('<del>').append(bc.slice(o[1],o[2])));
-          }
-          if(o[4]!=o[3]){
-            ret.head.push($('<ins>').append(nc.slice(o[3],o[4])));
-          }
-          break;
+      const ret = { base : [], head: []};
+      for (let i = 0; i < op.length; i++) {
+        const o = op[i];
+        switch (o[0]) {
+          case 'equal':
+            ret.base = ret.base.concat(bc.slice(o[1], o[2]));
+            ret.head = ret.head.concat(nc.slice(o[3], o[4]));
+            break;
+          case 'delete':
+          case 'insert':
+          case 'replace':
+            if(o[2] != o[1]){
+              ret.base.push($('<del>').append(bc.slice(o[1], o[2])));
+            }
+            if(o[4] != o[3]){
+              ret.head.push($('<ins>').append(nc.slice(o[3], o[4])));
+            }
+            break;
         }
       }
       return ret;
     }
   },
   flatten: function(opcodes, headTextLines, baseTextLines, isIgnoreLine){
-    var ret = [], add=0, del=0;
-    for (var idx = 0; idx < opcodes.length; idx++) {
-      var code = opcodes[idx];
-      var change = code[0];
-      var b = code[1];
-      var n = code[3];
-      var rowcnt = Math.max(code[2] - b, code[4] - n);
-      for (var i = 0; i < rowcnt; i++) {
+    let ret = [], add = 0, del = 0;
+    for (let idx = 0; idx < opcodes.length; idx++) {
+      const code = opcodes[idx];
+      const change = code[0];
+      let b = code[1];
+      let n = code[3];
+      const rowcnt = Math.max(code[2] - b, code[4] - n);
+      for (let i = 0; i < rowcnt; i++) {
         switch(change){
-        case 'insert':
-          add++;
-          ret.push({
-            change:(isIgnoreLine(headTextLines[n]) ? 'equal' : change),
-            head: ++n
-          });
-          break;
-        case 'delete':
-          del++;
-          ret.push({
-            change: (isIgnoreLine(baseTextLines[b]) ? 'equal' : change),
-            base: ++b
-          });
-          break;
-        case 'replace':
-          add++;
-          del++;
-          var r = {change: change};
-          if(n<code[4]){
-            r.head = ++n;
-          }
-          if(b<code[2]){
-            r.base = ++b;
-          }
-          ret.push(r);
-          break;
-        default:
-          ret.push({
-            change:change,
-            head: ++n,
-            base: ++b
-          });
+          case 'insert':
+            add++;
+            ret.push({
+              change:(isIgnoreLine(headTextLines[n]) ? 'equal' : change),
+              head: ++n
+            });
+            break;
+          case 'delete':
+            del++;
+            ret.push({
+              change: (isIgnoreLine(baseTextLines[b]) ? 'equal' : change),
+              base: ++b
+            });
+            break;
+          case 'replace':
+            add++;
+            del++;
+            const r = { change: change };
+            if (n<code[4]) {
+              r.head = ++n;
+            }
+            if (b<code[2]) {
+              r.base = ++b;
+            }
+            ret.push(r);
+            break;
+          default:
+            ret.push({
+              change:change,
+              head: ++n,
+              base: ++b
+            });
         }
       }
     }
-    ret.add=add;
-    ret.del=del;
+    ret.add = add;
+    ret.del = del;
     return ret;
   },
   fold: function(oplines, contextSize){
-    var ret = [], skips=[], bskip = contextSize;
-    for(var i=0;i<oplines.length;i++){
-      var o = oplines[i];
-      if(o.change=='equal'){
-        if(bskip < contextSize){
+    let ret = [], skips=[], bskip = contextSize;
+    for (let i = 0; i < oplines.length; i++) {
+      const o = oplines[i];
+      if (o.change=='equal') {
+        if (bskip < contextSize) {
           bskip ++;
           ret.push(o);
-        }else{
+        } else {
           skips.push(o);
         }
-      }else{
-        if(skips.length > contextSize){
+      } else {
+        if (skips.length > contextSize) {
           ret.push({
-            change:'skip',
-            start:skips[0],
-            end:skips[skips.length-contextSize]
+            change: 'skip',
+            start: skips[0],
+            end: skips[skips.length-contextSize]
           });
         }
         ret = ret.concat(skips.splice(- contextSize));
@@ -324,7 +331,7 @@ $.extend(JsDiffRender.prototype,{
         bskip = 0;
       }
     }
-    if(skips.length > contextSize){
+    if (skips.length > contextSize) {
       ret.push({
         change:'skip',
         start:skips[0],
@@ -342,12 +349,12 @@ $.extend(JsDiffRender.prototype,{
  */
 function scrollIntoView(target){
   target = $(target);
-  var $window = $(window);
-  var docViewTop = $window.scrollTop();
-  var docViewBottom = docViewTop + $window.height();
+  const $window = $(window);
+  const docViewTop = $window.scrollTop();
+  const docViewBottom = docViewTop + $window.height();
 
-  var elemTop = target.offset().top;
-  var elemBottom = elemTop + target.height();
+  const elemTop = target.offset().top;
+  const elemBottom = elemTop + target.height();
 
   if(elemBottom > docViewBottom){
     $('html, body').scrollTop(elemBottom - $window.height());

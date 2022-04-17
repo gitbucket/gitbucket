@@ -2,7 +2,6 @@ package gitbucket.core.controller.api
 import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.MilestonesService
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import org.scalatra.NoContent
@@ -102,17 +101,4 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
     NoContent()
   })
 
-  private def getApiMilestone(repository: RepositoryInfo, milestoneId: Int): Option[ApiMilestone] = {
-    getMilestonesWithIssueCount(repository.owner, repository.name)
-      .find(p => p._1.milestoneId == milestoneId)
-      .map(
-        milestoneWithIssue =>
-          ApiMilestone(
-            repository.repository,
-            milestoneWithIssue._1,
-            milestoneWithIssue._2,
-            milestoneWithIssue._3
-        )
-      )
-  }
 }

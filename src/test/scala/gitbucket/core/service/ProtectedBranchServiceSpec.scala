@@ -87,10 +87,12 @@ class ProtectedBranchServiceSpec
             ReceiveCommand.Type.UPDATE_NONFASTFORWARD
           )
           generateNewUserWithDBRepository("user1", "repo1")
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == None)
           enableBranchProtection("user1", "repo1", "branch", false, Nil)
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == Some("Cannot force-push to a protected branch")
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == Some(
+              "Cannot force-push to a protected branch"
+            )
           )
         }
       }
@@ -107,10 +109,12 @@ class ProtectedBranchServiceSpec
             ReceiveCommand.Type.UPDATE_NONFASTFORWARD
           )
           generateNewUserWithDBRepository("user1", "repo1")
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == None)
           enableBranchProtection("user1", "repo1", "branch", false, Nil)
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == Some("Cannot force-push to a protected branch")
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == Some(
+              "Cannot force-push to a protected branch"
+            )
           )
         }
       }
@@ -127,33 +131,33 @@ class ProtectedBranchServiceSpec
             ReceiveCommand.Type.UPDATE
           )
           val user1 = generateNewUserWithDBRepository("user1", "repo1")
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == None)
           enableBranchProtection("user1", "repo1", "branch", false, Seq("must"))
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == Some(
               "Required status check \"must\" is expected"
             )
           )
           enableBranchProtection("user1", "repo1", "branch", false, Seq("must", "must2"))
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == Some(
               "2 of 2 required status checks are expected"
             )
           )
           createCommitStatus("user1", "repo1", sha2, "context", CommitState.SUCCESS, None, None, now, user1)
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == Some(
               "2 of 2 required status checks are expected"
             )
           )
           createCommitStatus("user1", "repo1", sha2, "must", CommitState.SUCCESS, None, None, now, user1)
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == Some(
               "Required status check \"must2\" is expected"
             )
           )
           createCommitStatus("user1", "repo1", sha2, "must2", CommitState.SUCCESS, None, None, now, user1)
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false) == None)
         }
       }
     }
@@ -169,37 +173,37 @@ class ProtectedBranchServiceSpec
             ReceiveCommand.Type.UPDATE
           )
           val user1 = generateNewUserWithDBRepository("user1", "repo1")
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == None)
           enableBranchProtection("user1", "repo1", "branch", false, Seq("must"))
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == None)
           enableBranchProtection("user1", "repo1", "branch", true, Seq("must"))
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == Some(
               "Required status check \"must\" is expected"
             )
           )
           enableBranchProtection("user1", "repo1", "branch", false, Seq("must", "must2"))
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == None)
           enableBranchProtection("user1", "repo1", "branch", true, Seq("must", "must2"))
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == Some(
               "2 of 2 required status checks are expected"
             )
           )
           createCommitStatus("user1", "repo1", sha2, "context", CommitState.SUCCESS, None, None, now, user1)
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == Some(
               "2 of 2 required status checks are expected"
             )
           )
           createCommitStatus("user1", "repo1", sha2, "must", CommitState.SUCCESS, None, None, now, user1)
           assert(
-            receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == Some(
+            receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == Some(
               "Required status check \"must2\" is expected"
             )
           )
           createCommitStatus("user1", "repo1", sha2, "must2", CommitState.SUCCESS, None, None, now, user1)
-          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)
+          assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false) == None)
         }
       }
     }

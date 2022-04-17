@@ -68,7 +68,22 @@ object ProtectedBranchService {
       repository: String,
       receivePack: ReceivePack,
       command: ReceiveCommand,
-      pusher: String
+      pusher: String,
+      mergePullRequest: Boolean
+    )(implicit session: Session): Option[String] = {
+      if (mergePullRequest) {
+        None
+      } else {
+        checkBranchProtection(owner, repository, receivePack, command, pusher)
+      }
+    }
+
+    private def checkBranchProtection(
+      owner: String,
+      repository: String,
+      receivePack: ReceivePack,
+      command: ReceiveCommand,
+      pusher: String,
     )(implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if (branch != command.getRefName) {
@@ -138,9 +153,9 @@ object ProtectedBranchService {
             Some("Cannot force-push to a protected branch")
           case ReceiveCommand.Type.UPDATE | ReceiveCommand.Type.UPDATE_NONFASTFORWARD if needStatusCheck(pusher) =>
             unSuccessedContexts(command.getNewId.name) match {
-              case s if s.size == 1 => Some(s"""Required status check "${s.toSeq(0)}" is expected""")
-              case s if s.size >= 1 => Some(s"${s.size} of ${contexts.size} required status checks are expected")
-              case _                => None
+              case s if s.sizeIs == 1 => Some(s"""Required status check "${s.toSeq(0)}" is expected""")
+              case s if s.sizeIs >= 1 => Some(s"${s.size} of ${contexts.size} required status checks are expected")
+              case _                  => None
             }
           case ReceiveCommand.Type.DELETE =>
             Some("Cannot delete a protected branch")
@@ -154,7 +169,7 @@ object ProtectedBranchService {
       if (contexts.isEmpty) {
         Set.empty
       } else {
-        contexts.toSet -- getCommitStatues(owner, repository, sha1)
+        contexts.toSet -- getCommitStatuses(owner, repository, sha1)
           .filter(_.state == CommitState.SUCCESS)
           .map(_.context)
           .toSet

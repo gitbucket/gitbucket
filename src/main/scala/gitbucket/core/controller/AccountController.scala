@@ -82,9 +82,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   case class PersonalTokenForm(note: String)
 
+  case class SyntaxHighlighterThemeForm(theme: String)
+
   val newForm = mapping(
     "userName" -> trim(label("User name", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password" -> trim(label("Password", text(required, maxlength(20)))),
+    "password" -> trim(label("Password", text(required, maxlength(40)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
     "extraMailAddresses" -> list(
@@ -96,7 +98,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   )(AccountNewForm.apply)
 
   val editForm = mapping(
-    "password" -> trim(label("Password", optional(text(maxlength(20))))),
+    "password" -> trim(label("Password", optional(text(maxlength(40))))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
     "extraMailAddresses" -> list(
@@ -122,6 +124,19 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "note" -> trim(label("Token", text(required, maxlength(100))))
   )(PersonalTokenForm.apply)
 
+  val syntaxHighlighterThemeForm = mapping(
+    "highlighterTheme" -> trim(label("Theme", text(required)))
+  )(SyntaxHighlighterThemeForm.apply)
+
+  val resetPasswordEmailForm = mapping(
+    "mailAddress" -> trim(label("Email", text(required)))
+  )(ResetPasswordEmailForm.apply)
+
+  val resetPasswordForm = mapping(
+    "token" -> trim(label("Token", text(required))),
+    "password" -> trim(label("Password", text(required, maxlength(40))))
+  )(ResetPasswordForm.apply)
+
   case class NewGroupForm(
     groupName: String,
     description: Option[String],
@@ -136,6 +151,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     fileId: Option[String],
     members: String,
     clearImage: Boolean
+  )
+  case class ResetPasswordEmailForm(
+    mailAddress: String
+  )
+  case class ResetPasswordForm(
+    token: String,
+    password: String
   )
 
   val newGroupForm = mapping(
@@ -428,7 +450,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   post("/:userName/_personalToken", personalTokenForm)(oneselfOnly { form =>
     val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
+    getAccountByUserName(userName).foreach { x =>
       val (tokenId, token) = generateAccessToken(userName, form.note)
       flash.update("generatedToken", (tokenId, token))
     }
@@ -440,6 +462,29 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val tokenId = params("id").toInt
     deleteAccessToken(userName, tokenId)
     redirect(s"/${userName}/_application")
+  })
+
+  /**
+   * Display the user preference settings page
+   */
+  get("/:userName/_preferences")(oneselfOnly {
+    val userName = params("userName")
+    val currentTheme = getAccountPreference(userName) match {
+      case Some(accountHighlighter) => accountHighlighter.highlighterTheme
+      case _                        => "github-v2"
+    }
+    getAccountByUserName(userName).map { x =>
+      html.preferences(x, currentTheme)
+    } getOrElse NotFound()
+  })
+
+  /**
+   * Update the syntax highlighter setting of user
+   */
+  post("/:userName/_preferences/highlighter", syntaxHighlighterThemeForm)(oneselfOnly { form =>
+    val userName = params("userName")
+    addOrUpdateAccountPreference(userName, form.theme)
+    redirect(s"/${userName}/_preferences")
   })
 
   get("/:userName/_hooks")(managersOnly {
@@ -573,7 +618,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/register") {
-    if (context.settings.allowAccountRegistration) {
+    if (context.settings.basicBehavior.allowAccountRegistration) {
       if (context.loginAccount.isDefined) {
         redirect("/")
       } else {
@@ -583,7 +628,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   post("/register", newForm) { form =>
-    if (context.settings.allowAccountRegistration) {
+    if (context.settings.basicBehavior.allowAccountRegistration) {
       createAccount(
         form.userName,
         pbkdf2_sha256(form.password),
@@ -599,8 +644,67 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } else NotFound()
   }
 
+  get("/reset") {
+    if (context.settings.basicBehavior.allowResetPassword) {
+      html.reset()
+    } else NotFound()
+  }
+
+  post("/reset", resetPasswordEmailForm) { form =>
+    if (context.settings.basicBehavior.allowResetPassword) {
+      getAccountByMailAddress(form.mailAddress).foreach { account =>
+        val token = generateResetPasswordToken(form.mailAddress)
+        val mailer = new Mailer(context.settings)
+        mailer.send(
+          form.mailAddress,
+          "Reset password",
+          s"""Hello, ${account.fullName}!
+            |
+            |You requested to reset the password for your GitBucket account.
+            |If you are not sure about the request, you can ignore this email.
+            |Otherwise, click the following link to set the new password:
+            |${context.baseUrl}/reset/form/${token}
+            |""".stripMargin
+        )
+      }
+      redirect("/reset/sent")
+    } else NotFound()
+  }
+
+  get("/reset/sent") {
+    if (context.settings.basicBehavior.allowResetPassword) {
+      html.resetsent()
+    } else NotFound()
+  }
+
+  get("/reset/form/:token") {
+    if (context.settings.basicBehavior.allowResetPassword) {
+      val token = params("token")
+      decodeResetPasswordToken(token)
+        .map { _ =>
+          html.resetform(token)
+        }
+        .getOrElse(NotFound())
+    } else NotFound()
+  }
+
+  post("/reset/form", resetPasswordForm) { form =>
+    if (context.settings.basicBehavior.allowResetPassword) {
+      decodeResetPasswordToken(form.token)
+        .flatMap { mailAddress =>
+          getAccountByMailAddress(mailAddress).map { account =>
+            updateAccount(account.copy(password = pbkdf2_sha256(form.password)))
+            html.resetcomplete()
+          }
+        }
+        .getOrElse(NotFound())
+    } else NotFound()
+  }
+
   get("/groups/new")(usersOnly {
-    html.creategroup(List(GroupMember("", context.loginAccount.get.userName, true)))
+    context.withLoginAccount { loginAccount =>
+      html.creategroup(List(GroupMember("", loginAccount.userName, true)))
+    }
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
@@ -621,22 +725,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/:groupName/_editgroup")(managersOnly {
-    defining(params("groupName")) { groupName =>
-      getAccountByUserName(groupName, true).map { account =>
-        html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
-      } getOrElse NotFound()
-    }
+    val groupName = params("groupName")
+    getAccountByUserName(groupName, true).map { account =>
+      html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
+    } getOrElse NotFound()
   })
 
   get("/:groupName/_deletegroup")(managersOnly {
-    defining(params("groupName")) {
-      groupName =>
-        // Remove from GROUP_MEMBER
-        updateGroupMembers(groupName, Nil)
-        // Disable group
-        getAccountByUserName(groupName, false).foreach { account =>
-          updateGroup(groupName, account.description, account.url, true)
-        }
+    val groupName = params("groupName")
+    // Remove from GROUP_MEMBER
+    updateGroupMembers(groupName, Nil)
+    // Disable group
+    getAccountByUserName(groupName, false).foreach { account =>
+      updateGroup(groupName, account.description, account.url, true)
+    }
 //      // Remove repositories
 //      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
 //        deleteRepository(groupName, repositoryName)
@@ -644,28 +746,25 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
 //        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
 //      }
-    }
     redirect("/")
   })
 
   post("/:groupName/_editgroup", editGroupForm)(managersOnly { form =>
-    defining(
-      params("groupName"),
-      form.members
-        .split(",")
-        .map {
-          _.split(":") match {
-            case Array(userName, isManager) => (userName, isManager.toBoolean)
-          }
+    val groupName = params("groupName")
+    val members = form.members
+      .split(",")
+      .map {
+        _.split(":") match {
+          case Array(userName, isManager) => (userName, isManager.toBoolean)
         }
-        .toList
-    ) {
-      case (groupName, members) =>
-        getAccountByUserName(groupName, true).map { account =>
-          updateGroup(groupName, form.description, form.url, false)
+      }
+      .toList
 
-          // Update GROUP_MEMBER
-          updateGroupMembers(form.groupName, members)
+    getAccountByUserName(groupName, true).map { account =>
+      updateGroup(groupName, form.description, form.url, false)
+
+      // Update GROUP_MEMBER
+      updateGroupMembers(form.groupName, members)
 //        // Update COLLABORATOR for group repositories
 //        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
 //          removeCollaborators(form.groupName, repositoryName)
@@ -674,87 +773,104 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //          }
 //        }
 
-          updateImage(form.groupName, form.fileId, form.clearImage)
+      updateImage(form.groupName, form.fileId, form.clearImage)
 
-          flash.update("info", "Account information has been updated.")
-          redirect(s"/${groupName}/_editgroup")
+      flash.update("info", "Account information has been updated.")
+      redirect(s"/${groupName}/_editgroup")
 
-        } getOrElse NotFound()
-    }
+    } getOrElse NotFound()
   })
 
   /**
    * Show the new repository form.
    */
   get("/new")(usersOnly {
-    html.newrepo(getGroupsByUserName(context.loginAccount.get.userName), context.settings.isCreateRepoOptionPublic)
+    context.withLoginAccount { loginAccount =>
+      html.newrepo(getGroupsByUserName(loginAccount.userName), context.settings.basicBehavior.isCreateRepoOptionPublic)
+    }
   })
 
   /**
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    if (context.settings.repositoryOperation.create || context.loginAccount.get.isAdmin) {
-      LockUtil.lock(s"${form.owner}/${form.name}") {
-        if (getRepository(form.owner, form.name).isEmpty) {
-          createRepository(
-            context.loginAccount.get,
-            form.owner,
-            form.name,
-            form.description,
-            form.isPrivate,
-            form.initOption,
-            form.sourceUrl
-          )
-        }
-      }
-      // redirect to the repository
-      redirect(s"/${form.owner}/${form.name}")
-    } else Forbidden()
+    context.withLoginAccount {
+      loginAccount =>
+        if (context.settings.basicBehavior.repositoryOperation.create || loginAccount.isAdmin) {
+          LockUtil.lock(s"${form.owner}/${form.name}") {
+            if (getRepository(form.owner, form.name).isDefined) {
+              // redirect to the repository if repository already exists
+              redirect(s"/${form.owner}/${form.name}")
+            } else if (!canCreateRepository(form.owner, loginAccount)) {
+              // Permission error
+              Forbidden()
+            } else {
+              // create repository asynchronously
+              createRepository(
+                loginAccount,
+                form.owner,
+                form.name,
+                form.description,
+                form.isPrivate,
+                form.initOption,
+                form.sourceUrl
+              )
+              // redirect to the repository
+              redirect(s"/${form.owner}/${form.name}")
+            }
+          }
+        } else Forbidden()
+    }
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
-    val loginAccount = context.loginAccount.get
-    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
-      val loginUserName = loginAccount.userName
-      val groups = getGroupsByUserName(loginUserName)
-      groups match {
-        case _: List[String] =>
-          val managerPermissions = groups.map { group =>
-            val members = getGroupMembers(group)
-            context.loginAccount.exists(
-              x =>
-                members.exists { member =>
-                  member.userName == x.userName && member.isManager
+    context.withLoginAccount {
+      loginAccount =>
+        if (repository.repository.options.allowFork && (context.settings.basicBehavior.repositoryOperation.fork || loginAccount.isAdmin)) {
+          val loginUserName = loginAccount.userName
+          val groups = getGroupsByUserName(loginUserName)
+          groups match {
+            case _: List[String] =>
+              val managerPermissions = groups.map { group =>
+                val members = getGroupMembers(group)
+                context.loginAccount.exists(
+                  x =>
+                    members.exists { member =>
+                      member.userName == x.userName && member.isManager
+                  }
+                )
               }
-            )
+              helper.html.forkrepository(
+                repository,
+                (groups zip managerPermissions).sortBy(_._1)
+              )
+            case _ => redirect(s"/${loginUserName}")
           }
-          helper.html.forkrepository(
-            repository,
-            (groups zip managerPermissions).sortBy(_._1)
-          )
-        case _ => redirect(s"/${loginUserName}")
-      }
-    } else BadRequest()
+        } else BadRequest()
+    }
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    val loginAccount = context.loginAccount.get
-    if (repository.repository.options.allowFork && (context.settings.repositoryOperation.fork || loginAccount.isAdmin)) {
-      val loginUserName = loginAccount.userName
-      val accountName = form.accountName
+    context.withLoginAccount {
+      loginAccount =>
+        if (repository.repository.options.allowFork && (context.settings.basicBehavior.repositoryOperation.fork || loginAccount.isAdmin)) {
+          val loginUserName = loginAccount.userName
+          val accountName = form.accountName
 
-      if (getRepository(accountName, repository.name).isDefined ||
-          (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))) {
-        // redirect to the repository if repository already exists
-        redirect(s"/${accountName}/${repository.name}")
-      } else {
-        // fork repository asynchronously
-        forkRepository(accountName, repository, loginUserName)
-        // redirect to the repository
-        redirect(s"/${accountName}/${repository.name}")
-      }
-    } else Forbidden()
+          if (getRepository(accountName, repository.name).isDefined) {
+            // redirect to the repository if repository already exists
+            redirect(s"/${accountName}/${repository.name}")
+          } else if (!canCreateRepository(accountName, loginAccount)) {
+            // Permission error
+            Forbidden()
+          } else {
+            // fork repository asynchronously
+            forkRepository(accountName, repository, loginUserName)
+            // redirect to the repository
+            redirect(s"/${accountName}/${repository.name}")
+          }
+        } else Forbidden()
+    }
   })
 
   private def existsAccount: Constraint = new Constraint() {

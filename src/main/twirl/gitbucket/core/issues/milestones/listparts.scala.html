@@ -1,0 +1,123 @@
+@(issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
+  collaborators: List[String] = Nil,
+  milestones: List[gitbucket.core.model.Milestone] = Nil,
+  priorities: List[gitbucket.core.model.Priority] = Nil,
+  labels: List[gitbucket.core.model.Label] = Nil,
+  repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None,
+  isManageable: Boolean = false)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@import gitbucket.core.service.IssuesService.IssueInfo
+@*
+@if(condition.nonEmpty){
+  <div style="width: 100%; display: inline-block;">
+    <a href="@gitbucket.core.service.IssuesService.IssueSearchCondition().toURL" class="header-link">
+      <i class="octicon octicon-x" ></i>
+      <span class="strong">Clear current search query, filters, and sorts</span>
+    </a>
+  </div>
+}
+*@
+<table class="table table-bordered table-hover table-issues">
+  <thead>
+    <tr>
+      <th style="background-color: #eee;">
+        @if(isManageable){
+          <input type="checkbox" aria-label="Select all issues"/>
+          <span id="table-issues-batchedit">
+            @gitbucket.core.helper.html.dropdown("Mark as") {
+              <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
+              <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
+            }
+            @gitbucket.core.helper.html.dropdown("Label", filter = ("label", "Find Label...")) {
+              @labels.map { label =>
+                <li>
+                  <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
+                    <i class="octicon"></i>
+                    <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                    @label.labelName
+                  </a>
+                </li>
+              }
+            }
+            @gitbucket.core.helper.html.dropdown("Assignee", filter = ("assignee", "Find Assignee...")) {
+              <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
+              @collaborators.map { collaborator =>
+                <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@helpers.avatar(collaborator, 20) @collaborator</a></li>
+              }
+            }
+          </span>
+        }
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    @if(issues.isEmpty){
+      <tr>
+        <td style="padding: 20px; background-color: #eee; text-align: center;">
+          No issues and pull requests to show.
+        </td>
+      </tr>
+    }
+    @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId), status) =>
+      <tr>
+        <td style="padding-top: 12px; padding-bottom: 12px;">
+          @if(isManageable){
+            <input type="checkbox" value="@issue.issueId" aria-labelledby="issue_@(issue.issueId)_link"/>
+          }
+          @*
+          <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened")" style="margin-right: 3px;"></i>
+          *@
+          @if(repository.isEmpty){
+            <a href="@context.path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
+          }
+          @if(issue.isPullRequest){
+            <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">
+              <i class="menu-icon octicon octicon-git-pull-request"></i>@issue.title
+            </a>
+          } else {
+            <a id="issue_@(issue.issueId)_link" href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">
+              @if(issue.closed){<i class="menu-icon octicon octicon-issue-closed"></i>}else{<i class="menu-icon octicon octicon-issue-opened"></i>}@issue.title
+            </a>
+          }
+          @status.map { case (summary, statuses) =>
+            @gitbucket.core.helper.html.commitstatus(commitId.get, summary, statuses)
+          }
+          @labels.map { label =>
+            <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
+          }
+          <span class="pull-right small">
+            @issue.assignedUserName.map { userName =>
+              @helpers.avatar(userName, 20, tooltip = true)
+            }
+            @if(commentCount > 0){
+              <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">
+                <i class="octicon octicon-comment active"></i> @commentCount
+              </a>
+            } else {
+              <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count" style="color: silver;">
+                <i class="octicon octicon-comment"></i> @commentCount
+              </a>
+            }
+          </span>
+          <div class="small muted" style="margin-left: 12px; margin-top: 2px;">
+            #@issue.issueId opened @gitbucket.core.helper.html.datetimeago(issue.registeredDate) by @helpers.user(issue.openedUserName, styleClass="username")
+            @priority.map(priority => priorities.filter(p => p.priorityName == priority).head).map { priority =>
+            <span style="margin: 20px;"><a href="@condition.copy(priority = Some(Some(priority.priorityName))).toURL" class="username"@if(!priority.description.isEmpty) { title="@priority.description.get" }><i class="octicon octicon-flame"></i>
+              <span class="issue-priority issue-priority-inline" style="background-color: #@priority.color; color: #@priority.fontColor;">@priority.priorityName</span></a></span>
+            }
+            @milestone.map { milestone =>
+              <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>
+            }
+          </div>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+<div class="pull-right">
+  @gitbucket.core.helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), gitbucket.core.service.IssuesService.IssueLimit, 10, condition.toURL)
+</div>

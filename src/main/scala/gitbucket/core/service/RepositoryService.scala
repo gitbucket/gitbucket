@@ -2,7 +2,6 @@ package gitbucket.core.service
 
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.model.{CommitComments => _, Session => _, _}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -12,7 +11,8 @@ import gitbucket.core.util.Directory.{getRepositoryDir, getRepositoryFilesDir, g
 import gitbucket.core.util.JGitUtil.FileInfo
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.{Repository => _, _}
+import org.eclipse.jgit.lib.{Repository => _}
+
 import scala.util.Using
 
 trait RepositoryService {
@@ -61,7 +61,8 @@ trait RepositoryService {
           externalWikiUrl = None,
           allowFork = true,
           mergeOptions = "merge-commit,squash,rebase",
-          defaultMergeOption = "merge-commit"
+          defaultMergeOption = "merge-commit",
+          safeMode = true
         )
       )
 
@@ -202,22 +203,19 @@ trait RepositoryService {
           )
 
           // Move git repository
-          defining(getRepositoryDir(oldUserName, oldRepositoryName)) { dir =>
-            if (dir.isDirectory) {
-              FileUtils.moveDirectory(dir, getRepositoryDir(newUserName, newRepositoryName))
-            }
+          val repoDir = getRepositoryDir(oldUserName, oldRepositoryName)
+          if (repoDir.isDirectory) {
+            FileUtils.moveDirectory(repoDir, getRepositoryDir(newUserName, newRepositoryName))
           }
           // Move wiki repository
-          defining(getWikiRepositoryDir(oldUserName, oldRepositoryName)) { dir =>
-            if (dir.isDirectory) {
-              FileUtils.moveDirectory(dir, getWikiRepositoryDir(newUserName, newRepositoryName))
-            }
+          val wikiDir = getWikiRepositoryDir(oldUserName, oldRepositoryName)
+          if (wikiDir.isDirectory) {
+            FileUtils.moveDirectory(wikiDir, getWikiRepositoryDir(newUserName, newRepositoryName))
           }
           // Move files directory
-          defining(getRepositoryFilesDir(oldUserName, oldRepositoryName)) { dir =>
-            if (dir.isDirectory) {
-              FileUtils.moveDirectory(dir, getRepositoryFilesDir(newUserName, newRepositoryName))
-            }
+          val filesDir = getRepositoryFilesDir(oldUserName, oldRepositoryName)
+          if (filesDir.isDirectory) {
+            FileUtils.moveDirectory(filesDir, getRepositoryFilesDir(newUserName, newRepositoryName))
           }
           // Delete parent directory
           FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(oldUserName, oldRepositoryName))
@@ -237,10 +235,11 @@ trait RepositoryService {
     LockUtil.lock(s"${repository.userName}/${repository.repositoryName}") {
       deleteRepositoryOnModel(repository.userName, repository.repositoryName)
 
-      FileUtils.deleteDirectory(getRepositoryDir(repository.userName, repository.repositoryName))
-      FileUtils.deleteDirectory(getWikiRepositoryDir(repository.userName, repository.repositoryName))
-      FileUtils.deleteDirectory(getTemporaryDir(repository.userName, repository.repositoryName))
-      FileUtils.deleteDirectory(getRepositoryFilesDir(repository.userName, repository.repositoryName))
+      FileUtil.deleteRecursively(getRepositoryDir(repository.userName, repository.repositoryName))
+
+      FileUtil.deleteRecursively(getWikiRepositoryDir(repository.userName, repository.repositoryName))
+      FileUtil.deleteRecursively(getTemporaryDir(repository.userName, repository.repositoryName))
+      FileUtil.deleteRecursively(getRepositoryFilesDir(repository.userName, repository.repositoryName))
 
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.userName, repository.repositoryName))
@@ -463,7 +462,7 @@ trait RepositoryService {
           .filter { case (t1, t2) => t2.removed === false.bind }
           .map { case (t1, t2) => t1 }
       // for Normal Users
-      case Some(x) if (!x.isAdmin || limit) =>
+      case Some(x) =>
         Repositories
           .join(Accounts)
           .on(_.userName === _.userName)
@@ -553,7 +552,8 @@ trait RepositoryService {
     externalWikiUrl: Option[String],
     allowFork: Boolean,
     mergeOptions: Seq[String],
-    defaultMergeOption: String
+    defaultMergeOption: String,
+    safeMode: Boolean
   )(implicit s: Session): Unit = {
 
     Repositories
@@ -569,6 +569,7 @@ trait RepositoryService {
           r.allowFork,
           r.mergeOptions,
           r.defaultMergeOption,
+          r.safeMode,
           r.updatedDate
         )
       }
@@ -582,6 +583,7 @@ trait RepositoryService {
         allowFork,
         mergeOptions.mkString(","),
         defaultMergeOption,
+        safeMode,
         currentDate
       )
   }
@@ -765,7 +767,8 @@ trait RepositoryService {
           JGitUtil.getContentFromId(git, file.id, true).collect {
             case bytes if FileUtil.isText(bytes) => StringUtil.convertFromByteArray(bytes)
           }
-        } getOrElse None
+        }
+        .flatten
     } getOrElse ""
   }
 }
@@ -819,11 +822,13 @@ object RepositoryService {
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)
 
     def splitPath(path: String): (String, String) = {
-      val id = branchList.collectFirst {
-        case branch if (path == branch || path.startsWith(branch + "/")) => branch
-      } orElse tags.collectFirst {
-        case tag if (path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-      } getOrElse path.split("/")(0)
+      val names = (branchList ++ tags.map(_.name)).sortBy(_.length).reverse
+
+      val id = names.collectFirst {
+        case name if (path == name || path.startsWith(name + "/")) => name
+      } getOrElse {
+        path.split("/")(0)
+      }
 
       (id, path.substring(id.length).stripPrefix("/"))
     }
@@ -831,12 +836,10 @@ object RepositoryService {
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String =
     s"${context.baseUrl}/git/${owner}/${name}.git"
+
   def sshUrl(owner: String, name: String)(implicit context: Context): Option[String] =
-    if (context.settings.ssh.enabled) {
-      context.settings.sshAddress.map { x =>
-        s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git"
-      }
-    } else None
+    context.settings.sshUrl(owner, name)
+
   def openRepoUrl(openUrl: String)(implicit context: Context): String =
     s"github-${context.platform}://openRepo/${openUrl}"
 

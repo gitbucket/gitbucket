@@ -28,6 +28,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
+import org.json4s.Formats
 
 /**
  * Provides generic features for controller implementations.
@@ -43,7 +44,7 @@ abstract class ControllerBase
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+  implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
 
   before("/api/v3/*") {
     contentType = formats("json")
@@ -157,11 +158,8 @@ abstract class ControllerBase
           org.scalatra.Unauthorized(
             redirect(
               "/signin?redirect=" + StringUtil.urlEncode(
-                defining(request.getQueryString) { queryString =>
-                  request.getRequestURI.substring(request.getContextPath.length) + (if (queryString != null)
-                                                                                      "?" + queryString
-                                                                                    else "")
-                }
+                request.getRequestURI
+                  .substring(request.getContextPath.length) + Option(request.getQueryString).map("?" + _).getOrElse("")
               )
             )
           )
@@ -255,7 +253,7 @@ abstract class ControllerBase
     repository: RepositoryService.RepositoryInfo
   ): Unit = {
     JGitUtil.getObjectLoaderFromId(git, objectId) { loader =>
-      contentType = FileUtil.getSafeMimeType(path)
+      contentType = FileUtil.getSafeMimeType(path, repository.repository.options.safeMode)
 
       if (loader.isLarge) {
         response.setContentLength(loader.getSize.toInt)
@@ -302,20 +300,27 @@ case class Context(
   }
   val sidebarCollapse = request.getSession.getAttribute("sidebar-collapse") != null
 
+  def withLoginAccount(f: Account => Any): Any = {
+    loginAccount match {
+      case Some(loginAccount) => f(loginAccount)
+      case None               => Unauthorized()
+    }
+  }
+
   /**
    * Get object from cache.
    *
    * If object has not been cached with the specified key then retrieves by given action.
    * Cached object are available during a request.
    */
-  def cache[A](key: String)(action: => A): A =
-    defining(Keys.Request.Cache(key)) { cacheKey =>
-      Option(request.getAttribute(cacheKey).asInstanceOf[A]).getOrElse {
-        val newObject = action
-        request.setAttribute(cacheKey, newObject)
-        newObject
-      }
+  def cache[A](key: String)(action: => A): A = {
+    val cacheKey = Keys.Request.Cache(key)
+    Option(request.getAttribute(cacheKey).asInstanceOf[A]).getOrElse {
+      val newObject = action
+      request.setAttribute(cacheKey, newObject)
+      newObject
     }
+  }
 
 }
 
@@ -421,7 +426,7 @@ trait AccountManagementControllerBase extends ControllerBase {
     "new"
   )
 
-  protected def reservedNames(): Constraint = new Constraint() {
+  protected def reservedNames: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (allReservedNames.contains(value.toLowerCase)) {
         Some(s"${value} is reserved")

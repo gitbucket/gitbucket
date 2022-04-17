@@ -1,7 +1,6 @@
 package gitbucket.core.servlet
 
 import javax.servlet._
-import javax.servlet.http.HttpServletRequest
 
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.plugin.PluginRegistry

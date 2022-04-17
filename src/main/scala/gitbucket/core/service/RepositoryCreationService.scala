@@ -25,7 +25,7 @@ object RepositoryCreationService {
   private val Creating = new ConcurrentHashMap[String, Option[String]]()
 
   def isCreating(owner: String, repository: String): Boolean = {
-    Option(Creating.get(s"${owner}/${repository}")).map(_.isEmpty).getOrElse(false)
+    Option(Creating.get(s"${owner}/${repository}")).exists(_.isEmpty)
   }
 
   def startCreation(owner: String, repository: String): Unit = {
@@ -40,7 +40,7 @@ object RepositoryCreationService {
   }
 
   def getCreationError(owner: String, repository: String): Option[String] = {
-    Option(Creating.remove(s"${owner}/${repository}")).getOrElse(None)
+    Option(Creating.remove(s"${owner}/${repository}")).flatten
   }
 
 }
@@ -52,6 +52,11 @@ trait RepositoryCreationService {
     with WikiService
     with ActivityService
     with PrioritiesService =>
+
+  def canCreateRepository(repositoryOwner: String, loginAccount: Account)(implicit session: Session): Boolean = {
+    repositoryOwner == loginAccount.userName || getGroupsByUserName(loginAccount.userName)
+      .contains(repositoryOwner) || loginAccount.isAdmin
+  }
 
   def createRepository(
     loginAccount: Account,
@@ -76,7 +81,7 @@ trait RepositoryCreationService {
     RepositoryCreationService.startCreation(owner, name)
     try {
       Database() withTransaction { implicit session =>
-        val ownerAccount = getAccountByUserName(owner).get
+        //val ownerAccount = getAccountByUserName(owner).get
         val loginUserName = loginAccount.userName
 
         val copyRepositoryDir = if (initOption == "COPY") {

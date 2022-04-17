@@ -6,7 +6,6 @@ import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
-
 import javax.servlet.ServletContext
 import com.github.zafarkhaja.semver.Version
 import gitbucket.core.controller.{Context, ControllerBase}
@@ -21,6 +20,7 @@ import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
+import org.apache.sshd.server.channel.ChannelSession
 import org.apache.sshd.server.command.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
@@ -58,7 +58,7 @@ class PluginRegistry {
   private val suggestionProviders = new ConcurrentLinkedQueue[SuggestionProvider]
   suggestionProviders.add(new UserNameSuggestionProvider())
   suggestionProviders.add(new IssueSuggestionProvider())
-  private val sshCommandProviders = new ConcurrentLinkedQueue[PartialFunction[String, Command]]()
+  private val sshCommandProviders = new ConcurrentLinkedQueue[PartialFunction[String, ChannelSession => Command]]()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins.add(pluginInfo)
 
@@ -177,10 +177,11 @@ class PluginRegistry {
 
   def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.asScala.toSeq
 
-  def addSshCommandProvider(sshCommandProvider: PartialFunction[String, Command]): Unit =
+  def addSshCommandProvider(sshCommandProvider: PartialFunction[String, ChannelSession => Command]): Unit =
     sshCommandProviders.add(sshCommandProvider)
 
-  def getSshCommandProviders: Seq[PartialFunction[String, Command]] = sshCommandProviders.asScala.toSeq
+  def getSshCommandProviders: Seq[PartialFunction[String, ChannelSession => Command]] =
+    sshCommandProviders.asScala.toSeq
 }
 
 /**

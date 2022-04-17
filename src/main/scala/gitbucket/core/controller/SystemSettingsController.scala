@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import java.io.FileInputStream
-
 import gitbucket.core.admin.html
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService._
@@ -9,7 +8,6 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.ssh.SshServer
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.mail.EmailException
@@ -36,23 +34,38 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   private val form = mapping(
     "baseUrl" -> trim(label("Base URL", optional(text()))),
     "information" -> trim(label("Information", optional(text()))),
-    "allowAccountRegistration" -> trim(label("Account registration", boolean())),
-    "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
-    "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
-    "repositoryOperation" -> mapping(
-      "create" -> trim(label("Allow all users to create repository", boolean())),
-      "delete" -> trim(label("Allow all users to delete repository", boolean())),
-      "rename" -> trim(label("Allow all users to rename repository", boolean())),
-      "transfer" -> trim(label("Allow all users to transfer repository", boolean())),
-      "fork" -> trim(label("Allow all users to fork repository", boolean()))
-    )(RepositoryOperation.apply),
-    "gravatar" -> trim(label("Gravatar", boolean())),
-    "notification" -> trim(label("Notification", boolean())),
-    "limitVisibleRepositories" -> trim(label("limitVisibleRepositories", boolean())),
+    "basicBehavior" -> mapping(
+      "allowAccountRegistration" -> trim(label("Account registration", boolean())),
+      "allowResetPassword" -> trim(label("Reset password", boolean())),
+      "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
+      "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
+      "repositoryOperation" -> mapping(
+        "create" -> trim(label("Allow all users to create repository", boolean())),
+        "delete" -> trim(label("Allow all users to delete repository", boolean())),
+        "rename" -> trim(label("Allow all users to rename repository", boolean())),
+        "transfer" -> trim(label("Allow all users to transfer repository", boolean())),
+        "fork" -> trim(label("Allow all users to fork repository", boolean()))
+      )(RepositoryOperation.apply),
+      "gravatar" -> trim(label("Gravatar", boolean())),
+      "notification" -> trim(label("Notification", boolean())),
+      "limitVisibleRepositories" -> trim(label("limitVisibleRepositories", boolean())),
+    )(BasicBehavior.apply),
     "ssh" -> mapping(
       "enabled" -> trim(label("SSH access", boolean())),
-      "host" -> trim(label("SSH host", optional(text()))),
-      "port" -> trim(label("SSH port", optional(number())))
+      "bindAddress" -> mapping(
+        "host" -> trim(label("Bind SSH host", optional(text()))),
+        "port" -> trim(label("Bind SSH port", optional(number()))),
+      )(
+        (hostOption, portOption) =>
+          hostOption.map(h => SshAddress(h, portOption.getOrElse(DefaultSshPort), GenericSshUser))
+      ),
+      "publicAddress" -> mapping(
+        "host" -> trim(label("Public SSH host", optional(text()))),
+        "port" -> trim(label("Public SSH port", optional(number()))),
+      )(
+        (hostOption, portOption) =>
+          hostOption.map(h => SshAddress(h, portOption.getOrElse(PublicSshPort), GenericSshUser))
+      ),
     )(Ssh.apply),
     "useSMTP" -> trim(label("SMTP", boolean())),
     "smtp" -> optionalIfNotChecked(
@@ -117,8 +130,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {
         Some("baseUrl" -> "Base URL is required if SSH access is enabled.")
       } else None,
-      if (settings.ssh.enabled && settings.ssh.sshHost.isEmpty) {
-        Some("sshHost" -> "SSH host is required if SSH access is enabled.")
+      if (settings.ssh.enabled && settings.ssh.bindAddress.isEmpty) {
+        Some("ssh.bindAddress.host" -> "SSH bind host is required if SSH access is enabled.")
       } else None
     ).flatten
   }
@@ -187,7 +200,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val newUserForm = mapping(
     "userName" -> trim(label("Username", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password" -> trim(label("Password", text(required, maxlength(20)))),
+    "password" -> trim(label("Password", text(required, maxlength(40)))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress()))),
     "extraMailAddresses" -> list(
@@ -201,7 +214,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val editUserForm = mapping(
     "userName" -> trim(label("Username", text(required, maxlength(100), identifier))),
-    "password" -> trim(label("Password", optional(text(maxlength(20))))),
+    "password" -> trim(label("Password", optional(text(maxlength(40))))),
     "fullName" -> trim(label("Full Name", text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address", text(required, maxlength(100), uniqueMailAddress("userName")))),
     "extraMailAddresses" -> list(
@@ -309,12 +322,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
 
-    if (form.sshAddress != context.settings.sshAddress) {
+    if (form.ssh.bindAddress != context.settings.sshBindAddress || form.ssh.publicAddress != context.settings.sshPublicAddress) {
       SshServer.stop()
       for {
-        sshAddress <- form.sshAddress
+        bindAddress <- form.ssh.bindAddress
+        publicAddress <- form.ssh.publicAddress.orElse(form.ssh.bindAddress)
         baseUrl <- form.baseUrl
-      } SshServer.start(sshAddress, baseUrl)
+      } SshServer.start(bindAddress, publicAddress, baseUrl)
     }
 
     flash.update("info", "System settings has been updated.")
@@ -323,7 +337,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
     try {
-      new Mailer(context.settings.copy(smtp = Some(form.smtp), notification = true)).send(
+      new Mailer(
+        context.settings.copy(
+          smtp = Some(form.smtp),
+          basicBehavior = context.settings.basicBehavior.copy(notification = true)
+        )
+      ).send(
         to = form.testAddress,
         subject = "Test message from GitBucket",
         textMsg = "This is a test message from GitBucket.",
@@ -362,8 +381,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/users")(adminOnly {
-    val includeRemoved = params.get("includeRemoved").map(_.toBoolean).getOrElse(false)
-    val includeGroups = params.get("includeGroups").map(_.toBoolean).getOrElse(false)
+    val includeRemoved = params.get("includeRemoved").exists(_.toBoolean)
+    val includeGroups = params.get("includeGroups").exists(_.toBoolean)
     val users = getAllUsers(includeRemoved, includeGroups)
     val members = users.collect {
       case account if (account.isGroupAccount) =>
@@ -463,31 +482,28 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/users/:groupName/_editgroup")(adminOnly {
-    defining(params("groupName")) { groupName =>
-      html.usergroup(getAccountByUserName(groupName, true), getGroupMembers(groupName))
-    }
+    val groupName = params("groupName")
+    html.usergroup(getAccountByUserName(groupName, true), getGroupMembers(groupName))
   })
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
-    defining(
-      params("groupName"),
-      form.members
-        .split(",")
-        .map {
-          _.split(":") match {
-            case Array(userName, isManager) => (userName, isManager.toBoolean)
-          }
+    val groupName = params("groupName")
+    val members = form.members
+      .split(",")
+      .map {
+        _.split(":") match {
+          case Array(userName, isManager) => (userName, isManager.toBoolean)
         }
-        .toList
-    ) {
-      case (groupName, members) =>
-        getAccountByUserName(groupName, true).map {
-          account =>
-            updateGroup(groupName, form.description, form.url, form.isRemoved)
+      }
+      .toList
 
-            if (form.isRemoved) {
-              // Remove from GROUP_MEMBER
-              updateGroupMembers(form.groupName, Nil)
+    getAccountByUserName(groupName, true).map {
+      account =>
+        updateGroup(groupName, form.description, form.url, form.isRemoved)
+
+        if (form.isRemoved) {
+          // Remove from GROUP_MEMBER
+          updateGroupMembers(form.groupName, Nil)
 //          // Remove repositories
 //          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
 //            deleteRepository(groupName, repositoryName)
@@ -495,9 +511,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 //            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
 //            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
 //          }
-            } else {
-              // Update GROUP_MEMBER
-              updateGroupMembers(form.groupName, members)
+        } else {
+          // Update GROUP_MEMBER
+          updateGroupMembers(form.groupName, members)
 //          // Update COLLABORATOR for group repositories
 //          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
 //            removeCollaborators(form.groupName, repositoryName)
@@ -505,13 +521,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 //              addCollaborator(form.groupName, repositoryName, userName)
 //            }
 //          }
-            }
+        }
 
-            updateImage(form.groupName, form.fileId, form.clearImage)
-            redirect("/admin/users")
+        updateImage(form.groupName, form.fileId, form.clearImage)
+        redirect("/admin/users")
 
-        } getOrElse NotFound()
-    }
+    } getOrElse NotFound()
   })
 
   get("/admin/data")(adminOnly {
@@ -559,12 +574,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   protected def disableByNotYourself(paramName: String): Constraint =
     new Constraint() {
       override def validate(name: String, value: String, messages: Messages): Option[String] = {
-        params.get(paramName).flatMap { userName =>
-          if (userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
-            Some("You can't disable your account yourself")
-          else
-            None
-        }
+        for {
+          userName <- params.get(paramName)
+          loginAccount <- context.loginAccount
+          if userName == loginAccount.userName && params.get("removed") == Some("true")
+        } yield "You can't disable your account yourself"
       }
     }
 

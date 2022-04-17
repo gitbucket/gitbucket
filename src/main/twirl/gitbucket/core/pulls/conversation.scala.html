@@ -8,6 +8,7 @@
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
+  customFields: List[(gitbucket.core.model.CustomField, Option[gitbucket.core.model.IssueCustomField])],
   isEditable: Boolean,
   isManageable: Boolean,
   isManageableForkedRepository: Boolean,
@@ -26,7 +27,7 @@
       case other => None
     }.exists(_.action == "merge")){ merged =>
       @if(!issue.closed){
-        <div class="check-conflict" style="display: none;">
+        <div class="check-conflict" style="display: none; margin-bottom: 20px;">
           <div class="issue-comment-box" style="background-color: #fbeed5">
             <div class="box-content" style="border: 1px solid #c09853; padding: 10px;">
               <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
@@ -50,18 +51,30 @@
     }
   </div>
   <div class="col-md-3">
-    @gitbucket.core.issues.html.issueinfo(Some(issue), comments.toList, issueLabels, collaborators, milestones, priorities, None, labels, isManageable, repository)
+    @gitbucket.core.issues.html.issueinfo(
+      Some(issue),
+      comments.toList,
+      issueLabels,
+      collaborators,
+      milestones,
+      priorities,
+      None,
+      labels,
+      customFields,
+      isManageable,
+      repository
+    )
   </div>
   <script>
   $(function(){
     @if(commits.nonEmpty){
-      var checkConflict = $('.check-conflict').show();
+      const checkConflict = $('.check-conflict').show();
       if(checkConflict.length){
         $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
       }
     }
     $('.delete-branch').click(function(e){
-      var branchName = $(e.target).data('name');
+      const branchName = $(e.target).data('name');
       return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
     });
   });

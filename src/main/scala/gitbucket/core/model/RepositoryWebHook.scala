@@ -3,7 +3,7 @@ package gitbucket.core.model
 trait RepositoryWebHookComponent extends TemplateComponent { self: Profile =>
   import profile.api._
 
-  implicit val whContentTypeColumnType =
+  implicit val whContentTypeColumnType: BaseColumnType[WebHookContentType] =
     MappedColumnType.base[WebHookContentType, String](whct => whct.code, code => WebHookContentType.valueOf(code))
 
   lazy val RepositoryWebHooks = TableQuery[RepositoryWebHooks]
@@ -14,7 +14,8 @@ trait RepositoryWebHookComponent extends TemplateComponent { self: Profile =>
     val token = column[Option[String]]("TOKEN")
     val ctype = column[WebHookContentType]("CTYPE")
     def * =
-      (userName, repositoryName, hookId, url, ctype, token) <> ((RepositoryWebHook.apply _).tupled, RepositoryWebHook.unapply)
+      (userName, repositoryName, hookId, url, ctype, token)
+        .<>((RepositoryWebHook.apply _).tupled, RepositoryWebHook.unapply)
 
     def byRepositoryUrl(owner: String, repository: String, url: String) =
       byRepository(owner, repository) && (this.url === url.bind)

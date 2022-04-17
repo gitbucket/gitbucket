@@ -5,7 +5,6 @@ import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.lib._
@@ -54,20 +53,19 @@ trait WikiService {
 
   def createWikiRepository(loginAccount: Account, owner: String, repository: String): Unit =
     LockUtil.lock(s"${owner}/${repository}/wiki") {
-      defining(Directory.getWikiRepositoryDir(owner, repository)) { dir =>
-        if (!dir.exists) {
-          JGitUtil.initRepository(dir)
-          saveWikiPage(
-            owner,
-            repository,
-            "Home",
-            "Home",
-            s"Welcome to the ${repository} wiki!!",
-            loginAccount,
-            "Initial Commit",
-            None
-          )
-        }
+      val dir = Directory.getWikiRepositoryDir(owner, repository)
+      if (!dir.exists) {
+        JGitUtil.initRepository(dir)
+        saveWikiPage(
+          owner,
+          repository,
+          "Home",
+          "Home",
+          s"Welcome to the ${repository} wiki!!",
+          loginAccount,
+          "Initial Commit",
+          None
+        )
       }
     }
 
@@ -77,13 +75,15 @@ trait WikiService {
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
     Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       if (!JGitUtil.isEmpty(git)) {
-        JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
+        val fileName = pageName + ".md"
+        JGitUtil.getLatestCommitFromPath(git, fileName, "master").map { latestCommit =>
+          val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
           WikiPageInfo(
-            file.name,
-            StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
-            file.author,
-            file.time,
-            file.commitId
+            fileName,
+            StringUtil.convertFromByteArray(content.getOrElse(Array.empty)),
+            latestCommit.getAuthorIdent.getName,
+            latestCommit.getAuthorIdent.getWhen,
+            latestCommit.getName
           )
         }
       } else None
@@ -147,7 +147,7 @@ trait WikiService {
           if (!p.getErrors.isEmpty) {
             throw new PatchFormatException(p.getErrors())
           }
-          val revertInfo = (p.getFiles.asScala.map { fh =>
+          val revertInfo = p.getFiles.asScala.flatMap { fh =>
             fh.getChangeType match {
               case DiffEntry.ChangeType.MODIFY => {
                 val source =
@@ -176,7 +176,7 @@ trait WikiService {
               }
               case _ => Nil
             }
-          }).flatten
+          }
 
           if (revertInfo.nonEmpty) {
             val builder = DirCache.newInCore.builder()
@@ -257,8 +257,7 @@ trait WikiService {
               created = false
               updated = JGitUtil
                 .getContentFromId(git, tree.getEntryObjectId, true)
-                .map(new String(_, "UTF-8") != content)
-                .getOrElse(false)
+                .exists(new String(_, "UTF-8") != content)
             }
           }
         }

@@ -35,7 +35,7 @@ trait AccountComponent { self: Profile =>
         groupAccount,
         removed,
         description.?
-      ) <> (Account.tupled, Account.unapply)
+      ).<>(Account.tupled, Account.unapply)
   }
 }
 

@@ -96,7 +96,7 @@
         <div id="test-report" style="display:none">
           <ul class="nav nav-tabs" id="test-report-tab">
             <li class="active"><a href="#request">Request</a></li>
-            <li><a href="#response">Response <span class="badge badge-success" id="res-status"></span></a></li>
+            <li><a href="#response">Response <span class="label label-success" id="res-status"></span></a></li>
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="request">
@@ -137,9 +137,9 @@ $(function(){
     e.stopPropagation();
     e.stopImmediatePropagation();
     e.preventDefault();
-    var url = this.form.url.value;
-    var token = this.form.token.value;
-    var ctype = this.form.ctype.value;
+    const url = this.form.url.value;
+    const token = this.form.token.value;
+    const ctype = this.form.ctype.value;
     if(!/^https?:\/\/.+/.test(url)){
       alert("invalid url");
       return;
@@ -147,19 +147,18 @@ $(function(){
     $("#test-modal-url").text(url)
     $("#test-report-modal").modal('show')
     $("#test-report").hide();
-    var targetUrl = '@testButtonUrl?url=' + encodeURIComponent(url) + '&ctype=' + ctype + '&token=';
+    let targetUrl = '@testButtonUrl?url=' + encodeURIComponent(url) + '&ctype=' + ctype + '&token=';
     if (token) {
       targetUrl = targetUrl + encodeURIComponent(token);
     }
     $.ajax({
-      method:'POST',
-      url:targetUrl,
+      method: 'POST',
+      url: targetUrl,
       success: function(e){
-        //console.log(e);
         $('#test-report-tab a:first').tab('show');
         $("#test-report").show();
-        $("#req-success").toggle(e.request&&!e.request.error);
-        $("#req-errors").toggle(e.request&&!!e.request.error);
+        $("#req-success").toggle(e.request && !e.request.error);
+        $("#req-errors").toggle(e.request && !!e.request.error);
         $("#req-errors-body").text(e.request.error);
         function headers(h){
           h = h["headers"];
@@ -172,9 +171,9 @@ $(function(){
         $("#res-success").toggle(e.response && !e.response.error);
         $("#res-errors").toggle(e.response && !!e.response.error);
         $("#res-errors-body").text(e.response.error);
-        var success = !!(e.response && e.response.status && /^2\d\d$/.test(e.response.status.statusCode));
-        $("#res-status").text((e.response && e.response.status && e.response.status.statusCode) || "ERROR");
-        $("#res-status").toggleClass("badge-success", success).toggleClass("badge-important", !success);
+        const success = !!(e.response && e.response.status && /^2\d\d$/.test(e.response.status));
+        $("#res-status").text((e.response && e.response.status) || "ERROR");
+        $("#res-status").toggleClass("label-success", success).toggleClass("label-danger", !success);
         $("#res-headers").html(headers(e.response));
         $("#res-body").text(e.response && e.response.body ? e.response.body : "");
       },

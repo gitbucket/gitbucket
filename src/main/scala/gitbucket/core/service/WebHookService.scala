@@ -3,7 +3,6 @@ package gitbucket.core.service
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
-import gitbucket.core.controller.Context
 import gitbucket.core.model.{
   Account,
   AccountWebHook,
@@ -21,7 +20,6 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
 import gitbucket.core.util.JGitUtil.CommitInfo
-import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{HttpClientUtil, RepositoryName, StringUtil}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.apache.http.NameValuePair
@@ -37,6 +35,7 @@ import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+import gitbucket.core.view.helpers.getApiMilestone
 import org.apache.http.client.entity.EntityBuilder
 import org.apache.http.entity.ContentType
 
@@ -128,7 +127,7 @@ trait WebHookService {
       ctype = ctype,
       token = token
     )
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
   }
@@ -146,7 +145,7 @@ trait WebHookService {
       .map(w => (w.ctype, w.token))
       .update((ctype, token))
     RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
   }
@@ -165,14 +164,16 @@ trait WebHookService {
       .map(w => (w.url, w.ctype, w.token))
       .update((url, ctype, token))
     RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
   }
 
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
   def deleteWebHook(owner: String, repository: String, url: String)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byRepositoryUrl(owner, repository, url)).delete
 
+  // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
   def deleteWebHookById(id: Int)(implicit s: Session): Unit =
     RepositoryWebHooks.filter(_.byId(id)).delete
 
@@ -228,7 +229,7 @@ trait WebHookService {
     token: Option[String]
   )(implicit s: Session): Unit = {
     AccountWebHooks insert AccountWebHook(owner, url, ctype, token)
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       AccountWebHookEvents insert AccountWebHookEvent(owner, url, event)
     }
   }
@@ -242,7 +243,7 @@ trait WebHookService {
   )(implicit s: Session): Unit = {
     AccountWebHooks.filter(_.byPrimaryKey(owner, url)).map(w => (w.ctype, w.token)).update((ctype, token))
     AccountWebHookEvents.filter(_.byAccountWebHook(owner, url)).delete
-    events.map { event: WebHook.Event =>
+    events.map { (event: WebHook.Event) =>
       AccountWebHookEvents insert AccountWebHookEvent(owner, url, event)
     }
   }
@@ -255,11 +256,11 @@ trait WebHookService {
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     val webHooks = getWebHooksByEvent(owner, repository, event)
     if (webHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, webHooks, _, settings))
+      makePayload.foreach(callWebHook(event, webHooks, _, settings))
     }
     val accountWebHooks = getAccountWebHooksByEvent(owner, event)
     if (accountWebHooks.nonEmpty) {
-      makePayload.map(callWebHook(event, accountWebHooks, _, settings))
+      makePayload.foreach(callWebHook(event, accountWebHooks, _, settings))
     }
   }
 
@@ -283,7 +284,7 @@ trait WebHookService {
       val json = JsonFormat(payload)
 
       webHooks.map { webHook =>
-        val reqPromise = Promise[HttpRequest]
+        val reqPromise = Promise[HttpRequest]()
         val f = Future {
           val itcp = new org.apache.http.HttpRequestInterceptor {
             def process(res: HttpRequest, ctx: HttpContext): Unit = {
@@ -394,7 +395,8 @@ trait WebHookPullRequestService extends WebHookService {
             ApiUser(issueUser),
             issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
-              .map(ApiLabel(_, RepositoryName(repository)))
+              .map(ApiLabel(_, RepositoryName(repository))),
+            getApiMilestone(repository, issue.milestoneId getOrElse (0))
           ),
           sender = ApiUser(sender)
         )
@@ -576,6 +578,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
         commenter <- users.get(issueComment.commentedUserName)
         assignedUser = issue.assignedUserName.flatMap(users.get(_))
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
+        milestone = getApiMilestone(repository, issue.milestoneId getOrElse (0))
       } yield {
         WebHookIssueCommentPayload(
           issue = issue,
@@ -586,7 +589,8 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
           repositoryUser = repoOwner,
           assignedUser = assignedUser,
           sender = sender,
-          labels = labels
+          labels = labels,
+          milestone = milestone
         )
       }
     }
@@ -760,7 +764,8 @@ object WebHookService {
       repositoryUser: Account,
       assignedUser: Option[Account],
       sender: Account,
-      labels: List[Label]
+      labels: List[Label],
+      milestone: Option[ApiMilestone]
     ): WebHookIssueCommentPayload =
       WebHookIssueCommentPayload(
         action = "created",
@@ -770,7 +775,8 @@ object WebHookService {
           RepositoryName(repository),
           ApiUser(issueUser),
           assignedUser.map(ApiUser(_)),
-          labels.map(ApiLabel(_, RepositoryName(repository)))
+          labels.map(ApiLabel(_, RepositoryName(repository))),
+          milestone
         ),
         comment =
           ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(commentUser), issue.isPullRequest),

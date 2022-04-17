@@ -3,36 +3,39 @@ package gitbucket.core.util
 import org.apache.commons.io.FileUtils
 import org.apache.tika.Tika
 import java.io.File
-import SyntaxSugars._
 import scala.util.Random
 
 object FileUtil {
 
-  def getMimeType(name: String): String =
-    defining(new Tika()) { tika =>
-      tika.detect(name) match {
-        case null     => "application/octet-stream"
-        case mimeType => mimeType
-      }
+  def getMimeType(name: String): String = {
+    val tika = new Tika()
+    tika.detect(name) match {
+      case null     => "application/octet-stream"
+      case mimeType => mimeType
     }
+  }
 
   def getMimeType(name: String, bytes: Array[Byte]): String = {
-    defining(getMimeType(name)) { mimeType =>
-      if (mimeType == "application/octet-stream" && isText(bytes)) {
-        "text/plain"
-      } else {
-        mimeType
-      }
+    val mimeType = getMimeType(name)
+    if (mimeType == "application/octet-stream" && isText(bytes)) {
+      "text/plain"
+    } else {
+      mimeType
     }
   }
 
-  def getSafeMimeType(name: String): String = {
-    getMimeType(name)
+  def getSafeMimeType(name: String, safeMode: Boolean = true): String = {
+    val mimeType = getMimeType(name)
       .replace("text/html", "text/plain")
-      .replace("image/svg+xml", "text/plain; charset=UTF-8")
+
+    if (safeMode) {
+      mimeType.replace("image/svg+xml", "text/plain; charset=UTF-8")
+    } else {
+      mimeType
+    }
   }
 
-  def isImage(name: String): Boolean = getSafeMimeType(name).startsWith("image/")
+  def isImage(name: String, safeMode: Boolean = true): Boolean = getSafeMimeType(name, safeMode).startsWith("image/")
 
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
@@ -92,4 +95,14 @@ object FileUtil {
     name
   }
 
+  /**
+   * Delete given folder recursively.
+   */
+  def deleteRecursively(f: File): Boolean = {
+    if (f.isDirectory) f.listFiles match {
+      case files: Array[File] => files.foreach(deleteRecursively)
+      case null               =>
+    }
+    f.delete()
+  }
 }

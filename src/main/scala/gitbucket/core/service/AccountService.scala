@@ -1,14 +1,19 @@
 package gitbucket.core.service
 
 import org.slf4j.LoggerFactory
-import gitbucket.core.model.{Account, AccountExtraMailAddress, GroupMember}
+import gitbucket.core.model.{Account, AccountExtraMailAddress, AccountPreference, GroupMember}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.{LDAPUtil, StringUtil}
 import StringUtil._
+import com.nimbusds.jose.{Algorithm, JWSAlgorithm, JWSHeader}
+import com.nimbusds.jose.crypto.{MACSigner, MACVerifier}
+import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+
+import java.security.SecureRandom
 
 trait AccountService {
 
@@ -47,7 +52,7 @@ trait AccountService {
           case _ => None
         }
       case account if (!account.isGroupAccount && account.password == sha1(password)) => Some(account)
-    } getOrElse None
+    }.flatten
   }
 
   /**
@@ -105,13 +110,13 @@ trait AccountService {
   }
 
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
-    Accounts filter (t => (t.userName === userName.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
+    Accounts filter (t => (t.userName === userName.bind).&&(t.removed === false.bind, !includeRemoved)) firstOption
 
   def getAccountByUserNameIgnoreCase(userName: String, includeRemoved: Boolean = false)(
     implicit s: Session
   ): Option[Account] =
     Accounts filter (
-      t => (t.userName.toLowerCase === userName.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)
+      t => (t.userName.toLowerCase === userName.toLowerCase.bind).&&(t.removed === false.bind, !includeRemoved)
     ) firstOption
 
   def getAccountsByUserNames(userNames: Set[String], knowns: Set[Account], includeRemoved: Boolean = false)(
@@ -123,7 +128,7 @@ trait AccountService {
       map
     } else {
       map ++ Accounts
-        .filter(t => (t.userName inSetBind needs) && (t.removed === false.bind, !includeRemoved))
+        .filter(t => (t.userName inSetBind needs).&&(t.removed === false.bind, !includeRemoved))
         .list
         .map(a => a.userName -> a)
         .toMap
@@ -140,15 +145,15 @@ trait AccountService {
             (x.map { e =>
                 e.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind
               }
-              .getOrElse(false.bind))) && (a.removed === false.bind, !includeRemoved)
+              .getOrElse(false.bind))).&&(a.removed === false.bind, !includeRemoved)
       }
       .map { case (a, e) => a } firstOption
 
   def getAllUsers(includeRemoved: Boolean = true, includeGroups: Boolean = true)(implicit s: Session): List[Account] = {
     Accounts filter { t =>
-      (1.bind === 1.bind) &&
-      (t.groupAccount === false.bind, !includeGroups) &&
-      (t.removed === false.bind, !includeRemoved)
+      (1.bind === 1.bind)
+        .&&(t.groupAccount === false.bind, !includeGroups)
+        .&&(t.removed === false.bind, !includeRemoved)
     } sortBy (_.userName) list
   }
 
@@ -310,6 +315,60 @@ trait AccountService {
       Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list.distinct
   }
 
+  /*
+   * For account preference
+   */
+  def getAccountPreference(userName: String)(
+    implicit s: Session
+  ): Option[AccountPreference] = {
+    AccountPreferences filter (_.byPrimaryKey(userName)) firstOption
+  }
+
+  def addAccountPreference(userName: String, highlighterTheme: String)(implicit s: Session): Unit = {
+    AccountPreferences insert AccountPreference(userName = userName, highlighterTheme = highlighterTheme)
+  }
+
+  def updateAccountPreference(userName: String, highlighterTheme: String)(implicit s: Session): Unit = {
+    AccountPreferences
+      .filter(_.byPrimaryKey(userName))
+      .map(t => t.highlighterTheme)
+      .update(highlighterTheme)
+  }
+
+  def addOrUpdateAccountPreference(userName: String, highlighterTheme: String)(implicit s: Session): Unit = {
+    getAccountPreference(userName) match {
+      case Some(_) => updateAccountPreference(userName, highlighterTheme)
+      case _       => addAccountPreference(userName, highlighterTheme)
+    }
+  }
+
+  def generateResetPasswordToken(mailAddress: String): String = {
+    val claimsSet = new JWTClaimsSet.Builder()
+      .claim("mailAddress", mailAddress)
+      .expirationTime(new java.util.Date(System.currentTimeMillis() + 10 * 1000))
+      .build()
+
+    val signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet)
+    signedJWT.sign(new MACSigner(AccountService.jwtSecretKey))
+
+    signedJWT.serialize()
+  }
+
+  def decodeResetPasswordToken(token: String): Option[String] = {
+    try {
+      val signedJWT = SignedJWT.parse(token)
+      val verifier = new MACVerifier(AccountService.jwtSecretKey)
+      if (signedJWT.verify(verifier) && new java.util.Date().before(signedJWT.getJWTClaimsSet().getExpirationTime())) {
+        Some(signedJWT.getPayload.toJSONObject.get("mailAddress").toString)
+      } else None
+    } catch {
+      case _: Exception => None
+    }
+  }
 }
 
-object AccountService extends AccountService
+object AccountService extends AccountService {
+  // 256-bit key for HS256 which must be pre-shared
+  val jwtSecretKey = new Array[Byte](32)
+  new SecureRandom().nextBytes(jwtSecretKey)
+}

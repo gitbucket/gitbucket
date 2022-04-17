@@ -2,7 +2,7 @@ Automatic Schema Updating
 ========
 GitBucket updates database schema automatically using [Solidbase](https://github.com/gitbucket/solidbase) in the first run after the upgrading.
 
-To release a new version of GitBucket, add the version definition to the [gitbucket.core.GitBucketCoreModule](https://github.com/gitbucket/gitbucket/blob/master/src/main/scala/gitbucket/core/GitBucketCoreModule.scala) at first.
+To release a new version of GitBucket, add the version definition to [gitbucket.core.GitBucketCoreModule](https://github.com/gitbucket/gitbucket/blob/master/src/main/scala/gitbucket/core/GitBucketCoreModule.scala) at first.
 
 ```scala
 object GitBucketCoreModule extends Module("gitbucket-core",
@@ -17,7 +17,7 @@ object GitBucketCoreModule extends Module("gitbucket-core",
 )
 ```
 
-Next, add a XML file which updates database schema into [/src/main/resources/update/](https://github.com/gitbucket/gitbucket/tree/master/src/main/resources/update) with a filenane defined in `GitBucketCoreModule`.
+Next, add a XML file which updates database schema into [/src/main/resources/update/](https://github.com/gitbucket/gitbucket/tree/master/src/main/resources/update) with a filename defined in `GitBucketCoreModule`.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -31,9 +31,9 @@ Next, add a XML file which updates database schema into [/src/main/resources/upd
 </changeSet>
 ```
 
-Solidbase stores the current version to `VERSIONS` table and checks it at start-up. If the stored version differs from the actual version, it executes differences between the stored version and the actual version.
+Solidbase stores the current version to `VERSIONS` table and checks it at start-up. If the stored version different from the actual version, it executes differences between the stored version and the actual version.
 
-We can add the SQL file instead of the XML file using `SqlMigration`. It try to load a SQL file from classpath as following order:
+We can add the SQL file instead of the XML file using `SqlMigration`. It tries to load a SQL file from classpath in the following order:
 
 1. Specified path (if specified)
 2. `${moduleId}_${version}_${database}.sql`
@@ -51,4 +51,4 @@ object GitBucketCoreModule extends Module("gitbucket-core",
 )
 ```
 
-See more details [README of Solidbase](https://github.com/gitbucket/solidbase).
+See more details at [README of Solidbase](https://github.com/gitbucket/solidbase).

@@ -1,0 +1,154 @@
+@(state: String,
+  issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
+  page: Int,
+  collaborators: List[String],
+  priorities: List[gitbucket.core.model.Priority],
+  labels: List[gitbucket.core.model.Label],
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
+  milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
+  @gitbucket.core.html.menu("milestones", repository){
+    @milestones.map { case (milestone, openCount, closedCount) =>
+      <table class="table table-issues">
+      <tbody>
+        <tr>
+          <td style="padding-top: 15px; padding-bottom: 15px;">
+            <div class="milestone row">
+              <div class="col-md-4">
+                <a class="milestone-title">@milestone.title</a>
+                <div>
+                @if(milestone.closedDate.isDefined){
+                  <span class="muted">Closed @gitbucket.core.helper.html.datetimeago(milestone.closedDate.get)</span>
+                } else {
+                  @milestone.dueDate.map { dueDate =>
+                    @if(helpers.isPast(dueDate)){
+                      <i class="octicon octicon-alert" style="color:#BD2C00;"></i>
+                      <span class="muted milestone-alert">Due by @helpers.date(dueDate)</span>
+                    } else {
+                      <span class="muted">Due by @helpers.date(dueDate)</span>
+                    }
+                  }.getOrElse {
+                    <span class="muted">No due date</span>
+                  }
+                }
+                </div>
+              </div>
+              <div class="col-md-8">
+                @gitbucket.core.issues.milestones.html.progress(openCount + closedCount, closedCount)
+              <div>
+                <div>
+                  @if(closedCount == 0){
+                    0%
+                  } else {
+                    @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%
+                  } <span class="muted">complete</span> &nbsp;&nbsp;
+                  @openCount <span class="muted">open</span> &nbsp;&nbsp;
+                  @closedCount <span class="muted">closed</span>
+                </div>
+                <div class="milestone-menu">
+                @if(hasWritePermission){
+                  <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
+                  @if(milestone.closedDate.isDefined){
+                    <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
+                  } else {
+                    <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
+                  }
+                  <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
+                }
+                </div>
+              </div>
+              </div>
+            </div>
+            @milestone.description.map { description =>
+              <div class="milestone-description markdown-body">
+                @helpers.markdown(
+                  markdown         = description,
+                  repository       = repository,
+                  branch           = repository.repository.defaultBranch,
+                  enableWikiLink   = false,
+                  enableRefsLink   = false,
+                  enableLineBreaks = true
+                )
+              </div>
+            }
+        </td>
+        </tr>
+      </tbody>
+    </table>
+      <ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
+        <li class="@if(condition.state == "open"){active}">
+          <a href="@context.path/@repository.owner/@repository.name/milestone/@milestone.milestoneId">Open <span class="badge">@openCount</span></a>
+        </li>
+        <li class="@if(condition.state == "closed"){active}">
+          <a href="@context.path/@repository.owner/@repository.name/milestone/@milestone.milestoneId?state=closed">Closed <span class="badge">@closedCount</span></a>
+        </li>
+      </ul>
+      @gitbucket.core.issues.milestones.html.listparts(issues, page, openCount, closedCount, condition, collaborators, milestones.map(p => p._1), priorities, labels, Some(repository), hasWritePermission)
+      @if(hasWritePermission){
+        <form id="batcheditForm" method="POST">
+          <input type="hidden" name="value"/>
+          <input type="hidden" name="checked"/>
+          <input type="hidden" name="uri" value="@context.path/@repository.owner/@repository.name/milestone/@milestone.milestoneId@if(condition.state=="closed"){?state=closed}">
+          <input type="hidden" name="from" value="milestone"/>
+        </form>
+      }
+    }
+  }
+}
+@if(hasWritePermission){
+  <script>
+    $(function(){
+      $('a.delete').click(function(){
+        return confirm('Once you delete this milestone, there is no going back.\nAre you sure?');
+      });
+
+      $('.table-issues input[type=checkbox]').change(function(){
+        var all = $('.table-issues input[type=checkbox][value]');
+
+        // check all
+        if($(this).val() == 'on'){
+          var flag = $(this).is(":checked");
+          all.each(function(){
+            $(this).prop("checked", flag);
+          });
+        }
+
+        var count = all.filter(':checked').length;
+        // whether all check
+        $('.table-issues input[type=checkbox]').filter(':first').prop("checked", count > 0 && count == all.length);
+
+        if(count == 0){
+          $('#table-issues-control').show();
+          $('#table-issues-batchedit').hide();
+        } else {
+          $('#batchedit-selected').text(count);
+          $('#table-issues-control').hide();
+          $('#table-issues-batchedit').show();
+        }
+      }).filter(':first').change();
+
+      var submitBatchEdit = function(action, value) {
+        var checked = $('.table-issues input[type=checkbox][value]').filter(':checked').map(function(){ return this.value; }).get().join();
+        var form = $('#batcheditForm');
+        form.find('input[name=value]').val(value);
+        form.find('input[name=checked]').val(checked);
+        form.attr('action', action);
+        form.submit();
+      };
+
+      $('a.toggle-state').click(function(){
+        submitBatchEdit('@helpers.url(repository)/issues/batchedit/state', $(this).data('id'));
+      });
+      $('a.toggle-label').click(function(){
+        submitBatchEdit('@helpers.url(repository)/issues/batchedit/label', $(this).data('id'));
+      });
+      $('a.toggle-assign').click(function(){
+        submitBatchEdit('@helpers.url(repository)/issues/batchedit/assign', $(this).data('name'));
+      });
+    });
+  </script>
+}
+

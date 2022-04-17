@@ -9,32 +9,22 @@
 @gitbucket.core.html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.helper.html.information(info)
   @gitbucket.core.html.menu("wiki", repository){
-    <ul class="nav nav-tabs fill-width">
-      <li>
-        <h1 class="wiki-title"><span class="muted">Compare Revisions</span></h1>
-      </li>
-      <li class="pull-right">
-        <div class="btn-group">
-        @if(pageName.isDefined){
-          <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)">View Page</a>
-          <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Back to Page History</a>
+    <div class="pull-right">
+      @if(pageName.isDefined){
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)">View Page</a>
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Back to Page History</a>
+      } else {
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/_history">Back to Wiki History</a>
+      }
+      @if(isEditable) {
+        @if(pageName.isDefined) {
+          <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
         } else {
-          <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/_history">Back to Wiki History</a>
+          <a href="@helpers.url(repository)/wiki/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
         }
-        </div>
-      </li>
-    </ul>
-    <div class="pull-left">
-      @gitbucket.core.helper.html.diff(diffs, repository, None, None, false, None, false, false)
+      }
     </div>
-    @if(isEditable){
-      <div>
-        @if(pageName.isDefined){
-          <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_revert/@from...@to" class="btn">Revert Changes</a>
-        } else {
-          <a href="@helpers.url(repository)/wiki/_revert/@from...@to" class="btn">Revert Changes</a>
-        }
-      </div>
-    }
+    <h1 class="body-title"><span class="muted">Compare Revisions</span></h1>
+    @gitbucket.core.helper.html.diff(diffs, repository, None, None, false, None, false, false)
   }
 }

@@ -3,7 +3,6 @@ package gitbucket.core
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.Connection
-import java.util
 import java.util.UUID
 
 import gitbucket.core.model.Activity
@@ -12,7 +11,7 @@ import gitbucket.core.util.JDBCUtil
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration, SqlMigration}
 import io.github.gitbucket.solidbase.model.{Module, Version}
-import org.json4s.NoTypeHints
+import org.json4s.{Formats, NoTypeHints}
 import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.write
 
@@ -84,8 +83,8 @@ object GitBucketCoreModule
       new Version(
         "4.34.0",
         new Migration() {
-          override def migrate(moduleId: String, version: String, context: util.Map[String, AnyRef]): Unit = {
-            implicit val formats = Serialization.formats(NoTypeHints)
+          override def migrate(moduleId: String, version: String, context: java.util.Map[String, AnyRef]): Unit = {
+            implicit val formats: Formats = Serialization.formats(NoTypeHints)
             import JDBCUtil._
 
             val conn = context.get(Solidbase.CONNECTION).asInstanceOf[Connection]
@@ -115,4 +114,14 @@ object GitBucketCoreModule
         new LiquibaseMigration("update/gitbucket-core_4.34.xml")
       ),
       new Version("4.35.0", new LiquibaseMigration("update/gitbucket-core_4.35.xml")),
+      new Version("4.35.1"),
+      new Version("4.35.2"),
+      new Version("4.35.3"),
+      new Version("4.36.0", new LiquibaseMigration("update/gitbucket-core_4.36.xml")),
+      new Version("4.36.1"),
+      new Version("4.36.2"),
+      new Version("4.37.0", new LiquibaseMigration("update/gitbucket-core_4.37.xml")),
+      new Version("4.37.1"),
+      new Version("4.37.2"),
+      new Version("4.38.0", new LiquibaseMigration("update/gitbucket-core_4.38.xml"))
     )

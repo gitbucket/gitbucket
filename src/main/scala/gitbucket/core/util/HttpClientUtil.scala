@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import java.net.{InetAddress, URL}
+import java.net.InetAddress
 
 import gitbucket.core.service.SystemSettingsService
 import org.apache.commons.net.util.SubnetUtils

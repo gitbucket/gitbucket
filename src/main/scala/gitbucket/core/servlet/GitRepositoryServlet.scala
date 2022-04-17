@@ -3,15 +3,14 @@ package gitbucket.core.servlet
 import java.io.File
 import java.util
 import java.util.Date
-
 import scala.util.Using
 import gitbucket.core.api
+import gitbucket.core.api.JsonFormat.Context
 import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -42,6 +41,7 @@ import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.internal.storage.file.FileRepository
+import org.json4s.Formats
 import org.json4s.jackson.Serialization._
 
 /**
@@ -53,7 +53,7 @@ import org.json4s.jackson.Serialization._
 class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
-  private implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+  private implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
 
   override def init(config: ServletConfig): Unit = {
     setReceivePackFactory(new GitBucketReceivePackFactory())
@@ -200,33 +200,26 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("requestURI: " + request.getRequestURI)
       logger.debug("pusher:" + pusher)
 
-      defining(request.paths) { paths =>
-        val owner = paths(1)
-        val repository = paths(2).stripSuffix(".git")
+      val paths = request.paths
+      val owner = paths(1)
+      val repository = paths(2).stripSuffix(".git")
 
-        logger.debug("repository:" + owner + "/" + repository)
+      logger.debug("repository:" + owner + "/" + repository)
 
-        val settings = loadSystemSettings()
-        val baseUrl = settings.baseUrl(request)
-        val sshUrl = settings.sshAddress.map { x =>
-          s"${x.genericUser}@${x.host}:${x.port}"
-        }
+      val settings = loadSystemSettings()
+      val baseUrl = settings.baseUrl(request)
+      val sshUrl = settings.sshUrl(owner, repository)
 
-        if (!repository.endsWith(".wiki")) {
-          defining(request) { implicit r =>
-            val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
-            receivePack.setPreReceiveHook(hook)
-            receivePack.setPostReceiveHook(hook)
-          }
-        }
+      if (!repository.endsWith(".wiki")) {
+        val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
+        receivePack.setPreReceiveHook(hook)
+        receivePack.setPostReceiveHook(hook)
+      }
 
-        if (repository.endsWith(".wiki")) {
-          defining(request) { implicit r =>
-            receivePack.setPostReceiveHook(
-              new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl)
-            )
-          }
-        }
+      if (repository.endsWith(".wiki")) {
+        receivePack.setPostReceiveHook(
+          new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl)
+        )
       }
     }
 
@@ -264,7 +257,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
         commands.asScala.foreach { command =>
           // call pre-commit hook
           PluginRegistry().getReceiveHooks
-            .flatMap(_.preReceive(owner, repository, receivePack, command, pusher))
+            .flatMap(_.preReceive(owner, repository, receivePack, command, pusher, false))
             .headOption
             .foreach { error =>
               command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
@@ -293,7 +286,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           val pushedIds = scala.collection.mutable.Set[String]()
           commands.asScala.foreach { command =>
             logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-            implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
+            implicit val apiContext: Context = api.JsonFormat.Context(baseUrl, sshUrl)
             val refName = command.getRefName.split("/")
             val branchName = refName.drop(2).mkString("/")
             val commits = if (refName(1) == "tags") {
@@ -318,8 +311,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 
             // Retrieve all issue count in the repository
             val issueCount =
-              countIssue(IssueSearchCondition(state = "open"), false, owner -> repository) +
-                countIssue(IssueSearchCondition(state = "closed"), false, owner -> repository)
+              countIssue(IssueSearchCondition(state = "open"), IssueSearchOption.Issues, owner -> repository) +
+                countIssue(IssueSearchCondition(state = "closed"), IssueSearchOption.Issues, owner -> repository)
 
             // Extract new commit and apply issue comment
             val defaultBranch = repositoryInfo.repository.defaultBranch
@@ -351,9 +344,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             // set PR as merged
             val pulls = getPullRequestsByBranch(owner, repository, branchName, Some(false))
             pulls.foreach { pull =>
-              if (commits.find { c =>
+              if (commits.exists { c =>
                     c.id == pull.commitIdTo
-                  }.isDefined) {
+                  }) {
                 markMergeAndClosePullRequest(pusher, owner, repository, pull)
                 getAccountByUserName(pusher).foreach { pusherAccount =>
                   callPullRequestWebHook("closed", repositoryInfo, pull.issueId, pusherAccount, settings)
@@ -435,7 +428,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             }
 
             // call post-commit hook
-            PluginRegistry().getReceiveHooks.foreach(_.postReceive(owner, repository, receivePack, command, pusher))
+            PluginRegistry().getReceiveHooks
+              .foreach(_.postReceive(owner, repository, receivePack, command, pusher, false))
           }
         }
         // update repository last modified time.
@@ -468,7 +462,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     Database() withTransaction { implicit session =>
       try {
         commands.asScala.headOption.foreach { command =>
-          implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
+          implicit val apiContext: Context = api.JsonFormat.Context(baseUrl, sshUrl)
           val refName = command.getRefName.split("/")
           val commitIds = if (refName(1) == "tags") {
             None

@@ -6,7 +6,6 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, ReleaseService, RepositoryService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
@@ -18,6 +17,7 @@ import org.apache.commons.io.{FileUtils, IOUtils}
 
 import scala.util.Using
 import gitbucket.core.service.SystemSettingsService
+import slick.jdbc.JdbcBackend.Session
 
 /**
  * Provides Ajax based file upload functionality.
@@ -37,10 +37,10 @@ class FileUploadController
     execute(
       { (file, fileId) =>
         FileUtils
-          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get)
+          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
         session += Keys.Session.Upload(fileId) -> file.name
       },
-      FileUtil.isImage
+      FileUtil.isImage(_)
     )
   }
 
@@ -49,7 +49,7 @@ class FileUploadController
     execute(
       { (file, fileId) =>
         FileUtils
-          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get)
+          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
         session += Keys.Session.Upload(fileId) -> file.name
       },
       _ => true
@@ -65,7 +65,7 @@ class FileUploadController
             getAttachedDir(params("owner"), params("repository")),
             FileUtil.checkFilename(fileId + "." + FileUtil.getExtension(file.getName))
           ),
-          file.get
+          file.get()
         )
       },
       _ => true
@@ -131,7 +131,7 @@ class FileUploadController
     } getOrElse BadRequest()
   }
 
-  post("/release/:owner/:repository/:tag") {
+  post("/release/:owner/:repository/*") {
     setMultipartConfigForLargeFile()
     session
       .get(Keys.Session.LoginAccount)
@@ -139,12 +139,12 @@ class FileUploadController
         case _: Account =>
           val owner = params("owner")
           val repository = params("repository")
-          val tag = params("tag")
+          val tag = multiParams("splat").head
           execute(
             { (file, fileId) =>
               FileUtils.writeByteArrayToFile(
                 new File(getReleaseFilesDir(owner, repository), FileUtil.checkFilename(tag + "/" + fileId)),
-                file.get
+                file.get()
               )
             },
             _ => true
@@ -178,7 +178,7 @@ class FileUploadController
   }
 
   private def onlyWikiEditable(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
-    implicit val session = Database.getSession(request)
+    implicit val session: Session = Database.getSession(request)
     getRepository(owner, repository) match {
       case Some(x) =>
         x.repository.options.wikiOption match {
@@ -191,14 +191,13 @@ class FileUploadController
     }
   }
 
-  private def execute(f: (FileItem, String) => Unit, mimeTypeChcker: (String) => Boolean) =
+  private def execute(f: (FileItem, String) => Unit, mimeTypeChecker: (String) => Boolean) =
     fileParams.get("file") match {
-      case Some(file) if (mimeTypeChcker(file.name)) =>
-        defining(FileUtil.generateFileId) { fileId =>
-          f(file, fileId)
-          contentType = "text/plain"
-          Ok(fileId)
-        }
+      case Some(file) if mimeTypeChecker(file.name) =>
+        val fileId = FileUtil.generateFileId
+        f(file, fileId)
+        contentType = "text/plain"
+        Ok(fileId)
       case _ => BadRequest()
     }
 

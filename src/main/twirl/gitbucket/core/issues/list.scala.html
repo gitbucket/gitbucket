@@ -1,5 +1,5 @@
 @(target: String,
-  issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+  issues: List[(gitbucket.core.service.IssuesService.IssueInfo, Option[(gitbucket.core.model.CommitState, List[gitbucket.core.model.CommitStatus])])],
   page: Int,
   collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
@@ -46,6 +46,7 @@
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
         <input type="hidden" name="checked"/>
+        <input type="hidden" name="uri"/>
         <input type="hidden" name="from" value="@target"/>
       </form>
     }

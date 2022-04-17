@@ -4,7 +4,7 @@ import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, RepositoryName}
-import org.scalatra.{ActionResult, NoContent}
+import org.scalatra.ActionResult
 
 trait ApiIssueCommentControllerBase extends ControllerBase {
   self: AccountService
@@ -85,7 +85,7 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    * iv. Delete a comment
    * https://docs.github.com/en/rest/reference/issues#delete-an-issue-comment
    */
-  delete("/api/v3/repos/{owner}/{repo}/issues/comments/:id")(readableUsersOnly { repository =>
+  delete("/api/v3/repos/:owner/:repo/issues/comments/:id")(readableUsersOnly { repository =>
     val maybeDeleteResponse: Option[Either[ActionResult, Option[Int]]] =
       for {
         commentId <- params("id").toIntOpt

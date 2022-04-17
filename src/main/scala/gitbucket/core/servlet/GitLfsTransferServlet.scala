@@ -6,6 +6,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.util.{FileUtil, StringUtil}
 import org.apache.commons.io.{FileUtils, IOUtils}
+import org.json4s.Formats
 import org.json4s.jackson.Serialization._
 import org.apache.http.HttpStatus
 
@@ -17,7 +18,7 @@ import scala.util.Using
  */
 class GitLfsTransferServlet extends HttpServlet {
 
-  private implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+  private implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
   private val LongObjectIdLength = 32
   private val LongObjectIdStringLength = LongObjectIdLength * 2
 
