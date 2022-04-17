@@ -1,0 +1,66 @@
+@(field: Option[gitbucket.core.model.CustomField],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@defining(field.map(_.fieldId).getOrElse("new")){ fieldId =>
+  <div id="edit-field-area-@fieldId">
+    <form class="form-inline" autocomplete="off">
+      <input type="text" id="fieldName-@fieldId" style="width: 300px; float: left; margin-right: 4px;" class="form-control input-sm" value="@field.map(_.fieldName)"@if(fieldId == "new"){ placeholder="New field name"}/>
+      <select id="fieldType-@fieldId" class="form-control input-sm">
+        <option value="long" @if(field.map(_.fieldType == "long").getOrElse(false)){selected}>Long</option>
+        <option value="double" @if(field.map(_.fieldType == "double").getOrElse(false)){selected}>Double</option>
+        <option value="string" @if(field.map(_.fieldType == "string").getOrElse(false)){selected}>String</option>
+        <option value="date" @if(field.map(_.fieldType == "date").getOrElse(false)){selected}>Date</option>
+      </select>
+      <label for="enableForIssues-@fieldId" class="normal" style="margin-left: 4px;">
+        <input type="checkbox" id="enableForIssues-@fieldId" @if(field.map(_.enableForIssues).getOrElse(false)){checked}> Issues
+      </label>
+      <label for="enableForPullRequests-@fieldId" class="normal" style="margin-left: 4px;">
+        <input type="checkbox" id="enableForPullRequests-@fieldId" @if(field.map(_.enableForPullRequests).getOrElse(false)){checked}> Pull requests
+      </label>
+      <span class="pull-right">
+        <span id="field-error-@fieldId" class="error"></span>
+        <input type="button" id="cancel-@fieldId" class="btn btn-sm btn-default field-edit-cancel" value="Cancel">
+        <input type="button" id="submit-@fieldId" class="btn btn-sm btn-success" style="margin-bottom: 0px;" value="@(if(fieldId == "new") "Create field"  else "Save changes")"/>
+      </span>
+    </form>
+  </div>
+  <script>
+  $(function(){
+    $('#submit-@fieldId').click(function(e){
+      $.post('@helpers.url(repository)/settings/issues/fields/@{if(fieldId == "new") "new" else s"$fieldId/edit"}', {
+        'fieldName' : $('#fieldName-@fieldId').val(),
+        'fieldType': $('#fieldType-@fieldId option:selected').val(),
+        'enableForIssues': $('#enableForIssues-@fieldId').prop('checked'),
+        'enableForPullRequests': $('#enableForPullRequests-@fieldId').prop('checked')
+      }, function(data, status){
+        $('div#edit-field-area-@fieldId').remove();
+        @if(fieldId == "new"){
+          $('#new-field-table').hide();
+          // Insert row into the top of table
+          $('#field-row-header').after(data);
+        } else {
+          // Replace table row
+          $('#field-row-@fieldId').after(data).remove();
+        }
+      }).fail(function(xhr, status, error){
+        const errors = JSON.parse(xhr.responseText);
+        if(errors.fieldName){
+          $('span#field-error-@fieldId').text(errors.fieldName);
+        } else {
+          $('span#field-error-@fieldId').text('error');
+        }
+      });
+      return false;
+    });
+
+    $('#cancel-@fieldId').click(function(e){
+      $('div#edit-field-area-@fieldId').remove();
+      @if(fieldId == "new"){
+        $('#new-field-table').hide();
+      } else {
+        $('#field-@fieldId').show();
+      }
+    });
+  });
+  </script>
+}

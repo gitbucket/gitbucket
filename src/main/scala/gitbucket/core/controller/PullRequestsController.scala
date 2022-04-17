@@ -25,6 +25,7 @@ class PullRequestsController
     with PullRequestService
     with MilestonesService
     with LabelsService
+    with CustomFieldsService
     with CommitsService
     with ActivityService
     with WebHookPullRequestService
@@ -44,6 +45,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     with IssuesService
     with MilestonesService
     with LabelsService
+    with CustomFieldsService
     with CommitsService
     with ActivityService
     with PullRequestService
@@ -133,6 +135,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               getMilestonesWithIssueCount(repository.owner, repository.name),
               getPriorities(repository.owner, repository.name),
               getLabels(repository.owner, repository.name),
+              getCustomFieldsWithValue(repository.owner, repository.name, issueId).filter(_._1.enableForPullRequests),
               isEditable(repository),
               isManageable(repository),
               hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
@@ -505,7 +508,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             getMilestones(originRepository.owner, originRepository.name),
             getPriorities(originRepository.owner, originRepository.name),
             getDefaultPriority(originRepository.owner, originRepository.name),
-            getLabels(originRepository.owner, originRepository.name)
+            getLabels(originRepository.owner, originRepository.name),
+            getCustomFields(originRepository.owner, originRepository.name).filter(_.enableForPullRequests)
           )
         }
         case (oldId, newId) =>

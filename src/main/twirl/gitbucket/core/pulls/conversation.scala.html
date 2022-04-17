@@ -8,6 +8,7 @@
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
+  customFields: List[(gitbucket.core.model.CustomField, Option[gitbucket.core.model.IssueCustomField])],
   isEditable: Boolean,
   isManageable: Boolean,
   isManageableForkedRepository: Boolean,
@@ -50,7 +51,19 @@
     }
   </div>
   <div class="col-md-3">
-    @gitbucket.core.issues.html.issueinfo(Some(issue), comments.toList, issueLabels, collaborators, milestones, priorities, None, labels, isManageable, repository)
+    @gitbucket.core.issues.html.issueinfo(
+      Some(issue),
+      comments.toList,
+      issueLabels,
+      collaborators,
+      milestones,
+      priorities,
+      None,
+      labels,
+      customFields,
+      isManageable,
+      repository
+    )
   </div>
   <script>
   $(function(){

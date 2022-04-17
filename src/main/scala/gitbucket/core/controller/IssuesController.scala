@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.issues.html
-import gitbucket.core.model.Account
+import gitbucket.core.model.{Account, CustomFieldBehavior}
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
@@ -21,6 +21,7 @@ class IssuesController
     with ActivityService
     with HandleCommentService
     with IssueCreationService
+    with CustomFieldsService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -41,6 +42,7 @@ trait IssuesControllerBase extends ControllerBase {
     with ActivityService
     with HandleCommentService
     with IssueCreationService
+    with CustomFieldsService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -109,6 +111,7 @@ trait IssuesControllerBase extends ControllerBase {
             getMilestonesWithIssueCount(repository.owner, repository.name),
             getPriorities(repository.owner, repository.name),
             getLabels(repository.owner, repository.name),
+            getCustomFieldsWithValue(repository.owner, repository.name, issueId.toInt).filter(_._1.enableForIssues),
             isIssueEditable(repository),
             isIssueManageable(repository),
             isIssueCommentManageable(repository),
@@ -126,6 +129,7 @@ trait IssuesControllerBase extends ControllerBase {
         getPriorities(repository.owner, repository.name),
         getDefaultPriority(repository.owner, repository.name),
         getLabels(repository.owner, repository.name),
+        getCustomFields(repository.owner, repository.name).filter(_.enableForIssues),
         isIssueManageable(repository),
         getContentTemplate(repository, "ISSUE_TEMPLATE"),
         repository
@@ -147,6 +151,25 @@ trait IssuesControllerBase extends ControllerBase {
             form.labelNames.toSeq.flatMap(_.split(",")),
             loginAccount
           )
+
+          // Insert custom field values
+          params.toMap.foreach {
+            case (key, value) =>
+              if (key.startsWith("custom-field-")) {
+                getCustomField(
+                  repository.owner,
+                  repository.name,
+                  key.replaceFirst("^custom-field-", "").toInt
+                ).foreach { field =>
+                  CustomFieldBehavior.validate(field, value, messages) match {
+                    case None =>
+                      insertOrUpdateCustomFieldValue(field, repository.owner, repository.name, issue.issueId, value)
+                    case Some(_) => halt(400)
+                  }
+                }
+              }
+          }
+
           redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
         } else Unauthorized()
     }
@@ -360,6 +383,35 @@ trait IssuesControllerBase extends ControllerBase {
     val priority = priorityId("priorityId")
     updatePriorityId(repository.owner, repository.name, params("id").toInt, priority, true)
     Ok("updated")
+  })
+
+  ajaxPost("/:owner/:repository/issues/customfield_validation/:fieldId")(writableUsersOnly { repository =>
+    val fieldId = params("fieldId").toInt
+    val value = params("value")
+    getCustomField(repository.owner, repository.name, fieldId)
+      .flatMap { field =>
+        CustomFieldBehavior.validate(field, value, messages).map { error =>
+          Ok(error)
+        }
+      }
+      .getOrElse(Ok())
+  })
+
+  ajaxPost("/:owner/:repository/issues/:id/customfield/:fieldId")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    val fieldId = params("fieldId").toInt
+    val value = params("value")
+
+    for {
+      _ <- getIssue(repository.owner, repository.name, issueId.toString)
+      field <- getCustomField(repository.owner, repository.name, fieldId)
+    } {
+      CustomFieldBehavior.validate(field, value, messages) match {
+        case None    => insertOrUpdateCustomFieldValue(field, repository.owner, repository.name, issueId, value)
+        case Some(_) => halt(400)
+      }
+    }
+    Ok(value)
   })
 
   post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>

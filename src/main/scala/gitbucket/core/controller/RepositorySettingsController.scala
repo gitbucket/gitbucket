@@ -2,7 +2,6 @@ package gitbucket.core.controller
 
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
-
 import gitbucket.core.settings.html
 import gitbucket.core.model.{RepositoryWebHook, WebHook}
 import gitbucket.core.service._
@@ -21,7 +20,7 @@ import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 
 import scala.util.Using
-import org.scalatra.Forbidden
+import org.scalatra.{Forbidden, Ok}
 
 class RepositorySettingsController
     extends RepositorySettingsControllerBase
@@ -31,6 +30,7 @@ class RepositorySettingsController
     with ProtectedBranchService
     with CommitStatusService
     with DeployKeyService
+    with CustomFieldsService
     with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator
@@ -43,6 +43,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     with ProtectedBranchService
     with CommitStatusService
     with DeployKeyService
+    with CustomFieldsService
     with ActivityService
     with OwnerAuthenticator
     with UsersAuthenticator =>
@@ -120,6 +121,21 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   val transferForm = mapping(
     "newOwner" -> trim(label("New owner", text(required, transferUser)))
   )(TransferOwnerShipForm.apply)
+
+  // for custom field
+  case class CustomFieldForm(
+    fieldName: String,
+    fieldType: String,
+    enableForIssues: Boolean,
+    enableForPullRequests: Boolean
+  )
+
+  val customFieldForm = mapping(
+    "fieldName" -> trim(label("Field name", text(required, maxlength(100)))),
+    "fieldType" -> trim(label("Field type", text(required))),
+    "enableForIssues" -> trim(label("Enable for issues", boolean(required))),
+    "enableForPullRequests" -> trim(label("Enable for pull requests", boolean(required))),
+  )(CustomFieldForm.apply)
 
   /**
    * Redirect to the Options page.
@@ -475,6 +491,58 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     val deployKeyId = params("id").toInt
     deleteDeployKey(repository.owner, repository.name, deployKeyId)
     redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
+  })
+
+  /** Custom fields for issues and pull requests */
+  get("/:owner/:repository/settings/issues")(ownerOnly { repository =>
+    val customFields = getCustomFields(repository.owner, repository.name)
+    html.issues(customFields, repository)
+  })
+
+  /** New custom field form */
+  get("/:owner/:repository/settings/issues/fields/new")(ownerOnly { repository =>
+    html.issuesfieldform(None, repository)
+  })
+
+  /** Add custom field */
+  ajaxPost("/:owner/:repository/settings/issues/fields/new", customFieldForm)(ownerOnly { (form, repository) =>
+    val fieldId = createCustomField(
+      repository.owner,
+      repository.name,
+      form.fieldName,
+      form.fieldType,
+      form.enableForIssues,
+      form.enableForPullRequests
+    )
+    html.issuesfield(getCustomField(repository.owner, repository.name, fieldId).get)
+  })
+
+  /** Edit custom field form */
+  ajaxGet("/:owner/:repository/settings/issues/fields/:fieldId/edit")(ownerOnly { repository =>
+    getCustomField(repository.owner, repository.name, params("fieldId").toInt).map { customField =>
+      html.issuesfieldform(Some(customField), repository)
+    } getOrElse NotFound()
+  })
+
+  /** Update custom field */
+  ajaxPost("/:owner/:repository/settings/issues/fields/:fieldId/edit", customFieldForm)(ownerOnly {
+    (form, repository) =>
+      updateCustomField(
+        repository.owner,
+        repository.name,
+        params("fieldId").toInt,
+        form.fieldName,
+        form.fieldType,
+        form.enableForIssues,
+        form.enableForPullRequests
+      )
+      html.issuesfield(getCustomField(repository.owner, repository.name, params("fieldId").toInt).get)
+  })
+
+  /** Delete custom field */
+  ajaxPost("/:owner/:repository/settings/issues/fields/:fieldId/delete")(ownerOnly { repository =>
+    deleteCustomField(repository.owner, repository.name, params("fieldId").toInt)
+    Ok()
   })
 
   /**

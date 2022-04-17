@@ -5,6 +5,7 @@
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
+  customFields: List[(gitbucket.core.model.CustomField, Option[gitbucket.core.model.IssueCustomField])],
   isEditable: Boolean,
   isManageable: Boolean,
   isCommentManageable: Boolean,
@@ -56,7 +57,19 @@
         @gitbucket.core.issues.html.commentform(issue, true, isEditable, isManageable, repository)
       </div>
       <div class="col-md-3">
-        @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, priorities, None, labels, isManageable, repository)
+        @gitbucket.core.issues.html.issueinfo(
+          issue = Some(issue),
+          comments = comments,
+          issueLabels = issueLabels,
+          collaborators = collaborators,
+          milestones = milestones,
+          priorities = priorities,
+          defaultPriority = None,
+          labels = labels,
+          customFields = customFields,
+          isManageable = isManageable,
+          repository = repository
+        )
       </div>
     </div>
   }

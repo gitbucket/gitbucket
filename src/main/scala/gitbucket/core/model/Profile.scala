@@ -72,5 +72,7 @@ trait CoreProfile
     with ReleaseAssetComponent
     with AccountExtraMailAddressComponent
     with AccountPreferenceComponent
+    with CustomFieldComponent
+    with IssueCustomFieldComponent
 
 object Profile extends CoreProfile
