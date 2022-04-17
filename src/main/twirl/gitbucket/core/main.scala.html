@@ -73,27 +73,27 @@
         </a>
         <nav class="navbar navbar-static-top" role="navigation">
           <!-- Sidebar toggle button-->
-          @if(body.toString.contains("main-sidebar")){
+          @if(body.toString.contains("main-sidebar")) {
             <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" title="Toggle navigation">
               <span class="sr-only">Toggle navigation</span>
             </a>
           }
-          <form id="search" action="@context.path/search" method="GET" class="pc navbar-form navbar-left" role="search">
-            <div class="form-group">
-              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Find a repository" aria-label="Search"/>
-            </div>
-          </form>
-          <ul class="pc nav navbar-nav">
-            @if(context.loginAccount.isDefined){
+          @if(!(context.loginAccount.isEmpty && !context.settings.basicBehavior.allowAnonymousAccess)) {
+            <form id="search" action="@context.path/search" method="GET" class="pc navbar-form navbar-left" role="search">
+              <div class="form-group">
+                <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Find a repository" aria-label="Search"/>
+              </div>
+            </form>
+            <ul class="pc nav navbar-nav">
               <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
               <li><a href="@context.path/dashboard/issues">Issues</a></li>
-            }
-            @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
-              @menu(context).map { link =>
-                <li><a href="@context.path/@link.path">@link.label</a></li>
+              @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
+                @menu(context).map { link =>
+                  <li><a href="@context.path/@link.path">@link.label</a></li>
+                }
               }
-            }
-          </ul>
+            </ul>
+          }
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
               @if(context.loginAccount.isDefined){
