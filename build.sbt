@@ -61,7 +61,7 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
-  "org.mockito"                     % "mockito-core"                 % "4.5.0" % "test",
+  "org.mockito"                     % "mockito-core"                 % "4.5.1" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.5" % "test",
   "org.testcontainers"              % "mysql"                        % "1.17.1" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.17.1" % "test",
