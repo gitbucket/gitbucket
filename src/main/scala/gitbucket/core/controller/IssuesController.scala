@@ -258,7 +258,7 @@ trait IssuesControllerBase extends ControllerBase {
       loginAccount =>
         getComment(repository.owner, repository.name, params("id")).map { comment =>
           if (isEditableContent(repository.owner, repository.name, comment.commentedUserName, loginAccount)) {
-            updateComment(comment.issueId, comment.commentId, form.content)
+            updateComment(repository.owner, repository.name, comment.issueId, comment.commentId, form.content)
             redirect(s"/${repository.owner}/${repository.name}/issue_comments/_data/${comment.commentId}")
           } else Unauthorized()
         } getOrElse NotFound()
