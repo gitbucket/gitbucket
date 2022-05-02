@@ -509,7 +509,7 @@ trait IssuesService {
     content: String,
     action: String
   )(implicit s: Session): Int = {
-    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
     IssueComments returning IssueComments.map(_.commentId) insert IssueComment(
       userName = owner,
       repositoryName = repository,
@@ -635,8 +635,10 @@ trait IssuesService {
       .update(priorityId, currentDate)
   }
 
-  def updateComment(issueId: Int, commentId: Int, content: String)(implicit s: Session): Int = {
-    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+  def updateComment(owner: String, repository: String, issueId: Int, commentId: Int, content: String)(
+    implicit s: Session
+  ): Int = {
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
     IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).update(content, currentDate)
   }
 
@@ -644,7 +646,7 @@ trait IssuesService {
     implicit context: Context,
     s: Session
   ): Int = {
-    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
     IssueComments.filter(_.byPrimaryKey(commentId)).firstOption match {
       case Some(c) if c.action == "reopen_comment" =>
         IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Reopen", "reopen")
