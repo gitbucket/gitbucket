@@ -12,7 +12,7 @@ case class ApiIssue(
   number: Int,
   title: String,
   user: ApiUser,
-  assignee: Option[ApiUser],
+  assignees: List[ApiUser],
   labels: List[ApiLabel],
   state: String,
   created_at: Date,
@@ -21,7 +21,7 @@ case class ApiIssue(
   milestone: Option[ApiMilestone]
 )(repositoryName: RepositoryName, isPullRequest: Boolean) {
   val id = 0 // dummy id
-  val assignees = List(assignee).flatten
+  val assignee = assignees.headOption
   val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
   val html_url = ApiPath(s"/${repositoryName.fullName}/${if (isPullRequest) { "pull" } else { "issues" }}/${number}")
   val pull_request = if (isPullRequest) {
@@ -43,7 +43,7 @@ object ApiIssue {
     issue: Issue,
     repositoryName: RepositoryName,
     user: ApiUser,
-    assignee: Option[ApiUser],
+    assignees: List[ApiUser],
     labels: List[ApiLabel],
     milestone: Option[ApiMilestone]
   ): ApiIssue =
@@ -51,7 +51,7 @@ object ApiIssue {
       number = issue.issueId,
       title = issue.title,
       user = user,
-      assignee = assignee,
+      assignees = assignees,
       labels = labels,
       milestone = milestone,
       state = if (issue.closed) { "closed" } else { "open" },

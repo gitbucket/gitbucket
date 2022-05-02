@@ -92,7 +92,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     commitIdFrom: String,
     commitIdTo: String,
     isDraft: Boolean,
-    assignedUserName: Option[String],
+    assignedUserNames: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Option[String]
@@ -131,6 +131,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               getPullRequestComments(repository.owner, repository.name, issue.issueId, commits.flatten),
               diffs.size,
               getIssueLabels(repository.owner, repository.name, issueId),
+              getIssueAssignees(repository.owner, repository.name, issueId),
               getAssignableUserNames(repository.owner, repository.name),
               getMilestonesWithIssueCount(repository.owner, repository.name),
               getPriorities(repository.owner, repository.name),
@@ -571,7 +572,6 @@ trait PullRequestsControllerBase extends ControllerBase {
           loginUser = loginAccount.userName,
           title = form.title,
           content = form.content,
-          assignedUserName = if (manageable) form.assignedUserName else None,
           milestoneId = if (manageable) form.milestoneId else None,
           priorityId = if (manageable) form.priorityId else None,
           isPullRequest = true
@@ -591,8 +591,14 @@ trait PullRequestsControllerBase extends ControllerBase {
           settings = context.settings
         )
 
-        // insert labels
         if (manageable) {
+          // insert assignees
+          form.assignedUserNames.foreach { value =>
+            value.split(",").foreach { userName =>
+              registerIssueAssignee(repository.owner, repository.name, issueId, userName)
+            }
+          }
+          // insert labels
           form.labelNames.foreach { value =>
             val labels = getLabels(repository.owner, repository.name)
             value.split(",").foreach { labelName =>

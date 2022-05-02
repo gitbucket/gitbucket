@@ -29,9 +29,9 @@ trait ApiIssueControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
     // TODO: more api spec condition
     val condition = IssueSearchCondition(request)
-    val baseOwner = getAccountByUserName(repository.owner).get
+    //val baseOwner = getAccountByUserName(repository.owner).get
 
-    val issues: List[(Issue, Account, Option[Account])] =
+    val issues: List[(Issue, Account, List[Account])] =
       searchIssueByApi(
         condition = condition,
         offset = (page - 1) * PullRequestLimit,
@@ -40,12 +40,12 @@ trait ApiIssueControllerBase extends ControllerBase {
       )
 
     JsonFormat(issues.map {
-      case (issue, issueUser, assignedUser) =>
+      case (issue, issueUser, assigneeUsers) =>
         ApiIssue(
           issue = issue,
           repositoryName = RepositoryName(repository),
           user = ApiUser(issueUser),
-          assignee = assignedUser.map(ApiUser(_)),
+          assignees = assigneeUsers.map(ApiUser(_)),
           labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
             .map(ApiLabel(_, RepositoryName(repository))),
           issue.milestoneId.flatMap { getApiMilestone(repository, _) }
@@ -61,7 +61,8 @@ trait ApiIssueControllerBase extends ControllerBase {
     (for {
       issueId <- params("id").toIntOpt
       issue <- getIssue(repository.owner, repository.name, issueId.toString)
-      users = getAccountsByUserNames(Set(issue.openedUserName) ++ issue.assignedUserName, Set())
+      assigneeUsers = getIssueAssignees(repository.owner, repository.name, issueId)
+      users = getAccountsByUserNames(Set(issue.openedUserName) ++ assigneeUsers.map(_.assigneeUserName), Set())
       openedUser <- users.get(issue.openedUserName)
     } yield {
       JsonFormat(
@@ -69,7 +70,7 @@ trait ApiIssueControllerBase extends ControllerBase {
           issue,
           RepositoryName(repository),
           ApiUser(openedUser),
-          issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
+          assigneeUsers.flatMap(x => users.get(x.assigneeUserName)).map(ApiUser(_)),
           getIssueLabels(repository.owner, repository.name, issue.issueId).map(ApiLabel(_, RepositoryName(repository))),
           issue.milestoneId.flatMap { getApiMilestone(repository, _) }
         )
@@ -92,7 +93,7 @@ trait ApiIssueControllerBase extends ControllerBase {
           repository,
           data.title,
           data.body,
-          data.assignees.headOption,
+          data.assignees,
           milestone.map(_.milestoneId),
           None,
           data.labels,
@@ -103,7 +104,9 @@ trait ApiIssueControllerBase extends ControllerBase {
             issue,
             RepositoryName(repository),
             ApiUser(loginAccount),
-            issue.assignedUserName.flatMap(getAccountByUserName(_)).map(ApiUser(_)),
+            getIssueAssignees(repository.owner, repository.name, issue.issueId)
+              .flatMap(x => getAccountByUserName(x.assigneeUserName, false))
+              .map(ApiUser.apply),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository))),
             issue.milestoneId.flatMap { getApiMilestone(repository, _) }
