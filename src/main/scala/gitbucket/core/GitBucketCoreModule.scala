@@ -20,11 +20,7 @@ import scala.util.Using
 object GitBucketCoreModule
     extends Module(
       "gitbucket-core",
-      new Version(
-        "4.0.0",
-        new LiquibaseMigration("update/gitbucket-core_4.0.xml"),
-        new SqlMigration("update/gitbucket-core_4.0.sql")
-      ),
+      new Version("4.0.0", new LiquibaseMigration("update/gitbucket-core_4.0.xml")),
       new Version("4.1.0"),
       new Version("4.2.0", new LiquibaseMigration("update/gitbucket-core_4.2.xml")),
       new Version("4.2.1"),
@@ -32,11 +28,7 @@ object GitBucketCoreModule
       new Version("4.4.0"),
       new Version("4.5.0"),
       new Version("4.6.0", new LiquibaseMigration("update/gitbucket-core_4.6.xml")),
-      new Version(
-        "4.7.0",
-        new LiquibaseMigration("update/gitbucket-core_4.7.xml"),
-        new SqlMigration("update/gitbucket-core_4.7.sql")
-      ),
+      new Version("4.7.0", new LiquibaseMigration("update/gitbucket-core_4.7.xml")),
       new Version("4.7.1"),
       new Version("4.8"),
       new Version("4.9.0", new LiquibaseMigration("update/gitbucket-core_4.9.xml")),
@@ -45,11 +37,7 @@ object GitBucketCoreModule
       new Version("4.12.0"),
       new Version("4.12.1"),
       new Version("4.13.0"),
-      new Version(
-        "4.14.0",
-        new LiquibaseMigration("update/gitbucket-core_4.14.xml"),
-        new SqlMigration("update/gitbucket-core_4.14.sql")
-      ),
+      new Version("4.14.0", new LiquibaseMigration("update/gitbucket-core_4.14.xml")),
       new Version("4.14.1"),
       new Version("4.15.0"),
       new Version("4.16.0"),
