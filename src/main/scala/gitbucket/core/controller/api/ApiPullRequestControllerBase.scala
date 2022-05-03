@@ -40,7 +40,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
     val condition = IssueSearchCondition(request)
     val baseOwner = getAccountByUserName(repository.owner).get
 
-    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] =
+    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account, List[Account])] =
       searchPullRequestByApi(
         condition = condition,
         offset = (page - 1) * PullRequestLimit,
@@ -49,7 +49,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
       )
 
     JsonFormat(issues.map {
-      case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner, assignee) =>
+      case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner, assignees) =>
         ApiPullRequest(
           issue = issue,
           pullRequest = pullRequest,
@@ -58,7 +58,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
           user = ApiUser(issueUser),
           labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
             .map(ApiLabel(_, RepositoryName(repository))),
-          assignee = assignee.map(ApiUser.apply),
+          assignees = assignees.map(ApiUser.apply),
           mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
         )
     })
@@ -99,7 +99,6 @@ trait ApiPullRequestControllerBase extends ControllerBase {
                       loginUser = context.loginAccount.get.userName,
                       title = createPullReq.title,
                       content = createPullReq.body,
-                      assignedUserName = None,
                       milestoneId = None,
                       priorityId = None,
                       isPullRequest = true
@@ -319,8 +318,8 @@ trait ApiPullRequestControllerBase extends ControllerBase {
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
       issueUser <- users.get(issue.openedUserName)
-      assignee = issue.assignedUserName.flatMap { userName =>
-        getAccountByUserName(userName, false)
+      assignees = getIssueAssignees(repository.owner, repository.name, issueId).flatMap { assignedUser =>
+        getAccountByUserName(assignedUser.assigneeUserName, false)
       }
       headRepo <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
@@ -332,7 +331,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
         user = ApiUser(issueUser),
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
           .map(ApiLabel(_, RepositoryName(repository))),
-        assignee = assignee.map(ApiUser.apply),
+        assignees = assignees.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       )
     }

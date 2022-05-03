@@ -2,6 +2,7 @@
 @(issue: Option[gitbucket.core.model.Issue],
   comments: List[gitbucket.core.model.Comment],
   issueLabels: List[gitbucket.core.model.Label],
+  issueAssignees: List[gitbucket.core.model.IssueAssignee],
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   priorities: List[gitbucket.core.model.Priority],
@@ -127,11 +128,10 @@
   @if(isManageable){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("assignee", "Filter Assignee")) {
-        <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>
-            <a href="javascript:void(0);" class="assign" data-name="@collaborator">
-              @gitbucket.core.helper.html.checkicon(issue.exists(_.assignedUserName.exists(_ == collaborator)))@helpers.avatar(collaborator, 20) @collaborator
+            <a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator">
+              @gitbucket.core.helper.html.checkicon(issueAssignees.exists(_.assigneeUserName == collaborator))@helpers.avatar(collaborator, 20) @collaborator
             </a>
           </li>
         }
@@ -140,14 +140,15 @@
   }
 </div>
 <span id="label-assigned">
-  @issue.flatMap(_.assignedUserName).map { userName =>
-    @helpers.avatarLink(userName, 20) @helpers.user(userName, styleClass="username strong small")
-  }.getOrElse{
-    <span class="muted small">No one</span>
+  @issueAssignees.map { asignee =>
+    @helpers.avatarLink(asignee.assigneeUserName, 20) @helpers.user(asignee.assigneeUserName, styleClass="username strong small")
+  }
+  @if(issueAssignees.isEmpty) {
+    <span class="muted small">No one assigned</span>
   }
 </span>
 @if(issue.isEmpty){
-  <input type="hidden" name="assignedUserName" value=""/>
+  <input type="hidden" name="assigneeUserNames" value=""/>
 }
 
 @customFields.map { case (field, value) =>
@@ -188,7 +189,7 @@
 $(function(){
 @issue.map { issue =>
   $('a.toggle-label').click(function(){
-    const path = switchLabel($(this));
+    const path = switchToggleOptions($(this));
     $.post('@helpers.url(repository)/issues/@issue.issueId/label/' + path,
       { labelId : $(this).data('label-id') },
       function(data){
@@ -223,19 +224,25 @@ $(function(){
     );
   });
 
-  $('a.assign').click(function(){
-    const $this = $(this);
-    const userName = $this.data('name');
-    $.post('@helpers.url(repository)/issues/@issue.issueId/assign',
-      { assignedUserName: userName },
-      function(){
-        displayAssignee($this, userName);
+  $('a.toggle-assign').click(function(){
+    const path = switchToggleOptions($(this));
+    $.post('@helpers.url(repository)/issues/@issue.issueId/assignee/' + path,
+      { assigneeUserName : $(this).data('name') },
+      function(data){
+        const assignees = Array();
+        $('a.toggle-assign').each(function(i, e){
+          if($(e).children('i').hasClass('octicon-check') == true){
+            assignees.push($(e).text().trim());
+          }
+        });
+        displayAssignee(assignees);
       }
     );
+    return false;
   });
 }.getOrElse {
   $('a.toggle-label').click(function(){
-    switchLabel($(this));
+    switchToggleOptions($(this));
     const labelNames = Array();
     $('a.toggle-label').each(function(i, e){
       if($(e).children('i').hasClass('octicon-check') == true){
@@ -269,15 +276,20 @@ $(function(){
     $('input[name=priorityId]').val(priorityId);
   });
 
-  $('a.assign').click(function(){
-    const $this = $(this);
-    const userName = $this.data('name');
-    displayAssignee($this, userName);
-    $('input[name=assignedUserName]').val(userName);
+  $('a.toggle-assign').click(function(){
+    switchToggleOptions($(this));
+    const assignees = Array();
+    $('a.toggle-assign').each(function(i, e){
+      if($(e).children('i').hasClass('octicon-check') == true){
+        assignees.push($(e).text().trim());
+      }
+    });
+    $('input[name=assigneeUserNames]').val(assignees.join(','));
+    displayAssignee(assignees);
   });
 }
 
-  function switchLabel($this){
+  function switchToggleOptions($this){
     const i = $this.children('i');
     if(i.hasClass('octicon-check')){
       i.removeClass('octicon-check');
@@ -320,15 +332,18 @@ $(function(){
     }
   }
 
-  function displayAssignee($this, userName){
+  function displayAssignee(assignees){
     $('a.assign i.octicon-check').removeClass('octicon-check');
-    if(userName == ''){
-      $('#label-assigned').html($('<span class="muted small">').text('No one'));
+    if(assignees.length == 0){
+      $('#label-assigned').html($('<span class="muted small">').text('No one assigned'));
     } else {
-      $('#label-assigned').empty()
-        .append($this.find('img.avatar-mini').clone(false)).append(' ')
-        .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
-      $('a.assign[data-name=' + jqSelectorEscape(userName.toString()) + '] i').addClass('octicon-check');
+      $('#label-assigned').empty();
+      for (const userName of assignees) {
+        $('#label-assigned').append($('<div>').append(
+            $('a.toggle-assign').parent().find("img.avatar-mini[alt='@@" + userName + "']").clone(false),
+            ' ',
+            $('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName)));
+      }
     }
   }
 });

@@ -379,8 +379,12 @@ trait WebHookPullRequestService extends WebHookService {
     settings: SystemSettings
   )(implicit s: Session, context: JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, WebHook.Issues, settings) {
+      val assigneeUsers = getIssueAssignees(repository.owner, repository.name, issue.issueId)
       val users =
-        getAccountsByUserNames(Set(repository.owner, issue.openedUserName) ++ issue.assignedUserName, Set(sender))
+        getAccountsByUserNames(
+          Set(repository.owner, issue.openedUserName) ++ assigneeUsers.map(_.assigneeUserName),
+          Set(sender)
+        )
       for {
         repoOwner <- users.get(repository.owner)
         issueUser <- users.get(issue.openedUserName)
@@ -393,7 +397,7 @@ trait WebHookPullRequestService extends WebHookService {
             issue,
             RepositoryName(repository),
             ApiUser(issueUser),
-            issue.assignedUserName.flatMap(users.get(_)).map(ApiUser(_)),
+            assigneeUsers.flatMap(x => users.get(x.assigneeUserName)).map(ApiUser(_)),
             getIssueLabels(repository.owner, repository.name, issue.issueId)
               .map(ApiLabel(_, RepositoryName(repository))),
             getApiMilestone(repository, issue.milestoneId getOrElse (0))
@@ -415,16 +419,15 @@ trait WebHookPullRequestService extends WebHookService {
     callWebHookOf(repository.owner, repository.name, WebHook.PullRequest, settings) {
       for {
         (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
+        assignees = getIssueAssignees(repository.owner, repository.name, issueId)
         users = getAccountsByUserNames(
-          Set(repository.owner, pullRequest.requestUserName, issue.openedUserName),
+          Set(repository.owner, pullRequest.requestUserName, issue.openedUserName) ++ assignees.map(_.assigneeUserName),
           Set(sender)
         )
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)
-        assignee = issue.assignedUserName.flatMap { userName =>
-          getAccountByUserName(userName, false)
-        }
+        assigneeUsers = assignees.flatMap(x => users.get(x.assigneeUserName))
         headRepo <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
           .map(ApiLabel(_, RepositoryName(repository)))
@@ -433,7 +436,7 @@ trait WebHookPullRequestService extends WebHookService {
           action = action,
           issue = issue,
           issueUser = issueUser,
-          assignee = assignee,
+          assignees = assigneeUsers,
           pullRequest = pullRequest,
           headRepository = headRepo,
           headOwner = headOwner,
@@ -481,8 +484,8 @@ trait WebHookPullRequestService extends WebHookService {
         requestRepository.name,
         requestBranch
       )
-      assignee = issue.assignedUserName.flatMap { userName =>
-        getAccountByUserName(userName, false)
+      assignees = getIssueAssignees(requestRepository.owner, requestRepository.name, issue.issueId).flatMap { x =>
+        getAccountByUserName(x.assigneeUserName, false)
       }
       baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName)
       labels = getIssueLabels(pullRequest.userName, pullRequest.repositoryName, issue.issueId)
@@ -492,7 +495,7 @@ trait WebHookPullRequestService extends WebHookService {
         action = action,
         issue = issue,
         issueUser = issueUser,
-        assignee = assignee,
+        assignees = assignees,
         pullRequest = pullRequest,
         headRepository = requestRepository,
         headOwner = headOwner,
@@ -522,15 +525,17 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
   )(implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
     callWebHookOf(repository.owner, repository.name, WebHook.PullRequestReviewComment, settings) {
+      val assignees = getIssueAssignees(repository.owner, pullRequest.requestUserName, issue.issueId)
       val users =
-        getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
+        getAccountsByUserNames(
+          Set(repository.owner, pullRequest.requestUserName, issue.openedUserName) ++ assignees.map(_.assigneeUserName),
+          Set(sender)
+        )
       for {
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)
-        assignee = issue.assignedUserName.flatMap { userName =>
-          getAccountByUserName(userName, false)
-        }
+        assigneeUsers = assignees.flatMap(x => users.get(x.assigneeUserName))
         headRepo <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
         labels = getIssueLabels(pullRequest.userName, pullRequest.repositoryName, issue.issueId)
           .map(ApiLabel(_, RepositoryName(pullRequest.userName, pullRequest.repositoryName)))
@@ -540,7 +545,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
           comment = comment,
           issue = issue,
           issueUser = issueUser,
-          assignee = assignee,
+          assignees = assigneeUsers,
           pullRequest = pullRequest,
           headRepository = headRepo,
           headOwner = headOwner,
@@ -569,14 +574,17 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
     callWebHookOf(repository.owner, repository.name, WebHook.IssueComment, settings) {
       for {
         issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
+        assignees = getIssueAssignees(repository.owner, repository.name, issue.issueId)
         users = getAccountsByUserNames(
-          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName) ++ issue.assignedUserName,
+          Set(issue.openedUserName, repository.owner, issueComment.commentedUserName) ++ assignees.map(
+            _.assigneeUserName
+          ),
           Set(sender)
         )
         issueUser <- users.get(issue.openedUserName)
         repoOwner <- users.get(repository.owner)
         commenter <- users.get(issueComment.commentedUserName)
-        assignedUser = issue.assignedUserName.flatMap(users.get(_))
+        assigneeUsers = assignees.flatMap(x => users.get(x.assigneeUserName))
         labels = getIssueLabels(repository.owner, repository.name, issue.issueId)
         milestone = getApiMilestone(repository, issue.milestoneId getOrElse (0))
       } yield {
@@ -587,7 +595,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
           commentUser = commenter,
           repository = repository,
           repositoryUser = repoOwner,
-          assignedUser = assignedUser,
+          assignees = assigneeUsers,
           sender = sender,
           labels = labels,
           milestone = milestone
@@ -710,7 +718,7 @@ object WebHookService {
       action: String,
       issue: Issue,
       issueUser: Account,
-      assignee: Option[Account],
+      assignees: List[Account],
       pullRequest: PullRequest,
       headRepository: RepositoryInfo,
       headOwner: Account,
@@ -731,7 +739,7 @@ object WebHookService {
         baseRepo = baseRepoPayload,
         user = ApiUser(issueUser),
         labels = labels,
-        assignee = assignee.map(ApiUser.apply),
+        assignees = assignees.map(ApiUser.apply),
         mergedComment = mergedComment
       )
 
@@ -762,7 +770,7 @@ object WebHookService {
       commentUser: Account,
       repository: RepositoryInfo,
       repositoryUser: Account,
-      assignedUser: Option[Account],
+      assignees: List[Account],
       sender: Account,
       labels: List[Label],
       milestone: Option[ApiMilestone]
@@ -774,7 +782,7 @@ object WebHookService {
           issue,
           RepositoryName(repository),
           ApiUser(issueUser),
-          assignedUser.map(ApiUser(_)),
+          assignees.map(ApiUser(_)),
           labels.map(ApiLabel(_, RepositoryName(repository))),
           milestone
         ),
@@ -799,7 +807,7 @@ object WebHookService {
       comment: CommitComment,
       issue: Issue,
       issueUser: Account,
-      assignee: Option[Account],
+      assignees: List[Account],
       pullRequest: PullRequest,
       headRepository: RepositoryInfo,
       headOwner: Account,
@@ -828,7 +836,7 @@ object WebHookService {
           baseRepo = baseRepoPayload,
           user = ApiUser(issueUser),
           labels = labels,
-          assignee = assignee.map(ApiUser.apply),
+          assignees = assignees.map(ApiUser.apply),
           mergedComment = mergedComment
         ),
         repository = baseRepoPayload,

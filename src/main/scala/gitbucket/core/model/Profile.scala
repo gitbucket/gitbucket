@@ -74,5 +74,6 @@ trait CoreProfile
     with AccountPreferenceComponent
     with CustomFieldComponent
     with IssueCustomFieldComponent
+    with IssueAssigneeComponent
 
 object Profile extends CoreProfile

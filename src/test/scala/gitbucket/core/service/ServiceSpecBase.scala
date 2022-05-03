@@ -142,7 +142,6 @@ trait ServiceSpecBase {
       loginUser = loginUser,
       title = "issue title",
       content = None,
-      assignedUserName = None,
       milestoneId = None,
       priorityId = None,
       isPullRequest = true

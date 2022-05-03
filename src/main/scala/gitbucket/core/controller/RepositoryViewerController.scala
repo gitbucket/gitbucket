@@ -679,7 +679,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       loginUser = loginAccount.userName,
       title = requestBranch,
       content = commitMessage,
-      assignedUserName = None,
       milestoneId = None,
       priorityId = None,
       isPullRequest = true

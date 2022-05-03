@@ -53,7 +53,7 @@ trait IssuesControllerBase extends ControllerBase {
   case class IssueCreateForm(
     title: String,
     content: Option[String],
-    assignedUserName: Option[String],
+    assigneeUserNames: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Option[String]
@@ -64,7 +64,7 @@ trait IssuesControllerBase extends ControllerBase {
   val issueCreateForm = mapping(
     "title" -> trim(label("Title", text(required))),
     "content" -> trim(optional(text())),
-    "assignedUserName" -> trim(optional(text())),
+    "assigneeUserNames" -> trim(optional(text())),
     "milestoneId" -> trim(optional(number())),
     "priorityId" -> trim(optional(number())),
     "labelNames" -> trim(optional(text()))
@@ -107,6 +107,7 @@ trait IssuesControllerBase extends ControllerBase {
             issue,
             getComments(repository.owner, repository.name, issueId.toInt),
             getIssueLabels(repository.owner, repository.name, issueId.toInt),
+            getIssueAssignees(repository.owner, repository.name, issueId.toInt),
             getAssignableUserNames(repository.owner, repository.name),
             getMilestonesWithIssueCount(repository.owner, repository.name),
             getPriorities(repository.owner, repository.name),
@@ -145,7 +146,7 @@ trait IssuesControllerBase extends ControllerBase {
             repository,
             form.title,
             form.content,
-            form.assignedUserName,
+            form.assigneeUserNames.toSeq.flatMap(_.split(",")),
             form.milestoneId,
             form.priorityId,
             form.labelNames.toSeq.flatMap(_.split(",")),
@@ -356,15 +357,16 @@ trait IssuesControllerBase extends ControllerBase {
     html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>
-    updateAssignedUserName(
-      repository.owner,
-      repository.name,
-      params("id").toInt,
-      assignedUserName("assignedUserName"),
-      true
-    )
-    Ok("updated")
+  ajaxPost("/:owner/:repository/issues/:id/assignee/new")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    registerIssueAssignee(repository.owner, repository.name, issueId, params("assigneeUserName"), true)
+    Ok()
+  })
+
+  ajaxPost("/:owner/:repository/issues/:id/assignee/delete")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    deleteIssueAssignee(repository.owner, repository.name, issueId, params("assigneeUserName"), true)
+    Ok()
   })
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(writableUsersOnly { repository =>
@@ -455,7 +457,13 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
     val value = assignedUserName("value")
     executeBatch(repository) {
-      updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      //updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      value match {
+        case Some(assignedUserName) =>
+          registerIssueAssignee(repository.owner, repository.name, _, assignedUserName, true)
+        case None =>
+          deleteAllIssueAssignees(repository.owner, repository.name, _, true)
+      }
     }
     if (params("uri").nonEmpty) {
       redirect(params("uri"))

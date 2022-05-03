@@ -116,7 +116,6 @@ object ApiSpecModels {
     openedUserName = "bear",
     milestoneId = None,
     priorityId = None,
-    assignedUserName = None,
     title = "Found a bug",
     content = Some("I'm having a problem with this."),
     closed = false,
@@ -226,7 +225,7 @@ object ApiSpecModels {
     issue = issue,
     repositoryName = repo1Name,
     user = apiUser,
-    assignee = Some(apiUser),
+    assignees = List(apiUser),
     labels = List(apiLabel),
     milestone = Some(apiMilestone)
   )
@@ -235,7 +234,7 @@ object ApiSpecModels {
     issue = issue,
     repositoryName = repo1Name,
     user = apiUser,
-    assignee = None,
+    assignees = List.empty,
     labels = List(apiLabel),
     milestone = Some(apiMilestone)
   )
@@ -244,7 +243,7 @@ object ApiSpecModels {
     issue = issuePR,
     repositoryName = repo1Name,
     user = apiUser,
-    assignee = Some(apiUser),
+    assignees = List(apiUser),
     labels = List(apiLabel),
     milestone = Some(apiMilestone)
   )
@@ -272,7 +271,7 @@ object ApiSpecModels {
     baseRepo = apiRepository,
     user = apiUser,
     labels = List(apiLabel),
-    assignee = Some(apiUser),
+    assignees = List(apiUser),
     mergedComment = Some((issueComment, account))
   )
 
@@ -540,7 +539,7 @@ object ApiSpecModels {
        |"number":1347,
        |"title":"Found a bug",
        |"user":$jsonUser,
-       |"assignee":$jsonUser,
+       |"assignees":[$jsonUser],
        |"labels":[$jsonLabel],
        |"state":"open",
        |"created_at":"2011-04-14T16:00:49Z",
@@ -548,7 +547,7 @@ object ApiSpecModels {
        |"body":"I'm having a problem with this.",
        |"milestone":$jsonMilestone,
        |"id":0,
-       |"assignees":[$jsonUser],
+       |"assignee":$jsonUser,
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
        |}""".stripMargin
@@ -557,6 +556,7 @@ object ApiSpecModels {
        |"number":1347,
        |"title":"Found a bug",
        |"user":$jsonUser,
+       |"assignees":[],
        |"labels":[$jsonLabel],
        |"state":"open",
        |"created_at":"2011-04-14T16:00:49Z",
@@ -564,7 +564,6 @@ object ApiSpecModels {
        |"body":"I'm having a problem with this.",
        |"milestone":$jsonMilestone,
        |"id":0,
-       |"assignees":[],
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/issues/1347"
        |}""".stripMargin
@@ -573,7 +572,7 @@ object ApiSpecModels {
        |"number":1347,
        |"title":"new-feature",
        |"user":$jsonUser,
-       |"assignee":$jsonUser,
+       |"assignees":[$jsonUser],
        |"labels":[$jsonLabel],
        |"state":"closed",
        |"created_at":"2011-04-14T16:00:49Z",
@@ -581,12 +580,12 @@ object ApiSpecModels {
        |"body":"Please pull these awesome changes",
        |"milestone":$jsonMilestone,
        |"id":0,
-       |"assignees":[$jsonUser],
+       |"assignee":$jsonUser,
        |"comments_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/issues/1347/comments",
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347",
        |"pull_request":{
-         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",
-         |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347"}
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347"}
        |}""".stripMargin
 
   val jsonPullRequest = s"""{
@@ -603,9 +602,10 @@ object ApiSpecModels {
        |"body":"Please pull these awesome changes",
        |"user":$jsonUser,
        |"labels":[$jsonLabel],
-       |"assignee":$jsonUser,
+       |"assignees":[$jsonUser],
        |"draft":true,
        |"id":0,
+       |"assignee":$jsonUser,
        |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/pull/1347",
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347",
        |"commits_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/pulls/1347/commits",
