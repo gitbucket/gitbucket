@@ -42,12 +42,12 @@ libraryDependencies ++= Seq(
   "commons-net"                     % "commons-net"                  % "3.8.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.8.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "2.3.0",
+  "org.apache.tika"                 % "tika-core"                    % "2.4.0",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.5",
-  "org.postgresql"                  % "postgresql"                   % "42.3.4",
+  "org.postgresql"                  % "postgresql"                   % "42.3.5",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.11",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                       % "1.4.2",
@@ -56,19 +56,19 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.17",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.33",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "9.35",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
-  "org.mockito"                     % "mockito-core"                 % "4.4.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.5" % "test",
+  "org.mockito"                     % "mockito-core"                 % "4.5.1" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.7" % "test",
   "org.testcontainers"              % "mysql"                        % "1.17.1" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.17.1" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
-  "org.kohsuke"                     % "github-api"                   % "1.303" % "test"
+  "org.kohsuke"                     % "github-api"                   % "1.306" % "test"
 )
 
 libraryDependencies ~= {

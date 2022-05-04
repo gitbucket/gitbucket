@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- CUSTOM_FIELD -->
+  <!--================================================================================================-->
+  <createTable tableName="CUSTOM_FIELD">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="FIELD_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="FIELD_NAME" type="varchar(100)" nullable="false"/>
+    <column name="FIELD_TYPE" type="varchar(100)" nullable="false"/>
+    <column name="ENABLE_FOR_ISSUES" type="boolean" nullable="false"/>
+    <column name="ENABLE_FOR_PULL_REQUESTS" type="boolean" nullable="false"/>
+  </createTable>
+  <addPrimaryKey constraintName="IDX_CUSTOM_FIELD_PK" tableName="CUSTOM_FIELD" columnNames="USER_NAME, REPOSITORY_NAME, FIELD_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_CUSTOM_FIELD_FK0" baseTableName="CUSTOM_FIELD" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- ISSUE_CUSTOM_FIELD -->
+  <!--================================================================================================-->
+  <createTable tableName="ISSUE_CUSTOM_FIELD">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+    <column name="FIELD_ID" type="int" nullable="false"/>
+    <column name="VALUE" type="varchar(200)" nullable="true"/>
+  </createTable>
+  <addPrimaryKey constraintName="IDX_ISSUE_CUSTOM_FIELD_PK" tableName="ISSUE_CUSTOM_FIELD" columnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID, FIELD_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_CUSTOM_FIELD_FK0" baseTableName="ISSUE_CUSTOM_FIELD" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_CUSTOM_FIELD_FK1" baseTableName="ISSUE_CUSTOM_FIELD" baseColumnNames="USER_NAME, REPOSITORY_NAME, FIELD_ID" referencedTableName="CUSTOM_FIELD" referencedColumnNames="USER_NAME, REPOSITORY_NAME, FIELD_ID"/>
+
+  <!--================================================================================================-->
+  <!-- ISSUE_ASSIGNEE -->
+  <!--================================================================================================-->
+  <createTable tableName="ISSUE_ASSIGNEE">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+    <column name="ASSIGNEE_USER_NAME" type="varchar(100)" nullable="false"/>
+  </createTable>
+  <addPrimaryKey constraintName="IDX_ISSUE_ASSIGNEE_PK" tableName="ISSUE_ASSIGNEE" columnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID, ASSIGNEE_USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ASSIGNEE_FK0" baseTableName="ISSUE_ASSIGNEE" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
+  <!--
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ASSIGNEE_FK1" baseTableName="ISSUE_ASSIGNEE" baseColumnNames="ASSIGNEE_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+  -->
+
+  <sql>
+    INSERT INTO ISSUE_ASSIGNEE (USER_NAME, REPOSITORY_NAME, ISSUE_ID, ASSIGNEE_USER_NAME)
+      SELECT USER_NAME, REPOSITORY_NAME, ISSUE_ID, ASSIGNED_USER_NAME FROM ISSUE WHERE ASSIGNED_USER_NAME IS NOT NULL
+  </sql>
+
+  <dropColumn tableName="ISSUE" columnName="ASSIGNED_USER_NAME"/>
+</changeSet>

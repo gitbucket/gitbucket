@@ -16,7 +16,7 @@ trait IssueCreationService {
     repository: RepositoryInfo,
     title: String,
     body: Option[String],
-    assignee: Option[String],
+    assignees: Seq[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Seq[String],
@@ -35,16 +35,19 @@ trait IssueCreationService {
       userName,
       title,
       body,
-      if (manageable) assignee else None,
       if (manageable) milestoneId else None,
       if (manageable) priorityId else None
     )
     val issue: Issue = getIssue(owner, name, issueId.toString).get
 
-    // insert labels
     if (manageable) {
+      // insert assignees
+      assignees.foreach { assignee =>
+        registerIssueAssignee(owner, name, issueId, assignee)
+      }
+      // insert labels
       val labels = getLabels(owner, name)
-      labelNames.map { labelName =>
+      labelNames.foreach { labelName =>
         labels.find(_.labelName == labelName).map { label =>
           registerIssueLabel(owner, name, issueId, label.labelId)
         }

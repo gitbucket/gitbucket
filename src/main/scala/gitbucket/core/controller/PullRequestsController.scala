@@ -25,6 +25,7 @@ class PullRequestsController
     with PullRequestService
     with MilestonesService
     with LabelsService
+    with CustomFieldsService
     with CommitsService
     with ActivityService
     with WebHookPullRequestService
@@ -44,6 +45,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     with IssuesService
     with MilestonesService
     with LabelsService
+    with CustomFieldsService
     with CommitsService
     with ActivityService
     with PullRequestService
@@ -90,7 +92,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     commitIdFrom: String,
     commitIdTo: String,
     isDraft: Boolean,
-    assignedUserName: Option[String],
+    assignedUserNames: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Option[String]
@@ -129,10 +131,12 @@ trait PullRequestsControllerBase extends ControllerBase {
               getPullRequestComments(repository.owner, repository.name, issue.issueId, commits.flatten),
               diffs.size,
               getIssueLabels(repository.owner, repository.name, issueId),
+              getIssueAssignees(repository.owner, repository.name, issueId),
               getAssignableUserNames(repository.owner, repository.name),
               getMilestonesWithIssueCount(repository.owner, repository.name),
               getPriorities(repository.owner, repository.name),
               getLabels(repository.owner, repository.name),
+              getCustomFieldsWithValue(repository.owner, repository.name, issueId).filter(_._1.enableForPullRequests),
               isEditable(repository),
               isManageable(repository),
               hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
@@ -505,7 +509,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             getMilestones(originRepository.owner, originRepository.name),
             getPriorities(originRepository.owner, originRepository.name),
             getDefaultPriority(originRepository.owner, originRepository.name),
-            getLabels(originRepository.owner, originRepository.name)
+            getLabels(originRepository.owner, originRepository.name),
+            getCustomFields(originRepository.owner, originRepository.name).filter(_.enableForPullRequests)
           )
         }
         case (oldId, newId) =>
@@ -567,7 +572,6 @@ trait PullRequestsControllerBase extends ControllerBase {
           loginUser = loginAccount.userName,
           title = form.title,
           content = form.content,
-          assignedUserName = if (manageable) form.assignedUserName else None,
           milestoneId = if (manageable) form.milestoneId else None,
           priorityId = if (manageable) form.priorityId else None,
           isPullRequest = true
@@ -587,8 +591,14 @@ trait PullRequestsControllerBase extends ControllerBase {
           settings = context.settings
         )
 
-        // insert labels
         if (manageable) {
+          // insert assignees
+          form.assignedUserNames.foreach { value =>
+            value.split(",").foreach { userName =>
+              registerIssueAssignee(repository.owner, repository.name, issueId, userName)
+            }
+          }
+          // insert labels
           form.labelNames.foreach { value =>
             val labels = getLabels(repository.owner, repository.name)
             value.split(",").foreach { labelName =>

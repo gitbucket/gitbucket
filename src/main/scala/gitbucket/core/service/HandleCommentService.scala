@@ -165,7 +165,7 @@ trait HandleCommentService {
       content match {
         case Some(content) =>
           // Update comment
-          val _commentId = Some(updateComment(issue.issueId, commentId.toInt, content))
+          val _commentId = Some(updateComment(owner, name, issue.issueId, commentId.toInt, content))
           // Record comment activity
           val commentInfo = if (issue.isPullRequest) {
             PullRequestCommentInfo(owner, name, userName, content, issue.issueId)

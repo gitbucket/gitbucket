@@ -5,7 +5,17 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{Account, Issue, IssueComment, IssueLabel, Label, PullRequest, Repository, Role}
+import gitbucket.core.model.{
+  Account,
+  Issue,
+  IssueAssignee,
+  IssueComment,
+  IssueLabel,
+  Label,
+  PullRequest,
+  Repository,
+  Role
+}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -118,8 +128,7 @@ trait IssuesService {
   def countIssueGroupByLabels(
     owner: String,
     repository: String,
-    condition: IssueSearchCondition,
-    filterUser: Map[String, String]
+    condition: IssueSearchCondition
   )(implicit s: Session): Map[String, Int] = {
 
     searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), IssueSearchOption.Issues)
@@ -244,20 +253,31 @@ trait IssuesService {
   }
 
   /** for api
-   * @return (issue, issueUser, assignedUser)
+   * @return (issue, issueUser, Seq(assigneeUsers))
    */
   def searchIssueByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)(
     implicit s: Session
-  ): List[(Issue, Account, Option[Account])] = {
+  ): List[(Issue, Account, List[Account])] = {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, IssueSearchOption.Issues, offset, limit, repos)
       .join(Accounts)
       .on { case t1 ~ t2 ~ i ~ t3 => t3.userName === t1.openedUserName }
+      .joinLeft(IssueAssignees)
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 => t4.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
       .joinLeft(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 => t4.userName === t1.assignedUserName }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 => i asc }
-      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 => (t1, t3, t4) }
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t5.userName === t4.map(_.assigneeUserName) }
+      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => i asc }
+      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => (t1, t3, t5) }
       .list
+      .groupBy {
+        case (issue, account, assignedUsers) =>
+          (issue, account)
+      }
+      .map {
+        case (_, values) =>
+          (values.head._1, values.head._2, values.flatMap(_._3))
+      }
+      .toList
   }
 
   /** for api
@@ -265,7 +285,7 @@ trait IssuesService {
    */
   def searchPullRequestByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)(
     implicit s: Session
-  ): List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] = {
+  ): List[(Issue, Account, Int, PullRequest, Repository, Account, List[Account])] = {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, IssueSearchOption.PullRequests, offset, limit, repos)
       .join(PullRequests)
@@ -276,11 +296,30 @@ trait IssuesService {
       .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t5.userName === t1.openedUserName }
       .join(Accounts)
       .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t6.userName === t4.userName }
+      .joinLeft(IssueAssignees)
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t7.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
       .joinLeft(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t7.userName === t1.assignedUserName }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => i asc }
-      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => (t1, t5, t2.commentCount, t3, t4, t6, t7) }
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => t8.userName === t7.map(_.assigneeUserName) }
+      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => i asc }
+      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => (t1, t5, t2.commentCount, t3, t4, t6, t8) }
       .list
+      .groupBy {
+        case (issue, openedUser, commentCount, pullRequest, repository, account, assignedUser) =>
+          (issue, openedUser, commentCount, pullRequest, repository, account)
+      }
+      .map {
+        case (_, values) =>
+          (
+            values.head._1,
+            values.head._2,
+            values.head._3,
+            values.head._4,
+            values.head._5,
+            values.head._6,
+            values.flatMap(_._7)
+          )
+      }
+      .toList
   }
 
   private def searchIssueQueryBase(
@@ -347,7 +386,7 @@ trait IssuesService {
         case _        => t1.closed === true || t1.closed === false
       }).&&(t1.milestoneId.? isEmpty, condition.milestone == Some(None))
         .&&(t1.priorityId.? isEmpty, condition.priority == Some(None))
-        .&&(t1.assignedUserName.? isEmpty, condition.assigned == Some(None))
+        //.&&(t1.assignedUserName.? isEmpty, condition.assigned == Some(None))
         .&&(t1.openedUserName === condition.author.get.bind, condition.author.isDefined) &&
       (searchOption match {
         case IssueSearchOption.Issues       => t1.pullRequest === false
@@ -371,7 +410,13 @@ trait IssuesService {
           condition.priority.flatten.isDefined
         )
         // Assignee filter
-        .&&(t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined)
+        .&&(
+          IssueAssignees filter { a =>
+            a.byIssue(t1.userName, t1.repositoryName, t1.issueId) &&
+            a.assigneeUserName === condition.assigned.get.get.bind
+          } exists,
+          condition.assigned.flatten.isDefined
+        )
         // Label filter
         .&&(
           IssueLabels filter { t2 =>
@@ -396,7 +441,9 @@ trait IssuesService {
         .&&(t1.userName inSetBind condition.groups, condition.groups.nonEmpty)
         // Mentioned filter
         .&&(
-          (t1.openedUserName === condition.mentioned.get.bind) || t1.assignedUserName === condition.mentioned.get.bind ||
+          (t1.openedUserName === condition.mentioned.get.bind) || (IssueAssignees filter { t1 =>
+            t1.byIssue(t1.userName, t1.repositoryName, t1.issueId) && t1.assigneeUserName === condition.mentioned.get.bind
+          } exists) ||
             (IssueComments filter { t2 =>
               (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === condition.mentioned.get.bind)
             } exists),
@@ -410,7 +457,6 @@ trait IssuesService {
     loginUser: String,
     title: String,
     content: Option[String],
-    assignedUserName: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     isPullRequest: Boolean = false
@@ -427,7 +473,6 @@ trait IssuesService {
           loginUser,
           milestoneId,
           priorityId,
-          assignedUserName,
           title,
           content,
           false,
@@ -509,7 +554,7 @@ trait IssuesService {
     content: String,
     action: String
   )(implicit s: Session): Int = {
-    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
     IssueComments returning IssueComments.map(_.commentId) insert IssueComment(
       userName = owner,
       repositoryName = repository,
@@ -542,35 +587,91 @@ trait IssuesService {
       .update(true)
   }
 
-  def updateAssignedUserName(
+  def getIssueAssignees(owner: String, repository: String, issueId: Int)(
+    implicit s: Session
+  ): List[IssueAssignee] = {
+    IssueAssignees.filter(_.byIssue(owner, repository, issueId)).sortBy(_.assigneeUserName).list
+  }
+
+  def registerIssueAssignee(
     owner: String,
     repository: String,
     issueId: Int,
-    assignedUserName: Option[String],
+    assigneeUserName: String,
     insertComment: Boolean = false
-  )(implicit context: Context, s: Session): Int = {
-    val oldAssigned = getIssue(owner, repository, s"${issueId}").get.assignedUserName
-    val assigned = assignedUserName
+  )(
+    implicit context: Context,
+    s: Session
+  ): Int = {
     val assigner = context.loginAccount.map(_.userName)
     if (insertComment) {
       IssueComments insert IssueComment(
         userName = owner,
         repositoryName = repository,
         issueId = issueId,
-        action = "assign",
+        action = "add_assignee",
         commentedUserName = assigner.getOrElse("Unknown user"),
-        content = s"""${oldAssigned.getOrElse("Not assigned")}:${assigned.getOrElse("Not assigned")}""",
+        content = assigneeUserName,
         registeredDate = currentDate,
         updatedDate = currentDate
       )
     }
     for (issue <- getIssue(owner, repository, issueId.toString); repo <- getRepository(owner, repository)) {
-      PluginRegistry().getIssueHooks.foreach(_.assigned(issue, repo, assigner, assigned, oldAssigned))
+      PluginRegistry().getIssueHooks.foreach(_.assigned(issue, repo, assigner, Some(assigneeUserName), None))
     }
-    Issues
-      .filter(_.byPrimaryKey(owner, repository, issueId))
-      .map(t => (t.assignedUserName ?, t.updatedDate))
-      .update(assignedUserName, currentDate)
+    IssueAssignees insert IssueAssignee(owner, repository, issueId, assigneeUserName)
+  }
+
+  def deleteIssueAssignee(
+    owner: String,
+    repository: String,
+    issueId: Int,
+    assigneeUserName: String,
+    insertComment: Boolean = false
+  )(
+    implicit context: Context,
+    s: Session
+  ): Int = {
+    val assigner = context.loginAccount.map(_.userName)
+    if (insertComment) {
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "delete_assignee",
+        commentedUserName = assigner.getOrElse("Unknown user"),
+        content = assigneeUserName,
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
+
+    // TODO Notify plugins of unassignment as doing in registerIssueAssignee()?
+
+    IssueAssignees filter (_.byPrimaryKey(owner, repository, issueId, assigneeUserName)) delete
+  }
+
+  def deleteAllIssueAssignees(owner: String, repository: String, issueId: Int, insertComment: Boolean = false)(
+    implicit context: Context,
+    s: Session
+  ): Int = {
+    val assigner = context.loginAccount.map(_.userName)
+    if (insertComment) {
+      IssueComments insert IssueComment(
+        userName = owner,
+        repositoryName = repository,
+        issueId = issueId,
+        action = "delete_assign",
+        commentedUserName = assigner.getOrElse("Unknown user"),
+        content = "All assignees",
+        registeredDate = currentDate,
+        updatedDate = currentDate
+      )
+    }
+
+    // TODO Notify plugins of unassignment as doing in registerIssueAssignee()?
+
+    IssueAssignees filter (_.byIssue(owner, repository, issueId)) delete
   }
 
   def updateMilestoneId(
@@ -635,8 +736,10 @@ trait IssuesService {
       .update(priorityId, currentDate)
   }
 
-  def updateComment(issueId: Int, commentId: Int, content: String)(implicit s: Session): Int = {
-    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+  def updateComment(owner: String, repository: String, issueId: Int, commentId: Int, content: String)(
+    implicit s: Session
+  ): Int = {
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
     IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).update(content, currentDate)
   }
 
@@ -644,7 +747,7 @@ trait IssuesService {
     implicit context: Context,
     s: Session
   ): Int = {
-    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
     IssueComments.filter(_.byPrimaryKey(commentId)).firstOption match {
       case Some(c) if c.action == "reopen_comment" =>
         IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Reopen", "reopen")

@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.issues.html
-import gitbucket.core.model.Account
+import gitbucket.core.model.{Account, CustomFieldBehavior}
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
@@ -21,6 +21,7 @@ class IssuesController
     with ActivityService
     with HandleCommentService
     with IssueCreationService
+    with CustomFieldsService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -41,6 +42,7 @@ trait IssuesControllerBase extends ControllerBase {
     with ActivityService
     with HandleCommentService
     with IssueCreationService
+    with CustomFieldsService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -51,7 +53,7 @@ trait IssuesControllerBase extends ControllerBase {
   case class IssueCreateForm(
     title: String,
     content: Option[String],
-    assignedUserName: Option[String],
+    assigneeUserNames: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Option[String]
@@ -62,7 +64,7 @@ trait IssuesControllerBase extends ControllerBase {
   val issueCreateForm = mapping(
     "title" -> trim(label("Title", text(required))),
     "content" -> trim(optional(text())),
-    "assignedUserName" -> trim(optional(text())),
+    "assigneeUserNames" -> trim(optional(text())),
     "milestoneId" -> trim(optional(number())),
     "priorityId" -> trim(optional(number())),
     "labelNames" -> trim(optional(text()))
@@ -105,10 +107,12 @@ trait IssuesControllerBase extends ControllerBase {
             issue,
             getComments(repository.owner, repository.name, issueId.toInt),
             getIssueLabels(repository.owner, repository.name, issueId.toInt),
+            getIssueAssignees(repository.owner, repository.name, issueId.toInt),
             getAssignableUserNames(repository.owner, repository.name),
             getMilestonesWithIssueCount(repository.owner, repository.name),
             getPriorities(repository.owner, repository.name),
             getLabels(repository.owner, repository.name),
+            getCustomFieldsWithValue(repository.owner, repository.name, issueId.toInt).filter(_._1.enableForIssues),
             isIssueEditable(repository),
             isIssueManageable(repository),
             isIssueCommentManageable(repository),
@@ -126,6 +130,7 @@ trait IssuesControllerBase extends ControllerBase {
         getPriorities(repository.owner, repository.name),
         getDefaultPriority(repository.owner, repository.name),
         getLabels(repository.owner, repository.name),
+        getCustomFields(repository.owner, repository.name).filter(_.enableForIssues),
         isIssueManageable(repository),
         getContentTemplate(repository, "ISSUE_TEMPLATE"),
         repository
@@ -141,12 +146,31 @@ trait IssuesControllerBase extends ControllerBase {
             repository,
             form.title,
             form.content,
-            form.assignedUserName,
+            form.assigneeUserNames.toSeq.flatMap(_.split(",")),
             form.milestoneId,
             form.priorityId,
             form.labelNames.toSeq.flatMap(_.split(",")),
             loginAccount
           )
+
+          // Insert custom field values
+          params.toMap.foreach {
+            case (key, value) =>
+              if (key.startsWith("custom-field-")) {
+                getCustomField(
+                  repository.owner,
+                  repository.name,
+                  key.replaceFirst("^custom-field-", "").toInt
+                ).foreach { field =>
+                  CustomFieldBehavior.validate(field, value, messages) match {
+                    case None =>
+                      insertOrUpdateCustomFieldValue(field, repository.owner, repository.name, issue.issueId, value)
+                    case Some(_) => halt(400)
+                  }
+                }
+              }
+          }
+
           redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
         } else Unauthorized()
     }
@@ -235,7 +259,7 @@ trait IssuesControllerBase extends ControllerBase {
       loginAccount =>
         getComment(repository.owner, repository.name, params("id")).map { comment =>
           if (isEditableContent(repository.owner, repository.name, comment.commentedUserName, loginAccount)) {
-            updateComment(comment.issueId, comment.commentId, form.content)
+            updateComment(repository.owner, repository.name, comment.issueId, comment.commentId, form.content)
             redirect(s"/${repository.owner}/${repository.name}/issue_comments/_data/${comment.commentId}")
           } else Unauthorized()
         } getOrElse NotFound()
@@ -333,15 +357,16 @@ trait IssuesControllerBase extends ControllerBase {
     html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>
-    updateAssignedUserName(
-      repository.owner,
-      repository.name,
-      params("id").toInt,
-      assignedUserName("assignedUserName"),
-      true
-    )
-    Ok("updated")
+  ajaxPost("/:owner/:repository/issues/:id/assignee/new")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    registerIssueAssignee(repository.owner, repository.name, issueId, params("assigneeUserName"), true)
+    Ok()
+  })
+
+  ajaxPost("/:owner/:repository/issues/:id/assignee/delete")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    deleteIssueAssignee(repository.owner, repository.name, issueId, params("assigneeUserName"), true)
+    Ok()
   })
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(writableUsersOnly { repository =>
@@ -360,6 +385,35 @@ trait IssuesControllerBase extends ControllerBase {
     val priority = priorityId("priorityId")
     updatePriorityId(repository.owner, repository.name, params("id").toInt, priority, true)
     Ok("updated")
+  })
+
+  ajaxPost("/:owner/:repository/issues/customfield_validation/:fieldId")(writableUsersOnly { repository =>
+    val fieldId = params("fieldId").toInt
+    val value = params("value")
+    getCustomField(repository.owner, repository.name, fieldId)
+      .flatMap { field =>
+        CustomFieldBehavior.validate(field, value, messages).map { error =>
+          Ok(error)
+        }
+      }
+      .getOrElse(Ok())
+  })
+
+  ajaxPost("/:owner/:repository/issues/:id/customfield/:fieldId")(writableUsersOnly { repository =>
+    val issueId = params("id").toInt
+    val fieldId = params("fieldId").toInt
+    val value = params("value")
+
+    for {
+      _ <- getIssue(repository.owner, repository.name, issueId.toString)
+      field <- getCustomField(repository.owner, repository.name, fieldId)
+    } {
+      CustomFieldBehavior.validate(field, value, messages) match {
+        case None    => insertOrUpdateCustomFieldValue(field, repository.owner, repository.name, issueId, value)
+        case Some(_) => halt(400)
+      }
+    }
+    Ok(value)
   })
 
   post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>
@@ -403,7 +457,13 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
     val value = assignedUserName("value")
     executeBatch(repository) {
-      updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      //updateAssignedUserName(repository.owner, repository.name, _, value, true)
+      value match {
+        case Some(assignedUserName) =>
+          registerIssueAssignee(repository.owner, repository.name, _, assignedUserName, true)
+        case None =>
+          deleteAllIssueAssignees(repository.owner, repository.name, _, true)
+      }
     }
     if (params("uri").nonEmpty) {
       redirect(params("uri"))

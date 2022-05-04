@@ -27,7 +27,6 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
       with MilestoneTemplate
       with PriorityTemplate {
     val openedUserName = column[String]("OPENED_USER_NAME")
-    val assignedUserName = column[String]("ASSIGNED_USER_NAME")
     val title = column[String]("TITLE")
     val content = column[String]("CONTENT")
     val closed = column[Boolean]("CLOSED")
@@ -42,7 +41,6 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
         openedUserName,
         milestoneId.?,
         priorityId.?,
-        assignedUserName.?,
         title,
         content.?,
         closed,
@@ -62,7 +60,6 @@ case class Issue(
   openedUserName: String,
   milestoneId: Option[Int],
   priorityId: Option[Int],
-  assignedUserName: Option[String],
   title: String,
   content: Option[String],
   closed: Boolean,
