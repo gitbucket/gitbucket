@@ -31,6 +31,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       val container = new MySQLContainer() {
         override val container = new org.testcontainers.containers.MySQLContainer(s"mysql:$tag") {
           override def getDriverClassName = "org.mariadb.jdbc.Driver"
+          override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
         }
         // TODO https://jira.mariadb.org/browse/CONJ-663
         container.withCommand("mysqld --default-authentication-plugin=mysql_native_password")
@@ -38,7 +39,11 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       container.start()
       try {
         new Solidbase().migrate(
-          DriverManager.getConnection(s"${container.jdbcUrl}?useSSL=false", container.username, container.password),
+          DriverManager.getConnection(
+            container.jdbcUrl,
+            container.username,
+            container.password
+          ),
           Thread.currentThread().getContextClassLoader(),
           new MySQLDatabase(),
           new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)

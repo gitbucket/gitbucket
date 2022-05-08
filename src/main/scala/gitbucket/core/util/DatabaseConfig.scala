@@ -38,8 +38,18 @@ object DatabaseConfig {
 
   private lazy val dbUrl = getValue("db.url", config.getString) //config.getString("db.url")
 
-  def url(directory: Option[String]): String =
-    dbUrl.replace("${DatabaseHome}", directory.getOrElse(DatabaseHome))
+  def url(directory: Option[String]): String = {
+    val sb = new StringBuilder()
+    sb.append(dbUrl)
+    if (dbUrl.startsWith("jdbc:mysql:") && dbUrl.indexOf("permitMysqlScheme") == -1) {
+      if (dbUrl.indexOf("?") == -1) {
+        sb.append("?permitMysqlScheme")
+      } else {
+        sb.append("&permitMysqlScheme")
+      }
+    }
+    sb.toString().replace("${DatabaseHome}", directory.getOrElse(DatabaseHome))
+  }
 
   lazy val url: String = url(None)
   lazy val user: String = getValue("db.user", config.getString)
