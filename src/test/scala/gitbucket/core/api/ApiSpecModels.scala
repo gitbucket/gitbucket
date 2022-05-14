@@ -680,7 +680,7 @@ object ApiSpecModels {
   val jsonCommits = s"""{
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
        |"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
-       |"html_url":"http://gitbucket.exmple.comoctocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+       |"html_url":"http://gitbucket.exmple.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
        |"comment_url":"http://gitbucket.exmple.com",
        |"commit":{
          |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",

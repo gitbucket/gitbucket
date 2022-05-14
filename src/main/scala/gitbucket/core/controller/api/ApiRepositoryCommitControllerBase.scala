@@ -9,9 +9,23 @@ import gitbucket.core.util.JGitUtil.{CommitInfo, getBranches, getBranchesOfCommi
 import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, RepositoryName}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
-
+import org.eclipse.jgit.revwalk.filter.{
+  AndRevFilter,
+  AuthorRevFilter,
+  CommitTimeRevFilter,
+  MaxCountRevFilter,
+  RevFilter,
+  SkipRevFilter
+}
+import org.eclipse.jgit.treewalk.filter.{AndTreeFilter, PathFilterGroup, TreeFilter}
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 import scala.util.Using
+import math.min
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter._
+import java.util.Date
+import java.time.ZoneOffset
 
 trait ApiRepositoryCommitControllerBase extends ControllerBase {
   self: AccountService with CommitsService with ProtectedBranchService with ReferrerAuthenticator =>
@@ -22,8 +36,13 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/commits")(referrersOnly { repository =>
     val owner = repository.owner
     val name = repository.name
-    // TODO: The following parameters need to be implemented. [:path, :author, :since, :until]
-    val sha = params.getOrElse("sha", "refs/heads/master")
+    val sha = params.get("sha").filter(_.nonEmpty).getOrElse("HEAD")
+    val page = params.get("page").filter(_.nonEmpty).getOrElse("1").toInt
+    val per_page = min(params.get("per_page").filter(_.nonEmpty).getOrElse("30").toInt, 100)
+    val author = params.get("author").filter(_.nonEmpty)
+    val path = params.get("path").filter(_.nonEmpty)
+    val since = params.get("since").filter(_.nonEmpty)
+    val until = params.get("until").filter(_.nonEmpty)
     Using.resource(Git.open(getRepositoryDir(owner, name))) {
       git =>
         val repo = git.getRepository
@@ -31,7 +50,37 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
           revWalk =>
             val objectId = repo.resolve(sha)
             revWalk.markStart(revWalk.parseCommit(objectId))
-            JsonFormat(revWalk.asScala.take(30).map {
+            if (path.nonEmpty) {
+              revWalk.setTreeFilter(
+                AndTreeFilter.create(PathFilterGroup.createFromStrings(path.get), TreeFilter.ANY_DIFF)
+              )
+            }
+            val revfilters = new ListBuffer[(RevFilter)]()
+            if (author.nonEmpty) {
+              revfilters += AuthorRevFilter.create(author.get)
+            }
+            if (since.nonEmpty) {
+              revfilters += CommitTimeRevFilter.after(
+                Date.from(LocalDateTime.parse(since.get, ISO_DATE_TIME).toInstant(ZoneOffset.UTC))
+              )
+            }
+            if (until.nonEmpty) {
+              revfilters += CommitTimeRevFilter.before(
+                Date.from(LocalDateTime.parse(until.get, ISO_DATE_TIME).toInstant(ZoneOffset.UTC))
+              )
+            }
+            if (page > 1) {
+              revfilters += SkipRevFilter.create(page * per_page - 2)
+            }
+            revfilters += MaxCountRevFilter.create(per_page);
+            revWalk.setRevFilter(
+              if (revfilters.size > 1) {
+                AndRevFilter.create(revfilters.toArray)
+              } else {
+                revfilters(0)
+              }
+            )
+            JsonFormat(revWalk.asScala.map {
               commit =>
                 val commitInfo = new CommitInfo(commit)
                 ApiCommits(
