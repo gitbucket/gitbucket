@@ -1526,7 +1526,6 @@ div.markdown-body code {
 }
 
 div.markdown-body table {
-  /*width: 100%;*/
   table-layout:fixed;
   width:100%;
   margin-bottom: 20px;
