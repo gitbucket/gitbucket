@@ -1526,9 +1526,9 @@ div.markdown-body code {
 }
 
 div.markdown-body table {
-  table-layout:fixed;
-  width:100%;
-  margin-bottom: 20px;
+  max-width: 100%;
+  overflow: auto;
+  display: block;
 }
 
 div.markdown-body table th,
