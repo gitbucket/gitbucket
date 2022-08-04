@@ -46,7 +46,7 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "3.0.6",
+  "org.mariadb.jdbc"                % "mariadb-java-client"          % "3.0.7",
   "org.postgresql"                  % "postgresql"                   % "42.4.1",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.11",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
