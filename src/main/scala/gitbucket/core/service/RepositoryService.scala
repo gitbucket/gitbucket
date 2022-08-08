@@ -342,10 +342,7 @@ trait RepositoryService {
             repository.originUserName.getOrElse(repository.userName),
             repository.originRepositoryName.getOrElse(repository.repositoryName)
           ),
-          getOpenMilestones(
-            repository.originUserName.getOrElse(repository.userName),
-            repository.originRepositoryName.getOrElse(repository.repositoryName)
-          ),
+          getOpenMilestones(repository.userName, repository.repositoryName),
           getRepositoryManagers(repository.userName, repository.repositoryName)
         )
     }
