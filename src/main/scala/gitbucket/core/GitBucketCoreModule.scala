@@ -9,7 +9,7 @@ import gitbucket.core.model.Activity
 import gitbucket.core.util.Directory.ActivityLog
 import gitbucket.core.util.JDBCUtil
 import io.github.gitbucket.solidbase.Solidbase
-import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration, SqlMigration}
+import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration}
 import io.github.gitbucket.solidbase.model.{Module, Version}
 import org.json4s.{Formats, NoTypeHints}
 import org.json4s.jackson.Serialization
