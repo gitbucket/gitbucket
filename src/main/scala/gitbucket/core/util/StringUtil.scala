@@ -98,8 +98,8 @@ object StringUtil {
     detector.handleData(content, 0, content.length)
     detector.dataEnd()
     detector.getDetectedCharset match {
-      case null => "UTF-8"
-      case e    => e
+      case null | "US-ASCII" => "UTF-8"
+      case e                 => e
     }
   }
 
