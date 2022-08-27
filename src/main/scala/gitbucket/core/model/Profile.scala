@@ -47,6 +47,7 @@ trait CoreProfile
     with Profile
     with AccessTokenComponent
     with AccountComponent
+    with ActivityComponent
     with CollaboratorComponent
     with CommitCommentComponent
     with CommitStatusComponent
