@@ -7,7 +7,7 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.{LDAPUtil, StringUtil}
 import StringUtil._
-import com.nimbusds.jose.{Algorithm, JWSAlgorithm, JWSHeader}
+import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
 import com.nimbusds.jose.crypto.{MACSigner, MACVerifier}
 import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import gitbucket.core.plugin.PluginRegistry
