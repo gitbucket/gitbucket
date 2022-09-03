@@ -1,6 +1,17 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.38.0 - 3 Sep 2022
+- Support multiple assignees for Issues and Pull requests
+- Custom fields for issues and pull requests
+- Reset password by users
+- Allow to configure Jetty idle timeout in standalone mode
+- Horizontal scroll for too wide tables in Markdown
+- Hide header content on signin and register page
+- Fix the default charset of the online editor in the repository viewer
+- Fix the milestone count
+- Some improvements and bugfixes for WebAPI and WebHook
+
 ## 4.37.2 - 16 Jan 2022
 - Fixed a security issue reported by [Positive Technologies](https://www.ptsecurity.com/ww-en/). Great thanks for their detailed report and close support!
 

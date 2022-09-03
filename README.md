@@ -59,22 +59,17 @@ Support
 - If you can't find same question and report, send it to our [Gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.37.x
+What's New in 4.38.x
 -------------
-### 4.37.2 - 16 Jan 2022
-- Fixed a security issue reported by [Positive Technologies](https://www.ptsecurity.com/ww-en/). Great thanks for their detailed report and close support!
-
-### 4.37.1 - 14 Dec 2021
-- Update gist-plugin and notification-plugin
-- Fix SSHCommand extension point for apache-sshd 2.x
-
-### 4.37.0 - 11 Dec 2021
-- Enhance Git Reference APIs
-- Add milestone data to issue list API
-- Support "all" in issue list API
-- Support EDDSA in signed commit verification
-- Support custom SSH url
-- Relax max passward length limitation
-- Relax max webhook url length limitation
+## 4.38.0 - 3 Sep 2022
+- Support multiple assignees for Issues and Pull requests
+- Custom fields for issues and pull requests
+- Reset password by users
+- Allow to configure Jetty idle timeout in standalone mode
+- Horizontal scroll for too wide tables in Markdown
+- Hide header content on signin and register page
+- Fix the default charset of the online editor in the repository viewer
+- Fix the milestone count
+- Some improvements and bugfixes for WebAPI and WebHook
 
 See the [change log](CHANGELOG.md) for all of the updates.
