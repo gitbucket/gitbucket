@@ -52,15 +52,11 @@ import org.json4s.jackson.Serialization._
  */
 class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
-  private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
   private implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
 
   override def init(config: ServletConfig): Unit = {
     setReceivePackFactory(new GitBucketReceivePackFactory())
-
-    val root: File = new File(Directory.RepositoryHome)
     setRepositoryResolver(new GitBucketRepositoryResolver)
-
     super.init(config)
   }
 
