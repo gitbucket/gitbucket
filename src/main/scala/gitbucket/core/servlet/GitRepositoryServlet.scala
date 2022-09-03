@@ -416,7 +416,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                     pusherAccount,
                     repositoryInfo,
                     ownerAccount,
-                    ref = branchName,
+                    ref = command.getRefName,
                     refType = refType
                   )
                 }
