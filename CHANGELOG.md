@@ -1,7 +1,7 @@
 # Changelog
 All changes to the project will be documented in this file.
 
-## 4.38.0 - xx Sep 2022
+## 4.38.0 - 3 Sep 2022
 - Support multiple assignees for Issues and Pull requests
 - Custom fields for issues and pull requests
 - Reset password by users

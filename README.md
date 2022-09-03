@@ -61,7 +61,7 @@ Support
 
 What's New in 4.38.x
 -------------
-## 4.38.0 - xx Sep 2022
+## 4.38.0 - 3 Sep 2022
 - Support multiple assignees for Issues and Pull requests
 - Custom fields for issues and pull requests
 - Reset password by users
