@@ -1527,6 +1527,7 @@ div.markdown-body code {
 
 div.markdown-body table {
   max-width: 100%;
+  width: max-content;
   overflow: auto;
   display: block;
 }
