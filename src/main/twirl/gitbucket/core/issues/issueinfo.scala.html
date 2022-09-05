@@ -141,7 +141,7 @@
 </div>
 <span id="label-assigned">
   @issueAssignees.map { asignee =>
-    @helpers.avatarLink(asignee.assigneeUserName, 20) @helpers.user(asignee.assigneeUserName, styleClass="username strong small")
+    <div>@helpers.avatarLink(asignee.assigneeUserName, 20) @helpers.user(asignee.assigneeUserName, styleClass="username strong small")</div>
   }
   @if(issueAssignees.isEmpty) {
     <span class="muted small">No one assigned</span>
