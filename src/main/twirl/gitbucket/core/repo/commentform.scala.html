@@ -55,10 +55,10 @@
       });
 
       @if(newLineNumber.isDefined){
-        var diff = getDiffData($('table[filename="@fileName"] table.diff tr:has(th.line-num.newline[line-number=@newLineNumber])'));
+        var diff = getDiffData($('table[filename="@fileName"] table.diff tr:has(th.line-num.newline[line-number="@newLineNumber"])'));
         param['diff'] = JSON.stringify(diff);
       } else if(oldLineNumber.isDefined){
-        var diff = getDiffData($('table[filename="@fileName"] table.diff tr:has(th.line-num.oldline[line-number=@oldLineNumber])'));
+        var diff = getDiffData($('table[filename="@fileName"] table.diff tr:has(th.line-num.oldline[line-number="@oldLineNumber"])'));
         param['diff'] = JSON.stringify(diff);
       }
 
