@@ -61,6 +61,11 @@ Support
 
 What's New in 4.38.x
 -------------
+## 4.38.1 - 10 Sep 2022
+- Fix comment diff in Chrome 105
+- Fix Markdown table CSS
+- Fix HTML rendering of multiple asignees
+
 ## 4.38.0 - 3 Sep 2022
 - Support multiple assignees for Issues and Pull requests
 - Custom fields for issues and pull requests
