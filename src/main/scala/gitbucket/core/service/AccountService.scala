@@ -65,28 +65,28 @@ trait AccountService {
       case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
         getAccountByUserName(ldapUserInfo.userName, true) match {
-          case Some(x) if (!x.isRemoved) => {
-            if (settings.ldap.get.mailAttribute.getOrElse("").isEmpty) {
-              updateAccount(x.copy(fullName = ldapUserInfo.fullName))
+          case Some(x) =>
+            if (x.isRemoved) {
+              logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
+              defaultAuthentication(userName, password)
             } else {
-              updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+              if (settings.ldap.get.mailAttribute.getOrElse("").isEmpty) {
+                updateAccount(x.copy(fullName = ldapUserInfo.fullName))
+              } else {
+                updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+              }
+              getAccountByUserName(ldapUserInfo.userName)
             }
-            getAccountByUserName(ldapUserInfo.userName)
-          }
-          case Some(x) if (x.isRemoved) => {
-            logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
-            defaultAuthentication(userName, password)
-          }
           case None =>
             getAccountByMailAddress(ldapUserInfo.mailAddress, true) match {
-              case Some(x) if (!x.isRemoved) => {
-                updateAccount(x.copy(fullName = ldapUserInfo.fullName))
-                getAccountByUserName(ldapUserInfo.userName)
-              }
-              case Some(x) if (x.isRemoved) => {
-                logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
-                defaultAuthentication(userName, password)
-              }
+              case Some(x) =>
+                if (x.isRemoved) {
+                  logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
+                  defaultAuthentication(userName, password)
+                } else {
+                  updateAccount(x.copy(fullName = ldapUserInfo.fullName))
+                  getAccountByUserName(ldapUserInfo.userName)
+                }
               case None => {
                 createAccount(
                   ldapUserInfo.userName,
