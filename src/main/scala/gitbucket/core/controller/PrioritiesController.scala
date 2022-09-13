@@ -45,7 +45,7 @@ trait PrioritiesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/priorities")(referrersOnly { repository =>
     html.list(
       getPriorities(repository.owner, repository.name),
-      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
       repository,
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
     )
@@ -60,7 +60,7 @@ trait PrioritiesControllerBase extends ControllerBase {
       createPriority(repository.owner, repository.name, form.priorityName, form.description, form.color.substring(1))
     html.priority(
       getPriority(repository.owner, repository.name, priorityId).get,
-      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
       repository,
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
     )
@@ -84,7 +84,7 @@ trait PrioritiesControllerBase extends ControllerBase {
       )
       html.priority(
         getPriority(repository.owner, repository.name, params("priorityId").toInt).get,
-        countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
+        countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
         repository,
         hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
       )

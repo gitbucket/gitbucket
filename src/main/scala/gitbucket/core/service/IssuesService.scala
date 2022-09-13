@@ -147,7 +147,7 @@ trait IssuesService {
           t3.labelName
       }
       .map {
-        case labelName ~ t =>
+        case (labelName, t) =>
           labelName -> t.length
       }
       .list
@@ -165,8 +165,7 @@ trait IssuesService {
   def countIssueGroupByPriorities(
     owner: String,
     repository: String,
-    condition: IssueSearchCondition,
-    filterUser: Map[String, String]
+    condition: IssueSearchCondition
   )(implicit s: Session): Map[String, Int] = {
 
     searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), IssueSearchOption.Issues)
@@ -180,7 +179,7 @@ trait IssuesService {
           t2.priorityName
       }
       .map {
-        case priorityName ~ t =>
+        case (priorityName, t) =>
           priorityName -> t.length
       }
       .list
@@ -216,9 +215,11 @@ trait IssuesService {
       .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t1.byPriority(t6.userName, t6.repositoryName, t6.priorityId) }
       .joinLeft(PullRequests)
       .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t1.byIssue(t7.userName, t7.repositoryName, t7.issueId) }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => i asc }
+      .joinLeft(IssueAssignees)
+      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => t1.byIssue(t8.userName, t8.repositoryName, t8.issueId) }
+      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => i asc }
       .map {
-        case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 =>
+        case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 =>
           (
             t1,
             t2.commentCount,
@@ -227,7 +228,8 @@ trait IssuesService {
             t4.map(_.color),
             t5.map(_.title),
             t6.map(_.priorityName),
-            t7.map(_.commitIdTo)
+            t7.map(_.commitIdTo),
+            t8.map(_.assigneeUserName)
           )
       }
       .list
@@ -237,7 +239,7 @@ trait IssuesService {
 
     result.map { issues =>
       issues.head match {
-        case (issue, commentCount, _, _, _, milestone, priority, commitId) =>
+        case (issue, commentCount, _, _, _, milestone, priority, commitId, _) =>
           IssueInfo(
             issue,
             issues.flatMap { t =>
@@ -246,7 +248,8 @@ trait IssuesService {
             milestone,
             priority,
             commentCount,
-            commitId
+            commitId,
+            issues.flatMap(_._9)
           )
       }
     } toList
@@ -270,7 +273,7 @@ trait IssuesService {
       .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => (t1, t3, t5) }
       .list
       .groupBy {
-        case (issue, account, assignedUsers) =>
+        case (issue, account, _) =>
           (issue, account)
       }
       .map {
@@ -748,12 +751,12 @@ trait IssuesService {
     s: Session
   ): Int = {
     Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(_.updatedDate).update(currentDate)
-    IssueComments.filter(_.byPrimaryKey(commentId)).firstOption match {
-      case Some(c) if c.action == "reopen_comment" =>
+    IssueComments.filter(_.byPrimaryKey(commentId)).first match {
+      case c if c.action == "reopen_comment" =>
         IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Reopen", "reopen")
-      case Some(c) if c.action == "close_comment" =>
+      case c if c.action == "close_comment" =>
         IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Close", "close")
-      case Some(_) =>
+      case _ =>
         IssueComments.filter(_.byPrimaryKey(commentId)).delete
         IssueComments insert IssueComment(
           userName = owner,
@@ -1084,7 +1087,8 @@ object IssuesService {
     milestone: Option[String],
     priority: Option[String],
     commentCount: Int,
-    commitId: Option[String]
+    commitId: Option[String],
+    assignees: Seq[String]
   )
 }
 
