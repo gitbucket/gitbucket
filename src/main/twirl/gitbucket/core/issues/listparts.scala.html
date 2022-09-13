@@ -206,7 +206,7 @@
         </td>
       </tr>
     }
-    @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId), status) =>
+    @issues.map { case (IssueInfo(issue, labels, milestone, priority, commentCount, commitId, assignedUserNames), status) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
           @if(isManageable){
@@ -230,11 +230,9 @@
             <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
           }
           <span class="pull-right small">
-            @*
-            @issue.assignedUserName.map { userName =>
+            @assignedUserNames.map { userName =>
               @helpers.avatar(userName, 20, tooltip = true)
             }
-            *@
             @if(commentCount > 0){
               <a href="@context.path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">
                 <i class="octicon octicon-comment active"></i> @commentCount
