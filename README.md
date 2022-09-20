@@ -61,6 +61,9 @@ Support
 
 What's New in 4.38.x
 -------------
+## 4.38.2 - 20 Sep 2022
+- Resurrect assignee icons on the issue list
+
 ## 4.38.1 - 10 Sep 2022
 - Fix comment diff in Chrome 105
 - Fix Markdown table CSS
