@@ -4,8 +4,8 @@ import com.jsuereth.sbtpgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.38.2"
-val ScalatraVersion = "2.8.2"
-val JettyVersion = "9.4.49.v20220914"
+val ScalatraVersion = "3.0.0-M1"
+val JettyVersion = "9.4.35.v20201120"
 val JgitVersion = "5.13.1.202206130422-r"
 
 lazy val root = (project in file("."))
@@ -289,3 +289,5 @@ Jetty / javaOptions ++= Seq(
   "-Xdebug",
   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
 )
+
+ThisBuild / evictionErrorLevel := Level.Warn

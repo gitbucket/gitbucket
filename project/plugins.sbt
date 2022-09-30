@@ -9,3 +9,5 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.2.0")
 addSbtPlugin("org.scoverage"    % "sbt-scoverage"      % "2.0.0")
 
 addDependencyTreePlugin
+
+ThisBuild / evictionErrorLevel := Level.Warn
