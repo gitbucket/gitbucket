@@ -4,8 +4,8 @@ import com.jsuereth.sbtpgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.38.2"
-val ScalatraVersion = "3.0.0-M1"
-val JettyVersion = "9.4.35.v20201120"
+val ScalatraVersion = "3.0.0-M3"
+val JettyVersion = "10.0.12"
 val JgitVersion = "5.13.1.202206130422-r"
 
 lazy val root = (project in file("."))
@@ -125,7 +125,7 @@ Keys.ivyConfigurations += ExecutableConfig
 libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-security"     % JettyVersion % "executable",
   "org.eclipse.jetty" % "jetty-webapp"       % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-continuation" % JettyVersion % "executable",
+  //"org.eclipse.jetty" % "jetty-continuation" % JettyVersion % "executable",
   "org.eclipse.jetty" % "jetty-server"       % JettyVersion % "executable",
   "org.eclipse.jetty" % "jetty-xml"          % JettyVersion % "executable",
   "org.eclipse.jetty" % "jetty-http"         % JettyVersion % "executable",
