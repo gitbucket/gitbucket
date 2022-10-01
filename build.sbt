@@ -123,15 +123,14 @@ signedArtifacts := {
 val ExecutableConfig = config("executable").hide
 Keys.ivyConfigurations += ExecutableConfig
 libraryDependencies ++= Seq(
-  "org.eclipse.jetty" % "jetty-security"     % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-webapp"       % JettyVersion % "executable",
-  //"org.eclipse.jetty" % "jetty-continuation" % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-server"       % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-xml"          % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-http"         % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-servlet"      % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-io"           % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-util"         % JettyVersion % "executable"
+  "org.eclipse.jetty" % "jetty-security" % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-webapp"   % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-server"   % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-xml"      % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-http"     % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-servlet"  % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-io"       % JettyVersion % "executable",
+  "org.eclipse.jetty" % "jetty-util"     % JettyVersion % "executable"
 )
 
 // Run package task before test to generate target/webapp for integration test
