@@ -37,7 +37,7 @@ object JGitUtil {
 
   private val logger = LoggerFactory.getLogger(JGitUtil.getClass)
 
-  implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] =
+  private implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] =
     _.close()
 
   /**
@@ -690,7 +690,7 @@ object JGitUtil {
 
       val toCommit = revWalk.parseCommit(git.getRepository.resolve(to))
       (from match {
-        case None => {
+        case None =>
           toCommit.getParentCount match {
             case 0 =>
               df.scan(
@@ -700,11 +700,9 @@ object JGitUtil {
                 .asScala
             case _ => df.scan(toCommit.getParent(0), toCommit.getTree).asScala
           }
-        }
-        case Some(from) => {
+        case Some(from) =>
           val fromCommit = revWalk.parseCommit(git.getRepository.resolve(from))
           df.scan(fromCommit.getTree, toCommit.getTree).asScala
-        }
       }).toSeq
     }
   }
@@ -719,6 +717,29 @@ object JGitUtil {
     }
   }
 
+  def getDiff(git: Git, from: Option[String], to: String, path: String): Option[DiffInfo] = {
+    getDiffEntries(git, from, to).find(_.getNewPath == path).map { diff =>
+      val oldIsImage = FileUtil.isImage(diff.getOldPath)
+      val newIsImage = FileUtil.isImage(diff.getNewPath)
+      val includeContent = oldIsImage || newIsImage
+      DiffInfo(
+        changeType = diff.getChangeType,
+        oldPath = diff.getOldPath,
+        newPath = diff.getNewPath,
+        oldContent = if (includeContent) None else getTextContent(git, diff.getOldId.toObjectId),
+        newContent = if (includeContent) None else getTextContent(git, diff.getNewId.toObjectId),
+        oldIsImage = oldIsImage,
+        newIsImage = newIsImage,
+        oldObjectId = Option(diff.getOldId).map(_.name),
+        newObjectId = Option(diff.getNewId).map(_.name),
+        oldMode = diff.getOldMode.toString,
+        newMode = diff.getNewMode.toString,
+        tooLarge = false,
+        patch = None
+      )
+    }
+  }
+
   def getDiffs(
     git: Git,
     from: Option[String],
@@ -728,7 +749,7 @@ object JGitUtil {
   ): List[DiffInfo] = {
     val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
-      if (diffs.size > 100) {
+      if (diffs.size > 100) { // Don't show diff if there are more than 100 files
         DiffInfo(
           changeType = diff.getChangeType,
           oldPath = diff.getOldPath,
@@ -747,47 +768,33 @@ object JGitUtil {
       } else {
         val oldIsImage = FileUtil.isImage(diff.getOldPath)
         val newIsImage = FileUtil.isImage(diff.getNewPath)
-        if (!fetchContent || oldIsImage || newIsImage) {
-          DiffInfo(
-            changeType = diff.getChangeType,
-            oldPath = diff.getOldPath,
-            newPath = diff.getNewPath,
-            oldContent = None,
-            newContent = None,
-            oldIsImage = oldIsImage,
-            newIsImage = newIsImage,
-            oldObjectId = Option(diff.getOldId).map(_.name),
-            newObjectId = Option(diff.getNewId).map(_.name),
-            oldMode = diff.getOldMode.toString,
-            newMode = diff.getNewMode.toString,
-            tooLarge = false,
-            patch = (if (makePatch) Some(makePatchFromDiffEntry(git, diff)) else None) // TODO use DiffFormatter
-          )
-        } else {
-          DiffInfo(
-            changeType = diff.getChangeType,
-            oldPath = diff.getOldPath,
-            newPath = diff.getNewPath,
-            oldContent = JGitUtil
-              .getContentFromId(git, diff.getOldId.toObjectId, false)
-              .filter(FileUtil.isText)
-              .map(convertFromByteArray),
-            newContent = JGitUtil
-              .getContentFromId(git, diff.getNewId.toObjectId, false)
-              .filter(FileUtil.isText)
-              .map(convertFromByteArray),
-            oldIsImage = oldIsImage,
-            newIsImage = newIsImage,
-            oldObjectId = Option(diff.getOldId).map(_.name),
-            newObjectId = Option(diff.getNewId).map(_.name),
-            oldMode = diff.getOldMode.toString,
-            newMode = diff.getNewMode.toString,
-            tooLarge = false,
-            patch = (if (makePatch) Some(makePatchFromDiffEntry(git, diff)) else None) // TODO use DiffFormatter
-          )
-        }
+        val patch = if (oldIsImage || newIsImage) None else Some(makePatchFromDiffEntry(git, diff)) // TODO use DiffFormatter
+        val tooLarge = patch.exists(_.count(_ == '\n') > 1000) // Don't show diff if the file has more than 1000 lines diff
+        val includeContent = tooLarge || !fetchContent || oldIsImage || newIsImage
+        DiffInfo(
+          changeType = diff.getChangeType,
+          oldPath = diff.getOldPath,
+          newPath = diff.getNewPath,
+          oldContent = if (includeContent) None else getTextContent(git, diff.getOldId.toObjectId),
+          newContent = if (includeContent) None else getTextContent(git, diff.getNewId.toObjectId),
+          oldIsImage = oldIsImage,
+          newIsImage = newIsImage,
+          oldObjectId = Option(diff.getOldId).map(_.name),
+          newObjectId = Option(diff.getNewId).map(_.name),
+          oldMode = diff.getOldMode.toString,
+          newMode = diff.getNewMode.toString,
+          tooLarge = tooLarge,
+          patch = if (makePatch) patch else None
+        )
       }
     }.toList
+  }
+
+  private def getTextContent(git: Git, objectId: ObjectId): Option[String] = {
+    JGitUtil
+      .getContentFromId(git, objectId, false)
+      .filter(FileUtil.isText)
+      .map(convertFromByteArray)
   }
 
   private def makePatchFromDiffEntry(git: Git, diff: DiffEntry): String = {

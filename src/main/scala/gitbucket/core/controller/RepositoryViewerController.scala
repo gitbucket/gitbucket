@@ -331,15 +331,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/upload", uploadForm)(writableUsersOnly { (form, repository) =>
     def _commit(
       branchName: String,
-      //files: Seq[CommitFile],
       newFiles: Seq[CommitFile],
       loginAccount: Account
     ): Either[String, ObjectId] = {
       commitFiles(
         repository = repository,
         branch = branchName,
-        //path = form.path,
-        //files = files.toIndexedSeq,
         message = form.message.getOrElse("Add files via upload"),
         loginAccount = loginAccount,
         settings = context.settings
@@ -614,7 +611,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         } else {
           _commit(form.branch, loginAccount) match {
             case Right(_) =>
-              if (form.path.length == 0) {
+              if (form.path.isEmpty) {
                 redirect(s"/${repository.owner}/${repository.name}/tree/${encodeRefName(form.branch)}")
               } else {
                 redirect(
