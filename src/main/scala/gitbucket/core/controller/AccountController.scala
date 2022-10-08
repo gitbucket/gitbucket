@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import java.io.File
-
 import gitbucket.core.account.html
 import gitbucket.core.helper
 import gitbucket.core.model._
@@ -13,10 +12,13 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
+import org.apache.commons.io.IOUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 import org.scalatra.forms._
 import org.scalatra.Forbidden
+
+import scala.util.Using
 
 class AccountController
     extends AccountControllerBase
@@ -332,7 +334,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
       .getOrElse {
         response.setHeader("Cache-Control", "max-age=3600")
-        Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+        Using.resource(Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")) { in =>
+          IOUtils.toByteArray(in)
+        }
       }
   }
 
