@@ -17,7 +17,7 @@ name := Name
 version := GitBucketVersion
 scalaVersion := "2.13.10"
 
-scalafmtOnCompile := true
+// scalafmtOnCompile := true
 
 coverageExcludedPackages := ".*\\.html\\..*"
 
