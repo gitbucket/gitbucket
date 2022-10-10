@@ -144,25 +144,6 @@ trait PullRequestsControllerBase extends ControllerBase {
               getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
               flash.iterator.map(f => f._1 -> f._2.toString).toMap
             )
-
-//                html.pullreq(
-//                  issue,
-//                  pullreq,
-//                  comments,
-//                  getIssueLabels(owner, name, issueId),
-//                  getAssignableUserNames(owner, name),
-//                  getMilestonesWithIssueCount(owner, name),
-//                  getPriorities(owner, name),
-//                  getLabels(owner, name),
-//                  commits,
-//                  diffs,
-//                  isEditable(repository),
-//                  isManageable(repository),
-//                  hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
-//                  repository,
-//                  getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
-//                  flash.toMap.map(f => f._1 -> f._2.toString)
-//                )
         }
     } getOrElse NotFound()
   })
@@ -396,9 +377,9 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
-    val headBranch: Option[String] = params.get("head")
+    val headBranch = params.get("head")
     (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-      case (Some(originUserName), Some(originRepositoryName)) => {
+      case (Some(originUserName), Some(originRepositoryName)) =>
         getRepository(originUserName, originRepositoryName).map {
           originRepository =>
             Using.resources(
@@ -415,8 +396,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               )
             }
         } getOrElse NotFound()
-      }
-      case _ => {
+      case _ =>
         Using.resource(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))) { git =>
           JGitUtil.getDefaultBranch(git, forkedRepository).map {
             case (_, defaultBranch) =>
@@ -427,41 +407,48 @@ trait PullRequestsControllerBase extends ControllerBase {
             redirect(s"/${forkedRepository.owner}/${forkedRepository.name}")
           }
         }
-      }
     }
   })
+
+  private def getOriginRepositoryName(
+    originOwner: String,
+    forkedOwner: String,
+    forkedRepository: RepositoryInfo
+  ): Option[String] = {
+    if (originOwner == forkedOwner) {
+      // Self repository
+      Some(forkedRepository.name)
+    } else if (forkedRepository.repository.originUserName.isEmpty) {
+      // when ForkedRepository is the original repository
+      getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+        .find(_.userName == originOwner)
+        .map(_.repositoryName)
+    } else if (Some(originOwner) == forkedRepository.repository.originUserName) {
+      // Original repository
+      forkedRepository.repository.originRepositoryName
+    } else {
+      // Sibling repository
+      getUserRepositories(originOwner)
+        .find { x =>
+          x.repository.originUserName == forkedRepository.repository.originUserName &&
+          x.repository.originRepositoryName == forkedRepository.repository.originRepositoryName
+        }
+        .map(_.repository.repositoryName)
+    }
+  }
 
   get("/:owner/:repository/compare/*...*")(referrersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
     val (originOwner, originId) = parseCompareIdentifier(origin, forkedRepository.owner)
     val (forkedOwner, forkedId) = parseCompareIdentifier(forked, forkedRepository.owner)
 
-    (for (originRepositoryName <- if (originOwner == forkedOwner) {
-            // Self repository
-            Some(forkedRepository.name)
-          } else if (forkedRepository.repository.originUserName.isEmpty) {
-            // when ForkedRepository is the original repository
-            getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-              .find(_.userName == originOwner)
-              .map(_.repositoryName)
-          } else if (Some(originOwner) == forkedRepository.repository.originUserName) {
-            // Original repository
-            forkedRepository.repository.originRepositoryName
-          } else {
-            // Sibling repository
-            getUserRepositories(originOwner)
-              .find { x =>
-                x.repository.originUserName == forkedRepository.repository.originUserName &&
-                x.repository.originRepositoryName == forkedRepository.repository.originRepositoryName
-              }
-              .map(_.repository.repositoryName)
-          };
+    (for (originRepositoryName <- getOriginRepositoryName(originOwner, forkedOwner, forkedRepository);
           originRepository <- getRepository(originOwner, originRepositoryName)) yield {
       val (oldId, newId) =
         getPullRequestCommitFromTo(originRepository, forkedRepository, originId, forkedId)
 
       (oldId, newId) match {
-        case (Some(oldId), Some(newId)) => {
+        case (Some(oldId), Some(newId)) =>
           val (commits, diffs) = getRequestCompareInfo(
             originRepository.owner,
             originRepository.name,
@@ -512,7 +499,6 @@ trait PullRequestsControllerBase extends ControllerBase {
             getLabels(originRepository.owner, originRepository.name),
             getCustomFields(originRepository.owner, originRepository.name).filter(_.enableForPullRequests)
           )
-        }
         case (oldId, newId) =>
           redirect(
             s"/${forkedRepository.owner}/${forkedRepository.name}/compare/" +
@@ -521,6 +507,54 @@ trait PullRequestsControllerBase extends ControllerBase {
           )
 
       }
+    }) getOrElse NotFound()
+  })
+
+  ajaxGet("/:owner/:repository/diff/:id")(referrersOnly { repository =>
+    (for {
+      commitId <- params.get("id")
+      path <- params.get("path")
+      diff <- getSingleDiff(repository.owner, repository.name, commitId, path)
+    } yield {
+      contentType = formats("json")
+      org.json4s.jackson.Serialization.write(
+        Map(
+          "oldContent" -> diff.oldContent,
+          "newContent" -> diff.newContent
+        )
+      )
+    }) getOrElse NotFound()
+  })
+
+  ajaxGet("/:owner/:repository/diff/*...*")(referrersOnly { forkedRepository =>
+    val Seq(origin, forked) = multiParams("splat")
+    val (originOwner, originId) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, forkedId) = parseCompareIdentifier(forked, forkedRepository.owner)
+
+    (for {
+      path <- params.get("path")
+      originRepositoryName <- getOriginRepositoryName(originOwner, forkedOwner, forkedRepository)
+      originRepository <- getRepository(originOwner, originRepositoryName)
+      (oldId, newId) = getPullRequestCommitFromTo(originRepository, forkedRepository, originId, forkedId)
+      oldId <- oldId
+      newId <- newId
+      diff <- getSingleDiff(
+        originRepository.owner,
+        originRepository.name,
+        oldId.getName,
+        forkedRepository.owner,
+        forkedRepository.name,
+        newId.getName,
+        path
+      )
+    } yield {
+      contentType = formats("json")
+      org.json4s.jackson.Serialization.write(
+        Map(
+          "oldContent" -> diff.oldContent,
+          "newContent" -> diff.newContent
+        )
+      )
     }) getOrElse NotFound()
   })
 

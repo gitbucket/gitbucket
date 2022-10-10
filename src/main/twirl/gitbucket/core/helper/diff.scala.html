@@ -100,38 +100,48 @@
     </tr>
     <tr class="diff-collapse-@i collapse in">
       <td style="padding: 0;">
-        @if(diff.oldObjectId == diff.newObjectId){
-          @if(diff.oldPath != diff.newPath){
-            <div class="diff-same">File renamed without changes</div>
-          } else {
-            <div class="diff-same">File mode changed</div>
-          }
+        @if(diff.tooLarge) {
+          <div style="padding: 12px;" id="show-diff-@i">
+            @if(oldCommitId.isEmpty && newCommitId.isDefined) {
+              Too large (<a href="javascript:showDiff(@i, '', '@newCommitId', '@diff.newPath')">Show diff</a>)
+            }
+            @if(oldCommitId.isDefined && newCommitId.isDefined) {
+              Too large (<a href="javascript:showDiff(@i, '@oldCommitId', '@newCommitId', '@diff.newPath')">Show diff</a>)
+            }
+          </div>
+          <div id="diffText-@i" class="diffText"></div>
+          <input type="hidden" id="newText-@i" data-file-name="@diff.newPath" data-val="">
+          <input type="hidden" id="oldText-@i" data-file-name="@diff.oldPath" data-val="">
         } else {
-          @if(diff.newContent != None || diff.oldContent != None){
-            <div id="diffText-@i" class="diffText"></div>
-            <input type="hidden" id="newText-@i" data-file-name="@diff.newPath" data-val="@diff.newContent">
-            <input type="hidden" id="oldText-@i" data-file-name="@diff.oldPath" data-val="@diff.oldContent">
-          } else {
-            @if(diff.newIsImage || diff.oldIsImage){
-              <div class="diff-image-render diff2up">
-              @if(oldCommitId.isDefined && diff.oldIsImage){
-                <div class="diff-image-frame diff-old"><img src="@helpers.url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
-              } else {
-                @if(diff.changeType != ChangeType.ADD){
-                  <div style="padding: 12px;">Not supported</div>
-                }
-              }
-              @if(newCommitId.isDefined && diff.newIsImage){
-                <div class="diff-image-frame diff-new"><img src="@helpers.url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
-              } else {
-                @if(diff.changeType != ChangeType.DELETE){
-                  <div style="padding: 12px;">Not supported</div>
-                }
-              }
-              </div>
+          @if(diff.oldObjectId == diff.newObjectId) {
+            @if(diff.oldPath != diff.newPath) {
+              <div class="diff-same">File renamed without changes</div>
             } else {
-              @if(diff.tooLarge){
-                <div style="padding: 12px;">Too large</div>
+              <div class="diff-same">File mode changed</div>
+            }
+          } else {
+            @if(diff.newContent != None || diff.oldContent != None){
+              <div id="diffText-@i" class="diffText"></div>
+              <input type="hidden" id="newText-@i" data-file-name="@diff.newPath" data-val="@diff.newContent">
+              <input type="hidden" id="oldText-@i" data-file-name="@diff.oldPath" data-val="@diff.oldContent">
+            } else {
+              @if(diff.newIsImage || diff.oldIsImage){
+                <div class="diff-image-render diff2up">
+                  @if(oldCommitId.isDefined && diff.oldIsImage){
+                    <div class="diff-image-frame diff-old"><img src="@helpers.url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+                  } else {
+                    @if(diff.changeType != ChangeType.ADD){
+                      <div style="padding: 12px;">Not supported</div>
+                    }
+                  }
+                  @if(newCommitId.isDefined && diff.newIsImage){
+                    <div class="diff-image-frame diff-new"><img src="@helpers.url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+                  } else {
+                    @if(diff.changeType != ChangeType.DELETE){
+                      <div style="padding: 12px;">Not supported</div>
+                    }
+                  }
+                </div>
               } else {
                 <div style="padding: 12px;">Not supported</div>
               }
@@ -200,51 +210,8 @@ $(function(){
     renderOneDiff($(this).closest("table").find(".diffText"), window.viewType, $(this).closest("table").find(".file-hash")[0].id);
   });
 
-  function getInlineContainer(where) {
-    if (window.viewType == 0) {
-      if (where === 'new') {
-        return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
-      } else {
-        return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
-      }
-    }
-    return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
-  }
-
   if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
     $('#comment-list').children('.inline-comment').hide();
-  }
-
-  function showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr){
-    // assemble Ajax url
-    let url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
-    if (!isNaN(oldLineNumber) && oldLineNumber) {
-      url += ('&oldLineNumber=' + oldLineNumber)
-    }
-    if (!isNaN(newLineNumber) && newLineNumber) {
-      url += ('&newLineNumber=' + newLineNumber)
-    }
-    // send Ajax request
-    $.get(url, { dataType : 'html' }, function(responseContent) {
-      // create container
-      let tmp;
-      if (!isNaN(oldLineNumber) && oldLineNumber) {
-        if (!isNaN(newLineNumber) && newLineNumber) {
-          tmp = getInlineContainer();
-        } else {
-          tmp = getInlineContainer('old');
-        }
-      } else {
-        tmp = getInlineContainer('new');
-      }
-      // add comment textarea
-      tmp.addClass('inline-comment-form').children('.comment-box-container').html(responseContent);
-      $tr.nextAll(':not(.not-diff):first').before(tmp);
-      // hide reply comment field
-      $(tmp).closest('.not-diff').prev().find('.reply-comment').closest('.not-diff').hide();
-      // focus textarea
-      tmp.find('textarea').focus();
-    });
   }
 
   // Add comment button
@@ -302,11 +269,156 @@ $(function(){
     getSelection().empty();
     updateHighlighting();
   });
+});
 
-  function renderOneCommitCommentIntoDiff($v, diff){
-    //var filename = $v.attr('filename');
-    const oldline = $v.attr('oldline');
-    const newline = $v.attr('newline');
+function getInlineContainer(where) {
+  if (window.viewType == 0) {
+    if (where === 'new') {
+      return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
+    } else {
+      return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
+    }
+  }
+  return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
+}
+
+function showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr){
+  // assemble Ajax url
+  let url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+  if (!isNaN(oldLineNumber) && oldLineNumber) {
+    url += ('&oldLineNumber=' + oldLineNumber)
+  }
+  if (!isNaN(newLineNumber) && newLineNumber) {
+    url += ('&newLineNumber=' + newLineNumber)
+  }
+  // send Ajax request
+  $.get(url, { dataType : 'html' }, function(responseContent) {
+    // create container
+    let tmp;
+    if (!isNaN(oldLineNumber) && oldLineNumber) {
+      if (!isNaN(newLineNumber) && newLineNumber) {
+        tmp = getInlineContainer();
+      } else {
+        tmp = getInlineContainer('old');
+      }
+    } else {
+      tmp = getInlineContainer('new');
+    }
+    // add comment textarea
+    tmp.addClass('inline-comment-form').children('.comment-box-container').html(responseContent);
+    $tr.nextAll(':not(.not-diff):first').before(tmp);
+    // hide reply comment field
+    $(tmp).closest('.not-diff').prev().find('.reply-comment').closest('.not-diff').hide();
+    // focus textarea
+    tmp.find('textarea').focus();
+  });
+}
+
+function renderOneCommitCommentIntoDiff($v, diff){
+  //var filename = $v.attr('filename');
+  const oldline = $v.attr('oldline');
+  const newline = $v.attr('newline');
+  let tmp;
+  if (typeof oldline !== 'undefined') {
+    if (typeof newline !== 'undefined') {
+      tmp = getInlineContainer();
+    } else {
+      tmp = getInlineContainer('old');
+    }
+    tmp.children('td:first').html($v.clone().show());
+    diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
+  } else {
+    tmp = getInlineContainer('new');
+    tmp.children('td:last').html($v.clone().show());
+    diff.find('table.diff').find('.newline[line-number=' + newline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
+  }
+  if (!diff.find('.toggle-notes').prop('checked')) {
+    tmp.hide();
+  }
+}
+
+function renderStatBar(add, del){
+  if(add + del > 5){
+    if(add){
+      if(add < del){
+        add = Math.floor(1 + (add * 4 / (add + del)));
+      } else {
+        add = Math.ceil(1 + (add * 4 / (add + del)));
+      }
+    }
+    del = 5 - add;
+  }
+  const ret = $('<div class="diffstat-bar">');
+  for(let i = 0; i < 5; i++){
+    if(add){
+      ret.append('<span class="text-diff-added">■</span>');
+      add--;
+    } else if(del){
+      ret.append('<span class="text-diff-deleted">■</span>');
+      del--;
+    } else {
+      ret.append('■');
+    }
+  }
+  return ret;
+}
+
+function renderOneDiff(diffText, viewType, fileHash){
+  const table = diffText.closest("table[data-diff-id]");
+  const i = table.data("diff-id");
+  const ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
+  diffUsingJS('oldText-' + i, 'newText-' + i, diffText.attr('id'), viewType, ignoreWhiteSpace, fileHash);
+  const add = diffText.find("table").attr("add") * 1;
+  const del = diffText.find("table").attr("del") * 1;
+  table.find(".diffstat").text(add + del + " ").append(renderStatBar(add, del)).attr("title", add + " additions & " + del + " deletions").tooltip();
+  $('span.diffstat[data-diff-id="' + i + '"]')
+    .html('<span class="text-diff-added">+' + add + '</span><span class="text-diff-deleted">-' + del + '</span>')
+    .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
+
+  @if(hasWritePermission) {
+    diffText.find('.body').filter(function(i, e) {
+      return $(e).has('span').length > 0;
+    }).each(function(){
+      $('<b class="add-comment">+</b>').prependTo(this);
+    });
+  }
+  @if(showLineNotes){
+    const fileName = table.attr('filename');
+    $('.inline-comment').each(function(i, v) {
+      if($(this).attr('filename') == fileName){
+        renderOneCommitCommentIntoDiff($(this), table);
+      }
+    });
+  }
+  return table;
+}
+
+function renderReplyComment($table){
+  const elements = {};
+  let filename, newline, oldline;
+  $table.find('.comment-box-container .inline-comment').each(function(i, e){
+    filename = $(e).attr('filename');
+    newline = $(e).attr('newline');
+    oldline = $(e).attr('oldline');
+    const key = filename + '-' + newline + '-' + oldline;
+    elements[key] = {
+      element: $(e),
+      filename: filename,
+      newline: newline,
+      oldline: oldline
+    };
+  });
+  for(const key in elements){
+    filename = elements[key]['filename'];
+    oldline = elements[key]['oldline']; //? elements[key]['oldline'] : '';
+    newline = elements[key]['newline']; //? elements[key]['newline'] : '';
+
+    const $v = $('<div class="commit-comment-box reply-comment-box">')
+      .append($('<input type="text" class="form-control reply-comment" placeholder="Reply..." '
+        + 'data-filename="' + filename + '" '
+        + 'data-newline="' + newline + '" '
+        + 'data-oldline="' + oldline + '">'));
+
     let tmp;
     if (typeof oldline !== 'undefined') {
       if (typeof newline !== 'undefined') {
@@ -314,134 +426,51 @@ $(function(){
       } else {
         tmp = getInlineContainer('old');
       }
-      tmp.children('td:first').html($v.clone().show());
-      diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
+      tmp.children('td:first').html($v);
     } else {
       tmp = getInlineContainer('new');
-      tmp.children('td:last').html($v.clone().show());
-      diff.find('table.diff').find('.newline[line-number=' + newline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
+      tmp.children('td:last').html($v);
     }
-    if (!diff.find('.toggle-notes').prop('checked')) {
-      tmp.hide();
-    }
+    elements[key]['element'].closest('.not-diff').after(tmp);
   }
+}
 
-  function renderStatBar(add, del){
-    if(add + del > 5){
-      if(add){
-        if(add < del){
-          add = Math.floor(1 + (add * 4 / (add + del)));
-        } else {
-          add = Math.ceil(1 + (add * 4 / (add + del)));
-        }
+function renderDiffs() {
+  const diffs = $('.diffText');
+  let i = 0;
+  function render(){
+    if (diffs[i]) {
+      const $table = renderOneDiff($(diffs[i]), window.viewType, $('.file-hash')[i].id);
+      @if(hasWritePermission) {
+        renderReplyComment($table);
       }
-      del = 5 - add;
-    }
-    const ret = $('<div class="diffstat-bar">');
-    for(let i = 0; i < 5; i++){
-      if(add){
-        ret.append('<span class="text-diff-added">■</span>');
-        add--;
-      } else if(del){
-        ret.append('<span class="text-diff-deleted">■</span>');
-        del--;
-      } else {
-        ret.append('■');
-      }
-    }
-    return ret;
-  }
-
-  function renderOneDiff(diffText, viewType, fileHash){
-    const table = diffText.closest("table[data-diff-id]");
-    const i = table.data("diff-id");
-    const ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
-    diffUsingJS('oldText-' + i, 'newText-' + i, diffText.attr('id'), viewType, ignoreWhiteSpace, fileHash);
-    const add = diffText.find("table").attr("add") * 1;
-    const del = diffText.find("table").attr("del") * 1;
-    table.find(".diffstat").text(add + del + " ").append(renderStatBar(add, del)).attr("title", add + " additions & " + del + " deletions").tooltip();
-    $('span.diffstat[data-diff-id="' + i + '"]')
-        .html('<span class="text-diff-added">+' + add + '</span><span class="text-diff-deleted">-' + del + '</span>')
-        .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
-
-    @if(hasWritePermission) {
-      diffText.find('.body').filter(function(i, e) {
-        return $(e).has('span').length > 0;
-      }).each(function(){
-        $('<b class="add-comment">+</b>').prependTo(this);
-      });
-    }
-    @if(showLineNotes){
-      const fileName = table.attr('filename');
-      $('.inline-comment').each(function(i, v) {
-        if($(this).attr('filename') == fileName){
-          renderOneCommitCommentIntoDiff($(this), table);
-        }
-      });
-    }
-    return table;
-  }
-
-  function renderReplyComment($table){
-    const elements = {};
-    let filename, newline, oldline;
-    $table.find('.comment-box-container .inline-comment').each(function(i, e){
-      filename = $(e).attr('filename');
-      newline = $(e).attr('newline');
-      oldline = $(e).attr('oldline');
-      const key = filename + '-' + newline + '-' + oldline;
-      elements[key] = {
-        element: $(e),
-        filename: filename,
-        newline: newline,
-        oldline: oldline
-      };
-    });
-    for(const key in elements){
-      filename = elements[key]['filename'];
-      oldline = elements[key]['oldline']; //? elements[key]['oldline'] : '';
-      newline = elements[key]['newline']; //? elements[key]['newline'] : '';
-
-      const $v = $('<div class="commit-comment-box reply-comment-box">')
-        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply..." '
-                       + 'data-filename="' + filename + '" '
-                       + 'data-newline="' + newline + '" '
-                       + 'data-oldline="' + oldline + '">'));
-
-      let tmp;
-      if (typeof oldline !== 'undefined') {
-        if (typeof newline !== 'undefined') {
-          tmp = getInlineContainer();
-        } else {
-          tmp = getInlineContainer('old');
-        }
-        tmp.children('td:first').html($v);
-      } else {
-        tmp = getInlineContainer('new');
-        tmp.children('td:last').html($v);
-      }
-      elements[key]['element'].closest('.not-diff').after(tmp);
+      i++;
+      setTimeout(render);
+    } else {
+      updateHighlighting();
     }
   }
+  render();
+}
 
-  function renderDiffs() {
+function showDiff(index, fromId, toId, path){
+  let url = '@helpers.url(repository)/diff/';
+  if (fromId == '') {
+    url = url + encodeURIComponent(toId);
+  } else {
+    url = url + encodeURIComponent(fromId) + '...' + encodeURIComponent(toId);
+  }
+  $.get(url, { path : path }, function(data) {
+    $('#oldText-' + index).attr('data-val', data.oldContent);
+    $('#newText-' + index).attr('data-val', data.newContent);
     const diffs = $('.diffText');
-    let i = 0;
-    function render(){
-      if (diffs[i]) {
-        const $table = renderOneDiff($(diffs[i]), window.viewType, $('.file-hash')[i].id);
-        @if(hasWritePermission) {
-          renderReplyComment($table);
-        }
-        i++;
-        setTimeout(render);
-      } else {
-        updateHighlighting();
-      }
+    const $table = renderOneDiff($(diffs[index]), window.viewType, $('.file-hash')[index].id);
+    @if(hasWritePermission) {
+      renderReplyComment($table);
     }
-    render();
-  }
-});
+    $('#show-diff-' + index).hide();
+  });
+}
 
 function changeDisplaySetting(key, value){
   let url = '';

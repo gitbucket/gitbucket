@@ -472,6 +472,40 @@ trait PullRequestService {
     }
   }
 
+  def getSingleDiff(
+    userName: String,
+    repositoryName: String,
+    commitId: String,
+    path: String
+  ): Option[DiffInfo] = {
+    Using.resource(
+      Git.open(getRepositoryDir(userName, repositoryName))
+    ) { git =>
+      val newId = git.getRepository.resolve(commitId)
+      JGitUtil.getDiff(git, None, newId.getName, path)
+    }
+  }
+
+  def getSingleDiff(
+    userName: String,
+    repositoryName: String,
+    branch: String,
+    requestUserName: String,
+    requestRepositoryName: String,
+    requestCommitId: String,
+    path: String
+  ): Option[DiffInfo] = {
+    Using.resources(
+      Git.open(getRepositoryDir(userName, repositoryName)),
+      Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
+    ) { (oldGit, newGit) =>
+      val oldId = oldGit.getRepository.resolve(branch)
+      val newId = newGit.getRepository.resolve(requestCommitId)
+
+      JGitUtil.getDiff(newGit, Some(oldId.getName), newId.getName, path)
+    }
+  }
+
   def getRequestCompareInfo(
     userName: String,
     repositoryName: String,
