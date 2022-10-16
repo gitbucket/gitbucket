@@ -242,14 +242,17 @@ trait IssuesService {
         case (issue, commentCount, _, _, _, milestone, priority, commitId, _) =>
           IssueInfo(
             issue,
-            issues.flatMap { t =>
-              t._3.map(Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get))
-            } toList,
+            issues
+              .flatMap { t =>
+                t._3.map(Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get))
+              }
+              .distinct
+              .toList,
             milestone,
             priority,
             commentCount,
             commitId,
-            issues.flatMap(_._9)
+            issues.flatMap(_._9).distinct
           )
       }
     } toList
