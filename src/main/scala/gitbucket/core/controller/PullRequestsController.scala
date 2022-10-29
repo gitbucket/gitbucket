@@ -69,7 +69,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     "commitIdFrom" -> trim(text(required, maxlength(40))),
     "commitIdTo" -> trim(text(required, maxlength(40))),
     "isDraft" -> trim(boolean(required)),
-    "assignedUserName" -> trim(optional(text())),
+    "assigneeUserNames" -> trim(optional(text())),
     "milestoneId" -> trim(optional(number())),
     "priorityId" -> trim(optional(number())),
     "labelNames" -> trim(optional(text()))
@@ -92,7 +92,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     commitIdFrom: String,
     commitIdTo: String,
     isDraft: Boolean,
-    assignedUserNames: Option[String],
+    assigneeUserNames: Option[String],
     milestoneId: Option[Int],
     priorityId: Option[Int],
     labelNames: Option[String]
@@ -627,7 +627,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         if (manageable) {
           // insert assignees
-          form.assignedUserNames.foreach { value =>
+          form.assigneeUserNames.foreach { value =>
             value.split(",").foreach { userName =>
               registerIssueAssignee(repository.owner, repository.name, issueId, userName)
             }
