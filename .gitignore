@@ -2,6 +2,8 @@
 *.log
 .ensime
 .ensime_cache
+.DS_Store
+.java-version
 
 # sbt specific
 dist/*
