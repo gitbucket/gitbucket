@@ -61,6 +61,9 @@ Support
 
 What's New in 4.38.x
 -------------
+## 4.38.4 - 2 Nov 2022
+- Fix MariaDB issue
+
 ## 4.38.3 - 30 Oct 2022
 - Fix several issues around multiple assignees in issues and pull requests
 - Fix IllegalStateException when returning unknown avatar image
