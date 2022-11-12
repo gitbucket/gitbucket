@@ -287,5 +287,6 @@ Test / testOptions ++= {
 
 Jetty / javaOptions ++= Seq(
   "-Xdebug",
-  "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+  "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000",
+  "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF"
 )
