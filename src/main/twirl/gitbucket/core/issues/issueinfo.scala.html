@@ -140,8 +140,8 @@
   }
 </div>
 <span id="label-assigned">
-  @issueAssignees.map { asignee =>
-    <div>@helpers.avatarLink(asignee.assigneeUserName, 20) @helpers.user(asignee.assigneeUserName, styleClass="username strong small")</div>
+  @issueAssignees.map { assignee =>
+    <div>@helpers.avatarLink(assignee.assigneeUserName, 20) @helpers.user(assignee.assigneeUserName, styleClass="username strong small")</div>
   }
   @if(issueAssignees.isEmpty) {
     <span class="muted small">No one assigned</span>
@@ -158,10 +158,10 @@
     <div class="pull-right">
       @gitbucket.core.model.CustomFieldBehavior(field.fieldType).map { behavior =>
         @if(issue.nonEmpty) {
-          @Html(behavior.fieldHtml(repository, issue.get.issueId, field.fieldId, value.map(_.value).getOrElse(""), isManageable))
+          @Html(behavior.fieldHtml(repository, issue.get.issueId, field.fieldId, field.fieldName, field.constraints, value.map(_.value).getOrElse(""), isManageable))
         }
         @if(issue.isEmpty) {
-          @Html(behavior.createHtml(repository, field.fieldId))
+          @Html(behavior.createHtml(repository, field.fieldId, field.fieldName, field.constraints))
         }
       }
     </div>

@@ -28,6 +28,7 @@ trait CustomFieldsService {
     repository: String,
     fieldName: String,
     fieldType: String,
+    constraints: Option[String],
     enableForIssues: Boolean,
     enableForPullRequests: Boolean
   )(implicit s: Session): Int = {
@@ -36,6 +37,7 @@ trait CustomFieldsService {
       repositoryName = repository,
       fieldName = fieldName,
       fieldType = fieldType,
+      constraints = constraints,
       enableForIssues = enableForIssues,
       enableForPullRequests = enableForPullRequests
     )
@@ -47,6 +49,7 @@ trait CustomFieldsService {
     fieldId: Int,
     fieldName: String,
     fieldType: String,
+    constraints: Option[String],
     enableForIssues: Boolean,
     enableForPullRequests: Boolean
   )(
@@ -54,8 +57,8 @@ trait CustomFieldsService {
   ): Unit =
     CustomFields
       .filter(_.byPrimaryKey(owner, repository, fieldId))
-      .map(t => (t.fieldName, t.fieldType, t.enableForIssues, t.enableForPullRequests))
-      .update((fieldName, fieldType, enableForIssues, enableForPullRequests))
+      .map(t => (t.fieldName, t.fieldType, t.constraints, t.enableForIssues, t.enableForPullRequests))
+      .update((fieldName, fieldType, constraints, enableForIssues, enableForPullRequests))
 
   def deleteCustomField(owner: String, repository: String, fieldId: Int)(implicit s: Session): Unit = {
     IssueCustomFields
