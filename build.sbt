@@ -41,13 +41,13 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.8.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
-  "org.apache.sshd"                 % "apache-sshd"                  % "2.9.1" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
+  "org.apache.sshd"                 % "apache-sshd"                  % "2.9.2" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "2.6.0",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.6",
-  "org.postgresql"                  % "postgresql"                   % "42.5.0",
+  "org.postgresql"                  % "postgresql"                   % "42.5.1",
   "ch.qos.logback"                  % "logback-classic"              % "1.2.11",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                       % "1.4.2",
@@ -61,10 +61,10 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
-  "org.mockito"                     % "mockito-core"                 % "4.8.1" % "test",
+  "org.mockito"                     % "mockito-core"                 % "4.9.0" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.11" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.17.5" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.17.5" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.17.6" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.17.6" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
@@ -287,5 +287,6 @@ Test / testOptions ++= {
 
 Jetty / javaOptions ++= Seq(
   "-Xdebug",
-  "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+  "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000",
+  "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF"
 )
