@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"             % "markedj"                      % "1.0.17",
   "org.apache.commons"              % "commons-compress"             % "1.22",
   "org.apache.commons"              % "commons-email"                % "1.5",
-  "commons-net"                     % "commons-net"                  % "3.8.0",
+  "commons-net"                     % "commons-net"                  % "3.9.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.9.2" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "2.6.0",
