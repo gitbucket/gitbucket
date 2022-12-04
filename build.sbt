@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              % "commons-compress"             % "1.22",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.9.0",
-  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
+  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.14",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.9.2" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "2.6.0",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
