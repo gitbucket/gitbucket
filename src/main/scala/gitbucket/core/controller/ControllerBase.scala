@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
-import java.io.{File, FileInputStream}
-
+import java.io.{File, FileInputStream, FileOutputStream}
 import gitbucket.core.api.{ApiError, JsonFormat}
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
@@ -14,9 +13,9 @@ import org.scalatra._
 import org.scalatra.i18n._
 import org.scalatra.json._
 import org.scalatra.forms._
+
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
-
 import is.tagomor.woothee.Classifier
 
 import scala.util.Try
@@ -29,6 +28,9 @@ import org.eclipse.jgit.treewalk._
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.json4s.Formats
+import org.json4s.jackson.Serialization
+
+import java.nio.charset.StandardCharsets
 
 /**
  * Provides generic features for controller implementations.
@@ -93,8 +95,16 @@ abstract class ControllerBase
     }
   }
 
-  private def LoginAccount: Option[Account] =
-    request.getAs[Account](Keys.Session.LoginAccount).orElse(session.getAs[Account](Keys.Session.LoginAccount))
+  private def LoginAccount: Option[Account] = {
+    request
+      .getAs[Account](Keys.Session.LoginAccount)
+      .orElse(session.getAs[Account](Keys.Session.LoginAccount))
+      .orElse {
+        if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+          getLoginAccountFromLocalFile()
+        } else None
+      }
+  }
 
   def ajaxGet(path: String)(action: => Any): Route =
     super.get(path) {
@@ -275,6 +285,47 @@ abstract class ControllerBase
           response.getOutputStream.write(bytes)
         }
       }
+    }
+  }
+
+  protected object DevFeatures {
+    val KeepSession = "keep-session"
+  }
+
+  private val loginAccountFile = new File(".tmp/login_account.json")
+
+  protected def isDevFeatureEnabled(feature: String): Boolean = {
+    Option(System.getProperty("dev-features")).getOrElse("").split(",").map(_.trim).contains(feature)
+  }
+
+  protected def getLoginAccountFromLocalFile(): Option[Account] = {
+    if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+      if (loginAccountFile.exists()) {
+        Using.resource(new FileInputStream(loginAccountFile)) { in =>
+          val json = IOUtils.toString(in, StandardCharsets.UTF_8)
+          val account = parse(json).extract[Account]
+          session.setAttribute(Keys.Session.LoginAccount, account)
+          Some(parse(json).extract[Account])
+        }
+      } else None
+
+    } else None
+  }
+
+  protected def saveLoginAccountToLocalFile(account: Account): Unit = {
+    if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+      if (!loginAccountFile.getParentFile.exists()) {
+        loginAccountFile.getParentFile.mkdirs()
+      }
+      Using.resource(new FileOutputStream(loginAccountFile)) { in =>
+        in.write(Serialization.write(account).getBytes(StandardCharsets.UTF_8))
+      }
+    }
+  }
+
+  protected def deleteLoginAccountFromLocalFile(): Unit = {
+    if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+      loginAccountFile.delete()
     }
   }
 }
