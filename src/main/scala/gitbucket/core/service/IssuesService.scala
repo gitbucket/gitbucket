@@ -964,39 +964,39 @@ object IssuesService {
 
     def nonEmpty: Boolean = !isEmpty
 
-    def toFilterString: String =
-      (
-        List(
-          Some(s"is:${state}"),
-          author.map(author => s"author:${author}"),
-          assigned.map(assignee => s"assignee:${assignee}"),
-          mentioned.map(mentioned => s"mentions:${mentioned}")
-        ).flatten ++
-          labels.map(label => s"label:${label}") ++
-          List(
-            milestone.map {
-              case Some(x) => s"milestone:${x}"
-              case None    => "no:milestone"
-            },
-            priority.map {
-              case Some(x) => s"priority:${x}"
-              case None    => "no:priority"
-            },
-            (sort, direction) match {
-              case ("created", "desc")  => None
-              case ("created", "asc")   => Some("sort:created-asc")
-              case ("comments", "desc") => Some("sort:comments-desc")
-              case ("comments", "asc")  => Some("sort:comments-asc")
-              case ("updated", "desc")  => Some("sort:updated-desc")
-              case ("updated", "asc")   => Some("sort:updated-asc")
-              case ("priority", "desc") => Some("sort:priority-desc")
-              case ("priority", "asc")  => Some("sort:priority-asc")
-              case x                    => throw new MatchError(x)
-            },
-            visibility.map(visibility => s"visibility:${visibility}")
-          ).flatten ++
-          groups.map(group => s"group:${group}")
-      ).mkString(" ")
+//    def toFilterString: String =
+//      (
+//        List(
+//          Some(s"is:${state}"),
+//          author.map(author => s"author:${author}"),
+//          assigned.map(assignee => s"assignee:${assignee}"),
+//          mentioned.map(mentioned => s"mentions:${mentioned}")
+//        ).flatten ++
+//          labels.map(label => s"label:${label}") ++
+//          List(
+//            milestone.map {
+//              case Some(x) => s"milestone:${x}"
+//              case None    => "no:milestone"
+//            },
+//            priority.map {
+//              case Some(x) => s"priority:${x}"
+//              case None    => "no:priority"
+//            },
+//            (sort, direction) match {
+//              case ("created", "desc")  => None
+//              case ("created", "asc")   => Some("sort:created-asc")
+//              case ("comments", "desc") => Some("sort:comments-desc")
+//              case ("comments", "asc")  => Some("sort:comments-asc")
+//              case ("updated", "desc")  => Some("sort:updated-desc")
+//              case ("updated", "asc")   => Some("sort:updated-asc")
+//              case ("priority", "desc") => Some("sort:priority-desc")
+//              case ("priority", "asc")  => Some("sort:priority-asc")
+//              case x                    => throw new MatchError(x)
+//            },
+//            visibility.map(visibility => s"visibility:${visibility}")
+//          ).flatten ++
+//          groups.map(group => s"group:${group}")
+//      ).mkString(" ")
 
     def toURL: String =
       "?" + List(
