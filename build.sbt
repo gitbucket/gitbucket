@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.38.4"
 val ScalatraVersion = "2.8.4"
-val JettyVersion = "9.4.49.v20220914"
+val JettyVersion = "9.4.50.v20221201"
 val JgitVersion = "5.13.1.202206130422-r"
 
 lazy val root = (project in file("."))
@@ -39,8 +39,8 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"             % "markedj"                      % "1.0.17",
   "org.apache.commons"              % "commons-compress"             % "1.22",
   "org.apache.commons"              % "commons-email"                % "1.5",
-  "commons-net"                     % "commons-net"                  % "3.8.0",
-  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.13",
+  "commons-net"                     % "commons-net"                  % "3.9.0",
+  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.14",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.9.2" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
   "org.apache.tika"                 % "tika-core"                    % "2.6.0",
   "com.github.takezoe"              %% "blocking-slick-32"           % "0.0.12" cross CrossVersion.for3Use2_13,
@@ -48,7 +48,7 @@ libraryDependencies ++= Seq(
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.6",
   "org.postgresql"                  % "postgresql"                   % "42.5.1",
-  "ch.qos.logback"                  % "logback-classic"              % "1.2.11",
+  "ch.qos.logback"                  % "logback-classic"              % "1.3.5",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                       % "1.4.2",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
@@ -56,13 +56,13 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.18",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "10.1",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "10.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test" cross CrossVersion.for3Use2_13,
-  "org.mockito"                     % "mockito-core"                 % "4.9.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.11" % "test",
+  "org.mockito"                     % "mockito-core"                 % "4.10.0" % "test",
+  "com.dimafeng"                    %% "testcontainers-scala"        % "0.40.12" % "test",
   "org.testcontainers"              % "mysql"                        % "1.17.6" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.17.6" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
@@ -90,7 +90,6 @@ scalacOptions := Seq(
   "-Wconf:cat=unused&src=twirl/.*:s,cat=unused&src=scala/gitbucket/core/model/[^/]+\\.scala:s"
 )
 compile / javacOptions ++= Seq("-target", "8", "-source", "8")
-Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 
 // Test settings
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
@@ -286,7 +285,9 @@ Test / testOptions ++= {
 }
 
 Jetty / javaOptions ++= Seq(
+  "-Dlogback.configurationFile=/logback-dev.xml",
   "-Xdebug",
   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000",
-  "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF"
+  "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
+  //"-Ddev-features=keep-session"
 )

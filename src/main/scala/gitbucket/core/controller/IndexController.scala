@@ -156,6 +156,9 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/signout") {
     session.invalidate
+    if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+      deleteLoginAccountFromLocalFile()
+    }
     redirect("/")
   }
 
@@ -178,6 +181,9 @@ trait IndexControllerBase extends ControllerBase {
    */
   private def signin(account: Account, redirectUrl: String = "/") = {
     session.setAttribute(Keys.Session.LoginAccount, account)
+    if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+      saveLoginAccountToLocalFile(account)
+    }
     updateLastLoginDate(account.userName)
 
     if (LDAPUtil.isDummyMailAddress(account)) {

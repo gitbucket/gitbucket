@@ -4,6 +4,7 @@
 .ensime_cache
 .DS_Store
 .java-version
+.tmp
 
 # sbt specific
 dist/*
