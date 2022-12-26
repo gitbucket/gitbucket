@@ -28,7 +28,12 @@ object Keys {
     /**
      * Session key for the OpenID Connect authentication.
      */
-    val OidcContext = "oidcContext"
+    val OidcAuthContext = "oidcAuthContext"
+
+    /**
+     * Session key for the OpenID Connect token.
+     */
+    val OidcSessionContext = "oidcSessionContext"
 
     /**
      * Generate session key for the issue search condition.
