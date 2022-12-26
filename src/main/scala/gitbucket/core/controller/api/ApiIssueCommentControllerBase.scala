@@ -85,7 +85,7 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
    * iv. Delete a comment
    * https://docs.github.com/en/rest/reference/issues#delete-an-issue-comment
    */
-  delete("/api/v3/repos/:owner/:repo/issues/comments/:id")(readableUsersOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/issues/comments/:id")(readableUsersOnly { repository =>
     val maybeDeleteResponse: Option[Either[ActionResult, Option[Int]]] =
       for {
         commentId <- params("id").toIntOpt
