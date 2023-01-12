@@ -1,5 +1,5 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiError, ApiLabel, CreateALabel, JsonFormat}
+import gitbucket.core.api.{AddLabelsToAnIssue, ApiError, ApiLabel, CreateALabel, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
@@ -121,10 +121,10 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
   post("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
     JsonFormat(for {
-      data <- extractFromJsonBody[Seq[String]]
+      data <- extractFromJsonBody[AddLabelsToAnIssue]
       issueId <- params("id").toIntOpt
     } yield {
-      data.map { labelName =>
+      data.labels.map { labelName =>
         val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
           getLabel(
             repository.owner,
@@ -160,11 +160,11 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
   put("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
     JsonFormat(for {
-      data <- extractFromJsonBody[Seq[String]]
+      data <- extractFromJsonBody[AddLabelsToAnIssue]
       issueId <- params("id").toIntOpt
     } yield {
       deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
-      data.map { labelName =>
+      data.labels.map { labelName =>
         val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
           getLabel(
             repository.owner,
