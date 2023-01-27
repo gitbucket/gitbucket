@@ -76,7 +76,7 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/wiki/:page")(referrersOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
+    val pageName = params("page")
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       html.page(
