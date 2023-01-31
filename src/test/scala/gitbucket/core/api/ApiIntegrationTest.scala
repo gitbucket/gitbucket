@@ -204,4 +204,75 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("issue labels") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+
+      val repo = github.createRepository("issue_label_test").autoInit(true).create()
+      val issue = repo.createIssue("test").create()
+
+      // Initial label state
+      {
+        val labels = repo.getIssue(issue.getNumber).getLabels
+        assert(labels.size() == 0)
+      }
+
+      // Add labels
+      {
+        issue.addLabels("bug", "duplicate")
+
+        val labels = repo.getIssue(issue.getNumber).getLabels
+        assert(labels.size() == 2)
+
+        val i = labels.iterator()
+        val label1 = i.next()
+        assert(label1.getName == "bug")
+        assert(label1.getColor == "fc2929")
+        assert(label1.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/bug")
+
+        val label2 = i.next()
+        assert(label2.getName == "duplicate")
+        assert(label2.getColor == "cccccc")
+        assert(label2.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/duplicate")
+      }
+
+      // Remove a label
+      {
+        issue.removeLabel("duplicate")
+
+        val labels = repo.getIssue(issue.getNumber).getLabels
+        assert(labels.size() == 1)
+
+        val i = labels.iterator()
+        val label1 = i.next()
+        assert(label1.getName == "bug")
+        assert(label1.getColor == "fc2929")
+        assert(label1.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/bug")
+      }
+
+    // Replace labels (Cannot test because GHLabel.setLabels() doesn't use the replace endpoint)
+//      {
+//        issue.setLabels("enhancement", "invalid", "question")
+//
+//        val labels = repo.getIssue(issue.getNumber).getLabels
+//        assert(labels.size() == 3)
+//
+//        val i = labels.iterator()
+//        val label1 = i.next()
+//        assert(label1.getName == "enhancement")
+//        assert(label1.getColor == "84b6eb")
+//        assert(label1.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/enhancement")
+//
+//        val label2 = i.next()
+//        assert(label2.getName == "invalid")
+//        assert(label2.getColor == "e6e6e6")
+//        assert(label2.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/invalid")
+//
+//        val label3 = i.next()
+//        assert(label3.getName == "question")
+//        assert(label3.getColor == "cc317c")
+//        assert(label3.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/question")
+//      }
+    }
+  }
 }

@@ -1,7 +1,8 @@
 package gitbucket.core.controller
 
-import java.net.URI
+import com.nimbusds.jwt.JWT
 
+import java.net.URI
 import com.nimbusds.oauth2.sdk.id.State
 import com.nimbusds.openid.connect.sdk.Nonce
 import gitbucket.core.helper.xml
@@ -57,7 +58,8 @@ trait IndexControllerBase extends ControllerBase {
 //
 //  case class SearchForm(query: String, owner: String, repository: String)
 
-  case class OidcContext(state: State, nonce: Nonce, redirectBackURI: String)
+  case class OidcAuthContext(state: State, nonce: Nonce, redirectBackURI: String)
+  case class OidcSessionContext(token: JWT)
 
   get("/") {
     context.loginAccount
@@ -120,8 +122,8 @@ trait IndexControllerBase extends ControllerBase {
         case _                             => "/"
       }
       session.setAttribute(
-        Keys.Session.OidcContext,
-        OidcContext(authenticationRequest.getState, authenticationRequest.getNonce, redirectBackURI)
+        Keys.Session.OidcAuthContext,
+        OidcAuthContext(authenticationRequest.getState, authenticationRequest.getNonce, redirectBackURI)
       )
       redirect(authenticationRequest.toURI.toString)
     } getOrElse {
@@ -135,10 +137,12 @@ trait IndexControllerBase extends ControllerBase {
   get("/signin/oidc") {
     context.settings.oidc.map { oidc =>
       val redirectURI = new URI(s"$baseUrl/signin/oidc")
-      session.get(Keys.Session.OidcContext) match {
-        case Some(context: OidcContext) =>
-          authenticate(params.toMap, redirectURI, context.state, context.nonce, oidc).map { account =>
-            signin(account, context.redirectBackURI)
+      session.get(Keys.Session.OidcAuthContext) match {
+        case Some(context: OidcAuthContext) =>
+          authenticate(params.toMap, redirectURI, context.state, context.nonce, oidc).map {
+            case (jwt, account) =>
+              session.setAttribute(Keys.Session.OidcSessionContext, OidcSessionContext(jwt))
+              signin(account, context.redirectBackURI)
           } orElse {
             flash.update("error", "Sorry, authentication failed. Please try again.")
             session.invalidate()
@@ -155,6 +159,15 @@ trait IndexControllerBase extends ControllerBase {
   }
 
   get("/signout") {
+    context.settings.oidc.map { oidc =>
+      session.get(Keys.Session.OidcSessionContext).foreach {
+        case context: OidcSessionContext =>
+          val redirectURI = new URI(baseUrl)
+          val authenticationRequest = createOIDLogoutRequest(oidc.issuer, oidc.clientID, redirectURI, context.token)
+          session.invalidate
+          redirect(authenticationRequest.toURI.toString)
+      }
+    }
     session.invalidate
     if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
       deleteLoginAccountFromLocalFile()

@@ -10,7 +10,9 @@
         <option value="double" @if(field.map(_.fieldType == "double").getOrElse(false)){selected}>Double</option>
         <option value="string" @if(field.map(_.fieldType == "string").getOrElse(false)){selected}>String</option>
         <option value="date" @if(field.map(_.fieldType == "date").getOrElse(false)){selected}>Date</option>
+        <option value="enum" @if(field.map(_.fieldType == "enum").getOrElse(false)){selected}>Enum</option>
       </select>
+      <input type="text" id="constraints-@fieldId" style="width: 300px; @if(!field.exists(_.fieldType == "enum")){display: none;}" class="form-control input-sm" value="@field.map(_.constraints)" placeholder="Comma-separated enum values">
       <label for="enableForIssues-@fieldId" class="normal" style="margin-left: 4px;">
         <input type="checkbox" id="enableForIssues-@fieldId" @if(field.map(_.enableForIssues).getOrElse(false)){checked}> Issues
       </label>
@@ -30,6 +32,7 @@
       $.post('@helpers.url(repository)/settings/issues/fields/@{if(fieldId == "new") "new" else s"$fieldId/edit"}', {
         'fieldName' : $('#fieldName-@fieldId').val(),
         'fieldType': $('#fieldType-@fieldId option:selected').val(),
+        'constraints': $('#constraints-@fieldId').val(),
         'enableForIssues': $('#enableForIssues-@fieldId').prop('checked'),
         'enableForPullRequests': $('#enableForPullRequests-@fieldId').prop('checked')
       }, function(data, status){
@@ -59,6 +62,14 @@
         $('#new-field-table').hide();
       } else {
         $('#field-@fieldId').show();
+      }
+    });
+
+    $('#fieldType-@fieldId').change(function(){
+      if($(this).val() == 'enum') {
+        $('#constraints-@fieldId').show();
+      } else {
+        $('#constraints-@fieldId').hide();
       }
     });
   });
