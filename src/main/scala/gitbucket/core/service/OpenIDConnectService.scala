@@ -1,11 +1,11 @@
 package gitbucket.core.service
 
 import java.net.URI
-
 import com.nimbusds.jose.JWSAlgorithm.Family
 import com.nimbusds.jose.proc.BadJOSEException
 import com.nimbusds.jose.util.DefaultResourceRetriever
 import com.nimbusds.jose.{JOSEException, JWSAlgorithm}
+import com.nimbusds.jwt.JWT
 import com.nimbusds.oauth2.sdk._
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic
 import com.nimbusds.oauth2.sdk.id.{ClientID, Issuer, State}
@@ -52,6 +52,11 @@ trait OpenIDConnectService {
     )
   }
 
+  def createOIDLogoutRequest(issuer: Issuer, clientID: ClientID, redirectURI: URI, token: JWT): LogoutRequest = {
+    val metadata = OIDCProviderMetadata.resolve(issuer)
+    new LogoutRequest(metadata.getEndSessionEndpointURI, token, null, clientID, redirectURI, null, null)
+  }
+
   /**
    * Proceed the OpenID Connect authentication.
    *
@@ -60,7 +65,7 @@ trait OpenIDConnectService {
    * @param state       State saved in the session
    * @param nonce       Nonce saved in the session
    * @param oidc        OIDC settings
-   * @return ID token
+   * @return (ID token, GitBucket account)
    */
   def authenticate(
     params: Map[String, String],
@@ -68,22 +73,25 @@ trait OpenIDConnectService {
     state: State,
     nonce: Nonce,
     oidc: SystemSettingsService.OIDC
-  )(implicit s: Session): Option[Account] =
+  )(implicit s: Session): Option[(JWT, Account)] =
     validateOIDCAuthenticationResponse(params, state, redirectURI) flatMap { authenticationResponse =>
-      obtainOIDCToken(authenticationResponse.getAuthorizationCode, nonce, redirectURI, oidc) flatMap { claims =>
-        Seq("email", "preferred_username", "name").map(k => Option(claims.getStringClaim(k))) match {
-          case Seq(Some(email), preferredUsername, name) =>
-            getOrCreateFederatedUser(
-              claims.getIssuer.getValue,
-              claims.getSubject.getValue,
-              email,
-              preferredUsername,
-              name
-            )
-          case _ =>
-            logger.info(s"OIDC ID token must have an email claim: claims=${claims.toJSONObject}")
-            None
-        }
+      obtainOIDCToken(authenticationResponse.getAuthorizationCode, nonce, redirectURI, oidc) flatMap {
+        case (jwt, claims) =>
+          Seq("email", "preferred_username", "name").map(k => Option(claims.getStringClaim(k))) match {
+            case Seq(Some(email), preferredUsername, name) =>
+              getOrCreateFederatedUser(
+                claims.getIssuer.getValue,
+                claims.getSubject.getValue,
+                email,
+                preferredUsername,
+                name
+              ).map { account =>
+                (jwt, account)
+              }
+            case _ =>
+              logger.info(s"OIDC ID token must have an email claim: claims=${claims.toJSONObject}")
+              None
+          }
       }
     }
 
@@ -136,7 +144,7 @@ trait OpenIDConnectService {
     nonce: Nonce,
     redirectURI: URI,
     oidc: SystemSettingsService.OIDC
-  ): Option[IDTokenClaimsSet] = {
+  ): Option[(JWT, IDTokenClaimsSet)] = {
     val metadata = OIDCProviderMetadata.resolve(oidc.issuer)
     val tokenRequest = new TokenRequest(
       metadata.getTokenEndpointURI,
@@ -173,7 +181,7 @@ trait OpenIDConnectService {
     metadata: OIDCProviderMetadata,
     nonce: Nonce,
     oidc: SystemSettingsService.OIDC
-  ): Option[IDTokenClaimsSet] =
+  ): Option[(JWT, IDTokenClaimsSet)] =
     Option(response.getOIDCTokens.getIDToken) match {
       case Some(jwt) =>
         val validator = oidc.jwsAlgorithm map { jwsAlgorithm =>
@@ -188,7 +196,7 @@ trait OpenIDConnectService {
           new IDTokenValidator(metadata.getIssuer, oidc.clientID)
         }
         try {
-          Some(validator.validate(jwt, nonce))
+          Some((jwt, validator.validate(jwt, nonce)))
         } catch {
           case e @ (_: BadJOSEException | _: JOSEException) =>
             logger.info(s"OIDC ID token has error: $e")

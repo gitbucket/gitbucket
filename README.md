@@ -61,6 +61,13 @@ Support
 
 What's New in 4.38.x
 -------------
+## 4.38.4 - 2 Nov 2022
+- Downgrade MariaDB JDBC drive to avoid unknown error
+
+## 4.38.3 - 30 Oct 2022
+- Fix several issues around multiple assignees in issues and pull requests
+- Fix IllegalStateException when returning unknown avatar image
+
 ## 4.38.2 - 20 Sep 2022
 - Resurrect assignee icons on the issue list
 

@@ -126,6 +126,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   case class CustomFieldForm(
     fieldName: String,
     fieldType: String,
+    constraints: Option[String],
     enableForIssues: Boolean,
     enableForPullRequests: Boolean
   )
@@ -133,6 +134,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   val customFieldForm = mapping(
     "fieldName" -> trim(label("Field name", text(required, maxlength(100)))),
     "fieldType" -> trim(label("Field type", text(required))),
+    "constraints" -> trim(label("Constraints", optional(text()))),
     "enableForIssues" -> trim(label("Enable for issues", boolean(required))),
     "enableForPullRequests" -> trim(label("Enable for pull requests", boolean(required))),
   )(CustomFieldForm.apply)
@@ -511,6 +513,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       repository.name,
       form.fieldName,
       form.fieldType,
+      if (form.fieldType == "enum") form.constraints else None,
       form.enableForIssues,
       form.enableForPullRequests
     )
@@ -533,6 +536,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         params("fieldId").toInt,
         form.fieldName,
         form.fieldType,
+        if (form.fieldType == "enum") form.constraints else None,
         form.enableForIssues,
         form.enableForPullRequests
       )

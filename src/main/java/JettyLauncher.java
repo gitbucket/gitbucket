@@ -111,6 +111,9 @@ public class JettyLauncher {
                         case "--jetty_idle_timeout":
                             jettyIdleTimeout = dim[1];
                             break;
+                        case "--disable_cache":
+                            System.setProperty("gitbucket.disableCache", dim[1]);
+                            break;
                     }
                 }
             }
