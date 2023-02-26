@@ -20,6 +20,8 @@ This directory has following structure:
   * /plugins
     * plugin.jar
     * /.installed (copied available plugins from the parent directory automatically)
+  * /sessions
+    * HTTP session data (when '--save_sessions' option is used in the standalone mode)
   * /tmp
     * /_upload
       * /SESSION_ID (removed at session timeout)
