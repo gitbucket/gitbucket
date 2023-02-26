@@ -5,7 +5,7 @@ GitBucket persists all data into __HOME/.gitbucket__ in default (In 1.9 or befor
 This directory has following structure:
 
 ```
-* /HOME/gitbucket
+* /HOME/.gitbucket
   * gitbucket.conf
   * database.conf
   * activity.log
