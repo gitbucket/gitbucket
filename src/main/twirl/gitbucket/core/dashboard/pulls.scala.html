@@ -5,10 +5,11 @@
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   filter: String,
   groups: List[String],
-  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  enableNewsFeed: Boolean)(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Pull requests"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories){
-    @gitbucket.core.dashboard.html.tab("pulls")
+    @gitbucket.core.dashboard.html.tab(enableNewsFeed, "pulls")
     <div class="container">
       @gitbucket.core.dashboard.html.issuesnavi("pulls", filter, openCount, closedCount, condition)
       @gitbucket.core.dashboard.html.issueslist(issues, page, openCount, closedCount, condition, filter, groups)

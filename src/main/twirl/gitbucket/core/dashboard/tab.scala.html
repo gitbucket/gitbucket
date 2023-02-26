@@ -1,14 +1,18 @@
-@(active: String = "")(implicit context: gitbucket.core.controller.Context)
-<ul class="nav nav-tabs" style="margin-bottom: 20px;">
-  <li @if(active == ""){ class="active"}><a href="@context.path/">News feed</a></li>
-  @if(context.loginAccount.isDefined){
-    <li @if(active == "repos" ){ class="active"}><a href="@context.path/dashboard/repos">Repositories</a></li>
-    <li @if(active == "pulls" ){ class="active"}><a href="@context.path/dashboard/pulls">Pull requests</a></li>
-    <li @if(active == "issues"){ class="active"}><a href="@context.path/dashboard/issues">Issues</a></li>
-    @gitbucket.core.plugin.PluginRegistry().getDashboardTabs.map { tab =>
-      @tab(context).map { link =>
-        <li @if(active == link.id){ class="active"}><a href="@context.path/@link.path">@link.label</a></li>
+@(enableNewsFeed: Boolean, active: String = "")(implicit context: gitbucket.core.controller.Context)
+@if(enableNewsFeed || context.loginAccount.isDefined) {
+  <ul class="nav nav-tabs" style="margin-bottom: 20px;">
+    @if(enableNewsFeed) {
+      <li @if(active == "") {class="active"}><a href="@context.path/">News feed</a></li>
+    }
+    @if(context.loginAccount.isDefined) {
+      <li @if(active == "repos") {class="active"}><a href="@context.path/dashboard/repos">Repositories</a></li>
+      <li @if(active == "pulls") {class="active"}><a href="@context.path/dashboard/pulls">Pull requests</a></li>
+      <li @if(active == "issues") {class="active"}><a href="@context.path/dashboard/issues">Issues</a></li>
+      @gitbucket.core.plugin.PluginRegistry().getDashboardTabs.map { tab =>
+        @tab(context).map { link =>
+          <li @if(active == link.id) {class="active"}><a href="@context.path/@link.path">@link.label</a></li>
+        }
       }
     }
-  }
-</ul>
+  </ul>
+}
