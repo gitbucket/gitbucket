@@ -6,12 +6,16 @@ This directory has following structure:
 
 ```
 * /HOME/gitbucket
+  * gitbucket.conf
+  * database.conf
+  * activity.log
+  * data.mv.db, data.trace.db (H2 data files if the default embed H2 is used)
   * /repositories 
     * /USER_NAME
       * /REPO_NAME.git (substance of repository. GitServlet sees this directory)
       * /REPO_NAME.wiki.git (wiki repository)
       * /REPO_NAME
-        * /issues (files which are attached to issue)
+        * /issues (files attached to issue)
         * /lfs (LFS managed files)
   * /data
     * /USER_NAME
@@ -21,7 +25,7 @@ This directory has following structure:
     * plugin.jar
     * /.installed (copied available plugins from the parent directory automatically)
   * /sessions
-    * HTTP session data (when '--save_sessions' option is used in the standalone mode)
+    * HTTP session data created (if '--save_sessions' option is used in the standalone mode)
   * /tmp
     * /_upload
       * /SESSION_ID (removed at session timeout)
