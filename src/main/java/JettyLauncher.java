@@ -65,8 +65,14 @@ public class JettyLauncher {
         boolean saveSessions = false;
 
         for(String arg: args) {
-            if(arg.equals("--save_sessions")) {
+            if (arg.equals("--save_sessions")) {
                 saveSessions = true;
+            }
+            if (arg.equals("--disable_news_feed")) {
+                System.setProperty("gitbucket.disableNewsFeed", "true");
+            }
+            if (arg.equals("--disable_cache")) {
+                System.setProperty("gitbucket.disableCache", "true");
             }
             if(arg.startsWith("--") && arg.contains("=")) {
                 String[] dim = arg.split("=", 2);

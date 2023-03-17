@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.38.4"
 val ScalatraVersion = "2.8.4"
-val JettyVersion = "9.4.50.v20221201"
+val JettyVersion = "9.4.51.v20230217"
 val JgitVersion = "5.13.1.202206130422-r"
 
 lazy val root = (project in file("."))
@@ -47,8 +47,8 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.6",
-  "org.postgresql"                  % "postgresql"                   % "42.5.4",
-  "ch.qos.logback"                  % "logback-classic"              % "1.3.5",
+  "org.postgresql"                  % "postgresql"                   % "42.6.0",
+  "ch.qos.logback"                  % "logback-classic"              % "1.3.6",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                       % "1.4.2",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
@@ -68,7 +68,7 @@ libraryDependencies ++= Seq(
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
-  "org.kohsuke"                     % "github-api"                   % "1.313" % "test"
+  "org.kohsuke"                     % "github-api"                   % "1.314" % "test"
 )
 
 libraryDependencies ~= {

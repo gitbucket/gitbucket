@@ -6,6 +6,7 @@ import gitbucket.core.service._
 import gitbucket.core.util.{Keys, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.service.IssuesService._
+import gitbucket.core.service.ActivityService._
 
 class DashboardController
     extends DashboardControllerBase
@@ -42,7 +43,7 @@ trait DashboardControllerBase extends ControllerBase {
         withoutPhysicalInfo = true,
         limit = context.settings.basicBehavior.limitVisibleRepositories
       )
-      html.repos(getGroupNames(loginAccount.userName), repos, repos)
+      html.repos(getGroupNames(loginAccount.userName), repos, repos, isNewsFeedEnabled())
     }
   })
 
@@ -130,7 +131,8 @@ trait DashboardControllerBase extends ControllerBase {
         None,
         withoutPhysicalInfo = true,
         limit = context.settings.basicBehavior.limitVisibleRepositories
-      )
+      ),
+      isNewsFeedEnabled()
     )
   }
 
@@ -172,7 +174,8 @@ trait DashboardControllerBase extends ControllerBase {
         None,
         withoutPhysicalInfo = true,
         limit = context.settings.basicBehavior.limitVisibleRepositories
-      )
+      ),
+      isNewsFeedEnabled()
     )
   }
 
