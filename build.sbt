@@ -48,7 +48,7 @@ libraryDependencies ++= Seq(
   "com.h2database"                  % "h2"                           % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.6",
   "org.postgresql"                  % "postgresql"                   % "42.5.4",
-  "ch.qos.logback"                  % "logback-classic"              % "1.3.6",
+  "ch.qos.logback"                  % "logback-classic"              % "1.4.6",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                       % "1.4.2",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
