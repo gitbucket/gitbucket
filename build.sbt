@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "commons-io"                      % "commons-io"                   % "2.11.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.5",
   "io.github.gitbucket"             % "markedj"                      % "1.0.17",
-  "org.apache.commons"              % "commons-compress"             % "1.22",
+  "org.apache.commons"              % "commons-compress"             % "1.23.0",
   "org.apache.commons"              % "commons-email"                % "1.5",
   "commons-net"                     % "commons-net"                  % "3.9.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.14",
