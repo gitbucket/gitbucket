@@ -275,4 +275,29 @@ class ApiIntegrationTest extends AnyFunSuite {
 //      }
     }
   }
+
+  test("Git refs APIs") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+
+      val repo = github.createRepository("git_refs_test").autoInit(true).create()
+      val sha1 = repo.getBranch("master").getSHA1
+
+      val refs1 = repo.listRefs().toList
+      assert(refs1.size() == 1)
+      assert(refs1.get(0).getRef == "refs/heads/master")
+      assert(refs1.get(0).getObject.getSha == sha1)
+
+      val ref = repo.createRef("refs/heads/testref", sha1)
+      assert(ref.getRef == "refs/heads/testref")
+      assert(ref.getObject.getSha == sha1)
+
+      val refs2 = repo.listRefs().toList
+      assert(refs2.size() == 2)
+      assert(refs2.get(0).getRef == "refs/heads/master")
+      assert(refs2.get(0).getObject.getSha == sha1)
+      assert(refs2.get(1).getRef == "refs/heads/testref")
+      assert(refs2.get(1).getObject.getSha == sha1)
+    }
+  }
 }
