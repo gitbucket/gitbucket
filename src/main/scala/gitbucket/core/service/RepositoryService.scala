@@ -254,6 +254,7 @@ trait RepositoryService {
     Labels.filter(_.byRepository(userName, repositoryName)).delete
     IssueComments.filter(_.byRepository(userName, repositoryName)).delete
     PullRequests.filter(_.byRepository(userName, repositoryName)).delete
+    IssueAssignees.filter(_.byRepository(userName, repositoryName)).delete
     Issues.filter(_.byRepository(userName, repositoryName)).delete
     Priorities.filter(_.byRepository(userName, repositoryName)).delete
     IssueId.filter(_.byRepository(userName, repositoryName)).delete

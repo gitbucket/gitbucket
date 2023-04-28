@@ -9,9 +9,11 @@ import org.json4s.jackson.Serialization.{read, write}
 import scala.util.Using
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
-
 import gitbucket.core.controller.Context
+import gitbucket.core.util.ConfigUtil
 import org.apache.commons.io.input.ReversedLinesFileReader
+
+import ActivityService._
 
 import scala.collection.mutable.ListBuffer
 
@@ -27,7 +29,7 @@ trait ActivityService {
   }
 
   def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit context: Context): List[Activity] = {
-    if (!ActivityLog.exists()) {
+    if (!isNewsFeedEnabled() || !ActivityLog.exists()) {
       List.empty
     } else {
       val list = new ListBuffer[Activity]
@@ -51,7 +53,7 @@ trait ActivityService {
   }
 
   def getRecentPublicActivities()(implicit context: Context): List[Activity] = {
-    if (!ActivityLog.exists()) {
+    if (!isNewsFeedEnabled() || !ActivityLog.exists()) {
       List.empty
     } else {
       val list = new ListBuffer[Activity]
@@ -69,7 +71,7 @@ trait ActivityService {
   }
 
   def getRecentActivitiesByOwners(owners: Set[String])(implicit context: Context): List[Activity] = {
-    if (!ActivityLog.exists()) {
+    if (!isNewsFeedEnabled() || !ActivityLog.exists()) {
       List.empty
     } else {
       val list = new ListBuffer[Activity]
@@ -92,4 +94,9 @@ trait ActivityService {
     import scala.language.reflectiveCalls
     writeLog(info.toActivity)
   }
+}
+
+object ActivityService {
+  def isNewsFeedEnabled(): Boolean =
+    !ConfigUtil.getConfigValue[Boolean]("gitbucket.disableNewsFeed").getOrElse(false)
 }

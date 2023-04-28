@@ -14,6 +14,8 @@ import gitbucket.core.view.helpers._
 import org.scalatra.Ok
 import org.scalatra.forms._
 
+import gitbucket.core.service.ActivityService._
+
 class IndexController
     extends IndexControllerBase
     with RepositoryService
@@ -65,24 +67,30 @@ trait IndexControllerBase extends ControllerBase {
     context.loginAccount
       .map { account =>
         val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
-        gitbucket.core.html.index(
-          getRecentActivitiesByOwners(visibleOwnerSet),
-          getVisibleRepositories(
-            Some(account),
-            None,
-            withoutPhysicalInfo = true,
-            limit = context.settings.basicBehavior.limitVisibleRepositories
-          ),
-          showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
-            account.userName
+        if (!isNewsFeedEnabled()) {
+          redirect("/dashboard/repos")
+        } else {
+          gitbucket.core.html.index(
+            activities = getRecentActivitiesByOwners(visibleOwnerSet),
+            recentRepositories = getVisibleRepositories(
+              Some(account),
+              None,
+              withoutPhysicalInfo = true,
+              limit = context.settings.basicBehavior.limitVisibleRepositories
+            ),
+            showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
+              account.userName
+            ),
+            enableNewsFeed = isNewsFeedEnabled()
           )
-        )
+        }
       }
       .getOrElse {
         gitbucket.core.html.index(
-          getRecentPublicActivities(),
-          getVisibleRepositories(None, withoutPhysicalInfo = true),
-          showBannerToCreatePersonalAccessToken = false
+          activities = getRecentPublicActivities(),
+          recentRepositories = getVisibleRepositories(None, withoutPhysicalInfo = true),
+          showBannerToCreatePersonalAccessToken = false,
+          enableNewsFeed = isNewsFeedEnabled()
         )
       }
   }

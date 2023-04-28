@@ -1,7 +1,6 @@
 package gitbucket.core.util
 
 import java.io._
-
 import gitbucket.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
 import Directory._
@@ -18,10 +17,10 @@ import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.{ConfigInvalidException, IncorrectObjectTypeException, MissingObjectException}
 import org.eclipse.jgit.transport.RefSpec
+
 import java.util.Date
 import java.util.concurrent.TimeUnit
-
-import org.cache2k.Cache2kBuilder
+import org.cache2k.{Cache, Cache2kBuilder}
 import org.eclipse.jgit.api.errors._
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter, RawTextComparator}
 import org.eclipse.jgit.dircache.DirCacheEntry
@@ -39,6 +38,9 @@ object JGitUtil {
 
   private implicit val objectDatabaseReleasable: Releasable[ObjectDatabase] =
     _.close()
+
+  private def isCacheEnabled(): Boolean =
+    !ConfigUtil.getConfigValue[Boolean]("gitbucket.disableCache").getOrElse(false)
 
   /**
    * The repository data.
@@ -284,26 +286,34 @@ object JGitUtil {
     revCommit
   }
 
-  private val cache = new Cache2kBuilder[String, Int]() {}
-    .name("commit-count")
-    .expireAfterWrite(24, TimeUnit.HOURS)
-    .entryCapacity(10000)
-    .build()
+  private val cache: Cache[String, Int] = if (isCacheEnabled()) {
+    Cache2kBuilder
+      .of(classOf[String], classOf[Int])
+      .name("commit-count")
+      .expireAfterWrite(24, TimeUnit.HOURS)
+      .entryCapacity(10000)
+      .build()
+  } else null
 
-  private val objectCommitCache = new Cache2kBuilder[ObjectId, RevCommit]() {}
-    .name("object-commit")
-    .entryCapacity(10000)
-    .build()
+  private val objectCommitCache: Cache[ObjectId, RevCommit] = if (isCacheEnabled()) {
+    Cache2kBuilder
+      .of(classOf[ObjectId], classOf[RevCommit])
+      .name("object-commit")
+      .entryCapacity(10000)
+      .build()
+  } else null
 
   def removeCache(git: Git): Unit = {
-    val dir = git.getRepository.getDirectory
-    val keyPrefix = dir.getAbsolutePath + "@"
+    if (isCacheEnabled()) {
+      val dir = git.getRepository.getDirectory
+      val keyPrefix = dir.getAbsolutePath + "@"
 
-    cache.keys.forEach(key => {
-      if (key.startsWith(keyPrefix)) {
-        cache.remove(key)
-      }
-    })
+      cache.keys.forEach(key => {
+        if (key.startsWith(keyPrefix)) {
+          cache.remove(key)
+        }
+      })
+    }
   }
 
   /**
@@ -312,16 +322,23 @@ object JGitUtil {
    */
   def getCommitCount(git: Git, branch: String, max: Int = 10001): Int = {
     val dir = git.getRepository.getDirectory
-    val key = dir.getAbsolutePath + "@" + branch
-    val entry = cache.getEntry(key)
 
-    if (entry == null) {
+    if (isCacheEnabled()) {
+      val key = dir.getAbsolutePath + "@" + branch
+      val entry = cache.getEntry(key)
+
+      if (entry == null) {
+        val commitId = git.getRepository.resolve(branch)
+        val commitCount = git.log.add(commitId).call.iterator.asScala.take(max).size
+        cache.put(key, commitCount)
+        commitCount
+      } else {
+        entry.getValue
+      }
+    } else {
       val commitId = git.getRepository.resolve(branch)
       val commitCount = git.log.add(commitId).call.iterator.asScala.take(max).size
-      cache.put(key, commitCount)
       commitCount
-    } else {
-      entry.getValue
     }
   }
 
@@ -444,7 +461,7 @@ object JGitUtil {
               (id, mode, name, path, opt, None)
             } else if (commitCount < 10000) {
               (id, mode, name, path, opt, Some(getCommit(path)))
-            } else {
+            } else if (isCacheEnabled()) {
               // Use in-memory cache if the commit count is too big.
               val cached = objectCommitCache.getEntry(id)
               if (cached == null) {
@@ -454,6 +471,9 @@ object JGitUtil {
               } else {
                 (id, mode, name, path, opt, Some(cached.getValue))
               }
+            } else {
+              val commit = getCommit(path)
+              (id, mode, name, path, opt, Some(commit))
             }
         }
       }
