@@ -59,32 +59,12 @@ Support
 - If you can't find same question and report, send it to our [Gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.38.x
+What's New in 4.39.x
 -------------
-## 4.38.4 - 2 Nov 2022
-- Downgrade MariaDB JDBC drive to avoid unknown error
-
-## 4.38.3 - 30 Oct 2022
-- Fix several issues around multiple assignees in issues and pull requests
-- Fix IllegalStateException when returning unknown avatar image
-
-## 4.38.2 - 20 Sep 2022
-- Resurrect assignee icons on the issue list
-
-## 4.38.1 - 10 Sep 2022
-- Fix comment diff in Chrome 105
-- Fix Markdown table CSS
-- Fix HTML rendering of multiple asignees
-
-## 4.38.0 - 3 Sep 2022
-- Support multiple assignees for Issues and Pull requests
-- Custom fields for issues and pull requests
-- Reset password by users
-- Allow to configure Jetty idle timeout in standalone mode
-- Horizontal scroll for too wide tables in Markdown
-- Hide header content on signin and register page
-- Fix the default charset of the online editor in the repository viewer
-- Fix the milestone count
-- Some improvements and bugfixes for WebAPI and WebHook
+## 4.39.0 - 29 Apr 2023
+- Support enum type in custom fields of Issues and Pull requests
+- Hide large diffs by default
+- Add new options to make it possible to run GitBucket using multiple machines
+- Fix many API issues
 
 See the [change log](CHANGELOG.md) for all of the updates.
