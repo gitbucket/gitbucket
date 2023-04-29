@@ -40,7 +40,7 @@ object JGitUtil {
     _.close()
 
   private def isCacheEnabled(): Boolean =
-    ConfigUtil.getConfigValue[Boolean]("gitbucket.disableCache").getOrElse(false)
+    !ConfigUtil.getConfigValue[Boolean]("gitbucket.disableCache").getOrElse(false)
 
   /**
    * The repository data.

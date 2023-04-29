@@ -1,6 +1,7 @@
 @(activities: List[gitbucket.core.model.Activity],
   recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-  showBannerToCreatePersonalAccessToken: Boolean)(implicit context: gitbucket.core.controller.Context)
+  showBannerToCreatePersonalAccessToken: Boolean,
+  enableNewsFeed: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("GitBucket"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories){
@@ -19,12 +20,26 @@
         </a> and use it in place of a password on the <code>git</code> command line.
       </div>
     }
-    @gitbucket.core.dashboard.html.tab()
+    @gitbucket.core.dashboard.html.tab(enableNewsFeed)
     <div class="container">
-      <div class="pull-right">
-        <a href="@context.path/activities.atom"><img src="@helpers.assets("/common/images/feed.png")" alt="activities"></a>
-      </div>
-      @gitbucket.core.helper.html.activities(activities)
+      @if(enableNewsFeed) {
+        <div class="pull-right">
+          <a href="@context.path/activities.atom"><img src="@helpers.assets("/common/images/feed.png")" alt="activities"></a>
+        </div>
+        @gitbucket.core.helper.html.activities(activities)
+      } else {
+        <div class="signin-form">
+          @if(context.settings.basicBehavior.allowAnonymousAccess){
+            @context.settings.information.map { information =>
+              <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                @Html(information)
+              </div>
+            }
+          }
+          @gitbucket.core.html.signinform(context.settings)
+        </div>
+      }
     </div>
   }
 }

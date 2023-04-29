@@ -1,6 +1,12 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.39.0 - 29 Apr 2023
+- Support enum type in custom fields of Issues and Pull requests
+- Hide large diffs by default
+- Add new options to make it possible to run GitBucket using multiple machines
+- Fix many API issues
+
 ## 4.38.4 - 2 Nov 2022
 - Downgrade MariaDB JDBC drive to avoid unknown error
 

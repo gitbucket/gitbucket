@@ -57,22 +57,27 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * iii. Create a reference
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-reference
    */
-  post("/api/v3/repos/:owner/:repository/git/refs")(referrersOnly { repository =>
+  post("/api/v3/repos/:owner/:repository/git/refs")(writableUsersOnly { repository =>
     extractFromJsonBody[CreateARef].map {
       data =>
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.owner))) { git =>
-          val ref = git.getRepository.findRef(data.ref)
-          if (ref == null) {
-            val update = git.getRepository.updateRef(data.ref)
-            update.setNewObjectId(ObjectId.fromString(data.sha))
-            val result = update.update()
-            result match {
-              case Result.NEW => JsonFormat(ApiRef.fromRef(RepositoryName(repository.owner, repository.name), ref))
-              case _          => UnprocessableEntity(result.name())
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
+          git =>
+            val ref = git.getRepository.findRef(data.ref)
+            if (ref == null) {
+              val update = git.getRepository.updateRef(data.ref)
+              update.setNewObjectId(ObjectId.fromString(data.sha))
+              val result = update.update()
+              result match {
+                case Result.NEW =>
+                  JsonFormat(
+                    ApiRef
+                      .fromRef(RepositoryName(repository.owner, repository.name), git.getRepository.findRef(data.ref))
+                  )
+                case _ => UnprocessableEntity(result.name())
+              }
+            } else {
+              UnprocessableEntity("Ref already exists.")
             }
-          } else {
-            UnprocessableEntity("Ref already exists.")
-          }
         }
     } getOrElse BadRequest()
   })
@@ -85,7 +90,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
     val refName = multiParams("splat").mkString("/")
     extractFromJsonBody[UpdateARef].map {
       data =>
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.owner))) { git =>
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
           val ref = git.getRepository.findRef(refName)
           if (ref == null) {
             UnprocessableEntity("Ref does not exist.")
@@ -96,7 +101,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
             val result = update.update()
             result match {
               case Result.FORCED | Result.FAST_FORWARD | Result.NO_CHANGE =>
-                JsonFormat(ApiRef.fromRef(RepositoryName(repository), update.getRef))
+                JsonFormat(ApiRef.fromRef(RepositoryName(repository), git.getRepository.findRef(refName)))
               case _ => UnprocessableEntity(result.name())
             }
           }
