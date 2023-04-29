@@ -291,5 +291,3 @@ Jetty / javaOptions ++= Seq(
   "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
   //"-Ddev-features=keep-session"
 )
-
-ThisBuild / evictionErrorLevel := Level.Warn
