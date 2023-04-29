@@ -27,9 +27,9 @@ jobs:
         java-version: ${{ matrix.java }}
         distribution: adopt
     - name: Run tests
-      run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck test
+      run: sbt scalafmtSbtCheck scalafmtCheckAll test
     - name: Scala 3
-      run: sbt '++ 3.1.2!' update # TODO
+      run: sbt '++ 3.2.2!' update # TODO
     - name: Build executable
       run: sbt executable
     - name: Upload artifacts
