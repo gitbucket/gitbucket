@@ -155,7 +155,7 @@ public class JettyLauncher {
         }
 
         if (connectorsSet.contains(Connectors.HTTPS)) {
-            final SslContextFactory sslContextFactory = new SslContextFactory.Server();
+            final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 
             sslContextFactory.setKeyStorePath(requireNonNull(keyStorePath,
                 "You must specify a path to an SSL keystore via the --key_store_path command line argument" +
