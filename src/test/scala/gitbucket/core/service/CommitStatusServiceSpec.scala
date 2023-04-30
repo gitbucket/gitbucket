@@ -40,7 +40,7 @@ class CommitStatusServiceSpec
   test("createCommitState can insert and update") {
     withTestDB { implicit session =>
       val tester = generateNewAccount(fixture1.creator)
-      insertRepository(fixture1.repositoryName, fixture1.userName, None, false)
+      insertRepository(fixture1.repositoryName, fixture1.userName, None, false, "main")
       val id = generateFixture1(tester: Account)
       assert(
         getCommitStatus(fixture1.userName, fixture1.repositoryName, id) == Some(fixture1.copy(commitStatusId = id))
@@ -77,7 +77,7 @@ class CommitStatusServiceSpec
   test("getCommitStatus can find by commitId and context") {
     withTestDB { implicit session =>
       val tester = generateNewAccount(fixture1.creator)
-      insertRepository(fixture1.repositoryName, fixture1.userName, None, false)
+      insertRepository(fixture1.repositoryName, fixture1.userName, None, false, "main")
       val id = generateFixture1(tester: Account)
       assert(
         getCommitStatus(fixture1.userName, fixture1.repositoryName, fixture1.commitId, fixture1.context) == Some(
@@ -90,7 +90,7 @@ class CommitStatusServiceSpec
   test("getCommitStatus can find by commitStatusId") {
     withTestDB { implicit session =>
       val tester = generateNewAccount(fixture1.creator)
-      insertRepository(fixture1.repositoryName, fixture1.userName, None, false)
+      insertRepository(fixture1.repositoryName, fixture1.userName, None, false, "main")
       val id = generateFixture1(tester: Account)
       assert(
         getCommitStatus(fixture1.userName, fixture1.repositoryName, id) == Some(fixture1.copy(commitStatusId = id))

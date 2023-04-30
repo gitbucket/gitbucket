@@ -7,7 +7,7 @@ class RepositoryServiceSpec extends AnyFunSuite with ServiceSpecBase with Reposi
   test("renameRepository can rename CommitState, ProtectedBranches") {
     withTestDB { implicit session =>
       val tester = generateNewAccount("tester")
-      insertRepository("repo", "root", None, false)
+      insertRepository("repo", "root", None, false, "main")
       val service = new CommitStatusService with ProtectedBranchService {}
       val id = service.createCommitStatus(
         userName = "root",
