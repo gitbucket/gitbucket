@@ -23,14 +23,14 @@ class JGitUtilSpec extends AnyFunSuite {
     withTestRepository { git =>
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
 
-      val branchId = git.getRepository.resolve("master")
+      val branchId = git.getRepository.resolve("main")
       val commit = JGitUtil.getRevCommitFromId(git, branchId)
 
       createFile(git, Constants.HEAD, "LICENSE", "Apache License", message = "commit1")
       createFile(git, Constants.HEAD, "README.md", "body1\nbody2", message = "commit1")
 
       // latest commit
-      val diff1 = JGitUtil.getDiffs(git, None, "master", false, true)
+      val diff1 = JGitUtil.getDiffs(git, None, "main", false, true)
       assert(diff1.size == 1)
       assert(diff1(0).changeType == ChangeType.MODIFY)
       assert(diff1(0).oldPath == "README.md")
@@ -44,7 +44,7 @@ class JGitUtilSpec extends AnyFunSuite {
           |\ No newline at end of file""".stripMargin))
 
       // from specified commit
-      val diff2 = JGitUtil.getDiffs(git, Some(commit.getName), "master", false, true)
+      val diff2 = JGitUtil.getDiffs(git, Some(commit.getName), "main", false, true)
       assert(diff2.size == 2)
       assert(diff2(0).changeType == ChangeType.ADD)
       assert(diff2(0).oldPath == "/dev/null")
@@ -73,7 +73,7 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
 
       // branch name
-      val branchId = git.getRepository.resolve("master")
+      val branchId = git.getRepository.resolve("main")
       val commit1 = JGitUtil.getRevCommitFromId(git, branchId)
 
       // commit id
@@ -97,19 +97,19 @@ class JGitUtilSpec extends AnyFunSuite {
     withTestRepository { git =>
       // getCommitCount
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
-      assert(JGitUtil.getCommitCount(git, "master") == 1)
+      assert(JGitUtil.getCommitCount(git, "main") == 1)
 
       createFile(git, Constants.HEAD, "README.md", "body2", message = "commit2")
-      assert(JGitUtil.getCommitCount(git, "master") == 2)
+      assert(JGitUtil.getCommitCount(git, "main") == 2)
 
       // maximum limit
       (3 to 10).foreach { i =>
         createFile(git, Constants.HEAD, "README.md", "body" + i, message = "commit" + i)
       }
-      assert(JGitUtil.getCommitCount(git, "master", 5) == 5)
+      assert(JGitUtil.getCommitCount(git, "main", 5) == 5)
 
       // actual commit count
-      val gitLog = git.log.add(git.getRepository.resolve("master")).all
+      val gitLog = git.log.add(git.getRepository.resolve("main")).all
       assert(gitLog.call.asScala.toSeq.size == 10)
 
       // getAllCommitIds
@@ -123,22 +123,22 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
 
       // createBranch
-      assert(JGitUtil.createBranch(git, "master", "test1") == Right("Branch created."))
-      assert(JGitUtil.createBranch(git, "master", "test2") == Right("Branch created."))
-      assert(JGitUtil.createBranch(git, "master", "test2") == Left("Sorry, that branch already exists."))
+      assert(JGitUtil.createBranch(git, "main", "test1") == Right("Branch created."))
+      assert(JGitUtil.createBranch(git, "main", "test2") == Right("Branch created."))
+      assert(JGitUtil.createBranch(git, "main", "test2") == Left("Sorry, that branch already exists."))
 
       // verify
       val branches = git.branchList.call()
       assert(branches.size == 3)
-      assert(branches.get(0).getName == "refs/heads/master")
+      assert(branches.get(0).getName == "refs/heads/main")
       assert(branches.get(1).getName == "refs/heads/test1")
       assert(branches.get(2).getName == "refs/heads/test2")
 
       // getBranchesOfCommit
-      val commit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("master"))
+      val commit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("main"))
       val branchesOfCommit = JGitUtil.getBranchesOfCommit(git, commit.getName)
       assert(branchesOfCommit.size == 3)
-      assert(branchesOfCommit(0) == "master")
+      assert(branchesOfCommit(0) == "main")
       assert(branchesOfCommit(1) == "test1")
       assert(branchesOfCommit(2) == "test2")
     }
@@ -147,16 +147,16 @@ class JGitUtilSpec extends AnyFunSuite {
   test("getBranches") {
     withTestRepository { git =>
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
-      JGitUtil.createBranch(git, "master", "test1")
+      JGitUtil.createBranch(git, "main", "test1")
 
       createFile(git, Constants.HEAD, "README.md", "body2", message = "commit2")
-      JGitUtil.createBranch(git, "master", "test2")
+      JGitUtil.createBranch(git, "main", "test2")
 
       // getBranches
-      val branches = JGitUtil.getBranches(git, "master", true)
+      val branches = JGitUtil.getBranches(git, "main", true)
       assert(branches.size == 3)
 
-      assert(branches(0).name == "master")
+      assert(branches(0).name == "main")
       assert(branches(0).committerName == "dummy")
       assert(branches(0).committerEmailAddress == "dummy@example.com")
 
@@ -178,17 +178,17 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
 
       // createTag
-      assert(JGitUtil.createTag(git, "1.0", Some("test1"), "master") == Right("Tag added."))
+      assert(JGitUtil.createTag(git, "1.0", Some("test1"), "main") == Right("Tag added."))
       assert(
-        JGitUtil.createTag(git, "1.0", Some("test2"), "master") == Left("Sorry, some Git operation error occurs.")
+        JGitUtil.createTag(git, "1.0", Some("test2"), "main") == Left("Sorry, some Git operation error occurs.")
       )
 
       // record current commit
-      val commit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("master"))
+      val commit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("main"))
 
       // createTag
       createFile(git, Constants.HEAD, "LICENSE", "Apache License", message = "commit2")
-      assert(JGitUtil.createTag(git, "1.1", Some("test3"), "master") == Right("Tag added."))
+      assert(JGitUtil.createTag(git, "1.1", Some("test3"), "main") == Right("Tag added."))
 
       // verify
       val allTags = git.tagList().call().asScala
@@ -203,7 +203,7 @@ class JGitUtilSpec extends AnyFunSuite {
       assert(tagsOfCommit(1) == "1.0")
 
       // getTagsOnCommit
-      val tagsOnCommit = JGitUtil.getTagsOnCommit(git, "master")
+      val tagsOnCommit = JGitUtil.getTagsOnCommit(git, "main")
       assert(tagsOnCommit.size == 1)
       assert(tagsOnCommit(0) == "1.1")
     }
@@ -214,7 +214,7 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
       createFile(git, Constants.HEAD, "LICENSE", "Apache License", message = "commit2")
 
-      val objectId = git.getRepository.resolve("master")
+      val objectId = git.getRepository.resolve("main")
       val commit = JGitUtil.getRevCommitFromId(git, objectId)
 
       // Since Non-LFS file doesn't need RepositoryInfo give null
@@ -233,7 +233,7 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
       createFile(git, Constants.HEAD, "LARGE_FILE", "body1" * 1000000, message = "commit1")
 
-      val objectId = git.getRepository.resolve("master")
+      val objectId = git.getRepository.resolve("main")
       val commit = JGitUtil.getRevCommitFromId(git, objectId)
 
       val content1 = JGitUtil.getContentFromPath(git, commit.getTree, "README.md", true)
@@ -252,7 +252,7 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1\nbody2\nbody3", message = "commit1")
       createFile(git, Constants.HEAD, "README.md", "body0\nbody2\nbody3", message = "commit2")
 
-      val blames = JGitUtil.getBlame(git, "master", "README.md").toSeq
+      val blames = JGitUtil.getBlame(git, "main", "README.md").toSeq
 
       assert(blames.size == 2)
       assert(blames(0).message == "commit2")
@@ -266,75 +266,75 @@ class JGitUtilSpec extends AnyFunSuite {
     withTestRepository { git =>
       def list(branch: String, path: String) =
         JGitUtil.getFileList(git, branch, path).map(finfo => (finfo.name, finfo.message, finfo.isDirectory))
-      assert(list("master", ".") == Nil)
-      assert(list("master", "dir/subdir") == Nil)
+      assert(list("main", ".") == Nil)
+      assert(list("main", "dir/subdir") == Nil)
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      createFile(git, "master", "README.md", "body1", message = "commit1")
+      createFile(git, "main", "README.md", "body1", message = "commit1")
 
-      assert(list("master", ".") == List(("README.md", "commit1", false)))
-      assert(list("master", "dir/subdir") == Nil)
+      assert(list("main", ".") == List(("README.md", "commit1", false)))
+      assert(list("main", "dir/subdir") == Nil)
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      createFile(git, "master", "README.md", "body2", message = "commit2")
+      createFile(git, "main", "README.md", "body2", message = "commit2")
 
-      assert(list("master", ".") == List(("README.md", "commit2", false)))
-      assert(list("master", "dir/subdir") == Nil)
+      assert(list("main", ".") == List(("README.md", "commit2", false)))
+      assert(list("main", "dir/subdir") == Nil)
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      createFile(git, "master", "dir/subdir/File3.md", "body3", message = "commit3")
+      createFile(git, "main", "dir/subdir/File3.md", "body3", message = "commit3")
 
-      assert(list("master", ".") == List(("dir/subdir", "commit3", true), ("README.md", "commit2", false)))
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false)))
+      assert(list("main", ".") == List(("dir/subdir", "commit3", true), ("README.md", "commit2", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false)))
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      createFile(git, "master", "dir/subdir/File4.md", "body4", message = "commit4")
+      createFile(git, "main", "dir/subdir/File4.md", "body4", message = "commit4")
 
-      assert(list("master", ".") == List(("dir/subdir", "commit4", true), ("README.md", "commit2", false)))
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", ".") == List(("dir/subdir", "commit4", true), ("README.md", "commit2", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      createFile(git, "master", "README5.md", "body5", message = "commit5")
+      createFile(git, "main", "README5.md", "body5", message = "commit5")
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir/subdir", "commit4", true),
           ("README.md", "commit2", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      createFile(git, "master", "README.md", "body6", message = "commit6")
+      createFile(git, "main", "README.md", "body6", message = "commit6")
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir/subdir", "commit4", true),
           ("README.md", "commit6", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(list("branch", ".") == Nil)
       assert(list("branch", "dir/subdir") == Nil)
 
-      git.branchCreate().setName("branch").setStartPoint("master").call()
+      git.branchCreate().setName("branch").setStartPoint("main").call()
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir/subdir", "commit4", true),
           ("README.md", "commit6", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(
         list("branch", ".") == List(
           ("dir/subdir", "commit4", true),
@@ -347,13 +347,13 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, "branch", "dir/subdir/File3.md", "body7", message = "commit7")
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir/subdir", "commit4", true),
           ("README.md", "commit6", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(
         list("branch", ".") == List(
           ("dir/subdir", "commit7", true),
@@ -363,17 +363,17 @@ class JGitUtilSpec extends AnyFunSuite {
       )
       assert(list("branch", "dir/subdir") == List(("File3.md", "commit7", false), ("File4.md", "commit4", false)))
 
-      createFile(git, "master", "dir8/File8.md", "body8", message = "commit8")
+      createFile(git, "main", "dir8/File8.md", "body8", message = "commit8")
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir/subdir", "commit4", true),
           ("dir8", "commit8", true),
           ("README.md", "commit6", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(
         list("branch", ".") == List(
           ("dir/subdir", "commit7", true),
@@ -386,14 +386,14 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, "branch", "dir/subdir9/File9.md", "body9", message = "commit9")
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir/subdir", "commit4", true),
           ("dir8", "commit8", true),
           ("README.md", "commit6", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit3", false), ("File4.md", "commit4", false)))
       assert(
         list("branch", ".") == List(
           ("dir", "commit9", true),
@@ -403,17 +403,17 @@ class JGitUtilSpec extends AnyFunSuite {
       )
       assert(list("branch", "dir/subdir") == List(("File3.md", "commit7", false), ("File4.md", "commit4", false)))
 
-      mergeAndCommit(git, "master", "branch", message = "merge10")
+      mergeAndCommit(git, "main", "branch", message = "merge10")
 
       assert(
-        list("master", ".") == List(
+        list("main", ".") == List(
           ("dir", "commit9", true),
           ("dir8", "commit8", true),
           ("README.md", "commit6", false),
           ("README5.md", "commit5", false)
         )
       )
-      assert(list("master", "dir/subdir") == List(("File3.md", "commit7", false), ("File4.md", "commit4", false)))
+      assert(list("main", "dir/subdir") == List(("File3.md", "commit7", false), ("File4.md", "commit4", false)))
     }
   }
 
@@ -421,10 +421,10 @@ class JGitUtilSpec extends AnyFunSuite {
     withTestRepository { git =>
       def list(branch: String, path: String) =
         JGitUtil.getFileList(git, branch, path).map(finfo => (finfo.name, finfo.message, finfo.isDirectory))
-      createFile(git, "master", "README.md", "body1", message = "commit1")
+      createFile(git, "main", "README.md", "body1", message = "commit1")
       createFile(git, "branch", "test/text2.txt", "body2", message = "commit2")
-      mergeAndCommit(git, "master", "branch", message = "merge3")
-      assert(list("master", "test") == List(("text2.txt", "commit2", false)))
+      mergeAndCommit(git, "main", "branch", message = "merge3")
+      assert(list("main", "test") == List(("text2.txt", "commit2", false)))
     }
   }
 

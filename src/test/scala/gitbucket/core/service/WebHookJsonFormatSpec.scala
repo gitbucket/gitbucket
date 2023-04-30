@@ -26,7 +26,7 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
         |"description":"This your first repo!",
         |"ref":"v1.0",
         |"ref_type":"tag",
-        |"master_branch":"master",
+        |"master_branch":"main",
         |"repository":$jsonRepository,
         |"pusher_type":"user"
         |}""".stripMargin
@@ -41,12 +41,12 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1", message = "initial")
       createFile(git, Constants.HEAD, "README.md", "body1\nbody2", message = "modified")
 
-      val branchId = git.getRepository.resolve("master")
+      val branchId = git.getRepository.resolve("main")
 
       val payload = WebHookPushPayload(
         git = git,
         sender = account,
-        refName = "refs/heads/master",
+        refName = "refs/heads/main",
         repositoryInfo = repositoryInfo,
         commits = List(commitInfo(branchId.name)),
         repositoryOwner = account,
@@ -56,7 +56,7 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
       val expected = s"""{
           |"pusher":{"name":"octocat","email":"octocat@example.com"},
           |"sender":$jsonUser,
-          |"ref":"refs/heads/master",
+          |"ref":"refs/heads/main",
           |"before":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
           |"after":"6dcb09b5b57875f334f61aebed695e2e4193db5e",
           |"commits":[${jsonCommit(branchId.name)}],

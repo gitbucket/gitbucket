@@ -83,7 +83,7 @@ class JsonFormatSpec extends AnyFunSuite {
     assert(JsonFormat(apiPusher) == expected(jsonPusher))
   }
   test("apiRefHead") {
-    assertEqualJson(JsonFormat(apiRefHeadsMaster)(gitHubContext), jsonRefHeadsMaster)
+    assertEqualJson(JsonFormat(apiRefHeadsMaster)(gitHubContext), jsonRefHeadsMain)
   }
   test("apiRefTag") {
     assertEqualJson(JsonFormat(apiRefTag)(gitHubContext), jsonRefTag)
