@@ -892,8 +892,8 @@ object JGitUtil {
         .reverse
     }
 
-  def initRepository(dir: java.io.File): Unit =
-    Using.resource(new RepositoryBuilder().setGitDir(dir).setBare.build) { repository =>
+  def initRepository(dir: java.io.File, defaultBranch: String): Unit =
+    Using.resource(new RepositoryBuilder().setGitDir(dir).setBare().setInitialBranch(defaultBranch).build) { repository =>
       repository.create(true)
       setReceivePack(repository)
     }

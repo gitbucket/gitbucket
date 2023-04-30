@@ -813,7 +813,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
                 form.description,
                 form.isPrivate,
                 form.initOption,
-                form.sourceUrl
+                form.sourceUrl,
+                context.settings.defaultBranch
               )
               // redirect to the repository
               redirect(s"/${form.owner}/${form.name}")

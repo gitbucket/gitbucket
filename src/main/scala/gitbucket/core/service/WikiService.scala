@@ -55,7 +55,7 @@ trait WikiService {
     LockUtil.lock(s"${owner}/${repository}/wiki") {
       val dir = Directory.getWikiRepositoryDir(owner, repository)
       if (!dir.exists) {
-        JGitUtil.initRepository(dir)
+        JGitUtil.initRepository(dir, "master")
         saveWikiPage(
           owner,
           repository,
