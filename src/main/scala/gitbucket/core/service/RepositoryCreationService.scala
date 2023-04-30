@@ -174,7 +174,7 @@ trait RepositoryCreationService {
         }
 
         // Create Wiki repository
-        createWikiRepository(loginAccount, owner, name)
+        createWikiRepository(loginAccount, owner, name, defaultBranch)
 
         // Record activity
         recordActivity(CreateRepositoryInfo(owner, name, loginUserName))
