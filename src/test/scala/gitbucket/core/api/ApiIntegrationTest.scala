@@ -9,11 +9,18 @@ import scala.util.Using
 import org.kohsuke.github.GHCommitState
 
 import java.io.File
+import java.util.logging.{Level, Logger}
 
 /**
  * Need to run `sbt package` before running this test.
  */
 class ApiIntegrationTest extends AnyFunSuite {
+
+  // Suppress warning logs caused by liquibase
+  private val liquibaseResourceLogger = Logger.getLogger("liquibase.resource")
+  liquibaseResourceLogger.setLevel(Level.SEVERE)
+  private val liquibaseParserLogger = Logger.getLogger("liquibase.parser")
+  liquibaseParserLogger.setLevel(Level.SEVERE)
 
   test("create repository") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
