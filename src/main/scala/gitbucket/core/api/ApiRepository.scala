@@ -61,7 +61,7 @@ object ApiRepository {
       watchers = 0,
       forks = 0,
       `private` = false,
-      default_branch = "master",
+      default_branch = "main",
       owner = owner,
       has_issues = true
     )
