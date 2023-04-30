@@ -207,7 +207,7 @@ trait SystemSettingsService {
       RepositoryViewerSettings(
         getValue(props, RepositoryViewerMaxFiles, 0)
       ),
-      getValue(props, DefaultBranch, "master")
+      getValue(props, DefaultBranch, "main")
     )
   }
 }
