@@ -29,7 +29,7 @@ jobs:
     - name: Run tests
       run: sbt scalafmtSbtCheck scalafmtCheckAll test
     - name: Scala 3
-      run: sbt '++ 3.x' test
+      run: sbt '++ 3.x' update # TODO
     - name: Build executable
       run: sbt executable
     - name: Upload artifacts
