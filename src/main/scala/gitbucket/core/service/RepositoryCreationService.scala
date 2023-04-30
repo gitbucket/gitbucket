@@ -67,7 +67,16 @@ trait RepositoryCreationService {
     createReadme: Boolean,
     defaultBranch: String
   ): Future[Unit] = {
-    createRepository(loginAccount, owner, name, description, isPrivate, if (createReadme) "README" else "EMPTY", None, defaultBranch)
+    createRepository(
+      loginAccount,
+      owner,
+      name,
+      description,
+      isPrivate,
+      if (createReadme) "README" else "EMPTY",
+      None,
+      defaultBranch
+    )
   }
 
   def createRepository(

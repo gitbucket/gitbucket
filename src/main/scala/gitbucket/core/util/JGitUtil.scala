@@ -893,9 +893,10 @@ object JGitUtil {
     }
 
   def initRepository(dir: java.io.File, defaultBranch: String): Unit =
-    Using.resource(new RepositoryBuilder().setGitDir(dir).setBare().setInitialBranch(defaultBranch).build) { repository =>
-      repository.create(true)
-      setReceivePack(repository)
+    Using.resource(new RepositoryBuilder().setGitDir(dir).setBare().setInitialBranch(defaultBranch).build) {
+      repository =>
+        repository.create(true)
+        setReceivePack(repository)
     }
 
   def cloneRepository(from: java.io.File, to: java.io.File): Unit =
