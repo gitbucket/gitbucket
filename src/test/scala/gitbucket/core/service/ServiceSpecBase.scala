@@ -81,7 +81,8 @@ trait ServiceSpecBase {
       ),
       repositoryViewer = RepositoryViewerSettings(
         maxFiles = 0
-      )
+      ),
+      defaultBranch = "main"
     )
 
   def withTestDB[A](action: (Session) => A): A = {
@@ -127,8 +128,8 @@ trait ServiceSpecBase {
     if (dir.exists()) {
       FileUtils.deleteQuietly(dir)
     }
-    JGitUtil.initRepository(dir)
-    dummyService.insertRepository(repositoryName, userName, None, false)
+    JGitUtil.initRepository(dir, "main")
+    dummyService.insertRepository(repositoryName, userName, None, false, "main")
     ac
   }
 

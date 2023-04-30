@@ -90,6 +90,7 @@ trait SystemSettingsService {
     props.setProperty(UploadLargeMaxFileSize, settings.upload.largeMaxFileSize.toString)
     props.setProperty(UploadLargeTimeout, settings.upload.largeTimeout.toString)
     props.setProperty(RepositoryViewerMaxFiles, settings.repositoryViewer.maxFiles.toString)
+    props.setProperty(DefaultBranch, settings.defaultBranch)
 
     Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
       props.store(out, null)
@@ -205,7 +206,8 @@ trait SystemSettingsService {
       ),
       RepositoryViewerSettings(
         getValue(props, RepositoryViewerMaxFiles, 0)
-      )
+      ),
+      getValue(props, DefaultBranch, "main")
     )
   }
 }
@@ -231,7 +233,8 @@ object SystemSettingsService {
     showMailAddress: Boolean,
     webHook: WebHook,
     upload: Upload,
-    repositoryViewer: RepositoryViewerSettings
+    repositoryViewer: RepositoryViewerSettings,
+    defaultBranch: String
   ) {
     def baseUrl(request: HttpServletRequest): String =
       baseUrl.getOrElse(parseBaseUrl(request)).stripSuffix("/")
@@ -402,7 +405,6 @@ object SystemSettingsService {
   private val RepositoryOperationFork = "repository_operation_fork"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
-  private val ActivityLogLimit = "activity_log_limit"
   private val LimitVisibleRepositories = "limitVisibleRepositories"
   private val SshEnabled = "ssh"
   private val SshHost = "ssh.host"
@@ -448,6 +450,7 @@ object SystemSettingsService {
   private val UploadLargeMaxFileSize = "upload.largeMaxFileSize"
   private val UploadLargeTimeout = "upload.largeTimeout"
   private val RepositoryViewerMaxFiles = "repository_viewer_max_files"
+  private val DefaultBranch = "default_branch"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getConfigValue(key).getOrElse {

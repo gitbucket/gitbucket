@@ -34,7 +34,7 @@ object GitSpecUtil {
     RepositoryCache.clear()
     FileUtils.deleteQuietly(dir)
     Files.createDirectories(dir.toPath())
-    JGitUtil.initRepository(dir)
+    JGitUtil.initRepository(dir, "main")
     dir
   }
 

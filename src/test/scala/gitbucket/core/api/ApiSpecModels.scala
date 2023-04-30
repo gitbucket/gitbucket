@@ -53,7 +53,7 @@ object ApiSpecModels {
     repositoryName = repo1Name.name,
     isPrivate = false,
     description = Some("This your first repo!"),
-    defaultBranch = "master",
+    defaultBranch = "main",
     registeredDate = date1,
     updatedDate = date1,
     lastActivityDate = date1,
@@ -81,7 +81,7 @@ object ApiSpecModels {
     pullCount = 1,
     forkedCount = 1,
     milestoneCount = 1,
-    branchList = Seq("master", "develop"),
+    branchList = Seq("main", "develop"),
     tags = Seq(
       TagInfo(
         name = "v1.0",
@@ -147,7 +147,7 @@ object ApiSpecModels {
     userName = repo1Name.owner,
     repositoryName = repo1Name.name,
     issueId = issuePR.issueId,
-    branch = "master",
+    branch = "main",
     requestUserName = "bear",
     requestRepositoryName = repo1Name.name,
     requestBranch = "new-topic",
@@ -363,7 +363,7 @@ object ApiSpecModels {
     info = ProtectedBranchInfo(
       owner = repo1Name.owner,
       repository = repo1Name.name,
-      branch = "master",
+      branch = "main",
       enabled = true,
       contexts = Seq("continuous-integration/travis-ci"),
       includeAdministrators = true
@@ -384,7 +384,7 @@ object ApiSpecModels {
   )
 
   val apiBranch = ApiBranch(
-    name = "master",
+    name = "main",
     commit = ApiBranchCommit(sha1),
     protection = apiBranchProtectionOutput
   )(
@@ -392,7 +392,7 @@ object ApiSpecModels {
   )
 
   val apiBranchForList = ApiBranchForList(
-    name = "master",
+    name = "main",
     commit = ApiBranchCommit(sha1)
   )
 
@@ -447,8 +447,8 @@ object ApiSpecModels {
   val gitHubContext = JsonFormat.Context("https://api.github.com", Some("https://api.github.com"))
 
   val apiRefHeadsMaster = ApiRef(
-    ref = "refs/heads/master",
-    url = ApiPath("/repos/gitbucket/gitbucket/git/refs/heads/master"),
+    ref = "refs/heads/main",
+    url = ApiPath("/repos/gitbucket/gitbucket/git/refs/heads/main"),
     node_id = "MDM6UmVmOTM1MDc0NjpyZWZzL2hlYWRzL21hc3Rlcg==",
     `object` = ApiRefCommit(
       sha = "6b2d124d092402f2c2b7131caada05ead9e7de6d",
@@ -508,7 +508,7 @@ object ApiSpecModels {
        |"watchers":0,
        |"forks":1,
        |"private":false,
-       |"default_branch":"master",
+       |"default_branch":"main",
        |"owner":$jsonUser,
        |"has_issues":true,
        |"id":0,
@@ -594,7 +594,7 @@ object ApiSpecModels {
        |"updated_at":"2011-04-14T16:00:49Z",
        |"created_at":"2011-04-14T16:00:49Z",
        |"head":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e","ref":"new-topic","repo":$jsonRepository,"label":"new-topic","user":$jsonUser},
-       |"base":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e","ref":"master","repo":$jsonRepository,"label":"master","user":$jsonUser},
+       |"base":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e","ref":"main","repo":$jsonRepository,"label":"main","user":$jsonUser},
        |"merged":true,
        |"merged_at":"2011-04-14T16:00:49Z",
        |"merged_by":$jsonUser,
@@ -730,13 +730,13 @@ object ApiSpecModels {
 
   val jsonBranchProtectionOutput =
     """{
-       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master/protection",
+       |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main/protection",
        |"enabled":true,
        |"required_status_checks":{
-         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master/protection/required_status_checks",
+         |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main/protection/required_status_checks",
          |"enforcement_level":"everyone",
          |"contexts":["continuous-integration/travis-ci"],
-         |"contexts_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master/protection/required_status_checks/contexts"}
+         |"contexts_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main/protection/required_status_checks/contexts"}
        |}""".stripMargin
 
   val jsonBranchProtectionInput =
@@ -749,15 +749,15 @@ object ApiSpecModels {
     |}""".stripMargin
 
   val jsonBranch = s"""{
-       |"name":"master",
+       |"name":"main",
        |"commit":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"},
        |"protection":$jsonBranchProtectionOutput,
        |"_links":{
-         |"self":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/master",
-         |"html":"http://gitbucket.exmple.com/octocat/Hello-World/tree/master"}
+         |"self":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main",
+         |"html":"http://gitbucket.exmple.com/octocat/Hello-World/tree/main"}
        |}""".stripMargin
 
-  val jsonBranchForList = """{"name":"master","commit":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
+  val jsonBranchForList = """{"name":"main","commit":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
 
   val jsonContents =
     """{
@@ -800,11 +800,11 @@ object ApiSpecModels {
   //I checked all refs in gitbucket repo, and there appears to be only type "commit" and type "tag"
   val jsonRef = """{"ref":"refs/heads/featureA","object":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
 
-  val jsonRefHeadsMaster =
+  val jsonRefHeadsMain =
     """{
-      |"ref": "refs/heads/master",
+      |"ref": "refs/heads/main",
       |"node_id": "MDM6UmVmOTM1MDc0NjpyZWZzL2hlYWRzL21hc3Rlcg==",
-      |"url": "https://api.github.com/repos/gitbucket/gitbucket/git/refs/heads/master",
+      |"url": "https://api.github.com/repos/gitbucket/gitbucket/git/refs/heads/main",
       |"object": {
       |"sha": "6b2d124d092402f2c2b7131caada05ead9e7de6d",
       |"type": "commit",

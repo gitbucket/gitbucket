@@ -21,12 +21,12 @@
         git add README.md
         git commit -m "first commit"
         git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
-        git push -u origin master
+        git push -u origin @context.settings.defaultBranch
       }
       <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
       @helpers.pre {
         git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
-        git push -u origin master
+        git push -u origin @context.settings.defaultBranch
       }
       <script>
       $(function(){

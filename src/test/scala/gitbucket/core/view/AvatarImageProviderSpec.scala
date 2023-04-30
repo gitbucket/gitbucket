@@ -193,7 +193,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
       ),
       repositoryViewer = RepositoryViewerSettings(
         maxFiles = 0
-      )
+      ),
+      "main"
     )
 
   /**

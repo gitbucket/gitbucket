@@ -124,7 +124,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     )(Upload.apply),
     "repositoryViewer" -> mapping(
       "maxFiles" -> trim(label("Max files", number(required)))
-    )(RepositoryViewerSettings.apply)
+    )(RepositoryViewerSettings.apply),
+    "defaultBranch" -> trim(label("Default branch", text(required)))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {

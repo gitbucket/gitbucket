@@ -64,9 +64,19 @@ trait RepositoryCreationService {
     name: String,
     description: Option[String],
     isPrivate: Boolean,
-    createReadme: Boolean
+    createReadme: Boolean,
+    defaultBranch: String
   ): Future[Unit] = {
-    createRepository(loginAccount, owner, name, description, isPrivate, if (createReadme) "README" else "EMPTY", None)
+    createRepository(
+      loginAccount,
+      owner,
+      name,
+      description,
+      isPrivate,
+      if (createReadme) "README" else "EMPTY",
+      None,
+      defaultBranch
+    )
   }
 
   def createRepository(
@@ -76,7 +86,8 @@ trait RepositoryCreationService {
     description: Option[String],
     isPrivate: Boolean,
     initOption: String,
-    sourceUrl: Option[String]
+    sourceUrl: Option[String],
+    defaultBranch: String
   ): Future[Unit] = Future {
     RepositoryCreationService.startCreation(owner, name)
     try {
@@ -93,7 +104,7 @@ trait RepositoryCreationService {
         } else None
 
         // Insert to the database at first
-        insertRepository(name, owner, description, isPrivate)
+        insertRepository(name, owner, description, isPrivate, defaultBranch)
 
         //    // Add collaborators for group repository
         //    if(ownerAccount.isGroupAccount){
@@ -110,7 +121,7 @@ trait RepositoryCreationService {
 
         // Create the actual repository
         val gitdir = getRepositoryDir(owner, name)
-        JGitUtil.initRepository(gitdir)
+        JGitUtil.initRepository(gitdir, defaultBranch)
 
         if (initOption == "README" || initOption == "EMPTY_COMMIT") {
           Using.resource(Git.open(gitdir)) { git =>
@@ -163,7 +174,7 @@ trait RepositoryCreationService {
         }
 
         // Create Wiki repository
-        createWikiRepository(loginAccount, owner, name)
+        createWikiRepository(loginAccount, owner, name, defaultBranch)
 
         // Record activity
         recordActivity(CreateRepositoryInfo(owner, name, loginUserName))

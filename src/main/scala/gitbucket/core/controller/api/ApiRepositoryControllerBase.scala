@@ -93,7 +93,8 @@ trait ApiRepositoryControllerBase extends ControllerBase {
             data.name,
             data.description,
             data.`private`,
-            data.auto_init
+            data.auto_init,
+            context.settings.defaultBranch
           )
           Await.result(f, Duration.Inf)
 
@@ -130,7 +131,8 @@ trait ApiRepositoryControllerBase extends ControllerBase {
             data.name,
             data.description,
             data.`private`,
-            data.auto_init
+            data.auto_init,
+            context.settings.defaultBranch
           )
           Await.result(f, Duration.Inf)
           val repository = Database() withTransaction { session =>

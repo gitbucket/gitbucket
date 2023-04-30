@@ -34,7 +34,7 @@ trait RepositoryService {
     userName: String,
     description: Option[String],
     isPrivate: Boolean,
-    defaultBranch: String = "master",
+    defaultBranch: String,
     originRepositoryName: Option[String] = None,
     originUserName: Option[String] = None,
     parentRepositoryName: Option[String] = None,

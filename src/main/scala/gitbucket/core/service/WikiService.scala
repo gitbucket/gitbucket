@@ -51,11 +51,11 @@ object WikiService {
 trait WikiService {
   import WikiService._
 
-  def createWikiRepository(loginAccount: Account, owner: String, repository: String): Unit =
+  def createWikiRepository(loginAccount: Account, owner: String, repository: String, defaultBranch: String): Unit =
     LockUtil.lock(s"${owner}/${repository}/wiki") {
       val dir = Directory.getWikiRepositoryDir(owner, repository)
       if (!dir.exists) {
-        JGitUtil.initRepository(dir)
+        JGitUtil.initRepository(dir, defaultBranch)
         saveWikiPage(
           owner,
           repository,
@@ -72,11 +72,11 @@ trait WikiService {
   /**
    * Returns the wiki page.
    */
-  def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
+  def getWikiPage(owner: String, repository: String, pageName: String, branch: String): Option[WikiPageInfo] = {
     Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       if (!JGitUtil.isEmpty(git)) {
         val fileName = pageName + ".md"
-        JGitUtil.getLatestCommitFromPath(git, fileName, "master").map { latestCommit =>
+        JGitUtil.getLatestCommitFromPath(git, fileName, branch).map { latestCommit =>
           val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
           WikiPageInfo(
             fileName,
@@ -93,10 +93,10 @@ trait WikiService {
   /**
    * Returns the list of wiki page names.
    */
-  def getWikiPageList(owner: String, repository: String): List[String] = {
+  def getWikiPageList(owner: String, repository: String, branch: String): List[String] = {
     Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       JGitUtil
-        .getFileList(git, "master", ".")
+        .getFileList(git, branch, ".")
         .filter(_.name.endsWith(".md"))
         .filterNot(_.name.startsWith("_"))
         .map(_.name.stripSuffix(".md"))
@@ -113,7 +113,8 @@ trait WikiService {
     from: String,
     to: String,
     committer: Account,
-    pageName: Option[String]
+    pageName: Option[String],
+    branch: String
   ): Boolean = {
 
     case class RevertInfo(operation: String, filePath: String, source: String)
@@ -151,7 +152,7 @@ trait WikiService {
             fh.getChangeType match {
               case DiffEntry.ChangeType.MODIFY => {
                 val source =
-                  getWikiPage(owner, repository, fh.getNewPath.stripSuffix(".md")).map(_.content).getOrElse("")
+                  getWikiPage(owner, repository, fh.getNewPath.stripSuffix(".md"), branch).map(_.content).getOrElse("")
                 val applied = PatchUtil.apply(source, patch, fh)
                 if (applied != null) {
                   Seq(RevertInfo("ADD", fh.getNewPath, applied))
