@@ -1,6 +1,6 @@
 Mapping and Validation
 ========
-GitBucket uses [scalatra-forms](http://scalatra.org/guides/2.6/formats/forms.html) to validate request parameters and map them to the scala object. This is inspired by Play2 form mapping / validation.
+GitBucket uses [scalatra-forms](https://scalatra.org/guides/2.8/formats/forms.html) to validate request parameters and map them to the scala object. This is inspired by Play2 form mapping / validation.
 
 At first, define the mapping as following:
 
