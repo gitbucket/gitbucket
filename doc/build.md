@@ -1,7 +1,7 @@
 How to build and run from the source tree
 ========
 
-First of all, Install [sbt](http://www.scala-sbt.org/index.html).
+First of all, Install [sbt](https://www.scala-sbt.org/index.html).
 
 ```shell
 $ brew install sbt
