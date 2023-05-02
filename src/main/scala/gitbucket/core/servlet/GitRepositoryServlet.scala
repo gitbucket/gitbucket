@@ -245,7 +245,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     with RequestCache {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
-  private var existIds: Seq[String] = Nil
+  private var newCommitIds: Seq[String] = Nil
 
   def onPreReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     Database() withTransaction { implicit session =>
@@ -260,13 +260,43 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             }
         }
         Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
-          existIds = JGitUtil.getAllCommitIds(git)
+          commands.asScala.foreach { command =>
+            val commits = getCommits(git, command)
+            if (commits.size < 100) {
+              newCommitIds = commits
+                .takeWhile { commit =>
+                  !existCommit(git, commit)
+                }
+                .map(_.id)
+            } else {
+              val allCommits = JGitUtil.getAllCommitIds(git)
+              newCommitIds = commits.collect {
+                case commit if !allCommits.contains(commit.id) =>
+                  commit.id
+              }
+            }
+          }
         }
       } catch {
-        case ex: Exception => {
+        case ex: Exception =>
           logger.error(ex.toString, ex)
           throw ex
-        }
+      }
+    }
+  }
+
+  private def existCommit(git: Git, commit: CommitInfo): Boolean = {
+    JGitUtil.getBranchesOfCommit(git, commit.id).nonEmpty
+  }
+
+  private def getCommits(git: Git, command: ReceiveCommand): Seq[CommitInfo] = {
+    val refName = command.getRefName.split("/")
+    if (refName(1) == "tags") {
+      Nil
+    } else {
+      command.getType match {
+        case ReceiveCommand.Type.DELETE => Nil
+        case _                          => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
       }
     }
   }
@@ -279,20 +309,12 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
         Using.resource(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
           JGitUtil.removeCache(git)
 
-          val pushedIds = scala.collection.mutable.Set[String]()
           commands.asScala.foreach { command =>
             logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
             implicit val apiContext: Context = api.JsonFormat.Context(baseUrl, sshUrl)
             val refName = command.getRefName.split("/")
             val branchName = refName.drop(2).mkString("/")
-            val commits = if (refName(1) == "tags") {
-              Nil
-            } else {
-              command.getType match {
-                case ReceiveCommand.Type.DELETE => Nil
-                case _                          => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
-              }
-            }
+            val commits = getCommits(git, command)
 
             val repositoryInfo = getRepository(owner, repository).get
 
@@ -312,8 +334,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 
             // Extract new commit and apply issue comment
             val defaultBranch = repositoryInfo.repository.defaultBranch
-            val newCommits = commits.flatMap { commit =>
-              if (!existIds.contains(commit.id) && !pushedIds.contains(commit.id)) {
+            val pushedIds = scala.collection.mutable.Set[String]()
+            val newCommits = commits.collect {
+              case commit if newCommitIds.contains(commit.id) && !pushedIds.contains(commit.id) =>
                 if (issueCount > 0) {
                   pushedIds.add(commit.id)
                   createIssueComment(owner, repository, commit)
@@ -333,9 +356,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                     }
                   }
                 }
-                Some(commit)
-              } else None
-            }
+                commit
+            }.toList
 
             // set PR as merged
             val pulls = getPullRequestsByBranch(owner, repository, branchName, Some(false))
@@ -431,10 +453,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
         // update repository last modified time.
         updateLastActivityDate(owner, repository)
       } catch {
-        case ex: Exception => {
+        case ex: Exception =>
           logger.error(ex.toString, ex)
           throw ex
-        }
       }
     }
   }
@@ -506,10 +527,9 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
           }
         }
       } catch {
-        case ex: Exception => {
+        case ex: Exception =>
           logger.error(ex.toString, ex)
           throw ex
-        }
       }
     }
   }
