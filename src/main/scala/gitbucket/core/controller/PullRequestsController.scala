@@ -102,10 +102,13 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     val q = request.getParameter("q")
-    if (Option(q).exists(_.contains("is:issue"))) {
-      redirect(s"/${repository.owner}/${repository.name}/issues?q=" + StringUtil.urlEncode(q))
-    } else {
-      searchPullRequests(None, repository)
+    Option(q) match {
+      case Some(filter) if filter.contains("is:issue") =>
+        redirect(s"/${repository.owner}/${repository.name}/issues?q=${StringUtil.urlEncode(q)}")
+      case Some(filter) =>
+        searchPullRequests(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+      case None =>
+        searchPullRequests(repository, IssueSearchCondition(request), IssueSearchCondition.page(request))
     }
   })
 
@@ -690,10 +693,11 @@ trait PullRequestsControllerBase extends ControllerBase {
     html.proposals(proposedBranches, targetRepository, repository)
   })
 
-  private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) = {
-    val page = IssueSearchCondition.page(request)
-    // retrieve search condition
-    val condition = IssueSearchCondition(request)
+  private def searchPullRequests(
+    repository: RepositoryService.RepositoryInfo,
+    condition: IssueSearchCondition,
+    page: Int
+  ) = {
     // search issues
     val issues = searchIssue(
       condition,

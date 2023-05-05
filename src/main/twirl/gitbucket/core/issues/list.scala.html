@@ -24,9 +24,9 @@
         <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
       </li>
     </ul>
-    <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right" autocomplete="off">
+    <form method="GET" action="@helpers.url(repository)/@target" id="search-filter-form" class="form-inline pull-right" autocomplete="off">
       <div class="input-group">
-        <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all issues"/>
+        <input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search all issues" value="@condition.toFilterString" style="width: 300px;"/>
         <input type="hidden" name="type" value="@target"/>
         <span class="input-group-btn">
           <button type="submit" id="search-btn" class="btn btn-default" aria-label="Search all issues"><i class="fa fa-search"></i></button>

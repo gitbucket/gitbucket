@@ -265,7 +265,7 @@ trait IndexControllerBase extends ControllerBase {
     } getOrElse ""
   })
 
-  // TODO Move to RepositoryViewrController?
+  // TODO Move to RepositoryViewerController?
   get("/:owner/:repository/search")(referrersOnly { repository =>
     val query = params.getOrElse("q", "").trim
     val target = params.getOrElse("type", "code")
