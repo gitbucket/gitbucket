@@ -300,10 +300,22 @@ object CustomFieldBehavior {
       implicit context: Context
     ): String = {
       val sb = new StringBuilder
-      sb.append(
-        s"""<span id="custom-field-$fieldId-label" class="custom-field-label">${StringUtil
-             .escapeHtml(value)}</span>""".stripMargin
-      )
+      if (value.nonEmpty) {
+        sb.append(
+          s"""<span id="custom-field-$fieldId-label" class="custom-field-label">${StringUtil
+            .escapeHtml(value)}</span>"""
+        )
+      } else {
+        if (editable) {
+          sb.append(
+            s"""<span id="custom-field-$fieldId-label" class="custom-field-label"><i class="octicon octicon-pencil" style="cursor: pointer;"></i></span>"""
+          )
+        } else {
+          sb.append(
+            s"""<span id="custom-field-$fieldId-label" class="custom-field-label">N/A</span>"""
+          )
+        }
+      }
       if (editable) {
         sb.append(
           s"""<input type="$fieldType" id="custom-field-$fieldId-editor" class="form-control input-sm custom-field-editor" data-field-id="$fieldId" style="width: 120px; display: none;"/>"""
@@ -328,7 +340,11 @@ object CustomFieldBehavior {
             |          { value: $$this.val() },
             |          function(data){
             |            $$this.hide();
-            |            $$this.prev().text(data).show();
+            |            if (data == '') {
+            |              $$this.prev().html('<i class="octicon octicon-pencil" style="cursor: pointer;">').show();
+            |            } else {
+            |              $$this.prev().text(data).show();
+            |            }
             |          }
             |        );
             |      }
