@@ -4,7 +4,11 @@
 - [ ] searched for similar already existing issue
 - [ ] read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki)
 
+<!--
+
 *(if you have performed all the above, remove the paragraph and continue describing the issue with template below)*
+
+-->
 
 ## Issue
 **Impacted version**: xxxx
