@@ -67,21 +67,25 @@ trait IndexControllerBase extends ControllerBase {
     context.loginAccount
       .map { account =>
         val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
-        if (!isNewsFeedEnabled()) {
+        if (!isNewsFeedEnabled) {
           redirect("/dashboard/repos")
         } else {
+          val repos = getVisibleRepositories(
+            Some(account),
+            None,
+            withoutPhysicalInfo = true,
+            limit = false
+          )
+
           gitbucket.core.html.index(
-            activities = getRecentActivitiesByOwners(visibleOwnerSet),
-            recentRepositories = getVisibleRepositories(
-              Some(account),
-              None,
-              withoutPhysicalInfo = true,
-              limit = context.settings.basicBehavior.limitVisibleRepositories
-            ),
+            activities = getRecentActivitiesByRepos(repos.map(x => (x.owner, x.name)).toSet),
+            recentRepositories = if (context.settings.basicBehavior.limitVisibleRepositories) {
+              repos.filter(x => x.owner == account.userName)
+            } else repos,
             showBannerToCreatePersonalAccessToken = hasAccountFederation(account.userName) && !hasAccessToken(
               account.userName
             ),
-            enableNewsFeed = isNewsFeedEnabled()
+            enableNewsFeed = isNewsFeedEnabled
           )
         }
       }
@@ -90,7 +94,7 @@ trait IndexControllerBase extends ControllerBase {
           activities = getRecentPublicActivities(),
           recentRepositories = getVisibleRepositories(None, withoutPhysicalInfo = true),
           showBannerToCreatePersonalAccessToken = false,
-          enableNewsFeed = isNewsFeedEnabled()
+          enableNewsFeed = isNewsFeedEnabled
         )
       }
   }
@@ -167,16 +171,16 @@ trait IndexControllerBase extends ControllerBase {
   }
 
   get("/signout") {
-    context.settings.oidc.map { oidc =>
+    context.settings.oidc.foreach { oidc =>
       session.get(Keys.Session.OidcSessionContext).foreach {
         case context: OidcSessionContext =>
           val redirectURI = new URI(baseUrl)
           val authenticationRequest = createOIDLogoutRequest(oidc.issuer, oidc.clientID, redirectURI, context.token)
-          session.invalidate
+          session.invalidate()
           redirect(authenticationRequest.toURI.toString)
       }
     }
-    session.invalidate
+    session.invalidate()
     if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
       deleteLoginAccountFromLocalFile()
     }
@@ -228,7 +232,7 @@ trait IndexControllerBase extends ControllerBase {
     org.json4s.jackson.Serialization.write(
       Map(
         "options" -> (
-          getAllUsers(false)
+          getAllUsers(includeRemoved = false)
             .withFilter { t =>
               (user, group) match {
                 case (true, true)   => true
@@ -275,8 +279,8 @@ trait IndexControllerBase extends ControllerBase {
     target.toLowerCase match {
       case "issues" =>
         gitbucket.core.search.html.issues(
-          if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, false) else Nil,
-          false,
+          if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, pullRequest = false) else Nil,
+          pullRequest = false,
           query,
           page,
           repository
@@ -284,8 +288,8 @@ trait IndexControllerBase extends ControllerBase {
 
       case "pulls" =>
         gitbucket.core.search.html.issues(
-          if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, true) else Nil,
-          true,
+          if (query.nonEmpty) searchIssues(repository.owner, repository.name, query, pullRequest = true) else Nil,
+          pullRequest = true,
           query,
           page,
           repository
@@ -320,15 +324,15 @@ trait IndexControllerBase extends ControllerBase {
       )
 
     val repositories = {
-      context.settings.basicBehavior.limitVisibleRepositories match {
-        case true =>
-          getVisibleRepositories(
-            context.loginAccount,
-            None,
-            withoutPhysicalInfo = true,
-            limit = false
-          )
-        case false => visibleRepositories
+      if (context.settings.basicBehavior.limitVisibleRepositories) {
+        getVisibleRepositories(
+          context.loginAccount,
+          None,
+          withoutPhysicalInfo = true,
+          limit = false
+        )
+      } else {
+        visibleRepositories
       }
     }.filter { repository =>
       repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0

@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import gitbucket.core.controller.Context
 import gitbucket.core.util.ConfigUtil
 import org.apache.commons.io.input.ReversedLinesFileReader
-
 import ActivityService._
 
 import scala.collection.mutable.ListBuffer
@@ -28,40 +27,52 @@ trait ActivityService {
     }
   }
 
-  def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit context: Context): List[Activity] = {
-    if (!isNewsFeedEnabled() || !ActivityLog.exists()) {
-      List.empty
-    } else {
-      val list = new ListBuffer[Activity]
-      Using.resource(new ReversedLinesFileReader(ActivityLog, StandardCharsets.UTF_8)) { reader =>
-        var json: String = null
-        while (list.length < 50 && { json = reader.readLine(); json } != null) {
-          val activity = read[Activity](json)
-          if (activity.activityUserName == activityUserName) {
-            if (isPublic == false) {
-              list += activity
-            } else {
-              if (!getRepositoryInfoFromCache(activity.userName, activity.repositoryName).forall(_.isPrivate)) {
-                list += activity
-              }
-            }
-          }
-        }
-      }
-      list.toList
+  def getActivitiesByUser(activityUserName: String, publicOnly: Boolean)(implicit context: Context): List[Activity] = {
+    getActivities(includePublic = false) { activity =>
+      if (activity.activityUserName == activityUserName) {
+        !publicOnly || isPublicActivity(activity)
+      } else false
     }
   }
 
   def getRecentPublicActivities()(implicit context: Context): List[Activity] = {
-    if (!isNewsFeedEnabled() || !ActivityLog.exists()) {
+    getActivities(includePublic = true) { _ =>
+      false
+    }
+  }
+
+  def getRecentActivitiesByRepos(repos: Set[(String, String)])(implicit context: Context): List[Activity] = {
+    getActivities(includePublic = true) { activity =>
+      repos.exists {
+        case (userName, repositoryName) =>
+          activity.userName == userName && activity.repositoryName == repositoryName
+      }
+    }
+  }
+
+  private def getActivities(
+    includePublic: Boolean
+  )(filter: Activity => Boolean)(implicit context: Context): List[Activity] = {
+    if (!isNewsFeedEnabled || !ActivityLog.exists()) {
       List.empty
     } else {
       val list = new ListBuffer[Activity]
-      Using.resource(new ReversedLinesFileReader(ActivityLog, StandardCharsets.UTF_8)) { reader =>
+      Using.resource(
+        ReversedLinesFileReader
+          .builder()
+          .setFile(ActivityLog)
+          .setCharset(StandardCharsets.UTF_8)
+          .get()
+      ) { reader =>
         var json: String = null
-        while (list.length < 50 && { json = reader.readLine(); json } != null) {
+        while (list.length < 50 && {
+                 json = reader.readLine();
+                 json
+               } != null) {
           val activity = read[Activity](json)
-          if (!getRepositoryInfoFromCache(activity.userName, activity.repositoryName).forall(_.isPrivate)) {
+          if (filter(activity)) {
+            list += activity
+          } else if (includePublic && isPublicActivity(activity)) {
             list += activity
           }
         }
@@ -70,24 +81,8 @@ trait ActivityService {
     }
   }
 
-  def getRecentActivitiesByOwners(owners: Set[String])(implicit context: Context): List[Activity] = {
-    if (!isNewsFeedEnabled() || !ActivityLog.exists()) {
-      List.empty
-    } else {
-      val list = new ListBuffer[Activity]
-      Using.resource(new ReversedLinesFileReader(ActivityLog, StandardCharsets.UTF_8)) { reader =>
-        var json: String = null
-        while (list.length < 50 && { json = reader.readLine(); json } != null) {
-          val activity = read[Activity](json)
-          if (owners.contains(activity.userName)) {
-            list += activity
-          } else if (!getRepositoryInfoFromCache(activity.userName, activity.repositoryName).forall(_.isPrivate)) {
-            list += activity
-          }
-        }
-      }
-      list.toList
-    }
+  private def isPublicActivity(activity: Activity)(implicit context: Context): Boolean = {
+    !getRepositoryInfoFromCache(activity.userName, activity.repositoryName).forall(_.isPrivate)
   }
 
   def recordActivity[T <: { def toActivity: Activity }](info: T): Unit = {
@@ -97,6 +92,6 @@ trait ActivityService {
 }
 
 object ActivityService {
-  def isNewsFeedEnabled(): Boolean =
+  def isNewsFeedEnabled: Boolean =
     !ConfigUtil.getConfigValue[Boolean]("gitbucket.disableNewsFeed").getOrElse(false)
 }
