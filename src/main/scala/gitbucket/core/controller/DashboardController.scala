@@ -43,7 +43,7 @@ trait DashboardControllerBase extends ControllerBase {
         withoutPhysicalInfo = true,
         limit = context.settings.basicBehavior.limitVisibleRepositories
       )
-      html.repos(getGroupNames(loginAccount.userName), repos, repos, isNewsFeedEnabled())
+      html.repos(getGroupNames(loginAccount.userName), repos, repos, isNewsFeedEnabled)
     }
   })
 
@@ -132,7 +132,7 @@ trait DashboardControllerBase extends ControllerBase {
         withoutPhysicalInfo = true,
         limit = context.settings.basicBehavior.limitVisibleRepositories
       ),
-      isNewsFeedEnabled()
+      isNewsFeedEnabled
     )
   }
 
@@ -175,7 +175,7 @@ trait DashboardControllerBase extends ControllerBase {
         withoutPhysicalInfo = true,
         limit = context.settings.basicBehavior.limitVisibleRepositories
       ),
-      isNewsFeedEnabled()
+      isNewsFeedEnabled
     )
   }
 
