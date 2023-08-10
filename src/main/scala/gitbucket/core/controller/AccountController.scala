@@ -185,7 +185,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     initOption: String,
     sourceUrl: Option[String]
   )
-  case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
     "owner" -> trim(label("Owner", text(required, maxlength(100), identifier, existsAccount))),
@@ -195,11 +194,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "initOption" -> trim(label("Initialize option", text(required))),
     "sourceUrl" -> trim(label("Source URL", optionalRequired(_.value("initOption") == "COPY", text())))
   )(RepositoryCreationForm.apply)
-
-  val forkRepositoryForm = mapping(
-    "owner" -> trim(label("Repository owner", text(required))),
-    "name" -> trim(label("Repository name", text(required)))
-  )(ForkRepositoryForm.apply)
 
   case class AccountForm(accountName: String)
 
@@ -268,7 +262,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           gitbucket.core.account.html.activity(
             account,
             if (account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getActivitiesByUser(userName, true),
+            getActivitiesByUser(userName, publicOnly = true),
             extraMailAddresses
           )
 
