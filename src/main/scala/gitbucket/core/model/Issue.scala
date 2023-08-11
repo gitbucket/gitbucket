@@ -47,7 +47,7 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
         registeredDate,
         updatedDate,
         pullRequest
-      ).<>(Issue.tupled, Issue.unapply)
+      ).mapTo[Issue]
 
     def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
   }

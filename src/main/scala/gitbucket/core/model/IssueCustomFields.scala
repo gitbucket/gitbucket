@@ -13,8 +13,7 @@ trait IssueCustomFieldComponent extends TemplateComponent { self: Profile =>
     val fieldId = column[Int]("FIELD_ID", O.PrimaryKey)
     val value = column[String]("VALUE")
     def * =
-      (userName, repositoryName, issueId, fieldId, value)
-        .<>(IssueCustomField.tupled, IssueCustomField.unapply)
+      (userName, repositoryName, issueId, fieldId, value).mapTo[IssueCustomField]
 
     def byPrimaryKey(owner: String, repository: String, issueId: Int, fieldId: Int) = {
       this.userName === owner.bind && this.repositoryName === repository.bind && this.issueId === issueId.bind && this.fieldId === fieldId.bind

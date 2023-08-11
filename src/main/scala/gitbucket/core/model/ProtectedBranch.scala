@@ -7,7 +7,7 @@ trait ProtectedBranchComponent extends TemplateComponent { self: Profile =>
   lazy val ProtectedBranches = TableQuery[ProtectedBranches]
   class ProtectedBranches(tag: Tag) extends Table[ProtectedBranch](tag, "PROTECTED_BRANCH") with BranchTemplate {
     val statusCheckAdmin = column[Boolean]("STATUS_CHECK_ADMIN")
-    def * = (userName, repositoryName, branch, statusCheckAdmin).<>(ProtectedBranch.tupled, ProtectedBranch.unapply)
+    def * = (userName, repositoryName, branch, statusCheckAdmin).mapTo[ProtectedBranch]
     def byPrimaryKey(userName: String, repositoryName: String, branch: String) =
       byBranch(userName, repositoryName, branch)
     def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], branch: Rep[String]) =
@@ -20,7 +20,7 @@ trait ProtectedBranchComponent extends TemplateComponent { self: Profile =>
       with BranchTemplate {
     val context = column[String]("CONTEXT")
     def * =
-      (userName, repositoryName, branch, context).<>(ProtectedBranchContext.tupled, ProtectedBranchContext.unapply)
+      (userName, repositoryName, branch, context).mapTo[ProtectedBranchContext]
   }
 }
 

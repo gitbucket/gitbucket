@@ -9,7 +9,7 @@ trait AccountPreferenceComponent { self: Profile =>
     val userName = column[String]("USER_NAME", O PrimaryKey)
     val highlighterTheme = column[String]("HIGHLIGHTER_THEME")
     def * =
-      (userName, highlighterTheme).<>(AccountPreference.tupled, AccountPreference.unapply)
+      (userName, highlighterTheme).mapTo[AccountPreference]
 
     def byPrimaryKey(userName: String): Rep[Boolean] = this.userName === userName.bind
   }
