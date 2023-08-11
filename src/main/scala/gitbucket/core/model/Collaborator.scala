@@ -8,7 +8,7 @@ trait CollaboratorComponent extends TemplateComponent { self: Profile =>
   class Collaborators(tag: Tag) extends Table[Collaborator](tag, "COLLABORATOR") with BasicTemplate {
     val collaboratorName = column[String]("COLLABORATOR_NAME")
     val role = column[String]("ROLE")
-    def * = (userName, repositoryName, collaboratorName, role).<>(Collaborator.tupled, Collaborator.unapply)
+    def * = (userName, repositoryName, collaboratorName, role).mapTo[Collaborator]
 
     def byPrimaryKey(owner: String, repository: String, collaborator: String) =
       byRepository(owner, repository) && (collaboratorName === collaborator.bind)

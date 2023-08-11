@@ -9,8 +9,7 @@ trait IssueAssigneeComponent extends TemplateComponent { self: Profile =>
   class IssueAssignees(tag: Tag) extends Table[IssueAssignee](tag, "ISSUE_ASSIGNEE") with IssueTemplate {
     val assigneeUserName = column[String]("ASSIGNEE_USER_NAME")
     def * =
-      (userName, repositoryName, issueId, assigneeUserName)
-        .<>(IssueAssignee.tupled, IssueAssignee.unapply)
+      (userName, repositoryName, issueId, assigneeUserName).mapTo[IssueAssignee]
 
     def byPrimaryKey(owner: String, repository: String, issueId: Int, assigneeUserName: String) = {
       byIssue(owner, repository, issueId) && this.assigneeUserName === assigneeUserName.bind

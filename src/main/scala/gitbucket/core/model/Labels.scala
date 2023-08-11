@@ -9,7 +9,7 @@ trait LabelComponent extends TemplateComponent { self: Profile =>
     override val labelId = column[Int]("LABEL_ID", O AutoInc)
     override val labelName = column[String]("LABEL_NAME")
     val color = column[String]("COLOR")
-    def * = (userName, repositoryName, labelId, labelName, color).<>(Label.tupled, Label.unapply)
+    def * = (userName, repositoryName, labelId, labelName, color).mapTo[Label]
 
     def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
     def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], labelId: Rep[Int]) =

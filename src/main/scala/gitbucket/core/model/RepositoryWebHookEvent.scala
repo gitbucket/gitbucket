@@ -12,7 +12,7 @@ trait RepositoryWebHookEventComponent extends TemplateComponent { self: Profile 
     val url = column[String]("URL")
     val event = column[WebHook.Event]("EVENT")
     def * =
-      (userName, repositoryName, url, event).<>((RepositoryWebHookEvent.apply _).tupled, RepositoryWebHookEvent.unapply)
+      (userName, repositoryName, url, event).mapTo[RepositoryWebHookEvent]
 
     def byRepositoryWebHook(owner: String, repository: String, url: String) =
       byRepository(owner, repository) && (this.url === url.bind)

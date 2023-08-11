@@ -25,7 +25,7 @@ trait PullRequestComponent extends TemplateComponent { self: Profile =>
         commitIdFrom,
         commitIdTo,
         isDraft
-      ).<>(PullRequest.tupled, PullRequest.unapply)
+      ).mapTo[PullRequest]
 
     def byPrimaryKey(userName: String, repositoryName: String, issueId: Int) =
       byIssue(userName, repositoryName, issueId)

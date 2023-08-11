@@ -9,7 +9,7 @@ trait AccountFederationComponent { self: Profile =>
     val issuer = column[String]("ISSUER")
     val subject = column[String]("SUBJECT")
     val userName = column[String]("USER_NAME")
-    def * = (issuer, subject, userName).<>(AccountFederation.tupled, AccountFederation.unapply)
+    def * = (issuer, subject, userName).mapTo[AccountFederation]
 
     def byPrimaryKey(issuer: String, subject: String): Rep[Boolean] =
       (this.issuer === issuer.bind) && (this.subject === subject.bind)

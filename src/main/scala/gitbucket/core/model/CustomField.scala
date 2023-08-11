@@ -21,7 +21,7 @@ trait CustomFieldComponent extends TemplateComponent { self: Profile =>
     val enableForPullRequests = column[Boolean]("ENABLE_FOR_PULL_REQUESTS")
     def * =
       (userName, repositoryName, fieldId, fieldName, fieldType, constraints, enableForIssues, enableForPullRequests)
-        .<>(CustomField.tupled, CustomField.unapply)
+        .mapTo[CustomField]
 
     def byPrimaryKey(userName: String, repositoryName: String, fieldId: Int) =
       (this.userName === userName.bind) && (this.repositoryName === repositoryName.bind) && (this.fieldId === fieldId.bind)

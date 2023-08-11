@@ -12,7 +12,7 @@ trait AccountWebHookComponent extends TemplateComponent { self: Profile =>
     val url = column[String]("URL")
     val token = column[Option[String]]("TOKEN")
     val ctype = column[WebHookContentType]("CTYPE")
-    def * = (userName, url, ctype, token).<>((AccountWebHook.apply _).tupled, AccountWebHook.unapply)
+    def * = (userName, url, ctype, token).mapTo[AccountWebHook]
 
     def byPrimaryKey(userName: String, url: String) = (this.userName === userName.bind) && (this.url === url.bind)
   }

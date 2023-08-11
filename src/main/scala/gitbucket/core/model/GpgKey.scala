@@ -11,7 +11,7 @@ trait GpgKeyComponent { self: Profile =>
     val gpgKeyId = column[Long]("GPG_KEY_ID")
     val title = column[String]("TITLE")
     val publicKey = column[String]("PUBLIC_KEY")
-    def * = (userName, keyId, gpgKeyId, title, publicKey).<>(GpgKey.tupled, GpgKey.unapply)
+    def * = (userName, keyId, gpgKeyId, title, publicKey).mapTo[GpgKey]
 
     def byPrimaryKey(userName: String, keyId: Int) =
       (this.userName === userName.bind) && (this.keyId === keyId.bind)

@@ -11,7 +11,7 @@ trait DeployKeyComponent extends TemplateComponent { self: Profile =>
     val publicKey = column[String]("PUBLIC_KEY")
     val allowWrite = column[Boolean]("ALLOW_WRITE")
     def * =
-      (userName, repositoryName, deployKeyId, title, publicKey, allowWrite).<>(DeployKey.tupled, DeployKey.unapply)
+      (userName, repositoryName, deployKeyId, title, publicKey, allowWrite).mapTo[DeployKey]
 
     def byPrimaryKey(userName: String, repositoryName: String, deployKeyId: Int) =
       (this.userName === userName.bind) && (this.repositoryName === repositoryName.bind) && (this.deployKeyId === deployKeyId.bind)

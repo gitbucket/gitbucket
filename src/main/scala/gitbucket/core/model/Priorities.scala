@@ -13,8 +13,7 @@ trait PriorityComponent extends TemplateComponent { self: Profile =>
     val isDefault = column[Boolean]("IS_DEFAULT")
     val color = column[String]("COLOR")
     def * =
-      (userName, repositoryName, priorityId, priorityName, description.?, isDefault, ordering, color)
-        .<>(Priority.tupled, Priority.unapply)
+      (userName, repositoryName, priorityId, priorityName, description.?, isDefault, ordering, color).mapTo[Priority]
 
     def byPrimaryKey(owner: String, repository: String, priorityId: Int) = byPriority(owner, repository, priorityId)
     def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], priorityId: Rep[Int]) =

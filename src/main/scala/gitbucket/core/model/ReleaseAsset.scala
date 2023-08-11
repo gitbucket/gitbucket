@@ -20,7 +20,7 @@ trait ReleaseAssetComponent extends TemplateComponent { self: Profile =>
 
     def * =
       (userName, repositoryName, tag, releaseAssetId, fileName, label, size, uploader, registeredDate, updatedDate)
-        .<>(ReleaseAsset.tupled, ReleaseAsset.unapply)
+        .mapTo[ReleaseAsset]
     def byPrimaryKey(owner: String, repository: String, tag: String, fileName: String) =
       byTag(owner, repository, tag) && (this.fileName === fileName.bind)
     def byTag(owner: String, repository: String, tag: String) =
