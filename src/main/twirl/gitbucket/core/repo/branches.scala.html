@@ -46,7 +46,7 @@
           </td>
           <td class="text-right">
             <div class="branch-action">
-              @if(repository.repository.defaultBranch != branch.name){
+              @if(repository.repository.defaultBranch != branch.name || repository.repository.originUserName.isDefined){
                 @branch.mergeInfo.map{ info =>
                   @prs.map{ case (pull, issue) =>
                     <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title">#@issue.issueId</a>
@@ -76,13 +76,14 @@
                   }
                   @if(hasWritePermission){
                     <span style="margin-left: 8px;">
-                    @if(prs.map(!_._2.closed).getOrElse(false)){
+                    @if(prs.exists(!_._2.closed)){
                       <a class="disabled" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="octicon octicon-trashcan"></i></a>
                     } else {
-                      @if(isProtected){
+                      @if(isProtected || repository.repository.defaultBranch == branch.name) {
                         <a class="disabled" data-toggle="tooltip" title="You can’t delete a protected branch."><i class="octicon octicon-trashcan"></i></a>
                       } else {
-                        <a href="@helpers.url(repository)/delete/@helpers.encodeRefName(branch.name)" class="delete-branch" data-name="@branch.name" @if(info.isMerged){ data-toggle="tooltip" title="this branch is merged" }><i class="octicon octicon-trashcan @if(info.isMerged){warning} else {danger}"></i></a>
+                        <a href="@helpers.url(repository)/delete/@helpers.encodeRefName(branch.name)" class="delete-branch" data-name="@branch.name" @if(info.isMerged) {
+                          data-toggle="tooltip" title="this branch is merged" }><i class="octicon octicon-trashcan @if(info.isMerged) {warning} else {danger}"></i></a>
                       }
                     }
                     </span>
@@ -99,7 +100,7 @@
 <script>
 $(function(){
   $('.delete-branch').click(function(e){
-    var branchName = $(e.target).closest('a').data('name');
+    const branchName = $(e.target).closest('a').data('name');
     return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
   });
   $('*[data-toggle=tooltip]').tooltip().css("white-space","nowrap");
