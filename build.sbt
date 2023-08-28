@@ -53,7 +53,7 @@ libraryDependencies ++= Seq(
   "commons-net"                     % "commons-net"                  % "3.9.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.14",
   "org.apache.sshd"                 % "apache-sshd"                  % "2.10.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "2.8.0",
+  "org.apache.tika"                 % "tika-core"                    % "2.9.0",
   "com.github.takezoe"              %% "blocking-slick"              % "0.0.14",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
