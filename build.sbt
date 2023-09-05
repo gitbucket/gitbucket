@@ -17,7 +17,7 @@ name := Name
 version := GitBucketVersion
 scalaVersion := "2.13.11"
 
-crossScalaVersions += "3.3.0"
+crossScalaVersions += "3.3.1"
 
 conflictWarning := {
   if (scalaBinaryVersion.value == "3") {
