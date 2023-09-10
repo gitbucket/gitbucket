@@ -11,7 +11,7 @@ trait ActivityComponent extends TemplateComponent { self: Profile =>
   lazy val Activities = TableQuery[Activities]
 
   class Activities(tag: Tag) extends Table[Activity](tag, "ACTIVITY") with BasicTemplate {
-    def * = ???
+    def * : slick.lifted.ProvenShape[Activity] = ???
   }
 }
 
