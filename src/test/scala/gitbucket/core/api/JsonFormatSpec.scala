@@ -1,11 +1,12 @@
 package gitbucket.core.api
 
+import org.json4s.Formats
 import org.json4s.jackson.JsonMethods
 import org.scalatest.funsuite.AnyFunSuite
 
 class JsonFormatSpec extends AnyFunSuite {
   import ApiSpecModels._
-  implicit val format = JsonFormat.jsonFormats
+  implicit val format: Formats = JsonFormat.jsonFormats
 
   private def expected(json: String) = json.replaceAll("\n", "")
   def normalizeJson(json: String) = {

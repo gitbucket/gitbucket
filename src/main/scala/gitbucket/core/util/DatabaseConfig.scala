@@ -99,26 +99,26 @@ object DatabaseType {
 
   object H2 extends DatabaseType {
     val jdbcDriver = "org.h2.Driver"
-    val slickDriver = BlockingH2Driver
-    val liquiDriver = new H2Database()
+    val slickDriver: BlockingJdbcProfile = BlockingH2Driver
+    val liquiDriver: AbstractJdbcDatabase = new H2Database()
   }
 
   object MySQL extends DatabaseType {
     val jdbcDriver = "org.mariadb.jdbc.Driver"
-    val slickDriver = BlockingMySQLDriver
-    val liquiDriver = new MySQLDatabase()
+    val slickDriver: BlockingJdbcProfile = BlockingMySQLDriver
+    val liquiDriver: AbstractJdbcDatabase = new MySQLDatabase()
   }
 
   object MariaDb extends DatabaseType {
     val jdbcDriver = "org.mariadb.jdbc.Driver"
-    val slickDriver = BlockingMySQLDriver
-    val liquiDriver = new MariaDBDatabase()
+    val slickDriver: BlockingJdbcProfile = BlockingMySQLDriver
+    val liquiDriver: AbstractJdbcDatabase = new MariaDBDatabase()
   }
 
   object PostgreSQL extends DatabaseType {
     val jdbcDriver = "org.postgresql.Driver2"
-    val slickDriver = BlockingPostgresDriver
-    val liquiDriver = new PostgresDatabase()
+    val slickDriver: BlockingJdbcProfile = BlockingPostgresDriver
+    val liquiDriver: AbstractJdbcDatabase = new PostgresDatabase()
   }
 
   object BlockingPostgresDriver extends slick.jdbc.PostgresProfile with BlockingJdbcProfile {

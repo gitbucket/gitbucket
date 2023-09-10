@@ -9,7 +9,7 @@ import org.mockito.Mockito._
 
 class HelpersSpec extends AnyFunSpec {
 
-  private implicit val context = mock(classOf[Context])
+  private implicit val context: Context = mock(classOf[Context])
   private val repository = mock(classOf[RepositoryInfo])
 
   import helpers._

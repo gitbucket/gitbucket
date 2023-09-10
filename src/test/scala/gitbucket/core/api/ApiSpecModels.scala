@@ -13,7 +13,7 @@ import org.eclipse.jgit.lib.ObjectId
 
 object ApiSpecModels {
 
-  implicit val context = JsonFormat.Context("http://gitbucket.exmple.com", None)
+  implicit val context: JsonFormat.Context = JsonFormat.Context("http://gitbucket.exmple.com", None)
 
   val date1 = {
     val d = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
