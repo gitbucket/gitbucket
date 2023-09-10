@@ -100,6 +100,14 @@ scalacOptions := Seq(
   "-Wunused:imports",
   "-Wconf:cat=unused&src=twirl/.*:s,cat=unused&src=scala/gitbucket/core/model/[^/]+\\.scala:s"
 )
+scalacOptions ++= {
+  scalaBinaryVersion.value match {
+    case "2.13" =>
+      Seq("-Xsource:3")
+    case _ =>
+      Nil
+  }
+}
 compile / javacOptions ++= Seq("-target", "11", "-source", "11")
 Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 
