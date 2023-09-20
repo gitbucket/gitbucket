@@ -203,7 +203,7 @@ executableKey := {
         val url = "https://github.com/" +
           s"gitbucket/gitbucket-${pluginId}-plugin/releases/download/${pluginVersion}/gitbucket-${pluginId}-plugin-${pluginVersion}.jar"
         log info s"Download: ${url}"
-        IO transfer (new java.net.URL(url).openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+        IO transfer (new java.net.URI(url).toURL.openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
       case _ => ()
     }
   }
