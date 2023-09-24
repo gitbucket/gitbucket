@@ -4,7 +4,7 @@ import com.jsuereth.sbtpgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.40.0-SNAPSHOT"
-val ScalatraVersion = "3.0.0-M5-javax"
+val ScalatraVersion = "3.0.0-RC1"
 val JettyVersion = "10.0.16"
 val JgitVersion = "6.7.0.202309050840-r"
 
@@ -41,9 +41,9 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % JgitVersion,
-  "org.scalatra"                    %% "scalatra"                    % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-json"               % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-forms"              % ScalatraVersion,
+  "org.scalatra"                    %% "scalatra-javax"              % ScalatraVersion,
+  "org.scalatra"                    %% "scalatra-json-javax"         % ScalatraVersion,
+  "org.scalatra"                    %% "scalatra-forms-javax"        % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"              % "4.0.6",
   "commons-io"                      % "commons-io"                   % "2.13.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.5",
@@ -71,7 +71,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
-  "org.scalatra"                    %% "scalatra-scalatest"          % ScalatraVersion % "test",
+  "org.scalatra"                    %% "scalatra-scalatest-javax"    % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"                 % "5.5.0" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.41.0" % "test",
   "org.testcontainers"              % "mysql"                        % "1.19.0" % "test",
