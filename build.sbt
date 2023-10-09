@@ -19,15 +19,6 @@ scalaVersion := "2.13.12"
 
 crossScalaVersions += "3.3.1"
 
-conflictWarning := {
-  if (scalaBinaryVersion.value == "3") {
-    // TODO remove this workaround
-    ConflictWarning("warn", Level.Warn, false)
-  } else {
-    conflictWarning.value
-  }
-}
-
 // scalafmtOnCompile := true
 
 coverageExcludedPackages := ".*\\.html\\..*"
@@ -81,15 +72,6 @@ libraryDependencies ++= Seq(
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
   "org.kohsuke"                     % "github-api"                   % "1.316" % "test"
 )
-
-libraryDependencies ~= {
-  _.map {
-    case x if x.name == "twirl-api" =>
-      x cross CrossVersion.for3Use2_13
-    case x =>
-      x
-  }
-}
 
 // Compiler settings
 scalacOptions := Seq(
