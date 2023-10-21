@@ -89,10 +89,13 @@ trait IssuesControllerBase extends ControllerBase {
 
   get("/:owner/:repository/issues")(referrersOnly { repository =>
     val q = request.getParameter("q")
-    if (Option(q).exists(_.contains("is:pr"))) {
-      redirect(s"/${repository.owner}/${repository.name}/pulls?q=${StringUtil.urlEncode(q)}")
-    } else {
-      searchIssues(repository)
+    Option(q) match {
+      case Some(filter) if filter.contains("is:pr") =>
+        redirect(s"/${repository.owner}/${repository.name}/pulls?q=${StringUtil.urlEncode(q)}")
+      case Some(filter) =>
+        searchIssues(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+      case None =>
+        searchIssues(repository, IssueSearchCondition(request), IssueSearchCondition.page(request))
     }
   })
 
@@ -531,10 +534,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
-  private def searchIssues(repository: RepositoryService.RepositoryInfo) = {
-    val page = IssueSearchCondition.page(request)
-    // retrieve search condition
-    val condition = IssueSearchCondition(request)
+  private def searchIssues(repository: RepositoryService.RepositoryInfo, condition: IssueSearchCondition, page: Int) = {
     // search issues
     val issues =
       searchIssue(
