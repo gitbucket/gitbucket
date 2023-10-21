@@ -59,12 +59,13 @@ Support
 - If you can't find same question and report, send it to our [Gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.39.x
+What's New in 4.40.x
 -------------
-## 4.39.0 - 29 Apr 2023
-- Support enum type in custom fields of Issues and Pull requests
-- Hide large diffs by default
-- Add new options to make it possible to run GitBucket using multiple machines
-- Fix many API issues
+## 4.40.0 - 22 Oct 2023
+- Drop Java 8 support
+- Improve git push performance
+- Show activities of all visible repositories as news feed
+- Support custom fields of issues and pull requests in search condition
+- Configurable default branch name
 
 See the [change log](CHANGELOG.md) for all of the updates.

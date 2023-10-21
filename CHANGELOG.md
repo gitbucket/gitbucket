@@ -1,6 +1,13 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.40.0 - 22 Oct 2023
+- Drop Java 8 support
+- Improve git push performance
+- Show activities of all visible repositories as news feed
+- Support custom fields of issues and pull requests in search condition
+- Configurable default branch name
+
 ## 4.39.0 - 29 Apr 2023
 - Support enum type in custom fields of Issues and Pull requests
 - Hide large diffs by default
