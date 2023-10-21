@@ -4,8 +4,8 @@ import com.jsuereth.sbtpgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.40.0-SNAPSHOT"
-val ScalatraVersion = "3.0.0-RC1"
-val JettyVersion = "10.0.16"
+val ScalatraVersion = "3.0.0"
+val JettyVersion = "10.0.17"
 val JgitVersion = "6.7.0.202309050840-r"
 
 lazy val root = (project in file("."))
@@ -18,15 +18,6 @@ version := GitBucketVersion
 scalaVersion := "2.13.12"
 
 crossScalaVersions += "3.3.1"
-
-conflictWarning := {
-  if (scalaBinaryVersion.value == "3") {
-    // TODO remove this workaround
-    ConflictWarning("warn", Level.Warn, false)
-  } else {
-    conflictWarning.value
-  }
-}
 
 // scalafmtOnCompile := true
 
@@ -45,15 +36,15 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra-json-javax"         % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-forms-javax"        % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"              % "4.0.6",
-  "commons-io"                      % "commons-io"                   % "2.13.0",
+  "commons-io"                      % "commons-io"                   % "2.14.0",
   "io.github.gitbucket"             % "solidbase"                    % "1.0.5",
   "io.github.gitbucket"             % "markedj"                      % "1.0.18",
   "org.apache.commons"              % "commons-compress"             % "1.24.0",
   "org.apache.commons"              % "commons-email"                % "1.5",
-  "commons-net"                     % "commons-net"                  % "3.9.0",
+  "commons-net"                     % "commons-net"                  % "3.10.0",
   "org.apache.httpcomponents"       % "httpclient"                   % "4.5.14",
-  "org.apache.sshd"                 % "apache-sshd"                  % "2.10.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "2.9.0",
+  "org.apache.sshd"                 % "apache-sshd"                  % "2.11.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
+  "org.apache.tika"                 % "tika-core"                    % "2.9.1",
   "com.github.takezoe"              %% "blocking-slick"              % "0.0.14",
   "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
   "com.h2database"                  % "h2"                           % "1.4.199",
@@ -61,35 +52,26 @@ libraryDependencies ++= Seq(
   "org.postgresql"                  % "postgresql"                   % "42.6.0",
   "ch.qos.logback"                  % "logback-classic"              % "1.4.11",
   "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
-  "com.typesafe"                    % "config"                       % "1.4.2",
+  "com.typesafe"                    % "config"                       % "1.4.3",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
   "io.github.java-diff-utils"       % "java-diff-utils"              % "4.12",
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "11.0",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "11.4",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest-javax"    % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "5.5.0" % "test",
+  "org.mockito"                     % "mockito-core"                 % "5.6.0" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.41.0" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.19.0" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.19.0" % "test",
+  "org.testcontainers"              % "mysql"                        % "1.19.1" % "test",
+  "org.testcontainers"              % "postgresql"                   % "1.19.1" % "test",
   "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
-  "org.kohsuke"                     % "github-api"                   % "1.316" % "test"
+  "org.kohsuke"                     % "github-api"                   % "1.317" % "test"
 )
-
-libraryDependencies ~= {
-  _.map {
-    case x if x.name == "twirl-api" =>
-      x cross CrossVersion.for3Use2_13
-    case x =>
-      x
-  }
-}
 
 // Compiler settings
 scalacOptions := Seq(
