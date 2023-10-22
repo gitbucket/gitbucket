@@ -159,8 +159,7 @@ executableKey := {
   val jettyJars = Keys.update.value select configurationFilter(name = ExecutableConfig.name)
   jettyJars foreach { jar =>
     IO unzip (jar, temp, (name: String) =>
-      (name startsWith "javax/") ||
-        (name startsWith "org/"))
+      (name startsWith "javax/") || (name startsWith "org/") || (name startsWith "META-INF/services/"))
   }
 
   // include original war file
