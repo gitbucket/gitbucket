@@ -62,10 +62,11 @@ Support
 What's New in 4.40.x
 -------------
 ## 4.40.0 - 22 Oct 2023
+- Configurable default branch name
+- Support custom fields of issues and pull requests in search condition
+- Create pull request from default branch of forked repositories
+- News feed shows activities of all visible repositories
 - Drop Java 8 support
 - Improve git push performance
-- Show activities of all visible repositories as news feed
-- Support custom fields of issues and pull requests in search condition
-- Configurable default branch name
 
 See the [change log](CHANGELOG.md) for all of the updates.
