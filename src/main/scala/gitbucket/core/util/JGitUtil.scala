@@ -28,6 +28,7 @@ import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.LoggerFactory
 
 import scala.util.Using.Releasable
+import java.nio.file.{Files, Paths}
 
 /**
  * Provides complex JGit operations.
@@ -897,6 +898,10 @@ object JGitUtil {
       repository =>
         repository.create(true)
         setReceivePack(repository)
+        
+        var hooksPath = Paths.get(dir, "hooks").toString()
+        File source = new File(System.getenv("DEFAULT_HOOK_SCRIPT"));
+        File dest = new File(hooksPath);
     }
 
   def cloneRepository(from: java.io.File, to: java.io.File): Unit =

@@ -97,8 +97,8 @@ Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
 Test / javaOptions += "-Dgitbucket.home=target/gitbucket_home_for_test"
 Test / testOptions += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
-Test / fork := true
-
+Test / fork := false
+//fork in Test := false
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 
@@ -285,9 +285,13 @@ Test / testOptions ++= {
 }
 
 Jetty / javaOptions ++= Seq(
-  "-Dlogback.configurationFile=/logback-dev.xml",
-  "-Xdebug",
-  "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000",
-  "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
+    "-Dlogback.configurationFile=/logback-dev.xml",
+    "-Xdebug",
+    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000",
+    "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
   //"-Ddev-features=keep-session"
 )
+//javaOptions in Jetty ++= Seq(
+//  "-Xdebug",
+//  "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+//)
