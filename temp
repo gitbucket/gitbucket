@@ -1,0 +1,30 @@
+import requests
+from requests.auth import HTTPBasicAuth
+
+def get_confluence_content(base_url, page_id, username, password):
+    """
+    Fetch content of a specific Confluence page.
+
+    :param base_url: Base URL of the Confluence instance.
+    :param page_id: ID of the Confluence page to retrieve.
+    :param username: Confluence username.
+    :param password: Confluence password.
+    :return: Content of the Confluence page.
+    """
+    url = f"{base_url}/rest/api/content/{page_id}?expand=body.storage"
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch content. Status code: {response.status_code}")
+
+    data = response.json()
+    return data["body"]["storage"]["value"]
+
+if __name__ == "__main__":
+    BASE_URL = "https://YOUR_CONFLUENCE_INSTANCE_URL"
+    PAGE_ID = "YOUR_PAGE_ID"  # Replace with your Confluence page ID
+    USERNAME = "YOUR_USERNAME"
+    PASSWORD = "YOUR_PASSWORD"
+
+    content = get_confluence_content(BASE_URL, PAGE_ID, USERNAME, PASSWORD)
+    print(content)
