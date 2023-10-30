@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.40.0"
 val ScalatraVersion = "3.0.0"
-val JettyVersion = "10.0.17"
+val JettyVersion = "10.0.18"
 val JgitVersion = "6.7.0.202309050840-r"
 
 lazy val root = (project in file("."))
