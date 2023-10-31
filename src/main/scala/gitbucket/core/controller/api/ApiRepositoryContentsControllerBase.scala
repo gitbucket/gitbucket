@@ -3,7 +3,7 @@ import gitbucket.core.api.{ApiCommit, ApiContents, ApiError, CreateAFile, JsonFo
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{RepositoryCommitFileService, RepositoryService}
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.JGitUtil.{CommitInfo, FileInfo, getContentFromId, getFileList}
+import gitbucket.core.util.JGitUtil.{CommitInfo, FileInfo, getContentFromId, getFileList, getSummaryMessage}
 import gitbucket.core.util._
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import gitbucket.core.util.Implicits._
@@ -49,19 +49,21 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     getContents(repository, multiParams("splat").head, params.getOrElse("ref", repository.repository.defaultBranch))
   })
 
-  private def getFileInfo(git: Git, revision: String, pathStr: String, ignoreCase: Boolean): Option[FileInfo] = {
-    val (dirName, fileName) = pathStr.lastIndexOf('/') match {
-      case -1 =>
-        (".", pathStr)
-      case n =>
-        (pathStr.take(n), pathStr.drop(n + 1))
-    }
-    if (ignoreCase) {
-      getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-        .find(_.name.toLowerCase.equals(fileName.toLowerCase))
-    } else {
-      getFileList(git, revision, dirName, maxFiles = context.settings.repositoryViewer.maxFiles)
-        .find(_.name.equals(fileName))
+  private def getFileInfo(git: Git, revision: String, pathStr: String): Option[FileInfo] = {
+    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+    getPathObjectId(git, pathStr, revCommit).map { objectId =>
+      FileInfo(
+        id = objectId,
+        isDirectory = false,
+        name = pathStr.split("/").last,
+        path = pathStr.split("/").dropRight(1).mkString("/"),
+        message = getSummaryMessage(revCommit.getFullMessage, revCommit.getShortMessage),
+        commitId = revCommit.getName,
+        time = revCommit.getAuthorIdent.getWhen,
+        author = revCommit.getAuthorIdent.getName,
+        mailAddress = revCommit.getAuthorIdent.getEmailAddress,
+        linkUrl = None
+      )
     }
   }
 
@@ -74,16 +76,17 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
       val fileList = getFileList(git, refStr, path, maxFiles = context.settings.repositoryViewer.maxFiles)
       if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path, ignoreCase)
-          .flatMap { f =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(refStr))
+        getPathObjectId(git, path, revCommit)
+          .flatMap { objectId =>
             val largeFile = params.get("large_file").exists(s => s.equals("true"))
-            val content = getContentFromId(git, f.id, largeFile)
+            val content = getContentFromId(git, objectId, largeFile)
             request.getHeader("Accept") match {
               case "application/vnd.github.v3.raw" => {
                 contentType = "application/vnd.github.v3.raw"
                 content
               }
-              case "application/vnd.github.v3.html" if isRenderable(f.name) => {
+              case "application/vnd.github.v3.html" if isRenderable(path) => {
                 contentType = "application/vnd.github.v3.html"
                 content.map { c =>
                   List(
@@ -114,11 +117,12 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
                 }
               }
               case _ =>
-                Some(JsonFormat(ApiContents(f, RepositoryName(repository), content)))
+                getFileInfo(git, refStr, path).map { f =>
+                  JsonFormat(ApiContents(f, RepositoryName(repository), content))
+                }
             }
           }
           .getOrElse(NotFound())
-
       } else { // directory
         JsonFormat(fileList.map { f =>
           ApiContents(f, RepositoryName(repository), None)
@@ -148,9 +152,7 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           val path = paths.take(paths.size - 1).toList.mkString("/")
           Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
             git =>
-              val fileInfo = getFileInfo(git, commit, path, false)
-
-              fileInfo match {
+              getFileInfo(git, commit, path) match {
                 case Some(f) if !data.sha.contains(f.id.getName) =>
                   ApiError(
                     "The blob SHA is not matched.",
