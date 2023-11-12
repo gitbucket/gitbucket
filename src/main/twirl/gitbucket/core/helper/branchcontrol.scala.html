@@ -5,7 +5,6 @@
 @gitbucket.core.helper.html.dropdown(
   value  = if(branch.length == 40) branch.substring(0, 10) else branch,
   prefix = if(repository.branchList.contains(branch)) "branch" else if (repository.tags.map(_.name).contains(branch)) "tag" else "tree",
-  style = "min-width: 200px;",
   maxValueWidth = "200px"
 ) {
   <li>
