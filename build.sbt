@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.40.0"
 val ScalatraVersion = "3.0.0"
-val JettyVersion = "10.0.17"
+val JettyVersion = "10.0.18"
 val JgitVersion = "6.7.0.202309050840-r"
 
 lazy val root = (project in file("."))
@@ -58,12 +58,12 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"                % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "11.5",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "11.6",
   "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
   "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
   "junit"                           % "junit"                        % "4.13.2" % "test",
   "org.scalatra"                    %% "scalatra-scalatest-javax"    % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "5.6.0" % "test",
+  "org.mockito"                     % "mockito-core"                 % "5.7.0" % "test",
   "com.dimafeng"                    %% "testcontainers-scala"        % "0.41.0" % "test",
   "org.testcontainers"              % "mysql"                        % "1.19.1" % "test",
   "org.testcontainers"              % "postgresql"                   % "1.19.1" % "test",
