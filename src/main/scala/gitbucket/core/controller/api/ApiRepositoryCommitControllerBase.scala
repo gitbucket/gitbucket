@@ -43,56 +43,53 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
     val path = params.get("path").filter(_.nonEmpty)
     val since = params.get("since").filter(_.nonEmpty)
     val until = params.get("until").filter(_.nonEmpty)
-    Using.resource(Git.open(getRepositoryDir(owner, name))) {
-      git =>
-        val repo = git.getRepository
-        Using.resource(new RevWalk(repo)) {
-          revWalk =>
-            val objectId = repo.resolve(sha)
-            revWalk.markStart(revWalk.parseCommit(objectId))
-            if (path.nonEmpty) {
-              revWalk.setTreeFilter(
-                AndTreeFilter.create(PathFilterGroup.createFromStrings(path.get), TreeFilter.ANY_DIFF)
-              )
-            }
-            val revfilters = new ListBuffer[(RevFilter)]()
-            if (author.nonEmpty) {
-              revfilters += AuthorRevFilter.create(author.get)
-            }
-            if (since.nonEmpty) {
-              revfilters += CommitTimeRevFilter.after(
-                Date.from(LocalDateTime.parse(since.get, ISO_DATE_TIME).toInstant(ZoneOffset.UTC))
-              )
-            }
-            if (until.nonEmpty) {
-              revfilters += CommitTimeRevFilter.before(
-                Date.from(LocalDateTime.parse(until.get, ISO_DATE_TIME).toInstant(ZoneOffset.UTC))
-              )
-            }
-            if (page > 1) {
-              revfilters += SkipRevFilter.create(page * per_page - 2)
-            }
-            revfilters += MaxCountRevFilter.create(per_page);
-            revWalk.setRevFilter(
-              if (revfilters.size > 1) {
-                AndRevFilter.create(revfilters.toArray)
-              } else {
-                revfilters(0)
-              }
-            )
-            JsonFormat(revWalk.asScala.map {
-              commit =>
-                val commitInfo = new CommitInfo(commit)
-                ApiCommits(
-                  repositoryName = RepositoryName(repository),
-                  commitInfo = commitInfo,
-                  diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
-                  author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
-                  committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
-                  commentCount = getCommitComment(repository.owner, repository.name, commitInfo.id).size
-                )
-            })
+    Using.resource(Git.open(getRepositoryDir(owner, name))) { git =>
+      val repo = git.getRepository
+      Using.resource(new RevWalk(repo)) { revWalk =>
+        val objectId = repo.resolve(sha)
+        revWalk.markStart(revWalk.parseCommit(objectId))
+        if (path.nonEmpty) {
+          revWalk.setTreeFilter(
+            AndTreeFilter.create(PathFilterGroup.createFromStrings(path.get), TreeFilter.ANY_DIFF)
+          )
         }
+        val revfilters = new ListBuffer[(RevFilter)]()
+        if (author.nonEmpty) {
+          revfilters += AuthorRevFilter.create(author.get)
+        }
+        if (since.nonEmpty) {
+          revfilters += CommitTimeRevFilter.after(
+            Date.from(LocalDateTime.parse(since.get, ISO_DATE_TIME).toInstant(ZoneOffset.UTC))
+          )
+        }
+        if (until.nonEmpty) {
+          revfilters += CommitTimeRevFilter.before(
+            Date.from(LocalDateTime.parse(until.get, ISO_DATE_TIME).toInstant(ZoneOffset.UTC))
+          )
+        }
+        if (page > 1) {
+          revfilters += SkipRevFilter.create(page * per_page - 2)
+        }
+        revfilters += MaxCountRevFilter.create(per_page);
+        revWalk.setRevFilter(
+          if (revfilters.size > 1) {
+            AndRevFilter.create(revfilters.toArray)
+          } else {
+            revfilters(0)
+          }
+        )
+        JsonFormat(revWalk.asScala.map { commit =>
+          val commitInfo = new CommitInfo(commit)
+          ApiCommits(
+            repositoryName = RepositoryName(repository),
+            commitInfo = commitInfo,
+            diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
+            author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
+            committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
+            commentCount = getCommitComment(repository.owner, repository.name, commitInfo.id).size
+          )
+        })
+      }
     }
   })
 
@@ -105,24 +102,23 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
     val name = repository.name
     val sha = params("sha")
 
-    Using.resource(Git.open(getRepositoryDir(owner, name))) {
-      git =>
-        val repo = git.getRepository
-        val objectId = repo.resolve(sha)
-        val commitInfo = Using.resource(new RevWalk(repo)) { revWalk =>
-          new CommitInfo(revWalk.parseCommit(objectId))
-        }
+    Using.resource(Git.open(getRepositoryDir(owner, name))) { git =>
+      val repo = git.getRepository
+      val objectId = repo.resolve(sha)
+      val commitInfo = Using.resource(new RevWalk(repo)) { revWalk =>
+        new CommitInfo(revWalk.parseCommit(objectId))
+      }
 
-        JsonFormat(
-          ApiCommits(
-            repositoryName = RepositoryName(repository),
-            commitInfo = commitInfo,
-            diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
-            author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
-            committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
-            commentCount = getCommitComment(repository.owner, repository.name, sha).size
-          )
+      JsonFormat(
+        ApiCommits(
+          repositoryName = RepositoryName(repository),
+          commitInfo = commitInfo,
+          diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
+          author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
+          committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
+          commentCount = getCommitComment(repository.owner, repository.name, sha).size
         )
+      )
     }
   })
 

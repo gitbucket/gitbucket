@@ -36,7 +36,7 @@ object DatabaseConfig {
     ConfigFactory.parseFile(file)
   }
 
-  private lazy val dbUrl = getValue("db.url", config.getString) //config.getString("db.url")
+  private lazy val dbUrl = getValue("db.url", config.getString) // config.getString("db.url")
 
   def url(directory: Option[String]): String = {
     val sb = new StringBuilder()

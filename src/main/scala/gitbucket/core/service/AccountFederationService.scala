@@ -51,8 +51,8 @@ trait AccountFederationService {
    * @param preferredUserName Username
    * @return Available username
    */
-  def findAvailableUserName(preferredUserName: Option[String], mailAddress: String)(
-    implicit s: Session
+  def findAvailableUserName(preferredUserName: Option[String], mailAddress: String)(implicit
+    s: Session
   ): Option[String] = {
     preferredUserName
       .flatMap(n => extractSafeStringForUserName(n))

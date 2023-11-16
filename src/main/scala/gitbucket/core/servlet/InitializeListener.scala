@@ -153,8 +153,8 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
                   logger.info(s"Extract to ${file.getAbsolutePath}")
 
                   FileUtils.forceMkdirParent(file)
-                  Using.resources(in, new FileOutputStream(file)) {
-                    case (in, out) => IOUtils.copy(in, out)
+                  Using.resources(in, new FileOutputStream(file)) { case (in, out) =>
+                    IOUtils.copy(in, out)
                   }
                 }
               case _ => ()

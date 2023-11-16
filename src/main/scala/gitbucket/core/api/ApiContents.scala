@@ -22,16 +22,15 @@ object ApiContents {
       ApiContents("dir", fileInfo.name, fileInfo.path, fileInfo.commitId, None, None)(repositoryName)
     } else {
       content
-        .map(
-          arr =>
-            ApiContents(
-              "file",
-              fileInfo.name,
-              fileInfo.path,
-              fileInfo.id.getName,
-              Some(Base64.getEncoder.encodeToString(arr)),
-              Some("base64")
-            )(repositoryName)
+        .map(arr =>
+          ApiContents(
+            "file",
+            fileInfo.name,
+            fileInfo.path,
+            fileInfo.id.getName,
+            Some(Base64.getEncoder.encodeToString(arr)),
+            Some("base64")
+          )(repositoryName)
         )
         .getOrElse(ApiContents("file", fileInfo.name, fileInfo.path, fileInfo.commitId, None, None)(repositoryName))
     }

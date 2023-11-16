@@ -18,8 +18,8 @@ import org.apache.commons.io.FileUtils
 trait CommitsService {
   self: ActivityService with PullRequestService with WebHookPullRequestReviewCommentService =>
 
-  def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(
-    implicit s: Session
+  def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(implicit
+    s: Session
   ) =
     CommitComments filter { t =>
       t.byCommit(owner, repository, commitId) && (t.issueId.isEmpty || includePullRequest)
@@ -79,21 +79,20 @@ trait CommitsService {
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     issueId match {
       case Some(issueId) =>
-        getPullRequest(repository.owner, repository.name, issueId).foreach {
-          case (issue, pullRequest) =>
-            val pullRequestCommentInfo =
-              PullRequestCommentInfo(repository.owner, repository.name, loginAccount.userName, content, issueId)
-            recordActivity(pullRequestCommentInfo)
-            PluginRegistry().getPullRequestHooks.foreach(_.addedComment(commentId, content, issue, repository))
-            callPullRequestReviewCommentWebHook(
-              "create",
-              comment,
-              repository,
-              issue,
-              pullRequest,
-              loginAccount,
-              context.settings
-            )
+        getPullRequest(repository.owner, repository.name, issueId).foreach { case (issue, pullRequest) =>
+          val pullRequestCommentInfo =
+            PullRequestCommentInfo(repository.owner, repository.name, loginAccount.userName, content, issueId)
+          recordActivity(pullRequestCommentInfo)
+          PluginRegistry().getPullRequestHooks.foreach(_.addedComment(commentId, content, issue, repository))
+          callPullRequestReviewCommentWebHook(
+            "create",
+            comment,
+            repository,
+            issue,
+            pullRequest,
+            loginAccount,
+            context.settings
+          )
         }
       case None =>
         val commitCommentInfo =
@@ -104,8 +103,8 @@ trait CommitsService {
     commentId
   }
 
-  def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(
-    implicit s: Session
+  def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(implicit
+    s: Session
   ): Unit =
     CommitComments
       .filter(_.byPrimaryKey(commentId))

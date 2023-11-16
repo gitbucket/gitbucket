@@ -25,8 +25,8 @@ trait RequestCache
   private implicit def context2Session(implicit context: Context): Session =
     request2Session(context.request)
 
-  def getIssueFromCache(userName: String, repositoryName: String, issueId: String)(
-    implicit context: Context
+  def getIssueFromCache(userName: String, repositoryName: String, issueId: String)(implicit
+    context: Context
   ): Option[Issue] = {
     context.cache(s"issue.${userName}/${repositoryName}#${issueId}") {
       super.getIssue(userName, repositoryName, issueId)
@@ -45,19 +45,18 @@ trait RequestCache
     }
   }
 
-  def getRepositoryInfoFromCache(userName: String, repositoryName: String)(
-    implicit context: Context
+  def getRepositoryInfoFromCache(userName: String, repositoryName: String)(implicit
+    context: Context
   ): Option[Repository] = {
     context.cache(s"repository.${userName}/${repositoryName}") {
       Repositories
         .join(Accounts)
         .on(_.userName === _.userName)
-        .filter {
-          case (t1, t2) =>
-            t1.byRepository(userName, repositoryName) && t2.removed === false.bind
+        .filter { case (t1, t2) =>
+          t1.byRepository(userName, repositoryName) && t2.removed === false.bind
         }
-        .map {
-          case (t1, t2) => t1
+        .map { case (t1, t2) =>
+          t1
         }
         .firstOption
     }

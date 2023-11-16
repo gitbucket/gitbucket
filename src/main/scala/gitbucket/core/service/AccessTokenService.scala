@@ -37,9 +37,8 @@ trait AccessTokenService {
   def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] =
     Accounts
       .join(AccessTokens)
-      .filter {
-        case (ac, t) =>
-          (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind)
+      .filter { case (ac, t) =>
+        (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind)
       }
       .map { case (ac, t) => ac }
       .firstOption

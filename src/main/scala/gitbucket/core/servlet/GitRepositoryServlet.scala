@@ -171,10 +171,9 @@ class GitBucketRepositoryResolver extends RepositoryResolver[HttpServletRequest]
     // Rewrite repository path if routing is marched
     PluginRegistry()
       .getRepositoryRouting("/" + name)
-      .map {
-        case GitRepositoryRouting(urlPattern, localPath, _) =>
-          val path = urlPattern.r.replaceFirstIn(name, localPath)
-          new FileRepository(new File(Directory.GitBucketHome, path))
+      .map { case GitRepositoryRouting(urlPattern, localPath, _) =>
+        val path = urlPattern.r.replaceFirstIn(name, localPath)
+        new FileRepository(new File(Directory.GitBucketHome, path))
       }
       .getOrElse {
         new FileRepository(new File(Directory.RepositoryHome, name))
@@ -341,7 +340,11 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   pushedIds.add(commit.id)
                   createIssueComment(owner, repository, commit)
                   // close issues
-                  if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
+                  if (
+                    refName(
+                      1
+                    ) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE
+                  ) {
                     getAccountByUserName(pusher).foreach { pusherAccount =>
                       closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository).foreach { issueId =>
                         getIssue(owner, repository, issueId.toString).foreach { issue =>
@@ -362,9 +365,11 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             // set PR as merged
             val pulls = getPullRequestsByBranch(owner, repository, branchName, Some(false))
             pulls.foreach { pull =>
-              if (commits.exists { c =>
-                    c.id == pull.commitIdTo
-                  }) {
+              if (
+                commits.exists { c =>
+                  c.id == pull.commitIdTo
+                }
+              ) {
                 markMergeAndClosePullRequest(pusher, owner, repository, pull)
                 getAccountByUserName(pusher).foreach { pusherAccount =>
                   callPullRequestWebHook("closed", repositoryInfo, pull.issueId, pusherAccount, settings)
@@ -490,40 +495,38 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
             }
           }
 
-          commitIds.foreach {
-            case (oldCommitId, newCommitId) =>
-              val commits = Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
-                JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
-                  val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
-                  diffs.collect {
-                    case diff if diff.newPath.toLowerCase.endsWith(".md") =>
-                      val action = mapToAction(diff.changeType)
-                      val fileName = diff.newPath
-                      updateLastActivityDate(owner, repository)
-                      buildWikiRecord(action, owner, repository, commit, fileName).foreach(recordActivity)
-                      (action, fileName, commit.id)
-                  }
+          commitIds.foreach { case (oldCommitId, newCommitId) =>
+            val commits = Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+              JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
+                val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+                diffs.collect {
+                  case diff if diff.newPath.toLowerCase.endsWith(".md") =>
+                    val action = mapToAction(diff.changeType)
+                    val fileName = diff.newPath
+                    updateLastActivityDate(owner, repository)
+                    buildWikiRecord(action, owner, repository, commit, fileName).foreach(recordActivity)
+                    (action, fileName, commit.id)
                 }
               }
+            }
 
-              val pages = commits
-                .groupBy { case (_, fileName, _) => fileName }
-                .map {
-                  case (fileName, commits) =>
-                    val (commitHeadAction, _, _) = commits.head
-                    val (_, _, commitLastId) = commits.last
-                    (commitHeadAction, fileName, commitLastId)
-                }
-
-              callWebHookOf(owner, repository, WebHook.Gollum, settings) {
-                for {
-                  pusherAccount <- getAccountByUserName(pusher)
-                  repositoryUser <- getAccountByUserName(owner)
-                  repositoryInfo <- getRepository(owner, repository)
-                } yield {
-                  WebHookGollumPayload(pages.toSeq, repositoryInfo, repositoryUser, pusherAccount)
-                }
+            val pages = commits
+              .groupBy { case (_, fileName, _) => fileName }
+              .map { case (fileName, commits) =>
+                val (commitHeadAction, _, _) = commits.head
+                val (_, _, commitLastId) = commits.last
+                (commitHeadAction, fileName, commitLastId)
               }
+
+            callWebHookOf(owner, repository, WebHook.Gollum, settings) {
+              for {
+                pusherAccount <- getAccountByUserName(pusher)
+                repositoryUser <- getAccountByUserName(owner)
+                repositoryInfo <- getRepository(owner, repository)
+              } yield {
+                WebHookGollumPayload(pages.toSeq, repositoryInfo, repositoryUser, pusherAccount)
+              }
+            }
           }
         }
       } catch {
