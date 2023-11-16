@@ -23,9 +23,8 @@ trait ApiIssueCommentControllerBase extends ControllerBase {
       issueId <- params("id").toIntOpt
       comments = getCommentsForApi(repository.owner, repository.name, issueId)
     } yield {
-      JsonFormat(comments.map {
-        case (issueComment, user, issue) =>
-          ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest)
+      JsonFormat(comments.map { case (issueComment, user, issue) =>
+        ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest)
       })
     }) getOrElse NotFound()
   })

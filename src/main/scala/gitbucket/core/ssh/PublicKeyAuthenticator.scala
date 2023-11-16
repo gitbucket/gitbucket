@@ -56,8 +56,8 @@ class PublicKeyAuthenticator(genericUser: String)
     }
   }
 
-  private def authenticateLoginUser(userName: String, key: PublicKey, session: ServerSession)(
-    implicit s: Session
+  private def authenticateLoginUser(userName: String, key: PublicKey, session: ServerSession)(implicit
+    s: Session
   ): Boolean = {
     val authenticated = getPublicKeys(userName).map(_.publicKey).flatMap(SshUtil.str2PublicKey).contains(key)
 

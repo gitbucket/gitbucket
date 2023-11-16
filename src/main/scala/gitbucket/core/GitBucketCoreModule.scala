@@ -76,21 +76,20 @@ object GitBucketCoreModule
             import JDBCUtil._
 
             val conn = context.get(Solidbase.CONNECTION).asInstanceOf[Connection]
-            val list = conn.select("SELECT * FROM ACTIVITY ORDER BY ACTIVITY_ID") {
-              rs =>
-                Activity(
-                  activityId = UUID.randomUUID().toString,
-                  userName = rs.getString("USER_NAME"),
-                  repositoryName = rs.getString("REPOSITORY_NAME"),
-                  activityUserName = rs.getString("ACTIVITY_USER_NAME"),
-                  activityType = rs.getString("ACTIVITY_TYPE"),
-                  message = rs.getString("MESSAGE"),
-                  additionalInfo = {
-                    val additionalInfo = rs.getString("ADDITIONAL_INFO")
-                    if (rs.wasNull()) None else Some(additionalInfo)
-                  },
-                  activityDate = rs.getTimestamp("ACTIVITY_DATE")
-                )
+            val list = conn.select("SELECT * FROM ACTIVITY ORDER BY ACTIVITY_ID") { rs =>
+              Activity(
+                activityId = UUID.randomUUID().toString,
+                userName = rs.getString("USER_NAME"),
+                repositoryName = rs.getString("REPOSITORY_NAME"),
+                activityUserName = rs.getString("ACTIVITY_USER_NAME"),
+                activityType = rs.getString("ACTIVITY_TYPE"),
+                message = rs.getString("MESSAGE"),
+                additionalInfo = {
+                  val additionalInfo = rs.getString("ADDITIONAL_INFO")
+                  if (rs.wasNull()) None else Some(additionalInfo)
+                },
+                activityDate = rs.getTimestamp("ACTIVITY_DATE")
+              )
             }
             Using.resource(new FileOutputStream(ActivityLog, true)) { out =>
               list.foreach { activity =>

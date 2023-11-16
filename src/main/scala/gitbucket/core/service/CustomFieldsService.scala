@@ -9,8 +9,8 @@ trait CustomFieldsService {
   def getCustomFields(owner: String, repository: String)(implicit s: Session): List[CustomField] =
     CustomFields.filter(_.byRepository(owner, repository)).sortBy(_.fieldId asc).list
 
-  def getCustomFieldsWithValue(owner: String, repository: String, issueId: Int)(
-    implicit s: Session
+  def getCustomFieldsWithValue(owner: String, repository: String, issueId: Int)(implicit
+    s: Session
   ): List[(CustomField, Option[IssueCustomField])] = {
     CustomFields
       .filter(_.byRepository(owner, repository))
@@ -52,8 +52,8 @@ trait CustomFieldsService {
     constraints: Option[String],
     enableForIssues: Boolean,
     enableForPullRequests: Boolean
-  )(
-    implicit s: Session
+  )(implicit
+    s: Session
   ): Unit =
     CustomFields
       .filter(_.byPrimaryKey(owner, repository, fieldId))

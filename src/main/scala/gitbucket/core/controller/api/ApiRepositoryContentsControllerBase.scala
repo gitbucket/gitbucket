@@ -19,17 +19,16 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
    * https://docs.github.com/en/rest/reference/repos#get-a-repository-readme
    */
   get("/api/v3/repos/:owner/:repository/readme")(referrersOnly { repository =>
-    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
-      git =>
-        val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
-        val files = getFileList(git, refStr, ".", maxFiles = context.settings.repositoryViewer.maxFiles)
-        files // files should be sorted alphabetically.
-          .find { file =>
-            !file.isDirectory && RepositoryService.readmeFiles.contains(file.name.toLowerCase)
-          } match {
-          case Some(x) => getContents(repository = repository, path = x.name, refStr = refStr, ignoreCase = true)
-          case _       => NotFound()
-        }
+    Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+      val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
+      val files = getFileList(git, refStr, ".", maxFiles = context.settings.repositoryViewer.maxFiles)
+      files // files should be sorted alphabetically.
+        .find { file =>
+          !file.isDirectory && RepositoryService.readmeFiles.contains(file.name.toLowerCase)
+        } match {
+        case Some(x) => getContents(repository = repository, path = x.name, refStr = refStr, ignoreCase = true)
+        case _       => NotFound()
+      }
     }
   })
 
@@ -134,67 +133,65 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
    * requested #2112
    */
   put("/api/v3/repos/:owner/:repository/contents/*")(writableUsersOnly { repository =>
-    context.withLoginAccount {
-      loginAccount =>
-        JsonFormat(for {
-          data <- extractFromJsonBody[CreateAFile]
-        } yield {
-          val branch = data.branch.getOrElse(repository.repository.defaultBranch)
-          val commit = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-            val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
-            revCommit.name
-          }
-          val paths = multiParams("splat").head.split("/")
-          val path = paths.take(paths.size - 1).toList.mkString("/")
-          Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) {
-            git =>
-              val fileInfo = getFileInfo(git, commit, path, false)
+    context.withLoginAccount { loginAccount =>
+      JsonFormat(for {
+        data <- extractFromJsonBody[CreateAFile]
+      } yield {
+        val branch = data.branch.getOrElse(repository.repository.defaultBranch)
+        val commit = Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+          revCommit.name
+        }
+        val paths = multiParams("splat").head.split("/")
+        val path = paths.take(paths.size - 1).toList.mkString("/")
+        Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
+          val fileInfo = getFileInfo(git, commit, path, false)
 
-              fileInfo match {
-                case Some(f) if !data.sha.contains(f.id.getName) =>
-                  ApiError(
-                    "The blob SHA is not matched.",
-                    Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
+          fileInfo match {
+            case Some(f) if !data.sha.contains(f.id.getName) =>
+              ApiError(
+                "The blob SHA is not matched.",
+                Some("https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents")
+              )
+            case _ =>
+              commitFile(
+                repository,
+                branch,
+                path,
+                Some(paths.last),
+                data.sha.map(_ => paths.last),
+                StringUtil.base64Decode(data.content),
+                data.message,
+                commit,
+                loginAccount,
+                data.committer.map(_.name).getOrElse(loginAccount.fullName),
+                data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
+                context.settings
+              ) match {
+                case Left(error) =>
+                  ApiError(s"Failed to commit a file: ${error}", None)
+                case Right((_, None)) =>
+                  ApiError("Failed to commit a file.", None)
+                case Right((commitId, Some(blobId))) =>
+                  Map(
+                    "content" -> ApiContents(
+                      "file",
+                      paths.last,
+                      path,
+                      blobId.name,
+                      Some(data.content),
+                      Some("base64")
+                    )(RepositoryName(repository)),
+                    "commit" -> ApiCommit(
+                      git,
+                      RepositoryName(repository),
+                      new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+                    )
                   )
-                case _ =>
-                  commitFile(
-                    repository,
-                    branch,
-                    path,
-                    Some(paths.last),
-                    data.sha.map(_ => paths.last),
-                    StringUtil.base64Decode(data.content),
-                    data.message,
-                    commit,
-                    loginAccount,
-                    data.committer.map(_.name).getOrElse(loginAccount.fullName),
-                    data.committer.map(_.email).getOrElse(loginAccount.mailAddress),
-                    context.settings
-                  ) match {
-                    case Left(error) =>
-                      ApiError(s"Failed to commit a file: ${error}", None)
-                    case Right((_, None)) =>
-                      ApiError("Failed to commit a file.", None)
-                    case Right((commitId, Some(blobId))) =>
-                      Map(
-                        "content" -> ApiContents(
-                          "file",
-                          paths.last,
-                          path,
-                          blobId.name,
-                          Some(data.content),
-                          Some("base64")
-                        )(RepositoryName(repository)),
-                        "commit" -> ApiCommit(
-                          git,
-                          RepositoryName(repository),
-                          new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-                        )
-                      )
-                  }
               }
           }
-        })
+        }
+      })
     }
   })
 
@@ -205,9 +202,9 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
    */
 
   /*
- * vi. Download a repository archive (tar/zip)
- * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-tar
- * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-zip
- */
+   * vi. Download a repository archive (tar/zip)
+   * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-tar
+   * https://docs.github.com/en/rest/reference/repos#download-a-repository-archive-zip
+   */
 
 }

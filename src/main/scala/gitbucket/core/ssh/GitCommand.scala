@@ -101,8 +101,8 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
     }
   }
 
-  protected def isReadableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)(
-    implicit session: Session
+  protected def isReadableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)(implicit
+    session: Session
   ): Boolean = {
     authType match {
       case AuthType.UserAuthType(username) => {
@@ -120,8 +120,8 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
     }
   }
 
-  protected def isWritableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)(
-    implicit session: Session
+  protected def isWritableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)(implicit
+    session: Session
   ): Boolean = {
     authType match {
       case AuthType.UserAuthType(username) => {

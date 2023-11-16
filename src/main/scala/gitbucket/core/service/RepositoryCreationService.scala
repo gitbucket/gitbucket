@@ -92,7 +92,7 @@ trait RepositoryCreationService {
     RepositoryCreationService.startCreation(owner, name)
     try {
       Database() withTransaction { implicit session =>
-        //val ownerAccount = getAccountByUserName(owner).get
+        // val ownerAccount = getAccountByUserName(owner).get
         val loginUserName = loginAccount.userName
 
         val copyRepositoryDir = if (initOption == "COPY") {
@@ -214,9 +214,8 @@ trait RepositoryCreationService {
           // Set default collaborators for the private fork
           if (repository.repository.isPrivate) {
             // Copy collaborators from the source repository
-            getCollaborators(repository.owner, repository.name).foreach {
-              case (collaborator, _) =>
-                addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
+            getCollaborators(repository.owner, repository.name).foreach { case (collaborator, _) =>
+              addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
             }
             // Register an owner of the source repository as a collaborator
             addCollaborator(accountName, repository.name, repository.owner, Role.ADMIN.name)

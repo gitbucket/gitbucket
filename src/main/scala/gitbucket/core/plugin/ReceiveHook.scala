@@ -13,8 +13,8 @@ trait ReceiveHook {
     command: ReceiveCommand,
     pusher: String,
     mergePullRequest: Boolean
-  )(
-    implicit session: Session
+  )(implicit
+    session: Session
   ): Option[String] = None
 
   def postReceive(
@@ -24,8 +24,8 @@ trait ReceiveHook {
     command: ReceiveCommand,
     pusher: String,
     mergePullRequest: Boolean
-  )(
-    implicit session: Session
+  )(implicit
+    session: Session
   ): Unit = ()
 
 }

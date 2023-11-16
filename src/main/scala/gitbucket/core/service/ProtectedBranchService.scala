@@ -8,8 +8,8 @@ import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
 trait ProtectedBranchService {
   import ProtectedBranchService._
-  private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(
-    implicit session: Session
+  private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(implicit
+    session: Session
   ): Option[ProtectedBranchInfo] =
     ProtectedBranches
       .joinLeft(ProtectedBranchContexts)
@@ -22,13 +22,12 @@ trait ProtectedBranchService {
       .map { p =>
         p._1 -> p._2.flatMap(_._2)
       }
-      .map {
-        case (t1, contexts) =>
-          new ProtectedBranchInfo(t1.userName, t1.repositoryName, t1.branch, true, contexts, t1.statusCheckAdmin)
+      .map { case (t1, contexts) =>
+        new ProtectedBranchInfo(t1.userName, t1.repositoryName, t1.branch, true, contexts, t1.statusCheckAdmin)
       }
 
-  def getProtectedBranchInfo(owner: String, repository: String, branch: String)(
-    implicit session: Session
+  def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit
+    session: Session
   ): ProtectedBranchInfo =
     getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(
       ProtectedBranchInfo.disabled(owner, repository, branch)
@@ -88,9 +87,11 @@ object ProtectedBranchService {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if (branch != command.getRefName) {
         val repositoryInfo = getRepository(owner, repository)
-        if (command.getType == ReceiveCommand.Type.DELETE && repositoryInfo.exists(
-              _.repository.defaultBranch == branch
-            )) {
+        if (
+          command.getType == ReceiveCommand.Type.DELETE && repositoryInfo.exists(
+            _.repository.defaultBranch == branch
+          )
+        ) {
           Some(s"refusing to delete the branch: ${command.getRefName}.")
         } else {
           getProtectedBranchInfo(owner, repository, branch).getStopReason(
@@ -128,15 +129,14 @@ object ProtectedBranchService {
 
     def isAdministrator(pusher: String)(implicit session: Session): Boolean =
       pusher == owner || getGroupMembers(owner).exists(gm => gm.userName == pusher && gm.isManager) ||
-        getCollaborators(owner, repository).exists {
-          case (collaborator, isGroup) =>
-            if (collaborator.role == Role.ADMIN.name) {
-              if (isGroup) {
-                getGroupMembers(collaborator.collaboratorName).exists(gm => gm.userName == pusher)
-              } else {
-                collaborator.collaboratorName == pusher
-              }
-            } else false
+        getCollaborators(owner, repository).exists { case (collaborator, isGroup) =>
+          if (collaborator.role == Role.ADMIN.name) {
+            if (isGroup) {
+              getGroupMembers(collaborator.collaboratorName).exists(gm => gm.userName == pusher)
+            } else {
+              collaborator.collaboratorName == pusher
+            }
+          } else false
         }
 
     /**
@@ -144,8 +144,8 @@ object ProtectedBranchService {
      * Can't be deleted
      * Can't have changes merged into them until required status checks pass
      */
-    def getStopReason(isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)(
-      implicit session: Session
+    def getStopReason(isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)(implicit
+      session: Session
     ): Option[String] = {
       if (enabled) {
         command.getType() match {

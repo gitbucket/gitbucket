@@ -340,25 +340,20 @@ abstract class Plugin {
    * Register plugin functionality to PluginRegistry.
    */
   def initialize(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Unit = {
-    (images ++ images(registry, context, settings)).foreach {
-      case (id, in) =>
-        registry.addImage(id, in)
+    (images ++ images(registry, context, settings)).foreach { case (id, in) =>
+      registry.addImage(id, in)
     }
-    (controllers ++ controllers(registry, context, settings)).foreach {
-      case (path, controller) =>
-        registry.addController(path, controller)
+    (controllers ++ controllers(registry, context, settings)).foreach { case (path, controller) =>
+      registry.addController(path, controller)
     }
-    (anonymousAccessiblePaths ++ anonymousAccessiblePaths(registry, context, settings)).foreach {
-      case (path) =>
-        registry.addAnonymousAccessiblePath(path)
+    (anonymousAccessiblePaths ++ anonymousAccessiblePaths(registry, context, settings)).foreach { case (path) =>
+      registry.addAnonymousAccessiblePath(path)
     }
-    (javaScripts ++ javaScripts(registry, context, settings)).foreach {
-      case (path, script) =>
-        registry.addJavaScript(path, script)
+    (javaScripts ++ javaScripts(registry, context, settings)).foreach { case (path, script) =>
+      registry.addJavaScript(path, script)
     }
-    (renderers ++ renderers(registry, context, settings)).foreach {
-      case (extension, renderer) =>
-        registry.addRenderer(extension, renderer)
+    (renderers ++ renderers(registry, context, settings)).foreach { case (extension, renderer) =>
+      registry.addRenderer(extension, renderer)
     }
     (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
       registry.addRepositoryRouting(routing)

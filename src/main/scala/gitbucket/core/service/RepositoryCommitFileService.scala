@@ -65,7 +65,8 @@ trait RepositoryCommitFileService {
       path,
       newFileName,
       oldFileName,
-      if (content.nonEmpty) { content.getBytes(charset) } else { Array.emptyByteArray },
+      if (content.nonEmpty) { content.getBytes(charset) }
+      else { Array.emptyByteArray },
       message,
       commit,
       loginAccount,

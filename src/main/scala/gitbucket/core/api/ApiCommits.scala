@@ -69,7 +69,8 @@ object ApiCommits {
       }
 
       File(
-        filename = if (diff.changeType == ChangeType.DELETE) { diff.oldPath } else { diff.newPath },
+        filename = if (diff.changeType == ChangeType.DELETE) { diff.oldPath }
+        else { diff.newPath },
         additions = additions,
         deletions = deletions,
         changes = additions + deletions,
@@ -106,7 +107,9 @@ object ApiCommits {
         message = commitInfo.shortMessage,
         comment_count = commentCount,
         tree = Tree(
-          url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/tree/${commitInfo.id}"), // TODO This endpoint has not been implemented yet.
+          url = ApiPath(
+            s"/api/v3/repos/${repositoryName.fullName}/tree/${commitInfo.id}"
+          ), // TODO This endpoint has not been implemented yet.
           sha = commitInfo.id
         )
       ),
@@ -114,7 +117,9 @@ object ApiCommits {
       committer = ApiUser(committer),
       parents = commitInfo.parents.map { parent =>
         Tree(
-          url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/tree/${parent}"), // TODO This endpoint has not been implemented yet.
+          url = ApiPath(
+            s"/api/v3/repos/${repositoryName.fullName}/tree/${parent}"
+          ), // TODO This endpoint has not been implemented yet.
           sha = parent
         )
       },
