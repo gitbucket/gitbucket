@@ -1238,8 +1238,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     repository: RepositoryService.RepositoryInfo,
     path: String
   ) = {
-    def archive(revision: String, archiveFormat: String, archive: ArchiveOutputStream)(
-      entryCreator: (String, Long, java.util.Date, Int) => ArchiveEntry
+    def archive[A <: ArchiveEntry](revision: String, archiveFormat: String, archive: ArchiveOutputStream[A])(
+      entryCreator: (String, Long, java.util.Date, Int) => A
     ): Unit = {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val oid = git.getRepository.resolve(revision)
@@ -1281,7 +1281,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                     )
                   }
 
-                  val entry: ArchiveEntry = entryCreator(entryPath, size, date, mode)
+                  val entry: A = entryCreator(entryPath, size, date, mode)
                   archive.putArchiveEntry(entry)
                   Using.resource(new FileInputStream(tempFile)) { in =>
                     IOUtils.copy(in, archive)
