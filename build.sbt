@@ -23,12 +23,6 @@ crossScalaVersions += "3.3.1"
 
 coverageExcludedPackages := ".*\\.html\\..*"
 
-// dependency settings
-resolvers ++= Seq(
-  Classpaths.typesafeReleases,
-  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
-)
-
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % JgitVersion,
