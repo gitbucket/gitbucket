@@ -71,6 +71,6 @@ trait ApiOrganizationControllerBase extends ControllerBase {
    */
 
   /*
- * should implement delete an organization API?
- */
+   * should implement delete an organization API?
+   */
 }

@@ -41,8 +41,8 @@ trait GitRepositoryFilter {
    * @param session the database session
    * @return true if allow accessing to repository, otherwise false.
    */
-  def filter(path: String, userName: Option[String], settings: SystemSettings, isUpdating: Boolean)(
-    implicit session: Session
+  def filter(path: String, userName: Option[String], settings: SystemSettings, isUpdating: Boolean)(implicit
+    session: Session
   ): Boolean
 
 }

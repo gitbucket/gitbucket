@@ -36,14 +36,14 @@ trait ReleaseService {
     ReleaseAssets.filter(x => x.byTag(owner, repository, tag)).list
   }
 
-  def getReleaseAssetsMap(owner: String, repository: String, releases: Seq[ReleaseTag])(
-    implicit s: Session
+  def getReleaseAssetsMap(owner: String, repository: String, releases: Seq[ReleaseTag])(implicit
+    s: Session
   ): Map[ReleaseTag, Seq[ReleaseAsset]] = {
     releases.map(rel => (rel -> getReleaseAssets(owner, repository, rel.tag))).toMap
   }
 
-  def getReleaseAsset(owner: String, repository: String, tag: String, fileId: String)(
-    implicit s: Session
+  def getReleaseAsset(owner: String, repository: String, tag: String, fileId: String)(implicit
+    s: Session
   ): Option[ReleaseAsset] = {
     ReleaseAssets.filter(x => x.byPrimaryKey(owner, repository, tag, fileId)) firstOption
   }
@@ -76,8 +76,8 @@ trait ReleaseService {
     ReleaseTags.filter(x => x.byRepository(owner, repository)).sortBy(x => x.updatedDate).list
   }
 
-  def getReleases(owner: String, repository: String, tags: Seq[JGitUtil.TagInfo])(
-    implicit s: Session
+  def getReleases(owner: String, repository: String, tags: Seq[JGitUtil.TagInfo])(implicit
+    s: Session
   ): Seq[ReleaseTag] = {
     ReleaseTags
       .filter(x => x.byRepository(owner, repository))
@@ -89,8 +89,8 @@ trait ReleaseService {
     ReleaseTags.filter(_.byTag(owner, repository, tag)).firstOption
   }
 
-  def updateRelease(owner: String, repository: String, tag: String, title: String, content: Option[String])(
-    implicit s: Session
+  def updateRelease(owner: String, repository: String, tag: String, title: String, content: Option[String])(implicit
+    s: Session
   ): Int = {
     ReleaseTags
       .filter(_.byPrimaryKey(owner, repository, tag))

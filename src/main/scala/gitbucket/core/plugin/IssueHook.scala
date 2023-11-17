@@ -9,16 +9,16 @@ import profile.api._
 trait IssueHook {
 
   def created(issue: Issue, repository: RepositoryInfo)(implicit session: Session, context: Context): Unit = ()
-  def addedComment(commentId: Int, content: String, issue: Issue, repository: RepositoryInfo)(
-    implicit session: Session,
+  def addedComment(commentId: Int, content: String, issue: Issue, repository: RepositoryInfo)(implicit
+    session: Session,
     context: Context
   ): Unit = ()
-  def deletedComment(commentId: Int, issue: Issue, repository: RepositoryInfo)(
-    implicit session: Session,
+  def deletedComment(commentId: Int, issue: Issue, repository: RepositoryInfo)(implicit
+    session: Session,
     context: Context
   ): Unit = ()
-  def updatedComment(commentId: Int, content: String, issue: Issue, repository: RepositoryInfo)(
-    implicit session: Session,
+  def updatedComment(commentId: Int, content: String, issue: Issue, repository: RepositoryInfo)(implicit
+    session: Session,
     context: Context
   ): Unit = ()
   def closed(issue: Issue, repository: RepositoryInfo)(implicit session: Session, context: Context): Unit = ()
@@ -29,12 +29,12 @@ trait IssueHook {
     assigner: Option[String],
     assigned: Option[String],
     oldAssigned: Option[String]
-  )(
-    implicit session: Session,
+  )(implicit
+    session: Session,
     context: Context
   ): Unit = ()
-  def closedByCommitComment(issue: Issue, repository: RepositoryInfo, message: String, pusher: Account)(
-    implicit session: Session
+  def closedByCommitComment(issue: Issue, repository: RepositoryInfo, message: String, pusher: Account)(implicit
+    session: Session
   ): Unit = ()
 
 }

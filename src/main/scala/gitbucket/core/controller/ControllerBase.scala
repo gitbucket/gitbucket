@@ -423,10 +423,11 @@ trait AccountManagementControllerBase extends ControllerBase {
       messages: Messages
     ): Option[String] = {
       val extraMailAddresses = params.view.filterKeys(k => k.startsWith("extraMailAddresses"))
-      if (extraMailAddresses.exists {
-            case (k, v) =>
-              v.contains(value)
-          }) {
+      if (
+        extraMailAddresses.exists { case (k, v) =>
+          v.contains(value)
+        }
+      ) {
         Some("These mail addresses are duplicated.")
       } else {
         getAccountByMailAddress(value, true)
@@ -446,10 +447,11 @@ trait AccountManagementControllerBase extends ControllerBase {
       messages: Messages
     ): Option[String] = {
       val extraMailAddresses = params.view.filterKeys(k => k.startsWith("extraMailAddresses"))
-      if (Some(value) == params.optionValue("mailAddress") || extraMailAddresses.count {
-            case (k, v) =>
-              v.contains(value)
-          } > 1) {
+      if (
+        Some(value) == params.optionValue("mailAddress") || extraMailAddresses.count { case (k, v) =>
+          v.contains(value)
+        } > 1
+      ) {
         Some("These mail addresses are duplicated.")
       } else {
         getAccountByMailAddress(value, true)

@@ -47,21 +47,20 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * https://docs.github.com/en/rest/reference/repos#get-a-branch
    */
   get("/api/v3/repos/:owner/:repository/branches/*")(referrersOnly { repository =>
-    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
-      git =>
-        (for {
-          branch <- params.get("splat") if repository.branchList.contains(branch)
-          br <- getBranches(
-            git,
-            repository.repository.defaultBranch,
-            repository.repository.originUserName.isEmpty
-          ).find(_.name == branch)
-        } yield {
-          val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
-          JsonFormat(
-            ApiBranch(branch, ApiBranchCommit(br.commitId), ApiBranchProtection(protection))(RepositoryName(repository))
-          )
-        }) getOrElse NotFound()
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      (for {
+        branch <- params.get("splat") if repository.branchList.contains(branch)
+        br <- getBranches(
+          git,
+          repository.repository.defaultBranch,
+          repository.repository.originUserName.isEmpty
+        ).find(_.name == branch)
+      } yield {
+        val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+        JsonFormat(
+          ApiBranch(branch, ApiBranchCommit(br.commitId), ApiBranchProtection(protection))(RepositoryName(repository))
+        )
+      }) getOrElse NotFound()
     }
   })
 
@@ -275,30 +274,29 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    */
   patch("/api/v3/repos/:owner/:repository/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
-    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
-      git =>
-        (for {
-          branch <- params.get("splat") if repository.branchList.contains(branch)
-          protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
-          br <- getBranches(
-            git,
-            repository.repository.defaultBranch,
-            repository.repository.originUserName.isEmpty
-          ).find(_.name == branch)
-        } yield {
-          if (protection.enabled) {
-            enableBranchProtection(
-              repository.owner,
-              repository.name,
-              branch,
-              protection.status.enforcement_level == ApiBranchProtection.Everyone,
-              protection.status.contexts
-            )
-          } else {
-            disableBranchProtection(repository.owner, repository.name, branch)
-          }
-          JsonFormat(ApiBranch(branch, ApiBranchCommit(br.commitId), protection)(RepositoryName(repository)))
-        }) getOrElse NotFound()
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      (for {
+        branch <- params.get("splat") if repository.branchList.contains(branch)
+        protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
+        br <- getBranches(
+          git,
+          repository.repository.defaultBranch,
+          repository.repository.originUserName.isEmpty
+        ).find(_.name == branch)
+      } yield {
+        if (protection.enabled) {
+          enableBranchProtection(
+            repository.owner,
+            repository.name,
+            branch,
+            protection.status.enforcement_level == ApiBranchProtection.Everyone,
+            protection.status.contexts
+          )
+        } else {
+          disableBranchProtection(repository.owner, repository.name, branch)
+        }
+        JsonFormat(ApiBranch(branch, ApiBranchCommit(br.commitId), protection)(RepositoryName(repository)))
+      }) getOrElse NotFound()
     }
   })
 }

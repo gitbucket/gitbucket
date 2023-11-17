@@ -43,9 +43,8 @@ trait ActivityService {
 
   def getRecentActivitiesByRepos(repos: Set[(String, String)])(implicit context: Context): List[Activity] = {
     getActivities(includePublic = true) { activity =>
-      repos.exists {
-        case (userName, repositoryName) =>
-          activity.userName == userName && activity.repositoryName == repositoryName
+      repos.exists { case (userName, repositoryName) =>
+        activity.userName == userName && activity.repositoryName == repositoryName
       }
     }
   }
@@ -65,10 +64,12 @@ trait ActivityService {
           .get()
       ) { reader =>
         var json: String = null
-        while (list.length < 50 && {
-                 json = reader.readLine();
-                 json
-               } != null) {
+        while (
+          list.length < 50 && {
+            json = reader.readLine();
+            json
+          } != null
+        ) {
           val activity = read[Activity](json)
           if (filter(activity)) {
             list += activity

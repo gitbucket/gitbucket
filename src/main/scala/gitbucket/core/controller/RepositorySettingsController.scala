@@ -286,93 +286,90 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         Array(h.getName, h.getValue)
       }
 
-    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
-      git =>
-        import scala.concurrent.duration._
-        import scala.concurrent._
-        import scala.jdk.CollectionConverters._
-        import scala.util.control.NonFatal
-        import org.apache.http.util.EntityUtils
-        import scala.concurrent.ExecutionContext.Implicits.global
+    Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      import scala.concurrent.duration._
+      import scala.concurrent._
+      import scala.jdk.CollectionConverters._
+      import scala.util.control.NonFatal
+      import org.apache.http.util.EntityUtils
+      import scala.concurrent.ExecutionContext.Implicits.global
 
-        val url = params("url")
-        val token = Some(params("token"))
-        val ctype = WebHookContentType.valueOf(params("ctype"))
-        val dummyWebHookInfo = RepositoryWebHook(
-          userName = repository.owner,
-          repositoryName = repository.name,
-          url = url,
-          ctype = ctype,
-          token = token
+      val url = params("url")
+      val token = Some(params("token"))
+      val ctype = WebHookContentType.valueOf(params("ctype"))
+      val dummyWebHookInfo = RepositoryWebHook(
+        userName = repository.owner,
+        repositoryName = repository.name,
+        url = url,
+        ctype = ctype,
+        token = token
+      )
+      val dummyPayload = {
+        val ownerAccount = getAccountByUserName(repository.owner).get
+        val commits =
+          if (JGitUtil.isEmpty(git)) List.empty
+          else
+            git.log
+              .add(git.getRepository.resolve(repository.repository.defaultBranch))
+              .setMaxCount(4)
+              .call
+              .iterator
+              .asScala
+              .map(new CommitInfo(_))
+              .toList
+        val pushedCommit = commits.drop(1)
+
+        WebHookPushPayload(
+          git = git,
+          sender = ownerAccount,
+          refName = "refs/heads/" + repository.repository.defaultBranch,
+          repositoryInfo = repository,
+          commits = pushedCommit,
+          repositoryOwner = ownerAccount,
+          oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
+          newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId())
         )
-        val dummyPayload = {
-          val ownerAccount = getAccountByUserName(repository.owner).get
-          val commits =
-            if (JGitUtil.isEmpty(git)) List.empty
-            else
-              git.log
-                .add(git.getRepository.resolve(repository.repository.defaultBranch))
-                .setMaxCount(4)
-                .call
-                .iterator
-                .asScala
-                .map(new CommitInfo(_))
-                .toList
-          val pushedCommit = commits.drop(1)
+      }
 
-          WebHookPushPayload(
-            git = git,
-            sender = ownerAccount,
-            refName = "refs/heads/" + repository.repository.defaultBranch,
-            repositoryInfo = repository,
-            commits = pushedCommit,
-            repositoryOwner = ownerAccount,
-            oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
-            newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId())
-          )
-        }
+      val (webHook, json, reqFuture, resFuture) =
+        callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload, context.settings).head
 
-        val (webHook, json, reqFuture, resFuture) =
-          callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload, context.settings).head
+      val toErrorMap: PartialFunction[Throwable, Map[String, String]] = {
+        case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))
+        case e: java.lang.IllegalArgumentException             => Map("error" -> ("invalid url"))
+        case e: org.apache.http.client.ClientProtocolException => Map("error" -> ("invalid url"))
+        case NonFatal(e)                                       => Map("error" -> (s"${e.getClass} ${e.getMessage}"))
+      }
 
-        val toErrorMap: PartialFunction[Throwable, Map[String, String]] = {
-          case e: java.net.UnknownHostException                  => Map("error" -> ("Unknown host " + e.getMessage))
-          case e: java.lang.IllegalArgumentException             => Map("error" -> ("invalid url"))
-          case e: org.apache.http.client.ClientProtocolException => Map("error" -> ("invalid url"))
-          case NonFatal(e)                                       => Map("error" -> (s"${e.getClass} ${e.getMessage}"))
-        }
-
-        contentType = formats("json")
-        org.json4s.jackson.Serialization.write(
-          Map(
-            "url" -> url,
-            "request" -> Await.result(
-              reqFuture
-                .map(
-                  req =>
-                    Map(
-                      "headers" -> _headers(req.getAllHeaders),
-                      "payload" -> json
-                  )
+      contentType = formats("json")
+      org.json4s.jackson.Serialization.write(
+        Map(
+          "url" -> url,
+          "request" -> Await.result(
+            reqFuture
+              .map(req =>
+                Map(
+                  "headers" -> _headers(req.getAllHeaders),
+                  "payload" -> json
                 )
-                .recover(toErrorMap),
-              20 seconds
-            ),
-            "response" -> Await.result(
-              resFuture
-                .map(
-                  res =>
-                    Map(
-                      "status" -> res.getStatusLine.getStatusCode,
-                      "body" -> EntityUtils.toString(res.getEntity()),
-                      "headers" -> _headers(res.getAllHeaders())
-                  )
+              )
+              .recover(toErrorMap),
+            20 seconds
+          ),
+          "response" -> Await.result(
+            resFuture
+              .map(res =>
+                Map(
+                  "status" -> res.getStatusLine.getStatusCode,
+                  "body" -> EntityUtils.toString(res.getEntity()),
+                  "headers" -> _headers(res.getAllHeaders())
                 )
-                .recover(toErrorMap),
-              20 seconds
-            )
+              )
+              .recover(toErrorMap),
+            20 seconds
           )
         )
+      )
     }
   })
 
@@ -380,9 +377,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
-    getWebHook(repository.owner, repository.name, params("url")).map {
-      case (webhook, events) =>
-        html.edithook(webhook, events, repository, false)
+    getWebHook(repository.owner, repository.name, params("url")).map { case (webhook, events) =>
+      html.edithook(webhook, events, repository, false)
     } getOrElse NotFound()
   })
 
@@ -406,23 +402,22 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Rename repository.
    */
   post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
-    context.withLoginAccount {
-      loginAccount =>
-        if (context.settings.basicBehavior.repositoryOperation.rename || loginAccount.isAdmin) {
-          if (repository.name != form.repositoryName) {
-            // Update database and move git repository
-            renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
-            // Record activity log
-            val renameInfo = RenameRepositoryInfo(
-              repository.owner,
-              form.repositoryName,
-              loginAccount.userName,
-              repository.name
-            )
-            recordActivity(renameInfo)
-          }
-          redirect(s"/${repository.owner}/${form.repositoryName}")
-        } else Forbidden()
+    context.withLoginAccount { loginAccount =>
+      if (context.settings.basicBehavior.repositoryOperation.rename || loginAccount.isAdmin) {
+        if (repository.name != form.repositoryName) {
+          // Update database and move git repository
+          renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+          // Record activity log
+          val renameInfo = RenameRepositoryInfo(
+            repository.owner,
+            form.repositoryName,
+            loginAccount.userName,
+            repository.name
+          )
+          recordActivity(renameInfo)
+        }
+        redirect(s"/${repository.owner}/${form.repositoryName}")
+      } else Forbidden()
     }
   })
 
@@ -430,24 +425,23 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Transfer repository ownership.
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
-    context.withLoginAccount {
-      loginAccount =>
-        if (context.settings.basicBehavior.repositoryOperation.transfer || loginAccount.isAdmin) {
-          // Change repository owner
-          if (repository.owner != form.newOwner) {
-            // Update database and move git repository
-            renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-            // Record activity log
-            val renameInfo = RenameRepositoryInfo(
-              form.newOwner,
-              repository.name,
-              loginAccount.userName,
-              repository.owner
-            )
-            recordActivity(renameInfo)
-          }
-          redirect(s"/${form.newOwner}/${repository.name}")
-        } else Forbidden()
+    context.withLoginAccount { loginAccount =>
+      if (context.settings.basicBehavior.repositoryOperation.transfer || loginAccount.isAdmin) {
+        // Change repository owner
+        if (repository.owner != form.newOwner) {
+          // Update database and move git repository
+          renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+          // Record activity log
+          val renameInfo = RenameRepositoryInfo(
+            form.newOwner,
+            repository.name,
+            loginAccount.userName,
+            repository.owner
+          )
+          recordActivity(renameInfo)
+        }
+        redirect(s"/${form.newOwner}/${repository.name}")
+      } else Forbidden()
     }
   })
 

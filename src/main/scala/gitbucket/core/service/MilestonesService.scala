@@ -46,8 +46,8 @@ trait MilestonesService {
   def getMilestone(owner: String, repository: String, milestoneId: Int)(implicit s: Session): Option[Milestone] =
     Milestones.filter(_.byPrimaryKey(owner, repository, milestoneId)).firstOption
 
-  def getMilestonesWithIssueCount(owner: String, repository: String)(
-    implicit s: Session
+  def getMilestonesWithIssueCount(owner: String, repository: String)(implicit
+    s: Session
   ): List[(Milestone, Int, Int)] = {
     val counts = Issues
       .filter { t =>
@@ -78,13 +78,12 @@ trait MilestonesService {
   def getApiMilestone(repository: RepositoryInfo, milestoneId: Int)(implicit s: Session): Option[ApiMilestone] = {
     getMilestonesWithIssueCount(repository.owner, repository.name)
       .find(p => p._1.milestoneId == milestoneId)
-      .map(
-        milestoneWithIssue =>
-          ApiMilestone(
-            repository.repository,
-            milestoneWithIssue._1,
-            milestoneWithIssue._2,
-            milestoneWithIssue._3
+      .map(milestoneWithIssue =>
+        ApiMilestone(
+          repository.repository,
+          milestoneWithIssue._1,
+          milestoneWithIssue._2,
+          milestoneWithIssue._3
         )
       )
   }

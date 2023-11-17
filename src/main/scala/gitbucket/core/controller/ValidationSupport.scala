@@ -84,9 +84,8 @@ trait ValidationSupport extends FormSupport { self: ServletBase with JacksonJson
    * Converts errors to JSON.
    */
   private def toJson(errors: Seq[(String, String)]): JObject =
-    JObject(errors.map {
-      case (key, value) =>
-        JField(key, JString(value))
+    JObject(errors.map { case (key, value) =>
+      JField(key, JString(value))
     }.toList)
 
 }

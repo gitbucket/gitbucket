@@ -54,12 +54,11 @@ object JDBCUtil {
 
     private def execute[T](sql: String, params: Any*)(f: (PreparedStatement) => T): T = {
       Using.resource(conn.prepareStatement(sql)) { stmt =>
-        params.zipWithIndex.foreach {
-          case (p, i) =>
-            p match {
-              case x: Int    => stmt.setInt(i + 1, x)
-              case x: String => stmt.setString(i + 1, x)
-            }
+        params.zipWithIndex.foreach { case (p, i) =>
+          p match {
+            case x: Int    => stmt.setInt(i + 1, x)
+            case x: String => stmt.setString(i + 1, x)
+          }
         }
         f(stmt)
       }
@@ -136,19 +135,18 @@ object JDBCUtil {
               sb.append(columns.map(_._1).mkString(", "))
               sb.append(") VALUES (")
 
-              val values = columns.map {
-                case (columnName, columnType) =>
-                  if (rs.getObject(columnName) == null) {
-                    null
-                  } else {
-                    columnType match {
-                      case Types.BOOLEAN | Types.BIT                                   => rs.getBoolean(columnName)
-                      case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => rs.getString(columnName)
-                      case Types.INTEGER                                               => rs.getInt(columnName)
-                      case Types.BIGINT                                                => rs.getLong(columnName)
-                      case Types.TIMESTAMP                                             => rs.getTimestamp(columnName)
-                    }
+              val values = columns.map { case (columnName, columnType) =>
+                if (rs.getObject(columnName) == null) {
+                  null
+                } else {
+                  columnType match {
+                    case Types.BOOLEAN | Types.BIT                                   => rs.getBoolean(columnName)
+                    case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => rs.getString(columnName)
+                    case Types.INTEGER                                               => rs.getInt(columnName)
+                    case Types.BIGINT                                                => rs.getLong(columnName)
+                    case Types.TIMESTAMP                                             => rs.getTimestamp(columnName)
                   }
+                }
               }
 
               val columnValues = values.map {

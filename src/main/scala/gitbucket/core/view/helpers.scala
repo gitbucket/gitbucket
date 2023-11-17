@@ -160,8 +160,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Creates a link to the issue or the pull request from the issue id.
    */
-  def issueLink(owner: String, repository: String, issueId: Int, title: String)(
-    implicit context: Context
+  def issueLink(owner: String, repository: String, issueId: Int, title: String)(implicit
+    context: Context
   ): Html = {
     Html(createIssueLink(owner, repository, issueId, title))
   }
@@ -169,8 +169,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Creates a global link to the issue or the pull request from the issue id.
    */
-  def issueGlobalLink(owner: String, repository: String, issueId: Int, title: String)(
-    implicit context: Context
+  def issueGlobalLink(owner: String, repository: String, issueId: Int, title: String)(implicit
+    context: Context
   ): Html = {
     Html(createGlobalIssueLink(owner, repository, issueId, title))
   }
@@ -179,8 +179,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.
    * This method looks up Gravatar if avatar icon has not been configured in user settings.
    */
-  def avatar(userName: String, size: Int, tooltip: Boolean = false, mailAddress: String = "")(
-    implicit context: Context
+  def avatar(userName: String, size: Int, tooltip: Boolean = false, mailAddress: String = "")(implicit
+    context: Context
   ): Html =
     getAvatarImageHtml(userName, size, mailAddress, tooltip)
 

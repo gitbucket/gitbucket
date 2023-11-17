@@ -33,7 +33,11 @@ class PullRequestServiceSpec
         generateNewUserWithDBRepository("user1", "repo2")
         generateNewUserWithDBRepository("user2", "repo1")
         generateNewPullRequest("user1/repo1/master", "user1/repo1/head2", loginUser = "root") // not target branch
-        generateNewPullRequest("user1/repo1/head1", "user1/repo1/master", loginUser = "root") // not target branch ( swap from, to )
+        generateNewPullRequest(
+          "user1/repo1/head1",
+          "user1/repo1/master",
+          loginUser = "root"
+        ) // not target branch ( swap from, to )
         generateNewPullRequest("user1/repo1/master", "user2/repo1/head1", loginUser = "root") // other user
         generateNewPullRequest("user1/repo1/master", "user1/repo2/head1", loginUser = "root") // other repository
         val r1 = swap(generateNewPullRequest("user1/repo1/master2", "user1/repo1/head1", loginUser = "root"))

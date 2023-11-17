@@ -14,26 +14,25 @@ import scala.util.Using
 trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._
 
-  def countIssues(owner: String, repository: String, query: String, pullRequest: Boolean)(
-    implicit session: Session
+  def countIssues(owner: String, repository: String, query: String, pullRequest: Boolean)(implicit
+    session: Session
   ): Int =
     searchIssuesByKeyword(owner, repository, query, pullRequest).length
 
-  def searchIssues(owner: String, repository: String, query: String, pullRequest: Boolean)(
-    implicit session: Session
+  def searchIssues(owner: String, repository: String, query: String, pullRequest: Boolean)(implicit
+    session: Session
   ): List[IssueSearchResult] =
-    searchIssuesByKeyword(owner, repository, query, pullRequest).map {
-      case (issue, commentCount, content) =>
-        IssueSearchResult(
-          issue.issueId,
-          issue.isPullRequest,
-          issue.title,
-          issue.closed,
-          issue.openedUserName,
-          issue.registeredDate,
-          commentCount,
-          getHighlightText(content, query)._1
-        )
+    searchIssuesByKeyword(owner, repository, query, pullRequest).map { case (issue, commentCount, content) =>
+      IssueSearchResult(
+        issue.issueId,
+        issue.isPullRequest,
+        issue.title,
+        issue.closed,
+        issue.openedUserName,
+        issue.registeredDate,
+        commentCount,
+        getHighlightText(content, query)._1
+      )
     }
 
   def countFiles(owner: String, repository: String, query: String): Int =
@@ -48,10 +47,9 @@ trait RepositorySearchService { self: IssuesService =>
       } else {
         val files = searchRepositoryFiles(git, query)
         val commits = JGitUtil.getLatestCommitFromPaths(git, files.map(_._1), "HEAD")
-        files.map {
-          case (path, text) =>
-            val (highlightText, lineNumber) = getHighlightText(text, query)
-            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText, lineNumber)
+        files.map { case (path, text) =>
+          val (highlightText, lineNumber) = getHighlightText(text, query)
+          FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText, lineNumber)
         }
       }
     }
@@ -68,15 +66,14 @@ trait RepositorySearchService { self: IssuesService =>
       } else {
         val files = searchRepositoryFiles(git, query)
         val commits = JGitUtil.getLatestCommitFromPaths(git, files.map(_._1), "HEAD")
-        files.map {
-          case (path, text) =>
-            val (highlightText, lineNumber) = getHighlightText(text, query)
-            FileSearchResult(
-              path.stripSuffix(".md"),
-              commits(path).getCommitterIdent.getWhen,
-              highlightText,
-              lineNumber
-            )
+        files.map { case (path, text) =>
+          val (highlightText, lineNumber) = getHighlightText(text, query)
+          FileSearchResult(
+            path.stripSuffix(".md"),
+            commits(path).getCommitterIdent.getWhen,
+            highlightText,
+            lineNumber
+          )
         }
       }
     }

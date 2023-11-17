@@ -108,10 +108,21 @@ trait ServiceSpecBase {
 
   def user(name: String)(implicit s: Session): Account = AccountService.getAccountByUserName(name).get
 
-  lazy val dummyService = new RepositoryService with AccountService with ActivityService with IssuesService
-  with MergeService with PullRequestService with CommitsService with CommitStatusService with LabelsService
-  with MilestonesService with PrioritiesService with WebHookService with WebHookPullRequestService
-  with WebHookPullRequestReviewCommentService with RequestCache {
+  lazy val dummyService = new RepositoryService
+    with AccountService
+    with ActivityService
+    with IssuesService
+    with MergeService
+    with PullRequestService
+    with CommitsService
+    with CommitStatusService
+    with LabelsService
+    with MilestonesService
+    with PrioritiesService
+    with WebHookService
+    with WebHookPullRequestService
+    with WebHookPullRequestReviewCommentService
+    with RequestCache {
     override def fetchAsPullRequest(
       userName: String,
       repositoryName: String,
@@ -133,8 +144,7 @@ trait ServiceSpecBase {
     ac
   }
 
-  def generateNewIssue(userName: String, repositoryName: String, loginUser: String = "root")(
-    implicit
+  def generateNewIssue(userName: String, repositoryName: String, loginUser: String = "root")(implicit
     s: Session
   ): Int = {
     dummyService.insertIssue(
@@ -149,8 +159,7 @@ trait ServiceSpecBase {
     )
   }
 
-  def generateNewPullRequest(base: String, request: String, loginUser: String)(
-    implicit
+  def generateNewPullRequest(base: String, request: String, loginUser: String)(implicit
     s: Session
   ): (Issue, PullRequest) = {
     implicit val context = Context(createSystemSettings(), None, this.request)

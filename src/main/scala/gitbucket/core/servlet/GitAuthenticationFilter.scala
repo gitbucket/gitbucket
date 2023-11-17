@@ -43,10 +43,9 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
     try {
       PluginRegistry()
         .getRepositoryRouting(request.gitRepositoryPath)
-        .map {
-          case GitRepositoryRouting(_, _, filter) =>
-            // served by plug-ins
-            pluginRepository(request, wrappedResponse, chain, settings, isUpdating, filter)
+        .map { case GitRepositoryRouting(_, _, filter) =>
+          // served by plug-ins
+          pluginRepository(request, wrappedResponse, chain, settings, isUpdating, filter)
 
         }
         .getOrElse {
@@ -130,19 +129,17 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
               }
             }
             case None =>
-              () =>
-                {
-                  logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
-                  response.sendError(HttpServletResponse.SC_NOT_FOUND)
-                }
+              () => {
+                logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+                response.sendError(HttpServletResponse.SC_NOT_FOUND)
+              }
           }
         }
       case _ =>
-        () =>
-          {
-            logger.debug(s"Not enough path arguments: ${request.paths.mkString(", ")}")
-            response.sendError(HttpServletResponse.SC_NOT_FOUND)
-          }
+        () => {
+          logger.debug(s"Not enough path arguments: ${request.paths.mkString(", ")}")
+          response.sendError(HttpServletResponse.SC_NOT_FOUND)
+        }
     }
 
     action()
@@ -159,8 +156,8 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
    * @param s database session
    * @return an account or none
    */
-  private def authenticateByHeader(authorizationHeader: String, settings: SystemSettings)(
-    implicit s: Session
+  private def authenticateByHeader(authorizationHeader: String, settings: SystemSettings)(implicit
+    s: Session
   ): Option[Account] = {
     val Array(username, password) = AuthUtil.decodeAuthHeader(authorizationHeader).split(":", 2)
     authenticate(settings, username, password).orElse {

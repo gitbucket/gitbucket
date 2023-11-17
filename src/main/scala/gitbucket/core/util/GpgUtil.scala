@@ -12,9 +12,8 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider
 object GpgUtil {
   def str2GpgKeyId(keyStr: String): Option[Long] = {
     val pubKeyOf = new BcPGPObjectFactory(new ArmoredInputStream(new ByteArrayInputStream(keyStr.getBytes)))
-    pubKeyOf.iterator().asScala.collectFirst {
-      case keyRing: PGPPublicKeyRing =>
-        keyRing.getPublicKey().getKeyID
+    pubKeyOf.iterator().asScala.collectFirst { case keyRing: PGPPublicKeyRing =>
+      keyRing.getPublicKey().getKeyID
     }
   }
 
@@ -37,23 +36,22 @@ object GpgUtil {
       new BcPGPObjectFactory(new ArmoredInputStream(new ByteArrayInputStream(signInfo.signArmored)))
         .iterator()
         .asScala
-        .flatMap {
-          case signList: PGPSignatureList =>
-            signList
-              .iterator()
-              .asScala
-              .flatMap { sign =>
-                getGpgKey(sign.getKeyID)
-                  .map { pubKey =>
-                    sign.init(new BcPGPContentVerifierBuilderProvider, pubKey)
-                    sign.update(signInfo.target)
-                    (sign, pubKey)
-                  }
-                  .collect {
-                    case (sign, pubKey) if sign.verify() =>
-                      JGitUtil.GpgVerifyInfo(pubKey.getUserIDs.next, pubKey.getKeyID.toHexString.toUpperCase)
-                  }
-              }
+        .flatMap { case signList: PGPSignatureList =>
+          signList
+            .iterator()
+            .asScala
+            .flatMap { sign =>
+              getGpgKey(sign.getKeyID)
+                .map { pubKey =>
+                  sign.init(new BcPGPContentVerifierBuilderProvider, pubKey)
+                  sign.update(signInfo.target)
+                  (sign, pubKey)
+                }
+                .collect {
+                  case (sign, pubKey) if sign.verify() =>
+                    JGitUtil.GpgVerifyInfo(pubKey.getUserIDs.next, pubKey.getKeyID.toHexString.toUpperCase)
+                }
+            }
         }
         .toList
         .headOption

@@ -62,9 +62,8 @@ class Mailer(settings: SystemSettings) {
         smtp.fromAddress
           .map(_ -> smtp.fromName.getOrElse(loginAccount.map(_.userName).getOrElse("GitBucket")))
           .orElse(Some("notifications@gitbucket.com" -> loginAccount.map(_.userName).getOrElse("GitBucket")))
-          .foreach {
-            case (address, name) =>
-              email.setFrom(address, name)
+          .foreach { case (address, name) =>
+            email.setFrom(address, name)
           }
         email.setCharset("UTF-8")
         email.setSubject(subject)

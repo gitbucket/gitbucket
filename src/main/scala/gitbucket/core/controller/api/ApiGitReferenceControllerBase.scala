@@ -58,27 +58,25 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    * https://docs.github.com/en/free-pro-team@latest/rest/reference/git#create-a-reference
    */
   post("/api/v3/repos/:owner/:repository/git/refs")(writableUsersOnly { repository =>
-    extractFromJsonBody[CreateARef].map {
-      data =>
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) {
-          git =>
-            val ref = git.getRepository.findRef(data.ref)
-            if (ref == null) {
-              val update = git.getRepository.updateRef(data.ref)
-              update.setNewObjectId(ObjectId.fromString(data.sha))
-              val result = update.update()
-              result match {
-                case Result.NEW =>
-                  JsonFormat(
-                    ApiRef
-                      .fromRef(RepositoryName(repository.owner, repository.name), git.getRepository.findRef(data.ref))
-                  )
-                case _ => UnprocessableEntity(result.name())
-              }
-            } else {
-              UnprocessableEntity("Ref already exists.")
-            }
+    extractFromJsonBody[CreateARef].map { data =>
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val ref = git.getRepository.findRef(data.ref)
+        if (ref == null) {
+          val update = git.getRepository.updateRef(data.ref)
+          update.setNewObjectId(ObjectId.fromString(data.sha))
+          val result = update.update()
+          result match {
+            case Result.NEW =>
+              JsonFormat(
+                ApiRef
+                  .fromRef(RepositoryName(repository.owner, repository.name), git.getRepository.findRef(data.ref))
+              )
+            case _ => UnprocessableEntity(result.name())
+          }
+        } else {
+          UnprocessableEntity("Ref already exists.")
         }
+      }
     } getOrElse BadRequest()
   })
 
@@ -88,24 +86,23 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    */
   patch("/api/v3/repos/:owner/:repository/git/refs/*")(writableUsersOnly { repository =>
     val refName = multiParams("splat").mkString("/")
-    extractFromJsonBody[UpdateARef].map {
-      data =>
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          val ref = git.getRepository.findRef(refName)
-          if (ref == null) {
-            UnprocessableEntity("Ref does not exist.")
-          } else {
-            val update = git.getRepository.updateRef(ref.getName)
-            update.setNewObjectId(ObjectId.fromString(data.sha))
-            update.setForceUpdate(data.force)
-            val result = update.update()
-            result match {
-              case Result.FORCED | Result.FAST_FORWARD | Result.NO_CHANGE =>
-                JsonFormat(ApiRef.fromRef(RepositoryName(repository), git.getRepository.findRef(refName)))
-              case _ => UnprocessableEntity(result.name())
-            }
+    extractFromJsonBody[UpdateARef].map { data =>
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val ref = git.getRepository.findRef(refName)
+        if (ref == null) {
+          UnprocessableEntity("Ref does not exist.")
+        } else {
+          val update = git.getRepository.updateRef(ref.getName)
+          update.setNewObjectId(ObjectId.fromString(data.sha))
+          update.setForceUpdate(data.force)
+          val result = update.update()
+          result match {
+            case Result.FORCED | Result.FAST_FORWARD | Result.NO_CHANGE =>
+              JsonFormat(ApiRef.fromRef(RepositoryName(repository), git.getRepository.findRef(refName)))
+            case _ => UnprocessableEntity(result.name())
           }
         }
+      }
     } getOrElse BadRequest()
   })
 

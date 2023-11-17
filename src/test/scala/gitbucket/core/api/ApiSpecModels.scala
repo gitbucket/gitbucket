@@ -297,7 +297,7 @@ object ApiSpecModels {
       committerEmailAddress = account.mailAddress,
       None,
       None
-  )
+    )
 
   val apiCommitListItem = ApiCommitListItem(
     commit = commitInfo(sha1),
@@ -443,7 +443,7 @@ object ApiSpecModels {
 
   val apiPusher = ApiPusher(account)
 
-  //have both urls as https, as the expected samples are using https
+  // have both urls as https, as the expected samples are using https
   val gitHubContext = JsonFormat.Context("https://api.github.com", Some("https://api.github.com"))
 
   val apiRefHeadsMaster = ApiRef(
@@ -797,7 +797,7 @@ object ApiSpecModels {
 
   val jsonPusher = """{"name":"octocat","email":"octocat@example.com"}"""
 
-  //I checked all refs in gitbucket repo, and there appears to be only type "commit" and type "tag"
+  // I checked all refs in gitbucket repo, and there appears to be only type "commit" and type "tag"
   val jsonRef = """{"ref":"refs/heads/featureA","object":{"sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}}"""
 
   val jsonRefHeadsMain =

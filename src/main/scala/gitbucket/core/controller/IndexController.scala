@@ -151,10 +151,9 @@ trait IndexControllerBase extends ControllerBase {
       val redirectURI = new URI(s"$baseUrl/signin/oidc")
       session.get(Keys.Session.OidcAuthContext) match {
         case Some(context: OidcAuthContext) =>
-          authenticate(params.toMap, redirectURI, context.state, context.nonce, oidc).map {
-            case (jwt, account) =>
-              session.setAttribute(Keys.Session.OidcSessionContext, OidcSessionContext(jwt))
-              signin(account, context.redirectBackURI)
+          authenticate(params.toMap, redirectURI, context.state, context.nonce, oidc).map { case (jwt, account) =>
+            session.setAttribute(Keys.Session.OidcSessionContext, OidcSessionContext(jwt))
+            signin(account, context.redirectBackURI)
           } orElse {
             flash.update("error", "Sorry, authentication failed. Please try again.")
             session.invalidate()
@@ -172,12 +171,11 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/signout") {
     context.settings.oidc.foreach { oidc =>
-      session.get(Keys.Session.OidcSessionContext).foreach {
-        case context: OidcSessionContext =>
-          val redirectURI = new URI(baseUrl)
-          val authenticationRequest = createOIDLogoutRequest(oidc.issuer, oidc.clientID, redirectURI, context.token)
-          session.invalidate()
-          redirect(authenticationRequest.toURI.toString)
+      session.get(Keys.Session.OidcSessionContext).foreach { case context: OidcSessionContext =>
+        val redirectURI = new URI(baseUrl)
+        val authenticationRequest = createOIDLogoutRequest(oidc.issuer, oidc.clientID, redirectURI, context.token)
+        session.invalidate()
+        redirect(authenticationRequest.toURI.toString)
       }
     }
     session.invalidate()
@@ -244,9 +242,9 @@ trait IndexControllerBase extends ControllerBase {
             .map { t =>
               Map(
                 "label" -> s"${avatar(t.userName, 16)}<b>@${StringUtil.escapeHtml(
-                  StringUtil.cutTail(t.userName, 25, "...")
-                )}</b> ${StringUtil
-                  .escapeHtml(StringUtil.cutTail(t.fullName, 25, "..."))}",
+                    StringUtil.cutTail(t.userName, 25, "...")
+                  )}</b> ${StringUtil
+                    .escapeHtml(StringUtil.cutTail(t.fullName, 25, "..."))}",
                 "value" -> t.userName
               )
             }
@@ -269,12 +267,13 @@ trait IndexControllerBase extends ControllerBase {
   get("/:owner/:repository/search")(referrersOnly { repository =>
     val query = params.getOrElse("q", "").trim
     val target = params.getOrElse("type", "code")
-    val page = try {
-      val i = params.getOrElse("page", "1").toInt
-      if (i <= 0) 1 else i
-    } catch {
-      case _: NumberFormatException => 1
-    }
+    val page =
+      try {
+        val i = params.getOrElse("page", "1").toInt
+        if (i <= 0) 1 else i
+      } catch {
+        case _: NumberFormatException => 1
+      }
 
     target.toLowerCase match {
       case "issues" =>

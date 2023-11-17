@@ -75,59 +75,57 @@ class FileUploadController
   post("/wiki/:owner/:repository") {
     setMultipartConfig()
     // Don't accept not logged-in users
-    session.get(Keys.Session.LoginAccount).collect {
-      case loginAccount: Account =>
-        val owner = params("owner")
-        val repository = params("repository")
+    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
+      val owner = params("owner")
+      val repository = params("repository")
 
-        // Check whether logged-in user is collaborator
-        onlyWikiEditable(owner, repository, loginAccount) {
-          execute(
-            { (file, fileId) =>
-              val fileName = file.getName
-              LockUtil.lock(s"${owner}/${repository}/wiki") {
-                Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) {
-                  git =>
-                    val builder = DirCache.newInCore.builder()
-                    val inserter = git.getRepository.newObjectInserter()
-                    val headId = git.getRepository.resolve(Constants.HEAD + "^{commit}")
+      // Check whether logged-in user is collaborator
+      onlyWikiEditable(owner, repository, loginAccount) {
+        execute(
+          { (file, fileId) =>
+            val fileName = file.getName
+            LockUtil.lock(s"${owner}/${repository}/wiki") {
+              Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+                val builder = DirCache.newInCore.builder()
+                val inserter = git.getRepository.newObjectInserter()
+                val headId = git.getRepository.resolve(Constants.HEAD + "^{commit}")
 
-                    if (headId != null) {
-                      JGitUtil.processTree(git, headId) { (path, tree) =>
-                        if (path != fileName) {
-                          builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-                        }
-                      }
+                if (headId != null) {
+                  JGitUtil.processTree(git, headId) { (path, tree) =>
+                    if (path != fileName) {
+                      builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
                     }
-
-                    val bytes = IOUtils.toByteArray(file.getInputStream)
-                    builder.add(
-                      JGitUtil.createDirCacheEntry(
-                        fileName,
-                        FileMode.REGULAR_FILE,
-                        inserter.insert(Constants.OBJ_BLOB, bytes)
-                      )
-                    )
-                    builder.finish()
-
-                    val newHeadId = JGitUtil.createNewCommit(
-                      git,
-                      inserter,
-                      headId,
-                      builder.getDirCache.writeTree(inserter),
-                      Constants.HEAD,
-                      loginAccount.fullName,
-                      loginAccount.mailAddress,
-                      s"Uploaded ${fileName}"
-                    )
-
-                    fileName
+                  }
                 }
+
+                val bytes = IOUtils.toByteArray(file.getInputStream)
+                builder.add(
+                  JGitUtil.createDirCacheEntry(
+                    fileName,
+                    FileMode.REGULAR_FILE,
+                    inserter.insert(Constants.OBJ_BLOB, bytes)
+                  )
+                )
+                builder.finish()
+
+                val newHeadId = JGitUtil.createNewCommit(
+                  git,
+                  inserter,
+                  headId,
+                  builder.getDirCache.writeTree(inserter),
+                  Constants.HEAD,
+                  loginAccount.fullName,
+                  loginAccount.mailAddress,
+                  s"Uploaded ${fileName}"
+                )
+
+                fileName
               }
-            },
-            _ => true
-          )
-        }
+            }
+          },
+          _ => true
+        )
+      }
     } getOrElse BadRequest()
   }
 
@@ -135,20 +133,19 @@ class FileUploadController
     setMultipartConfigForLargeFile()
     session
       .get(Keys.Session.LoginAccount)
-      .collect {
-        case _: Account =>
-          val owner = params("owner")
-          val repository = params("repository")
-          val tag = multiParams("splat").head
-          execute(
-            { (file, fileId) =>
-              FileUtils.writeByteArrayToFile(
-                new File(getReleaseFilesDir(owner, repository), FileUtil.checkFilename(tag + "/" + fileId)),
-                file.get()
-              )
-            },
-            _ => true
-          )
+      .collect { case _: Account =>
+        val owner = params("owner")
+        val repository = params("repository")
+        val tag = multiParams("splat").head
+        execute(
+          { (file, fileId) =>
+            FileUtils.writeByteArrayToFile(
+              new File(getReleaseFilesDir(owner, repository), FileUtil.checkFilename(tag + "/" + fileId)),
+              file.get()
+            )
+          },
+          _ => true
+        )
       }
       .getOrElse(BadRequest())
   }
@@ -158,9 +155,12 @@ class FileUploadController
     setMultipartConfig()
     session.get(Keys.Session.LoginAccount).collect {
       case loginAccount: Account if loginAccount.isAdmin =>
-        execute({ (file, fileId) =>
-          request2Session(request).conn.importAsSQL(file.getInputStream)
-        }, _ => true)
+        execute(
+          { (file, fileId) =>
+            request2Session(request).conn.importAsSQL(file.getInputStream)
+          },
+          _ => true
+        )
     }
     redirect("/admin/data")
   }
