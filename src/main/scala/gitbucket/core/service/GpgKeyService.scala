@@ -17,10 +17,9 @@ trait GpgKeyService {
 
   def addGpgPublicKey(userName: String, title: String, publicKey: String)(implicit s: Session): Unit = {
     val pubKeyOf = new BcPGPObjectFactory(new ArmoredInputStream(new ByteArrayInputStream(publicKey.getBytes)))
-    pubKeyOf.iterator().asScala.foreach {
-      case keyRing: PGPPublicKeyRing =>
-        val key = keyRing.getPublicKey()
-        GpgKeys.insert(GpgKey(userName = userName, gpgKeyId = key.getKeyID, title = title, publicKey = publicKey))
+    pubKeyOf.iterator().asScala.foreach { case keyRing: PGPPublicKeyRing =>
+      val key = keyRing.getPublicKey()
+      GpgKeys.insert(GpgKey(userName = userName, gpgKeyId = key.getKeyID, title = title, publicKey = publicKey))
     }
   }
 

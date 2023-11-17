@@ -30,8 +30,8 @@ trait LabelsService {
     createLabel(owner, repository, labelName, color)
   }
 
-  def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String)(
-    implicit s: Session
+  def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String)(implicit
+    s: Session
   ): Unit =
     Labels
       .filter(_.byPrimaryKey(owner, repository, labelId))

@@ -20,8 +20,10 @@ abstract class ControllerFilter extends Filter {
       requestPath + "/"
     }
 
-    if (!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
-        !checkPath.startsWith("/assets/") && !checkPath.startsWith("/plugin-assets/")) {
+    if (
+      !checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
+      !checkPath.startsWith("/assets/") && !checkPath.startsWith("/plugin-assets/")
+    ) {
       val continue = process(request, response, checkPath)
       if (!continue) {
         return ()
@@ -41,33 +43,29 @@ class CompositeScalatraFilter extends ControllerFilter {
   }
 
   override def init(filterConfig: FilterConfig): Unit = {
-    filters.foreach {
-      case (filter, _) =>
-        filter.init(filterConfig)
+    filters.foreach { case (filter, _) =>
+      filter.init(filterConfig)
     }
   }
 
   override def destroy(): Unit = {
-    filters.foreach {
-      case (filter, _) =>
-        filter.destroy()
+    filters.foreach { case (filter, _) =>
+      filter.destroy()
     }
   }
 
   override def process(request: ServletRequest, response: ServletResponse, checkPath: String): Boolean = {
     filters
-      .filter {
-        case (_, path) =>
-          val start = path.replaceFirst("/\\*$", "/")
-          checkPath.startsWith(start)
+      .filter { case (_, path) =>
+        val start = path.replaceFirst("/\\*$", "/")
+        checkPath.startsWith(start)
       }
-      .foreach {
-        case (filter, _) =>
-          val mockChain = new MockFilterChain()
-          filter.doFilter(request, response, mockChain)
-          if (mockChain.continue == false) {
-            return false
-          }
+      .foreach { case (filter, _) =>
+        val mockChain = new MockFilterChain()
+        filter.doFilter(request, response, mockChain)
+        if (mockChain.continue == false) {
+          return false
+        }
       }
 
     true

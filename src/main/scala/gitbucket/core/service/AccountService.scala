@@ -19,8 +19,8 @@ trait AccountService {
 
   private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
-  def authenticate(settings: SystemSettings, userName: String, password: String)(
-    implicit s: Session
+  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit
+    s: Session
   ): Option[Account] = {
     val account = if (password.isEmpty) {
       None
@@ -58,8 +58,8 @@ trait AccountService {
   /**
    * Authenticate by LDAP.
    */
-  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String)(
-    implicit s: Session
+  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String)(implicit
+    s: Session
   ): Option[Account] = {
     LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
       case Right(ldapUserInfo) => {
@@ -112,15 +112,15 @@ trait AccountService {
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
     Accounts filter (t => (t.userName === userName.bind).&&(t.removed === false.bind, !includeRemoved)) firstOption
 
-  def getAccountByUserNameIgnoreCase(userName: String, includeRemoved: Boolean = false)(
-    implicit s: Session
+  def getAccountByUserNameIgnoreCase(userName: String, includeRemoved: Boolean = false)(implicit
+    s: Session
   ): Option[Account] =
-    Accounts filter (
-      t => (t.userName.toLowerCase === userName.toLowerCase.bind).&&(t.removed === false.bind, !includeRemoved)
+    Accounts filter (t =>
+      (t.userName.toLowerCase === userName.toLowerCase.bind).&&(t.removed === false.bind, !includeRemoved)
     ) firstOption
 
-  def getAccountsByUserNames(userNames: Set[String], knowns: Set[Account], includeRemoved: Boolean = false)(
-    implicit s: Session
+  def getAccountsByUserNames(userNames: Set[String], knowns: Set[Account], includeRemoved: Boolean = false)(implicit
+    s: Session
   ): Map[String, Account] = {
     val map = knowns.map(a => a.userName -> a).toMap
     val needs = userNames -- map.keySet
@@ -135,17 +135,15 @@ trait AccountService {
     }
   }
 
-  def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(
-    implicit s: Session
+  def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(implicit
+    s: Session
   ): Option[Account] =
     (Accounts joinLeft AccountExtraMailAddresses on { case (a, e) => a.userName === e.userName })
-      .filter {
-        case (a, x) =>
-          ((a.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) ||
-            (x.map { e =>
-                e.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind
-              }
-              .getOrElse(false.bind))).&&(a.removed === false.bind, !includeRemoved)
+      .filter { case (a, x) =>
+        ((a.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) ||
+          (x.map { e =>
+            e.extraMailAddress.toLowerCase === mailAddress.toLowerCase.bind
+          }.getOrElse(false.bind))).&&(a.removed === false.bind, !includeRemoved)
       }
       .map { case (a, e) => a } firstOption
 
@@ -267,8 +265,8 @@ trait AccountService {
     group
   }
 
-  def updateGroup(groupName: String, description: Option[String], url: Option[String], removed: Boolean)(
-    implicit s: Session
+  def updateGroup(groupName: String, description: Option[String], url: Option[String], removed: Boolean)(implicit
+    s: Session
   ): Unit =
     Accounts
       .filter(_.userName === groupName.bind)
@@ -277,9 +275,8 @@ trait AccountService {
 
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
     GroupMembers.filter(_.groupName === groupName.bind).delete
-    members.foreach {
-      case (userName, isManager) =>
-        GroupMembers insert GroupMember(groupName, userName, isManager)
+    members.foreach { case (userName, isManager) =>
+      GroupMembers insert GroupMember(groupName, userName, isManager)
     }
   }
 
@@ -318,8 +315,8 @@ trait AccountService {
   /*
    * For account preference
    */
-  def getAccountPreference(userName: String)(
-    implicit s: Session
+  def getAccountPreference(userName: String)(implicit
+    s: Session
   ): Option[AccountPreference] = {
     AccountPreferences filter (_.byPrimaryKey(userName)) firstOption
   }

@@ -128,13 +128,14 @@ object LDAPUtil {
 
     val cachedInstance = provider.get()
     if (cachedInstance == null) {
-      val cls = try {
-        Class.forName("com.sun.net.ssl.internal.ssl.Provider")
-      } catch {
-        case e: ClassNotFoundException =>
-          Class.forName("com.ibm.jsse.IBMJSSEProvider")
-        case e: Throwable => throw e
-      }
+      val cls =
+        try {
+          Class.forName("com.sun.net.ssl.internal.ssl.Provider")
+        } catch {
+          case e: ClassNotFoundException =>
+            Class.forName("com.ibm.jsse.IBMJSSEProvider")
+          case e: Throwable => throw e
+        }
       val newInstance = cls
         .getDeclaredConstructor()
         .newInstance()
@@ -234,8 +235,8 @@ object LDAPUtil {
       case x  => "(&(" + x + ")(" + userNameAttribute + "=" + userName + "))"
     }
 
-    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, filterCond, null, false)).collectFirst {
-      case x => x.getDN
+    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, filterCond, null, false)).collectFirst { case x =>
+      x.getDN
     }
   }
 

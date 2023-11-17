@@ -134,8 +134,8 @@ trait HandleCommentService {
     }
   }
 
-  def deleteCommentByApi(repoInfo: RepositoryInfo, comment: IssueComment, issue: Issue)(
-    implicit context: Context,
+  def deleteCommentByApi(repoInfo: RepositoryInfo, comment: IssueComment, issue: Issue)(implicit
+    context: Context,
     s: Session
   ): Option[IssueComment] = context.loginAccount.flatMap { _ =>
     comment.action match {

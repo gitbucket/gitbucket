@@ -19,7 +19,9 @@ trait AvatarImageProvider { self: RequestCache =>
       // by user name
       getAccountByUserNameFromCache(userName).map { account =>
         if (account.image.isEmpty && context.settings.basicBehavior.gravatar) {
-          s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}&d=retro&r=g"""
+          s"""https://www.gravatar.com/avatar/${StringUtil.md5(
+              account.mailAddress.toLowerCase
+            )}?s=${size}&d=retro&r=g"""
         } else {
           s"""${context.path}/${account.userName}/_avatar?${helpers.hashDate(account.updatedDate)}"""
         }
@@ -30,7 +32,9 @@ trait AvatarImageProvider { self: RequestCache =>
       // by mail address
       getAccountByMailAddressFromCache(mailAddress).map { account =>
         if (account.image.isEmpty && context.settings.basicBehavior.gravatar) {
-          s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}&d=retro&r=g"""
+          s"""https://www.gravatar.com/avatar/${StringUtil.md5(
+              account.mailAddress.toLowerCase
+            )}?s=${size}&d=retro&r=g"""
         } else {
           s"""${context.path}/${account.userName}/_avatar?${helpers.hashDate(account.updatedDate)}"""
         }
@@ -45,13 +49,15 @@ trait AvatarImageProvider { self: RequestCache =>
 
     if (tooltip) {
       Html(
-        s"""<img src="${src}" class="${if (size > 20) { "avatar" } else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
+        s"""<img src="${src}" class="${if (size > 20) { "avatar" }
+          else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
            |     alt="@${StringUtil.escapeHtml(userName)}"
            |     data-toggle="tooltip" title="${StringUtil.escapeHtml(userName)}" />""".stripMargin
       )
     } else {
       Html(
-        s"""<img src="${src}" class="${if (size > 20) { "avatar" } else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
+        s"""<img src="${src}" class="${if (size > 20) { "avatar" }
+          else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
            |     alt="@${StringUtil.escapeHtml(userName)}" />""".stripMargin
       )
     }

@@ -257,7 +257,7 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(label1.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/bug")
       }
 
-    // Replace labels (Cannot test because GHLabel.setLabels() doesn't use the replace endpoint)
+      // Replace labels (Cannot test because GHLabel.setLabels() doesn't use the replace endpoint)
 //      {
 //        issue.setLabels("enhancement", "invalid", "question")
 //

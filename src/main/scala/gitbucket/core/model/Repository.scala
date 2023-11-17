@@ -53,24 +53,24 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           safeMode
         )
       ).shaped.<>(
-        {
-          case (repository, options) =>
-            Repository(
-              repository._1,
-              repository._2,
-              repository._3,
-              repository._4,
-              repository._5,
-              repository._6,
-              repository._7,
-              repository._8,
-              repository._9,
-              repository._10,
-              repository._11,
-              repository._12,
-              RepositoryOptions.tupled.apply(options)
-            )
-        }, { (r: Repository) =>
+        { case (repository, options) =>
+          Repository(
+            repository._1,
+            repository._2,
+            repository._3,
+            repository._4,
+            repository._5,
+            repository._6,
+            repository._7,
+            repository._8,
+            repository._9,
+            repository._10,
+            repository._11,
+            repository._12,
+            RepositoryOptions.tupled.apply(options)
+          )
+        },
+        { (r: Repository) =>
           Some(
             (
               (

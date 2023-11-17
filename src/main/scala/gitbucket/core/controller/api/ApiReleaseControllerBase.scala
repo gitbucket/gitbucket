@@ -119,40 +119,39 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * ix. Upload a release asset
    * https://developer.github.com/v3/repos/releases/#upload-a-release-asset
    */
-  post("/api/v3/repos/:owner/:repository/releases/:tag/assets")(writableUsersOnly {
-    repository =>
-      val name = params("name")
-      val tag = params("tag")
-      getRelease(repository.owner, repository.name, tag)
-        .map { release =>
-          val fileId = FileUtil.generateFileId
-          val buf = new Array[Byte](request.inputStream.available())
-          request.inputStream.read(buf)
-          FileUtils.writeByteArrayToFile(
-            new File(
-              getReleaseFilesDir(repository.owner, repository.name),
-              FileUtil.checkFilename(tag + "/" + fileId)
-            ),
-            buf
-          )
-          createReleaseAsset(
-            repository.owner,
-            repository.name,
-            tag,
-            fileId,
-            name,
-            request.contentLength.getOrElse(0),
-            context.loginAccount.get
-          )
-          getReleaseAsset(repository.owner, repository.name, tag, fileId)
-            .map { asset =>
-              JsonFormat(ApiReleaseAsset(asset, RepositoryName(repository)))
-            }
-            .getOrElse {
-              ApiError("Unknown error")
-            }
-        }
-        .getOrElse(NotFound())
+  post("/api/v3/repos/:owner/:repository/releases/:tag/assets")(writableUsersOnly { repository =>
+    val name = params("name")
+    val tag = params("tag")
+    getRelease(repository.owner, repository.name, tag)
+      .map { release =>
+        val fileId = FileUtil.generateFileId
+        val buf = new Array[Byte](request.inputStream.available())
+        request.inputStream.read(buf)
+        FileUtils.writeByteArrayToFile(
+          new File(
+            getReleaseFilesDir(repository.owner, repository.name),
+            FileUtil.checkFilename(tag + "/" + fileId)
+          ),
+          buf
+        )
+        createReleaseAsset(
+          repository.owner,
+          repository.name,
+          tag,
+          fileId,
+          name,
+          request.contentLength.getOrElse(0),
+          context.loginAccount.get
+        )
+        getReleaseAsset(repository.owner, repository.name, tag, fileId)
+          .map { asset =>
+            JsonFormat(ApiReleaseAsset(asset, RepositoryName(repository)))
+          }
+          .getOrElse {
+            ApiError("Unknown error")
+          }
+      }
+      .getOrElse(NotFound())
   })
 
   /**
@@ -176,7 +175,7 @@ trait ApiReleaseControllerBase extends ControllerBase {
    */
 
   /*
- * xii. Delete a release asset
- * https://developer.github.com/v3/repos/releases/#edit-a-release-asset
- */
+   * xii. Delete a release asset
+   * https://developer.github.com/v3/repos/releases/#edit-a-release-asset
+   */
 }

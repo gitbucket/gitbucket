@@ -69,25 +69,24 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
       LockUtil.lock(RepositoryName(repository).fullName) {
-        getLabel(repository.owner, repository.name, params("labelName")).map {
-          label =>
-            if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
-              updateLabel(repository.owner, repository.name, label.labelId, data.name, data.color)
-              JsonFormat(
-                ApiLabel(
-                  getLabel(repository.owner, repository.name, label.labelId).get,
-                  RepositoryName(repository)
-                )
+        getLabel(repository.owner, repository.name, params("labelName")).map { label =>
+          if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
+            updateLabel(repository.owner, repository.name, label.labelId, data.name, data.color)
+            JsonFormat(
+              ApiLabel(
+                getLabel(repository.owner, repository.name, label.labelId).get,
+                RepositoryName(repository)
               )
-            } else {
-              // TODO ApiError should support errors field to enhance compatibility of GitHub API
-              UnprocessableEntity(
-                ApiError(
-                  "Validation Failed",
-                  Some("https://developer.github.com/v3/issues/labels/#create-a-label")
-                )
+            )
+          } else {
+            // TODO ApiError should support errors field to enhance compatibility of GitHub API
+            UnprocessableEntity(
+              ApiError(
+                "Validation Failed",
+                Some("https://developer.github.com/v3/issues/labels/#create-a-label")
               )
-            }
+            )
+          }
         } getOrElse NotFound()
       }
     }) getOrElse NotFound()
@@ -189,7 +188,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
   })
 
   /*
- * xi Get labels for every issue in a milestone
- * https://developer.github.com/v3/issues/labels/#get-labels-for-every-issue-in-a-milestone
- */
+   * xi Get labels for every issue in a milestone
+   * https://developer.github.com/v3/issues/labels/#get-labels-for-every-issue-in-a-milestone
+   */
 }

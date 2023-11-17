@@ -30,47 +30,47 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                % "org.eclipse.jgit.http.server" % JgitVersion,
-  "org.eclipse.jgit"                % "org.eclipse.jgit.archive"     % JgitVersion,
-  "org.scalatra"                    %% "scalatra-javax"              % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-json-javax"         % ScalatraVersion,
-  "org.scalatra"                    %% "scalatra-forms-javax"        % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"              % "4.0.6",
-  "commons-io"                      % "commons-io"                   % "2.15.0",
-  "io.github.gitbucket"             % "solidbase"                    % "1.0.5",
-  "io.github.gitbucket"             % "markedj"                      % "1.0.18",
-  "org.apache.commons"              % "commons-compress"             % "1.24.0",
-  "org.apache.commons"              % "commons-email"                % "1.5",
-  "commons-net"                     % "commons-net"                  % "3.10.0",
-  "org.apache.httpcomponents"       % "httpclient"                   % "4.5.14",
-  "org.apache.sshd"                 % "apache-sshd"                  % "2.11.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                    % "2.9.1",
-  "com.github.takezoe"              %% "blocking-slick"              % "0.0.14",
-  "com.novell.ldap"                 % "jldap"                        % "2009-10-07",
-  "com.h2database"                  % "h2"                           % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"          % "2.7.6",
-  "org.postgresql"                  % "postgresql"                   % "42.6.0",
-  "ch.qos.logback"                  % "logback-classic"              % "1.4.11",
-  "com.zaxxer"                      % "HikariCP"                     % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
-  "com.typesafe"                    % "config"                       % "1.4.3",
-  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                  % "1.1.0",
-  "io.github.java-diff-utils"       % "java-diff-utils"              % "4.12",
-  "org.cache2k"                     % "cache2k-all"                  % "1.6.0.Final",
-  "net.coobird"                     % "thumbnailator"                % "0.4.20",
-  "com.github.zafarkhaja"           % "java-semver"                  % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"              % "11.6",
-  "org.eclipse.jetty"               % "jetty-webapp"                 % JettyVersion % "provided",
-  "javax.servlet"                   % "javax.servlet-api"            % "3.1.0" % "provided",
-  "junit"                           % "junit"                        % "4.13.2" % "test",
-  "org.scalatra"                    %% "scalatra-scalatest-javax"    % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"                 % "5.7.0" % "test",
-  "com.dimafeng"                    %% "testcontainers-scala"        % "0.41.0" % "test",
-  "org.testcontainers"              % "mysql"                        % "1.19.1" % "test",
-  "org.testcontainers"              % "postgresql"                   % "1.19.1" % "test",
-  "net.i2p.crypto"                  % "eddsa"                        % "0.3.0",
-  "is.tagomor.woothee"              % "woothee-java"                 % "1.11.0",
-  "org.ec4j.core"                   % "ec4j-core"                    % "0.3.0",
-  "org.kohsuke"                     % "github-api"                   % "1.317" % "test"
+  "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % JgitVersion,
+  "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % JgitVersion,
+  "org.scalatra"             %% "scalatra-javax"               % ScalatraVersion,
+  "org.scalatra"             %% "scalatra-json-javax"          % ScalatraVersion,
+  "org.scalatra"             %% "scalatra-forms-javax"         % ScalatraVersion,
+  "org.json4s"               %% "json4s-jackson"               % "4.0.6",
+  "commons-io"                % "commons-io"                   % "2.15.0",
+  "io.github.gitbucket"       % "solidbase"                    % "1.0.5",
+  "io.github.gitbucket"       % "markedj"                      % "1.0.18",
+  "org.apache.commons"        % "commons-compress"             % "1.25.0",
+  "org.apache.commons"        % "commons-email"                % "1.5",
+  "commons-net"               % "commons-net"                  % "3.10.0",
+  "org.apache.httpcomponents" % "httpclient"                   % "4.5.14",
+  "org.apache.sshd" % "apache-sshd" % "2.11.0" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
+  "org.apache.tika"                 % "tika-core"                % "2.9.1",
+  "com.github.takezoe"             %% "blocking-slick"           % "0.0.14",
+  "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
+  "com.h2database"                  % "h2"                       % "1.4.199",
+  "org.mariadb.jdbc"                % "mariadb-java-client"      % "2.7.6",
+  "org.postgresql"                  % "postgresql"               % "42.6.0",
+  "ch.qos.logback"                  % "logback-classic"          % "1.4.11",
+  "com.zaxxer"                      % "HikariCP"                 % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
+  "com.typesafe"                    % "config"                   % "1.4.3",
+  "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
+  "io.github.java-diff-utils"       % "java-diff-utils"          % "4.12",
+  "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
+  "net.coobird"                     % "thumbnailator"            % "0.4.20",
+  "com.github.zafarkhaja"           % "java-semver"              % "0.9.0",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.6",
+  "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
+  "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
+  "junit"                           % "junit"                    % "4.13.2"        % "test",
+  "org.scalatra"                   %% "scalatra-scalatest-javax" % ScalatraVersion % "test",
+  "org.mockito"                     % "mockito-core"             % "5.7.0"         % "test",
+  "com.dimafeng"                   %% "testcontainers-scala"     % "0.41.0"        % "test",
+  "org.testcontainers"              % "mysql"                    % "1.19.2"        % "test",
+  "org.testcontainers"              % "postgresql"               % "1.19.2"        % "test",
+  "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
+  "is.tagomor.woothee"              % "woothee-java"             % "1.11.0",
+  "org.ec4j.core"                   % "ec4j-core"                % "0.3.0",
+  "org.kohsuke"                     % "github-api"               % "1.317"         % "test"
 )
 
 // Compiler settings
@@ -115,8 +115,8 @@ assembly / assemblyMergeStrategy := {
 
 // Exclude a war file from published artifacts
 signedArtifacts := {
-  signedArtifacts.value.filterNot {
-    case (_, file) => file.getName.endsWith(".war") || file.getName.endsWith(".war.asc")
+  signedArtifacts.value.filterNot { case (_, file) =>
+    file.getName.endsWith(".war") || file.getName.endsWith(".war.asc")
   }
 }
 
@@ -205,10 +205,9 @@ executableKey := {
     "md5" -> "MD5",
     "sha1" -> "SHA-1",
     "sha256" -> "SHA-256"
-  ).foreach {
-    case (extension, algorithm) =>
-      val checksumFile = workDir / (warName + "." + extension)
-      Checksums generate (outputFile, checksumFile, algorithm)
+  ).foreach { case (extension, algorithm) =>
+    val checksumFile = workDir / (warName + "." + extension)
+    Checksums generate (outputFile, checksumFile, algorithm)
   }
 
   // done
@@ -289,5 +288,5 @@ Jetty / javaOptions ++= Seq(
   "-Xdebug",
   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000",
   "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
-  //"-Ddev-features=keep-session"
+  // "-Ddev-features=keep-session"
 )

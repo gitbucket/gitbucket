@@ -15,13 +15,12 @@ object JsonFormat {
 
   val parserISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
 
-  val jsonFormats = Serialization.formats(NoTypeHints) + new CustomSerializer[Date](
-    format =>
-      (
-        {
-          case JString(s) =>
-            Try(Date.from(Instant.parse(s))).getOrElse(throw new MappingException("Can't convert " + s + " to Date"))
-        }, { case x: Date => JString(OffsetDateTime.ofInstant(x.toInstant, ZoneId.of("UTC")).format(parserISO)) }
+  val jsonFormats = Serialization.formats(NoTypeHints) + new CustomSerializer[Date](format =>
+    (
+      { case JString(s) =>
+        Try(Date.from(Instant.parse(s))).getOrElse(throw new MappingException("Can't convert " + s + " to Date"))
+      },
+      { case x: Date => JString(OffsetDateTime.ofInstant(x.toInstant, ZoneId.of("UTC")).format(parserISO)) }
     )
   ) + FieldSerializer[ApiUser]() +
     FieldSerializer[ApiGroup]() +
@@ -48,29 +47,32 @@ object JsonFormat {
     ApiBranchProtection.enforcementLevelSerializer
 
   def apiPathSerializer(c: Context) =
-    new CustomSerializer[ApiPath](
-      _ =>
-        ({
+    new CustomSerializer[ApiPath](_ =>
+      (
+        {
           case JString(s) if s.startsWith(c.baseUrl) => ApiPath(s.substring(c.baseUrl.length))
           case JString(s)                            => throw new MappingException("Can't convert " + s + " to ApiPath")
-        }, {
-          case ApiPath(path) => JString(c.baseUrl + path)
-        })
+        },
+        { case ApiPath(path) =>
+          JString(c.baseUrl + path)
+        }
+      )
     )
 
   def sshPathSerializer(c: Context) =
-    new CustomSerializer[SshPath](
-      _ =>
-        ({
+    new CustomSerializer[SshPath](_ =>
+      (
+        {
           case JString(s) if c.sshUrl.exists(sshUrl => s.startsWith(sshUrl)) =>
             SshPath(s.substring(c.sshUrl.get.length))
           case JString(s) => throw new MappingException("Can't convert " + s + " to ApiPath")
-        }, {
-          case SshPath(path) =>
-            c.sshUrl.map { sshUrl =>
-              JString(sshUrl + path)
-            } getOrElse JNothing
-        })
+        },
+        { case SshPath(path) =>
+          c.sshUrl.map { sshUrl =>
+            JString(sshUrl + path)
+          } getOrElse JNothing
+        }
+      )
     )
 
   /**

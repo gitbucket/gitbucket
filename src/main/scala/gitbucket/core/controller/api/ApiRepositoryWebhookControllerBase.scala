@@ -113,8 +113,8 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    */
 
   /*
- * vi. Test the push repository webhook
- * https://docs.github.com/en/rest/reference/repos#test-the-push-repository-webhook
- */
+   * vi. Test the push repository webhook
+   * https://docs.github.com/en/rest/reference/repos#test-the-push-repository-webhook
+   */
 
 }

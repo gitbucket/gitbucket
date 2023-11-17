@@ -80,7 +80,7 @@ class PluginRegistry {
   def getAnonymousAccessiblePaths(): Seq[String] = anonymousAccessiblePaths.asScala.toSeq
 
   def addJavaScript(path: String, script: String): Unit =
-    javaScripts.add((path, script)) //javaScripts += ((path, script))
+    javaScripts.add((path, script)) // javaScripts += ((path, script))
 
   def getJavaScript(currentPath: String): List[String] =
     javaScripts.asScala.filter(x => currentPath.matches(x._1)).toList.map(_._2)

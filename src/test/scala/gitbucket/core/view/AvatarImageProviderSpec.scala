@@ -202,8 +202,7 @@ class AvatarImageProviderSpec extends AnyFunSpec {
    */
   class AvatarImageProviderImpl(account: Option[Account]) extends AvatarImageProvider with RequestCache {
 
-    def toHtml(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(
-      implicit
+    def toHtml(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(implicit
       context: Context
     ): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
 

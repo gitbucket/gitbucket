@@ -40,8 +40,8 @@ case class CustomField(
 )
 
 trait CustomFieldBehavior {
-  def createHtml(repository: RepositoryInfo, fieldId: Int, fieldName: String, constraints: Option[String])(
-    implicit context: Context
+  def createHtml(repository: RepositoryInfo, fieldId: Int, fieldName: String, constraints: Option[String])(implicit
+    context: Context
   ): String
   def fieldHtml(
     repository: RepositoryInfo,
@@ -51,8 +51,8 @@ trait CustomFieldBehavior {
     constraints: Option[String],
     value: String,
     editable: Boolean
-  )(
-    implicit context: Context
+  )(implicit
+    context: Context
   ): String
   def validate(name: String, constraints: Option[String], value: String, messages: Messages): Option[String]
 }
@@ -151,11 +151,11 @@ object CustomFieldBehavior {
         sb.append("""<div>""")
         if (value == "") {
           sb.append(s"""<span id="label-custom-field-$fieldId"><span class="muted small">No ${StringUtil.escapeHtml(
-            fieldName
-          )}</span></span>""")
+              fieldName
+            )}</span></span>""")
         } else {
           sb.append(s"""<span id="label-custom-field-$fieldId"><span class="muted small">${StringUtil
-            .escapeHtml(value)}</span></span>""")
+              .escapeHtml(value)}</span></span>""")
         }
         sb.toString()
       } else {
@@ -179,21 +179,19 @@ object CustomFieldBehavior {
             val options = new StringBuilder()
             options.append(
               s"""<li><a href="javascript:void(0);" class="custom-field-option-$fieldId" data-value=""><i class="octicon octicon-x"></i> Clear ${StringUtil
-                .escapeHtml(fieldName)}</a></li>"""
+                  .escapeHtml(fieldName)}</a></li>"""
             )
-            constraints.foreach {
-              x =>
-                x.split(",").map(_.trim).foreach {
-                  item =>
-                    options.append(s"""<li>
+            constraints.foreach { x =>
+              x.split(",").map(_.trim).foreach { item =>
+                options.append(s"""<li>
                  |  <a href="javascript:void(0);" class="custom-field-option-$fieldId" data-value="${StringUtil
-                                        .escapeHtml(item)}">
+                                   .escapeHtml(item)}">
                  |    ${gitbucket.core.helper.html.checkicon(value.contains(item))}
                  |    ${StringUtil.escapeHtml(item)}
                  |  </a>
                  |</li>
                  |""".stripMargin)
-                }
+              }
             }
             Html(options.toString())
           }
@@ -205,11 +203,11 @@ object CustomFieldBehavior {
       value match {
         case None =>
           sb.append(s"""<span id="label-custom-field-$fieldId"><span class="muted small">No ${StringUtil.escapeHtml(
-            fieldName
-          )}</span></span>""")
+              fieldName
+            )}</span></span>""")
         case Some(value) =>
           sb.append(s"""<span id="label-custom-field-$fieldId"><span class="muted small">${StringUtil
-            .escapeHtml(value)}</span></span>""")
+              .escapeHtml(value)}</span></span>""")
       }
       if (value.isEmpty || issueId.isEmpty) {
         sb.append(s"""<input type="hidden" id="custom-field-$fieldId" name="custom-field-$fieldId" value=""/>""")
@@ -220,7 +218,7 @@ object CustomFieldBehavior {
              |  $$('#custom-field-$fieldId').val(value);
              |  if (value == '') {
              |    $$('#label-custom-field-$fieldId').html($$('<span class="muted small">').text('No ${StringUtil
-                       .escapeHtml(fieldName)}'));
+                      .escapeHtml(fieldName)}'));
              |  } else {
              |    $$('#label-custom-field-$fieldId').html($$('<span class="muted small">').text(value));
              |    $$('a.custom-field-option-$fieldId[data-value=' + value + '] i').addClass('octicon-check');
@@ -237,7 +235,7 @@ object CustomFieldBehavior {
              |      $$('a.custom-field-option-$fieldId i.octicon-check').removeClass('octicon-check');
              |      if (value == '') {
              |        $$('#label-custom-field-$fieldId').html($$('<span class="muted small">').text('No ${StringUtil
-                       .escapeHtml(fieldName)}'));
+                      .escapeHtml(fieldName)}'));
              |      } else {
              |        $$('#label-custom-field-$fieldId').html($$('<span class="muted small">').text(value));
              |        $$('a.custom-field-option-$fieldId[data-value=' + value + '] i').addClass('octicon-check');
@@ -296,14 +294,14 @@ object CustomFieldBehavior {
       constraints: Option[String],
       value: String,
       editable: Boolean
-    )(
-      implicit context: Context
+    )(implicit
+      context: Context
     ): String = {
       val sb = new StringBuilder
       if (value.nonEmpty) {
         sb.append(
           s"""<span id="custom-field-$fieldId-label" class="custom-field-label">${StringUtil
-            .escapeHtml(value)}</span>"""
+              .escapeHtml(value)}</span>"""
         )
       } else {
         if (editable) {

@@ -23,7 +23,8 @@ case class ApiIssue(
   val id = 0 // dummy id
   val assignee = assignees.headOption
   val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
-  val html_url = ApiPath(s"/${repositoryName.fullName}/${if (isPullRequest) { "pull" } else { "issues" }}/${number}")
+  val html_url = ApiPath(s"/${repositoryName.fullName}/${if (isPullRequest) { "pull" }
+    else { "issues" }}/${number}")
   val pull_request = if (isPullRequest) {
     Some(
       Map(
@@ -54,7 +55,8 @@ object ApiIssue {
       assignees = assignees,
       labels = labels,
       milestone = milestone,
-      state = if (issue.closed) { "closed" } else { "open" },
+      state = if (issue.closed) { "closed" }
+      else { "open" },
       body = issue.content.getOrElse(""),
       created_at = issue.registeredDate,
       updated_at = issue.updatedDate

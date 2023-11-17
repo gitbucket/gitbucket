@@ -47,8 +47,8 @@ trait CommitStatusService {
         )
     }
 
-  def getCommitStatusWithSummary(userName: String, repositoryName: String, sha: String)(
-    implicit s: Session
+  def getCommitStatusWithSummary(userName: String, repositoryName: String, sha: String)(implicit
+    s: Session
   ): Option[(CommitState, List[CommitStatus])] = {
     val statuses = getCommitStatuses(userName, repositoryName, sha)
     if (statuses.isEmpty) {
@@ -62,18 +62,18 @@ trait CommitStatusService {
   def getCommitStatus(userName: String, repositoryName: String, id: Int)(implicit s: Session): Option[CommitStatus] =
     CommitStatuses.filter(t => t.byPrimaryKey(id) && t.byRepository(userName, repositoryName)).firstOption
 
-  def getCommitStatus(userName: String, repositoryName: String, sha: String, context: String)(
-    implicit s: Session
+  def getCommitStatus(userName: String, repositoryName: String, sha: String, context: String)(implicit
+    s: Session
   ): Option[CommitStatus] =
     CommitStatuses.filter(t => t.byCommit(userName, repositoryName, sha) && t.context === context.bind).firstOption
 
-  def getCommitStatuses(userName: String, repositoryName: String, sha: String)(
-    implicit s: Session
+  def getCommitStatuses(userName: String, repositoryName: String, sha: String)(implicit
+    s: Session
   ): List[CommitStatus] =
     byCommitStatus(userName, repositoryName, sha).list
 
-  def getRecentStatusContexts(userName: String, repositoryName: String, time: java.util.Date)(
-    implicit s: Session
+  def getRecentStatusContexts(userName: String, repositoryName: String, time: java.util.Date)(implicit
+    s: Session
   ): List[String] =
     CommitStatuses
       .filter(t => t.byRepository(userName, repositoryName))
@@ -82,8 +82,8 @@ trait CommitStatusService {
       .map(_._1)
       .list
 
-  def getCommitStatusesWithCreator(userName: String, repositoryName: String, sha: String)(
-    implicit s: Session
+  def getCommitStatusesWithCreator(userName: String, repositoryName: String, sha: String)(implicit
+    s: Session
   ): List[(CommitStatus, Account)] =
     byCommitStatus(userName, repositoryName, sha)
       .join(Accounts)
