@@ -106,7 +106,13 @@ trait PullRequestsControllerBase extends ControllerBase {
       case Some(filter) if filter.contains("is:issue") =>
         redirect(s"/${repository.owner}/${repository.name}/issues?q=${StringUtil.urlEncode(q)}")
       case Some(filter) =>
-        searchPullRequests(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+        val condition = IssueSearchCondition(filter)
+        if (condition.isEmpty) {
+          // Redirect to keyword search
+          redirect(s"/${repository.owner}/${repository.name}/search?q=${StringUtil.urlEncode(q)}&type=pulls")
+        } else {
+          searchPullRequests(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+        }
       case None =>
         searchPullRequests(repository, IssueSearchCondition(request), IssueSearchCondition.page(request))
     }
