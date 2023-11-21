@@ -93,7 +93,13 @@ trait IssuesControllerBase extends ControllerBase {
       case Some(filter) if filter.contains("is:pr") =>
         redirect(s"/${repository.owner}/${repository.name}/pulls?q=${StringUtil.urlEncode(q)}")
       case Some(filter) =>
-        searchIssues(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+        val condition = IssueSearchCondition(filter)
+        if (condition.isEmpty) {
+          // Redirect to keyword search
+          redirect(s"/${repository.owner}/${repository.name}/search?q=${StringUtil.urlEncode(q)}&type=issues")
+        } else {
+          searchIssues(repository, condition, IssueSearchCondition.page(request))
+        }
       case None =>
         searchIssues(repository, IssueSearchCondition(request), IssueSearchCondition.page(request))
     }
