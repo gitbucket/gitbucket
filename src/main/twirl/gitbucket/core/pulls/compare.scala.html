@@ -58,12 +58,7 @@
       }
     </div>
     @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-      <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
-        <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
-        &nbsp;&nbsp;
-        <span class="muted">Discuss and review the changes in this comparison with others.</span>
-      </div>
-      <div id="pull-request-form" style="display: none; margin-bottom: 20px;">
+      <div id="pull-request-form" style="margin-bottom: 20px;">
         <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
           <div class="row">
             <div class="col-md-9">
@@ -238,14 +233,6 @@ $(function(){
       $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
       $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
   });
-
-  $('#show-form').click(function(){
-    $('#create-pull-request').hide();
-    $('#pull-request-form').show();
-  });
-  if(location.search.substr(1).split("&").indexOf("expand=1")!=-1){
-    $('#show-form').click();
-  }
 
   @if(context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
     function checkConflict(from, to){
