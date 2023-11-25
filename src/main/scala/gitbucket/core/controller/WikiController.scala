@@ -121,7 +121,17 @@ trait WikiControllerBase extends ControllerBase {
         Some(pageName),
         from,
         to,
-        JGitUtil.getDiffs(git, Some(from), to, true, false).filter(_.newPath == pageName + ".md"),
+        JGitUtil
+          .getDiffs(
+            git = git,
+            from = Some(from),
+            to = to,
+            fetchContent = true,
+            makePatch = false,
+            maxFiles = context.settings.repositoryViewer.maxDiffFiles,
+            maxLines = context.settings.repositoryViewer.maxDiffLines
+          )
+          .filter(_.newPath == pageName + ".md"),
         repository,
         isEditable(repository),
         flash.get("info")
@@ -137,7 +147,15 @@ trait WikiControllerBase extends ControllerBase {
         None,
         from,
         to,
-        JGitUtil.getDiffs(git, Some(from), to, true, false),
+        JGitUtil.getDiffs(
+          git = git,
+          from = Some(from),
+          to = to,
+          fetchContent = true,
+          makePatch = false,
+          maxFiles = context.settings.repositoryViewer.maxDiffFiles,
+          maxLines = context.settings.repositoryViewer.maxDiffLines
+        ),
         repository,
         isEditable(repository),
         flash.get("info")
