@@ -280,7 +280,8 @@ trait PullRequestService {
           pullreq.requestUserName,
           pullreq.requestRepositoryName,
           pullreq.commitIdTo,
-          commitIdTo
+          commitIdTo,
+          settings
         )
 
         // Update commit id in the PULL_REQUEST table
@@ -400,10 +401,12 @@ trait PullRequestService {
     userName: String,
     repositoryName: String,
     oldCommitId: String,
-    newCommitId: String
+    newCommitId: String,
+    settings: SystemSettings
   )(implicit s: Session): Unit = {
 
-    val (_, diffs) = getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId)
+    val (_, diffs) =
+      getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId, settings)
 
     val patchs = positions.map { case (file, _) =>
       diffs
@@ -503,7 +506,8 @@ trait PullRequestService {
     branch: String,
     requestUserName: String,
     requestRepositoryName: String,
-    requestCommitId: String
+    requestCommitId: String,
+    settings: SystemSettings
   ): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
     Using.resources(
       Git.open(getRepositoryDir(userName, repositoryName)),
@@ -526,7 +530,15 @@ trait PullRequestService {
         }
 
       // TODO Isolate to an another method?
-      val diffs = JGitUtil.getDiffs(newGit, Some(oldId.getName), newId.getName, true, false)
+      val diffs = JGitUtil.getDiffs(
+        git = newGit,
+        from = Some(oldId.getName),
+        to = newId.getName,
+        fetchContent = true,
+        makePatch = false,
+        maxFiles = settings.repositoryViewer.maxDiffFiles,
+        maxLines = settings.repositoryViewer.maxDiffLines
+      )
 
       (commits, diffs)
     }

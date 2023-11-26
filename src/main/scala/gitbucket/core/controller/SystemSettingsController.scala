@@ -121,7 +121,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "largeTimeout" -> trim(label("Timeout for large file", long(required)))
     )(Upload.apply),
     "repositoryViewer" -> mapping(
-      "maxFiles" -> trim(label("Max files", number(required)))
+      "maxFiles" -> trim(label("Max files", number(required))),
+      "maxDiffFiles" -> trim(label("Max diff files", number(required))),
+      "maxDiffLines" -> trim(label("Max diff lines", number(required)))
     )(RepositoryViewerSettings.apply),
     "defaultBranch" -> trim(label("Default branch", text(required)))
   )(SystemSettings.apply).verifying { settings =>
