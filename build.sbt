@@ -23,12 +23,6 @@ crossScalaVersions += "3.3.1"
 
 coverageExcludedPackages := ".*\\.html\\..*"
 
-// dependency settings
-resolvers ++= Seq(
-  Classpaths.typesafeReleases,
-  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
-)
-
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % JgitVersion,
@@ -49,8 +43,8 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
   "com.h2database"                  % "h2"                       % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"      % "2.7.6",
-  "org.postgresql"                  % "postgresql"               % "42.6.0",
-  "ch.qos.logback"                  % "logback-classic"          % "1.4.11",
+  "org.postgresql"                  % "postgresql"               % "42.7.0",
+  "ch.qos.logback"                  % "logback-classic"          % "1.4.12",
   "com.zaxxer"                      % "HikariCP"                 % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                   % "1.4.3",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
@@ -58,19 +52,19 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"            % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"              % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.6",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.7",
   "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
   "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
   "junit"                           % "junit"                    % "4.13.2"        % "test",
   "org.scalatra"                   %% "scalatra-scalatest-javax" % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"             % "5.7.0"         % "test",
   "com.dimafeng"                   %% "testcontainers-scala"     % "0.41.0"        % "test",
-  "org.testcontainers"              % "mysql"                    % "1.19.2"        % "test",
-  "org.testcontainers"              % "postgresql"               % "1.19.2"        % "test",
+  "org.testcontainers"              % "mysql"                    % "1.19.3"        % "test",
+  "org.testcontainers"              % "postgresql"               % "1.19.3"        % "test",
   "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"             % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                % "0.3.0",
-  "org.kohsuke"                     % "github-api"               % "1.317"         % "test"
+  "org.kohsuke"                     % "github-api"               % "1.318"         % "test"
 )
 
 // Compiler settings

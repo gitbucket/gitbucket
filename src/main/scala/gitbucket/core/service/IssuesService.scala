@@ -975,15 +975,15 @@ object IssuesService {
     groups: Set[String] = Set.empty,
     others: Seq[CustomFieldCondition] = Nil
   ) {
-
     def isEmpty: Boolean = {
       labels.isEmpty && milestone.isEmpty && author.isEmpty && assigned.isEmpty &&
-      state == "open" && sort == "created" && direction == "desc" && visibility.isEmpty
+      state == "open" && sort == "created" && direction == "desc" && visibility.isEmpty && others.isEmpty
     }
 
     def nonEmpty: Boolean = !isEmpty
 
-    def toFilterString: String =
+    def toFilterString: String = if (isEmpty) ""
+    else {
       (
         List(
           Some(s"is:${state}"),
@@ -1025,6 +1025,7 @@ object IssuesService {
           } ++
           groups.map(group => s"group:${group}")
       ).mkString(" ")
+    }
 
     def toURL: String = {
       "?" + (Seq(

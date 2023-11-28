@@ -786,7 +786,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     try {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-        val diffs = JGitUtil.getDiffs(git, None, id, true, false)
+        val diffs = JGitUtil.getDiffs(
+          git = git,
+          from = None,
+          to = id,
+          fetchContent = true,
+          makePatch = false,
+          maxFiles = context.settings.repositoryViewer.maxDiffFiles,
+          maxLines = context.settings.repositoryViewer.maxDiffLines
+        )
         val oldCommitId = JGitUtil.getParentCommitId(git, id)
 
         html.commit(

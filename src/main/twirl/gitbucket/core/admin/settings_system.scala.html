@@ -321,6 +321,26 @@
       </p>
     </div>
   </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="repositoryViewerMaxDiffFiles">Max files in diff</label>
+    <div class="col-md-10">
+      <input type="text" name="repositoryViewer.maxDiffFiles" id="repositoryViewerMaxDiffFiles" class="form-control" value="@context.settings.repositoryViewer.maxDiffFiles"/>
+      <span id="error-repositoryViewerMaxDiffFiles" class="error"></span>
+      <p class="muted">
+        Avoid showing diff to prevent browser freezes if number of files in diff is bigger than this value. 0 or negative number means no limitation.
+      </p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="repositoryViewerMaxDiffLines">Max lines in diff</label>
+    <div class="col-md-10">
+      <input type="text" name="repositoryViewer.maxDiffLines" id="repositoryViewerMaxDiffLines" class="form-control" value="@context.settings.repositoryViewer.maxDiffLines"/>
+      <span id="error-repositoryViewerMaxDiffLines" class="error"></span>
+      <p class="muted">
+        Avoid showing diff to prevent browser freezes if lines of diff in a file is bigger than this value. 0 or negative number means no limitation.
+      </p>
+    </div>
+  </div>
 </fieldset>
 
 <script>

@@ -762,11 +762,13 @@ object JGitUtil {
     from: Option[String],
     to: String,
     fetchContent: Boolean,
-    makePatch: Boolean
+    makePatch: Boolean,
+    maxFiles: Int = 100,
+    maxLines: Int = 1000
   ): List[DiffInfo] = {
     val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
-      if (diffs.size > 100) { // Don't show diff if there are more than 100 files
+      if (maxFiles > 0 && diffs.size > maxFiles) { // Don't show diff if there are more than maxFiles
         DiffInfo(
           changeType = diff.getChangeType,
           oldPath = diff.getOldPath,
@@ -787,8 +789,8 @@ object JGitUtil {
         val newIsImage = FileUtil.isImage(diff.getNewPath)
         val patch =
           if (oldIsImage || newIsImage) None else Some(makePatchFromDiffEntry(git, diff)) // TODO use DiffFormatter
-        val tooLarge =
-          patch.exists(_.count(_ == '\n') > 1000) // Don't show diff if the file has more than 1000 lines diff
+        val tooLarge = maxLines > 0 &&
+          patch.exists(_.count(_ == '\n') > maxLines) // Don't show diff if the file has more than maxLines of diff
         val includeContent = tooLarge || !fetchContent || oldIsImage || newIsImage
         DiffInfo(
           changeType = diff.getChangeType,
