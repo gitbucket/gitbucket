@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import GitSpecUtil.*
+import gitbucket.core.util.GitSpecUtil.*
 import gitbucket.core.util.JGitUtil.BranchInfoSimple
 import org.apache.commons.io.IOUtils
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
@@ -174,7 +174,6 @@ class JGitUtilSpec extends AnyFunSuite {
     }
   }
 
-
   test("getBranchesNoMergeInfo") {
     withTestRepository { git =>
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
@@ -185,9 +184,13 @@ class JGitUtilSpec extends AnyFunSuite {
 
       // getBranches
       val branchesNMI = JGitUtil.getBranchesNoMergeInfo(git, "main")
-      val branches= JGitUtil.getBranches(git, "main", true)
+      val branches = JGitUtil.getBranches(git, "main", true)
 
-      assert(branches.map(bi => BranchInfoSimple(bi.name, bi.committerName, bi.commitTime, bi.committerEmailAddress, bi.commitId)) == branchesNMI)
+      assert(
+        branches.map(bi =>
+          BranchInfoSimple(bi.name, bi.committerName, bi.commitTime, bi.committerEmailAddress, bi.commitId)
+        ) == branchesNMI
+      )
     }
   }
 

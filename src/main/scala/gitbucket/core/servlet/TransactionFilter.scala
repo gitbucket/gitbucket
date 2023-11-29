@@ -17,9 +17,9 @@ class TransactionFilter extends Filter {
 
   private val logger = LoggerFactory.getLogger(classOf[TransactionFilter])
 
-  def init(config: FilterConfig) = {}
+  override def init(config: FilterConfig): Unit = {}
 
-  def destroy(): Unit = {}
+  override def destroy(): Unit = {}
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     val servletPath = req.asInstanceOf[HttpServletRequest].getServletPath()
