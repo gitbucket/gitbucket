@@ -4,28 +4,21 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, CommitsService, ProtectedBranchService}
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.JGitUtil.{CommitInfo, getBranches, getBranchesOfCommit}
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.JGitUtil.{CommitInfo, getBranchesNoMergeInfo, getBranchesOfCommit}
 import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, RepositoryName}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.revwalk.filter.{
-  AndRevFilter,
-  AuthorRevFilter,
-  CommitTimeRevFilter,
-  MaxCountRevFilter,
-  RevFilter,
-  SkipRevFilter
-}
+import org.eclipse.jgit.revwalk.filter.*
 import org.eclipse.jgit.treewalk.filter.{AndTreeFilter, PathFilterGroup, TreeFilter}
-import scala.collection.mutable.ListBuffer
-import scala.jdk.CollectionConverters._
-import scala.util.Using
-import math.min
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter._
+
+import java.time.format.DateTimeFormatter.*
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
-import java.time.ZoneOffset
+import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters.*
+import scala.math.min
+import scala.util.Using
 
 trait ApiRepositoryCommitControllerBase extends ControllerBase {
   self: AccountService with CommitsService with ProtectedBranchService with ReferrerAuthenticator =>
@@ -166,7 +159,7 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       val apiBranchForCommits = for {
         branch <- getBranchesOfCommit(git, sha)
-        br <- getBranches(git, branch, repository.repository.originUserName.isEmpty).find(_.name == branch)
+        br <- getBranchesNoMergeInfo(git, branch).find(_.name == branch)
       } yield {
         val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
         ApiBranchForHeadCommit(branch, ApiBranchCommit(br.commitId), protection.enabled)

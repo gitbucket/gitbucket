@@ -1,11 +1,11 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api._
+import gitbucket.core.api.*
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, ProtectedBranchService, RepositoryService}
-import gitbucket.core.util._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.JGitUtil.getBranches
+import gitbucket.core.util.*
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.JGitUtil.getBranchesNoMergeInfo
 import org.eclipse.jgit.api.Git
 import org.scalatra.NoContent
 
@@ -30,10 +30,9 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       JsonFormat(
         JGitUtil
-          .getBranches(
+          .getBranchesNoMergeInfo(
             git = git,
-            defaultBranch = repository.repository.defaultBranch,
-            origin = repository.repository.originUserName.isEmpty
+            defaultBranch = repository.repository.defaultBranch
           )
           .map { br =>
             ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
@@ -50,10 +49,9 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       (for {
         branch <- params.get("splat") if repository.branchList.contains(branch)
-        br <- getBranches(
+        br <- getBranchesNoMergeInfo(
           git,
-          repository.repository.defaultBranch,
-          repository.repository.originUserName.isEmpty
+          repository.repository.defaultBranch
         ).find(_.name == branch)
       } yield {
         val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
@@ -273,15 +271,14 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection
    */
   patch("/api/v3/repos/:owner/:repository/branches/*")(ownerOnly { repository =>
-    import gitbucket.core.api._
+    import gitbucket.core.api.*
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       (for {
         branch <- params.get("splat") if repository.branchList.contains(branch)
         protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
-        br <- getBranches(
+        br <- getBranchesNoMergeInfo(
           git,
-          repository.repository.defaultBranch,
-          repository.repository.originUserName.isEmpty
+          repository.repository.defaultBranch
         ).find(_.name == branch)
       } yield {
         if (protection.enabled) {

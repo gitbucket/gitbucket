@@ -23,9 +23,9 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
 
   private val logger = LoggerFactory.getLogger(classOf[GitAuthenticationFilter])
 
-  def init(config: FilterConfig) = {}
+  override def init(config: FilterConfig) = {}
 
-  def destroy(): Unit = {}
+  override def destroy(): Unit = {}
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     val request = req.asInstanceOf[HttpServletRequest]
