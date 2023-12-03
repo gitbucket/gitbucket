@@ -2,26 +2,26 @@ package gitbucket.core.service
 
 import com.github.difflib.DiffUtils
 import com.github.difflib.patch.DeltaType
-import gitbucket.core.model.{CommitComments => _, Session => _, _}
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
+import gitbucket.core.model.Profile.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.OpenPullRequestInfo
+import gitbucket.core.model.{CommitComments as _, Session as _, *}
 import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.JGitUtil
-import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, getBranches}
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, getBranchesNoMergeInfo}
+import gitbucket.core.util.StringUtil.*
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 trait PullRequestService {
@@ -32,7 +32,7 @@ trait PullRequestService {
     with RepositoryService
     with MergeService
     with ActivityService =>
-  import PullRequestService._
+  import PullRequestService.*
 
   def getPullRequest(owner: String, repository: String, issueId: Int)(implicit
     s: Session
@@ -318,7 +318,7 @@ trait PullRequestService {
         base.foreach { _base =>
           if (pr.branch != _base) {
             Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-              getBranches(git, repository.repository.defaultBranch, origin = true)
+              getBranchesNoMergeInfo(git, repository.repository.defaultBranch)
                 .find(_.name == _base)
                 .foreach(br => updateBaseBranch(repository.owner, repository.name, issueId, br.name, br.commitId))
             }
