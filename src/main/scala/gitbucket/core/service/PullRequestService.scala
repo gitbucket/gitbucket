@@ -2,26 +2,26 @@ package gitbucket.core.service
 
 import com.github.difflib.DiffUtils
 import com.github.difflib.patch.DeltaType
-import gitbucket.core.model.{CommitComments => _, Session => _, _}
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
+import gitbucket.core.model.Profile.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.OpenPullRequestInfo
+import gitbucket.core.model.{CommitComments as _, Session as _, *}
 import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.JGitUtil
-import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, getBranches}
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo, getBranchesNoMergeInfo}
+import gitbucket.core.util.StringUtil.*
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 trait PullRequestService {
@@ -32,7 +32,7 @@ trait PullRequestService {
     with RepositoryService
     with MergeService
     with ActivityService =>
-  import PullRequestService._
+  import PullRequestService.*
 
   def getPullRequest(owner: String, repository: String, issueId: Int)(implicit
     s: Session
@@ -280,7 +280,8 @@ trait PullRequestService {
           pullreq.requestUserName,
           pullreq.requestRepositoryName,
           pullreq.commitIdTo,
-          commitIdTo
+          commitIdTo,
+          settings
         )
 
         // Update commit id in the PULL_REQUEST table
@@ -317,7 +318,7 @@ trait PullRequestService {
         base.foreach { _base =>
           if (pr.branch != _base) {
             Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-              getBranches(git, repository.repository.defaultBranch, origin = true)
+              getBranchesNoMergeInfo(git, repository.repository.defaultBranch)
                 .find(_.name == _base)
                 .foreach(br => updateBaseBranch(repository.owner, repository.name, issueId, br.name, br.commitId))
             }
@@ -400,10 +401,12 @@ trait PullRequestService {
     userName: String,
     repositoryName: String,
     oldCommitId: String,
-    newCommitId: String
+    newCommitId: String,
+    settings: SystemSettings
   )(implicit s: Session): Unit = {
 
-    val (_, diffs) = getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId)
+    val (_, diffs) =
+      getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId, settings)
 
     val patchs = positions.map { case (file, _) =>
       diffs
@@ -503,7 +506,8 @@ trait PullRequestService {
     branch: String,
     requestUserName: String,
     requestRepositoryName: String,
-    requestCommitId: String
+    requestCommitId: String,
+    settings: SystemSettings
   ): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
     Using.resources(
       Git.open(getRepositoryDir(userName, repositoryName)),
@@ -526,7 +530,15 @@ trait PullRequestService {
         }
 
       // TODO Isolate to an another method?
-      val diffs = JGitUtil.getDiffs(newGit, Some(oldId.getName), newId.getName, true, false)
+      val diffs = JGitUtil.getDiffs(
+        git = newGit,
+        from = Some(oldId.getName),
+        to = newId.getName,
+        fetchContent = true,
+        makePatch = false,
+        maxFiles = settings.repositoryViewer.maxDiffFiles,
+        maxLines = settings.repositoryViewer.maxDiffLines
+      )
 
       (commits, diffs)
     }

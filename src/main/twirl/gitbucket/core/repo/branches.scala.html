@@ -60,19 +60,11 @@
                       <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-success">Open</a>
                     }
                   }.getOrElse{
-                    @if(context.loginAccount.isDefined){
-                      <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
-                        helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
-                      }.getOrElse {
-                        helpers.encodeRefName(repository.repository.defaultBranch)
-                      }}...@{helpers.encodeRefName(branch.name)}?expand=1" class="btn btn-default btn-sm">New Pull request</a>
-                    } else {
-                      <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
-                        helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
-                      }.getOrElse {
-                        helpers.encodeRefName(repository.repository.defaultBranch)
-                      }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default btn-sm">Compare</a>
-                    }
+                    <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
+                      helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
+                    }.getOrElse {
+                      helpers.encodeRefName(repository.repository.defaultBranch)
+                    }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default btn-sm">@if(context.loginAccount.isDefined){Create pull request} else {Compare}</a>
                   }
                   @if(hasWritePermission){
                     <span style="margin-left: 8px;">

@@ -77,35 +77,68 @@
           } else {
             <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
 
-        @if(pullreq.isDraft){
-          <span class="strong">This pull request is still a work in progress.</span>
-          <div class="pull-right">
-            <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" />
-          </div>
-          <div class="small">
-            Draft pull requests cannot be merged.
-          </div>
-        } else {
-            @if(status.hasMergePermission){
-              <span class="strong">Merging can be performed automatically.</span>
+            @if(pullreq.isDraft){
+              <span class="strong">This pull request is still a work in progress.</span>
+              <div class="pull-right">
+                <input type="button" class="btn btn-default" value="Ready for review" id="ready-for-review" />
+              </div>
               <div class="small">
-                Merging can be performed automatically.
+                Draft pull requests cannot be merged.
               </div>
             } else {
-              <span class="strong">This branch has no conflicts with the base branch.</span>
-              <div class="small">
-                Only those with write access to this repository can merge pull requests.
-              </div>
+              @if(status.hasMergePermission){
+                <span class="strong">Merging can be performed automatically.</span>
+                <div class="small">
+                  Merging can be performed automatically.
+                </div>
+              } else {
+                <span class="strong">This branch has no conflicts with the base branch.</span>
+                <div class="small">
+                  Only those with write access to this repository can merge pull requests.
+                </div>
+              }
             }
-           }
           }
         }
       }
       </div>
       @if(status.hasMergePermission){
         <div style="padding:15px; border-top:solid 1px #e5e5e5; background:#fafafa">
-          <input type="button" class="btn @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge || pullreq.isDraft){ disabled="true"}/>
-          &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
+          <div class="btn-group">
+            <input type="button" class="btn @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button"
+                   value="@mergeStrategyLabel(originRepository.repository.options.defaultMergeOption)"
+                   @if(!status.canMerge || pullreq.isDraft){disabled="true"}/>
+            <button id="merge-strategy-btn" class="dropdown-toggle btn @if(!status.hasProblem){btn-success} else {btn-default}" data-toggle="dropdown"
+                    @if(!status.canMerge || pullreq.isDraft){ disabled="true"}>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+            @defining(originRepository.repository.options.mergeOptions.split(",")){ mergeOptions =>
+              @if(mergeOptions.contains("merge-commit")){
+                <li>
+                  <a href="javascript:void(0);" class="merge-strategy" data-value="merge-commit">
+                    <strong>@mergeStrategyLabel("merge-commit")</strong><br>These commits will be added to the base branch via a merge commit.
+                  </a>
+                </li>
+              }
+              @if(mergeOptions.contains("squash")){
+                <li>
+                  <a href="javascript:void(0);" class="merge-strategy" data-value="squash">
+                    <strong>@mergeStrategyLabel("squash")</strong><br>These commits will be combined into one commit in the base branch.
+                  </a>
+                </li>
+              }
+              @if(mergeOptions.contains("rebase")){
+                <li>
+                  <a href="javascript:void(0);" class="merge-strategy" data-value="rebase">
+                    <strong>@mergeStrategyLabel("rebase")</strong><br>These commits will be rebased and added to the base branch.
+                  </a>
+                </li>
+              }
+            }
+            </ul>
+          </div>
+        &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
           <div id="command-line" style="display: none;margin-top: 15px;">
             <hr />
             @if(status.hasConflict){
@@ -161,44 +194,7 @@
         <span id="error-message" class="error"></span>
         <textarea name="message" style="height: 80px; margin-top: 8px; margin-bottom: 8px;" class="form-control">@issue.title</textarea>
         <div>
-          <div class="btn-group">
-            <button id="merge-strategy-btn" class="dropdown-toggle btn btn-default" data-toggle="dropdown">
-              <span class="strong">
-                @(Map(
-                  "merge-commit" -> "Merge commit",
-                  "squash"       -> "Squash",
-                  "rebase"       -> "Rebase"
-                )(originRepository.repository.options.defaultMergeOption))
-              </span>
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-              @defining(originRepository.repository.options.mergeOptions.split(",")){ mergeOptions =>
-                @if(mergeOptions.contains("merge-commit")){
-                  <li>
-                    <a href="javascript:void(0);" class="merge-strategy" data-value="merge-commit">
-                      <strong>Merge commit</strong><br>These commits will be added to the base branch via a merge commit.
-                    </a>
-                  </li>
-                }
-                @if(mergeOptions.contains("squash")){
-                  <li>
-                    <a href="javascript:void(0);" class="merge-strategy" data-value="squash">
-                      <strong>Squash</strong><br>These commits will be combined into one commit in the base branch.
-                    </a>
-                  </li>
-                }
-                @if(mergeOptions.contains("rebase")){
-                  <li>
-                    <a href="javascript:void(0);" class="merge-strategy" data-value="rebase">
-                      <strong>Rebase</strong><br>These commits will be rebased and added to the base branch.
-                    </a>
-                  </li>
-                }
-              }
-            </ul>
-          </div>
-          <div class="pull-right">
+          <div>
             <input type="button" class="btn btn-default" value="Cancel" id="cancel-merge-pull-request"/>
             <input type="submit" class="btn btn-success" value="Confirm merge"/>
             <input type="hidden" name="strategy" value="@originRepository.repository.options.defaultMergeOption"/>
@@ -268,8 +264,17 @@ $(function(){
   }
 
   $('.merge-strategy').click(function(){
-    $('button#merge-strategy-btn > span.strong').text($(this).find('strong').text());
+    $('input#merge-pull-request-button').val($(this).find('strong').text());
     $('input[name=strategy]').val($(this).data('value'));
+
   });
 });
 </script>
+
+@mergeStrategyLabel(value: String): String = @{
+  Map(
+    "merge-commit" -> "Create a merge commit",
+    "squash"       -> "Squash and merge",
+    "rebase"       -> "Rebase and merge"
+  )(value)
+}

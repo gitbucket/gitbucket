@@ -6,7 +6,7 @@ val Name = "gitbucket"
 val GitBucketVersion = "4.40.0"
 val ScalatraVersion = "3.0.0"
 val JettyVersion = "10.0.18"
-val JgitVersion = "6.7.0.202309050840-r"
+val JgitVersion = "6.8.0.202311291450-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ScalatraPlugin)
@@ -29,8 +29,8 @@ libraryDependencies ++= Seq(
   "org.scalatra"             %% "scalatra-javax"               % ScalatraVersion,
   "org.scalatra"             %% "scalatra-json-javax"          % ScalatraVersion,
   "org.scalatra"             %% "scalatra-forms-javax"         % ScalatraVersion,
-  "org.json4s"               %% "json4s-jackson"               % "4.0.6",
-  "commons-io"                % "commons-io"                   % "2.15.0",
+  "org.json4s"               %% "json4s-jackson"               % "4.0.7",
+  "commons-io"                % "commons-io"                   % "2.15.1",
   "io.github.gitbucket"       % "solidbase"                    % "1.0.5",
   "io.github.gitbucket"       % "markedj"                      % "1.0.18",
   "org.apache.commons"        % "commons-compress"             % "1.25.0",
@@ -43,8 +43,8 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
   "com.h2database"                  % "h2"                       % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"      % "2.7.6",
-  "org.postgresql"                  % "postgresql"               % "42.7.0",
-  "ch.qos.logback"                  % "logback-classic"          % "1.4.11",
+  "org.postgresql"                  % "postgresql"               % "42.7.1",
+  "ch.qos.logback"                  % "logback-classic"          % "1.4.14",
   "com.zaxxer"                      % "HikariCP"                 % "4.0.3" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                   % "1.4.3",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
@@ -52,19 +52,19 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"            % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"              % "0.9.0",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.6",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.7",
   "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
   "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
   "junit"                           % "junit"                    % "4.13.2"        % "test",
   "org.scalatra"                   %% "scalatra-scalatest-javax" % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"             % "5.7.0"         % "test",
+  "org.mockito"                     % "mockito-core"             % "5.8.0"         % "test",
   "com.dimafeng"                   %% "testcontainers-scala"     % "0.41.0"        % "test",
-  "org.testcontainers"              % "mysql"                    % "1.19.2"        % "test",
-  "org.testcontainers"              % "postgresql"               % "1.19.2"        % "test",
+  "org.testcontainers"              % "mysql"                    % "1.19.3"        % "test",
+  "org.testcontainers"              % "postgresql"               % "1.19.3"        % "test",
   "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"             % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                % "0.3.0",
-  "org.kohsuke"                     % "github-api"               % "1.317"         % "test"
+  "org.kohsuke"                     % "github-api"               % "1.318"         % "test"
 )
 
 // Compiler settings

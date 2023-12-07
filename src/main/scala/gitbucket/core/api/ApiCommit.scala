@@ -29,7 +29,7 @@ case class ApiCommit(
 
 object ApiCommit {
   def apply(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit = {
-    val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+    val diffs = JGitUtil.getDiffs(git = git, from = None, to = commit.id, fetchContent = false, makePatch = false)
     ApiCommit(
       id = commit.id,
       message = commit.fullMessage,

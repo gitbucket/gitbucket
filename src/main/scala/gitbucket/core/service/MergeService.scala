@@ -356,7 +356,8 @@ trait MergeService {
                     pullRequest.commitIdFrom,
                     pullRequest.requestUserName,
                     pullRequest.requestRepositoryName,
-                    pullRequest.commitIdTo
+                    pullRequest.commitIdTo,
+                    settings
                   )
 
                   // merge git repository
@@ -384,7 +385,7 @@ trait MergeService {
                           "merge"
                         )
                       createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Close", "close")
-                      updateClosed(repository.owner, repository.name, issueId, true)
+                      updateClosed(repository.owner, repository.name, issueId, closed = true)
 
                       // record activity
                       val mergeInfo =

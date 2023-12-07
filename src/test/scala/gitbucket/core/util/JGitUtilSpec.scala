@@ -1,12 +1,13 @@
 package gitbucket.core.util
 
-import GitSpecUtil._
+import gitbucket.core.util.GitSpecUtil.*
+import gitbucket.core.util.JGitUtil.BranchInfoSimple
 import org.apache.commons.io.IOUtils
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Constants
 import org.scalatest.funsuite.AnyFunSuite
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class JGitUtilSpec extends AnyFunSuite {
 
@@ -170,6 +171,26 @@ class JGitUtilSpec extends AnyFunSuite {
 
       assert(branches(0).commitId != branches(1).commitId)
       assert(branches(0).commitId == branches(2).commitId)
+    }
+  }
+
+  test("getBranchesNoMergeInfo") {
+    withTestRepository { git =>
+      createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
+      JGitUtil.createBranch(git, "main", "test1")
+
+      createFile(git, Constants.HEAD, "README.md", "body2", message = "commit2")
+      JGitUtil.createBranch(git, "main", "test2")
+
+      // getBranches
+      val branchesNMI = JGitUtil.getBranchesNoMergeInfo(git, "main")
+      val branches = JGitUtil.getBranches(git, "main", true)
+
+      assert(
+        branches.map(bi =>
+          BranchInfoSimple(bi.name, bi.committerName, bi.commitTime, bi.committerEmailAddress, bi.commitId)
+        ) == branchesNMI
+      )
     }
   }
 

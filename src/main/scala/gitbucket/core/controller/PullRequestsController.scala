@@ -106,7 +106,13 @@ trait PullRequestsControllerBase extends ControllerBase {
       case Some(filter) if filter.contains("is:issue") =>
         redirect(s"/${repository.owner}/${repository.name}/issues?q=${StringUtil.urlEncode(q)}")
       case Some(filter) =>
-        searchPullRequests(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+        val condition = IssueSearchCondition(filter)
+        if (condition.isEmpty) {
+          // Redirect to keyword search
+          redirect(s"/${repository.owner}/${repository.name}/search?q=${StringUtil.urlEncode(q)}&type=pulls")
+        } else {
+          searchPullRequests(repository, IssueSearchCondition(filter), IssueSearchCondition.page(request))
+        }
       case None =>
         searchPullRequests(repository, IssueSearchCondition(request), IssueSearchCondition.page(request))
     }
@@ -122,7 +128,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             pullreq.commitIdFrom,
             repository.owner,
             repository.name,
-            pullreq.commitIdTo
+            pullreq.commitIdTo,
+            context.settings
           )
 
         html.conversation(
@@ -159,7 +166,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             pullreq.commitIdFrom,
             repository.owner,
             repository.name,
-            pullreq.commitIdTo
+            pullreq.commitIdTo,
+            context.settings
           )
 
         val commitsWithStatus = commits.map { day =>
@@ -191,7 +199,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             pullreq.commitIdFrom,
             repository.owner,
             repository.name,
-            pullreq.commitIdTo
+            pullreq.commitIdTo,
+            context.settings
           )
 
         html.files(
@@ -219,9 +228,8 @@ trait PullRequestsControllerBase extends ControllerBase {
           conflictMessage = conflictMessage,
           commitStatuses = getCommitStatuses(repository.owner, repository.name, pullreq.commitIdTo),
           branchProtection = branchProtection,
-          branchIsOutOfDate = JGitUtil.getShaByRef(repository.owner, repository.name, pullreq.branch) != Some(
-            pullreq.commitIdFrom
-          ),
+          branchIsOutOfDate =
+            !JGitUtil.getShaByRef(repository.owner, repository.name, pullreq.branch).contains(pullreq.commitIdFrom),
           needStatusCheck = context.loginAccount.forall { u =>
             branchProtection.needStatusCheck(u.userName)
           },
@@ -452,7 +460,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             oldId.getName,
             forkedRepository.owner,
             forkedRepository.name,
-            newId.getName
+            newId.getName,
+            context.settings
           )
 
           val title = if (commits.flatten.length == 1) {

@@ -498,7 +498,8 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
           commitIds.foreach { case (oldCommitId, newCommitId) =>
             val commits = Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
               JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
-                val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+                val diffs =
+                  JGitUtil.getDiffs(git = git, from = None, to = commit.id, fetchContent = false, makePatch = false)
                 diffs.collect {
                   case diff if diff.newPath.toLowerCase.endsWith(".md") =>
                     val action = mapToAction(diff.changeType)

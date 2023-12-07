@@ -248,6 +248,14 @@ object JGitUtil {
 
   case class BranchMergeInfo(ahead: Int, behind: Int, isMerged: Boolean)
 
+  case class BranchInfoSimple(
+    name: String,
+    committerName: String,
+    commitTime: Date,
+    committerEmailAddress: String,
+    commitId: String
+  )
+
   case class BranchInfo(
     name: String,
     committerName: String,
@@ -762,11 +770,13 @@ object JGitUtil {
     from: Option[String],
     to: String,
     fetchContent: Boolean,
-    makePatch: Boolean
+    makePatch: Boolean,
+    maxFiles: Int = 100,
+    maxLines: Int = 1000
   ): List[DiffInfo] = {
     val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
-      if (diffs.size > 100) { // Don't show diff if there are more than 100 files
+      if (maxFiles > 0 && diffs.size > maxFiles) { // Don't show diff if there are more than maxFiles
         DiffInfo(
           changeType = diff.getChangeType,
           oldPath = diff.getOldPath,
@@ -787,8 +797,8 @@ object JGitUtil {
         val newIsImage = FileUtil.isImage(diff.getNewPath)
         val patch =
           if (oldIsImage || newIsImage) None else Some(makePatchFromDiffEntry(git, diff)) // TODO use DiffFormatter
-        val tooLarge =
-          patch.exists(_.count(_ == '\n') > 1000) // Don't show diff if the file has more than 1000 lines diff
+        val tooLarge = maxLines > 0 &&
+          patch.exists(_.count(_ == '\n') > maxLines) // Don't show diff if the file has more than maxLines of diff
         val includeContent = tooLarge || !fetchContent || oldIsImage || newIsImage
         DiffInfo(
           changeType = diff.getChangeType,
@@ -1240,6 +1250,25 @@ object JGitUtil {
    */
   def getLastModifiedCommit(git: Git, startCommit: RevCommit, path: String): RevCommit = {
     git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
+  }
+
+  def getBranchesNoMergeInfo(git: Git, defaultBranch: String): Seq[BranchInfoSimple] = {
+    val repo = git.getRepository
+    val defaultObject = repo.resolve(defaultBranch)
+
+    git.branchList.call.asScala.map { ref =>
+      val walk = new RevWalk(repo)
+      try {
+        val branchName = ref.getName.stripPrefix("refs/heads/")
+        val branchCommit = walk.parseCommit(ref.getObjectId)
+        val when = branchCommit.getCommitterIdent.getWhen
+        val committer = branchCommit.getCommitterIdent.getName
+        val committerEmail = branchCommit.getCommitterIdent.getEmailAddress
+        BranchInfoSimple(branchName, committer, when, committerEmail, ref.getObjectId.name)
+      } finally {
+        walk.dispose()
+      }
+    }.toSeq
   }
 
   def getBranches(git: Git, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {

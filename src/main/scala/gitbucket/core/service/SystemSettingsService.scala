@@ -90,6 +90,8 @@ trait SystemSettingsService {
     props.setProperty(UploadLargeMaxFileSize, settings.upload.largeMaxFileSize.toString)
     props.setProperty(UploadLargeTimeout, settings.upload.largeTimeout.toString)
     props.setProperty(RepositoryViewerMaxFiles, settings.repositoryViewer.maxFiles.toString)
+    props.setProperty(RepositoryViewerMaxDiffFiles, settings.repositoryViewer.maxDiffFiles.toString)
+    props.setProperty(RepositoryViewerMaxDiffLines, settings.repositoryViewer.maxDiffLines.toString)
     props.setProperty(DefaultBranch, settings.defaultBranch)
 
     Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
@@ -205,7 +207,9 @@ trait SystemSettingsService {
         getValue(props, UploadLargeTimeout, 3 * 10000)
       ),
       RepositoryViewerSettings(
-        getValue(props, RepositoryViewerMaxFiles, 0)
+        getValue(props, RepositoryViewerMaxFiles, 0),
+        getValue(props, RepositoryViewerMaxDiffFiles, 100),
+        getValue(props, RepositoryViewerMaxDiffLines, 1000)
       ),
       getValue(props, DefaultBranch, "main")
     )
@@ -384,7 +388,7 @@ object SystemSettingsService {
 
   case class Upload(maxFileSize: Long, timeout: Long, largeMaxFileSize: Long, largeTimeout: Long)
 
-  case class RepositoryViewerSettings(maxFiles: Int)
+  case class RepositoryViewerSettings(maxFiles: Int, maxDiffFiles: Int, maxDiffLines: Int)
 
   val GenericSshUser = "git"
   val PublicSshPort = 22
@@ -450,6 +454,8 @@ object SystemSettingsService {
   private val UploadLargeMaxFileSize = "upload.largeMaxFileSize"
   private val UploadLargeTimeout = "upload.largeTimeout"
   private val RepositoryViewerMaxFiles = "repository_viewer_max_files"
+  private val RepositoryViewerMaxDiffFiles = "repository_viewer_max_diff_files"
+  private val RepositoryViewerMaxDiffLines = "repository_viewer_max_diff_lines"
   private val DefaultBranch = "default_branch"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {

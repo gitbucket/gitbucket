@@ -80,7 +80,9 @@ trait ServiceSpecBase {
         largeTimeout = 30 * 10000
       ),
       repositoryViewer = RepositoryViewerSettings(
-        maxFiles = 0
+        maxFiles = 0,
+        maxDiffFiles = 100,
+        maxDiffLines = 1000
       ),
       defaultBranch = "main"
     )
