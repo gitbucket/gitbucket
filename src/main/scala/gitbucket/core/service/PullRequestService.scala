@@ -7,7 +7,7 @@ import gitbucket.core.controller.Context
 import gitbucket.core.model.Profile.*
 import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.OpenPullRequestInfo
-import gitbucket.core.model.{CommitComments as _, Session as _, *}
+import gitbucket.core.model.{CommitComments => _, Session => _, *}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings

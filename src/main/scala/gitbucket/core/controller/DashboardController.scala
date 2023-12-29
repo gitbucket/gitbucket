@@ -112,13 +112,13 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
     val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page = IssueSearchCondition.page(request)
-    val issues = searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos: _*)
+    val issues = searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos*)
 
     html.issues(
       issues.map(issue => (issue, None)),
       page,
-      countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, userRepos: _*),
-      countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, userRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.Issues, userRepos*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.Issues, userRepos*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
@@ -149,7 +149,7 @@ trait DashboardControllerBase extends ControllerBase {
       IssueSearchOption.PullRequests,
       (page - 1) * PullRequestLimit,
       PullRequestLimit,
-      allRepos: _*
+      allRepos*
     )
     val status = issues.map { issue =>
       issue.commitId.flatMap { commitId =>
@@ -160,8 +160,8 @@ trait DashboardControllerBase extends ControllerBase {
     html.pulls(
       issues.zip(status),
       page,
-      countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, allRepos: _*),
-      countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, allRepos: _*),
+      countIssue(condition.copy(state = "open"), IssueSearchOption.PullRequests, allRepos*),
+      countIssue(condition.copy(state = "closed"), IssueSearchOption.PullRequests, allRepos*),
       filter match {
         case "assigned"  => condition.copy(assigned = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))

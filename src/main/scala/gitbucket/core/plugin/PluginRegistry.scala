@@ -307,7 +307,7 @@ object PluginRegistry {
                 conn,
                 classLoader,
                 DatabaseConfig.liquiDriver,
-                new Module(plugin.pluginId, plugin.versions: _*)
+                new Module(plugin.pluginId, plugin.versions*)
               )
             conn.commit()
 

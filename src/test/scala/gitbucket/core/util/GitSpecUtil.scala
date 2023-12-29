@@ -115,7 +115,7 @@ object GitSpecUtil {
     // creates merge commit
     val mergeCommit = new CommitBuilder()
     mergeCommit.setTreeId(merger.getResultTreeId)
-    mergeCommit.setParentIds(Array[ObjectId](mergeBaseTip, mergeTip): _*)
+    mergeCommit.setParentIds(Array[ObjectId](mergeBaseTip, mergeTip)*)
     mergeCommit.setAuthor(committer)
     mergeCommit.setCommitter(committer)
     mergeCommit.setMessage(message)

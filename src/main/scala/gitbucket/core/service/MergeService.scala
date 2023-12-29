@@ -563,7 +563,7 @@ object MergeService {
     ): ObjectId = {
       val mergeCommit = new CommitBuilder()
       mergeCommit.setTreeId(treeId)
-      mergeCommit.setParentIds(parents: _*)
+      mergeCommit.setParentIds(parents*)
       mergeCommit.setAuthor(committer)
       mergeCommit.setCommitter(committer)
       mergeCommit.setMessage(message)

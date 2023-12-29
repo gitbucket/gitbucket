@@ -19,13 +19,13 @@ object JDBCUtil {
   implicit class RichConnection(private val conn: Connection) extends AnyVal {
 
     def update(sql: String, params: Any*): Int = {
-      execute(sql, params: _*) { stmt =>
+      execute(sql, params*) { stmt =>
         stmt.executeUpdate()
       }
     }
 
     def find[T](sql: String, params: Any*)(f: ResultSet => T): Option[T] = {
-      execute(sql, params: _*) { stmt =>
+      execute(sql, params*) { stmt =>
         Using.resource(stmt.executeQuery()) { rs =>
           if (rs.next) Some(f(rs)) else None
         }
@@ -33,7 +33,7 @@ object JDBCUtil {
     }
 
     def select[T](sql: String, params: Any*)(f: ResultSet => T): Seq[T] = {
-      execute(sql, params: _*) { stmt =>
+      execute(sql, params*) { stmt =>
         Using.resource(stmt.executeQuery()) { rs =>
           val list = new ListBuffer[T]
           while (rs.next) {
@@ -45,7 +45,7 @@ object JDBCUtil {
     }
 
     def selectInt(sql: String, params: Any*): Int = {
-      execute(sql, params: _*) { stmt =>
+      execute(sql, params*) { stmt =>
         Using.resource(stmt.executeQuery()) { rs =>
           if (rs.next) rs.getInt(1) else 0
         }

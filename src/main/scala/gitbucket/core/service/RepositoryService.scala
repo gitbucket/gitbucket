@@ -120,14 +120,14 @@ trait RepositoryService {
           deleteRepositoryOnModel(oldUserName, oldRepositoryName)
 
           RepositoryWebHooks.insertAll(
-            webHooks.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            webHooks.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
           RepositoryWebHookEvents.insertAll(
-            webHookEvents.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            webHookEvents.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
-          Milestones.insertAll(milestones.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*)
-          Priorities.insertAll(priorities.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*)
-          IssueId.insertAll(issueId.map(_.copy(_1 = newUserName, _2 = newRepositoryName)): _*)
+          Milestones.insertAll(milestones.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*)
+          Priorities.insertAll(priorities.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*)
+          IssueId.insertAll(issueId.map(_.copy(_1 = newUserName, _2 = newRepositoryName))*)
 
           val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
           val newPriorities = Priorities.filter(_.byRepository(newUserName, newRepositoryName)).list
@@ -145,31 +145,31 @@ trait RepositoryService {
                   .priorityId
               }
             )
-          }: _*)
+          }*)
 
           PullRequests.insertAll(
-            pullRequests.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            pullRequests.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
           IssueComments.insertAll(
-            issueComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            issueComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
-          Labels.insertAll(labels.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*)
+          Labels.insertAll(labels.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*)
           CommitComments.insertAll(
-            commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
           CommitStatuses.insertAll(
-            commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
           ProtectedBranches.insertAll(
-            protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
           ProtectedBranchContexts.insertAll(
-            protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
-          DeployKeys.insertAll(deployKeys.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*)
-          ReleaseTags.insertAll(releases.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*)
+          DeployKeys.insertAll(deployKeys.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*)
+          ReleaseTags.insertAll(releases.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*)
           ReleaseAssets.insertAll(
-            releaseAssets.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            releaseAssets.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
 
           // Update source repository of pull requests
@@ -193,12 +193,12 @@ trait RepositoryService {
                 userName = newUserName,
                 repositoryName = newRepositoryName
               )
-            ): _*
+            )*
           )
 
           // TODO Drop transferred owner from collaborators?
           Collaborators.insertAll(
-            collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)): _*
+            collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
 
           // Move git repository
