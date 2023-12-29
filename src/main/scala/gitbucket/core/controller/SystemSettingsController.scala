@@ -549,7 +549,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   private def multiLineText(constraints: Constraint*): SingleValueType[Seq[String]] =
-    new SingleValueType[Seq[String]](constraints: _*) {
+    new SingleValueType[Seq[String]](constraints*) {
       def convert(value: String, messages: Messages): Seq[String] = {
         if (value == null) {
           Nil

@@ -42,7 +42,7 @@ trait Validations {
    * ValueType for the java.util.Date property.
    */
   def date(constraints: Constraint*): SingleValueType[java.util.Date] =
-    new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*) {
+    new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints)*) {
       def convert(value: String, messages: Messages): java.util.Date =
         new java.text.SimpleDateFormat("yyyy-MM-dd").parse(value)
     }
