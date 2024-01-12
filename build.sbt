@@ -51,7 +51,7 @@ libraryDependencies ++= Seq(
   "io.github.java-diff-utils"       % "java-diff-utils"          % "4.12",
   "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"            % "0.4.20",
-  "com.github.zafarkhaja"           % "java-semver"              % "0.10.0",
+  "com.github.zafarkhaja"           % "java-semver"              % "0.10.1",
   "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.9.1",
   "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
   "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
