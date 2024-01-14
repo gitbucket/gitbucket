@@ -2,10 +2,9 @@ package gitbucket.core.service
 
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
-
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.{CreateRepositoryInfo, ForkInfo}
-import gitbucket.core.util.Directory._
+import gitbucket.core.util.Directory.*
 import gitbucket.core.util.{FileUtil, JGitUtil, LockUtil}
 import gitbucket.core.model.{Account, Role}
 import gitbucket.core.plugin.PluginRegistry
@@ -18,6 +17,7 @@ import org.eclipse.jgit.lib.{Constants, FileMode}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 object RepositoryCreationService {
@@ -167,6 +167,16 @@ trait RepositoryCreationService {
           try {
             Using.resource(Git.open(dir)) { git =>
               git.push().setRemote(gitdir.toURI.toString).setPushAll().setPushTags().call()
+              // Adjust the default branch
+              val branches = git.branchList().call().asScala.map(_.getName.stripPrefix("refs/heads/"))
+              if (!branches.contains(defaultBranch)) {
+                val defaultBranch = Seq("master", "main").find(branches.contains).getOrElse(branches.head)
+                saveRepositoryDefaultBranch(owner, name, defaultBranch)
+                // Change repository HEAD
+                Using.resource(Git.open(getRepositoryDir(owner, name))) { git =>
+                  git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + defaultBranch)
+                }
+              }
             }
           } finally {
             FileUtils.deleteQuietly(dir)
