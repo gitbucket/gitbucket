@@ -17,7 +17,7 @@ name := Name
 version := GitBucketVersion
 scalaVersion := "2.13.12"
 
-crossScalaVersions += "3.3.2"
+crossScalaVersions += "3.4.0"
 
 // scalafmtOnCompile := true
 
