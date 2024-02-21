@@ -42,6 +42,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.json4s.Formats
+import org.json4s.convertToJsonInput
 import org.json4s.jackson.Serialization._
 
 /**

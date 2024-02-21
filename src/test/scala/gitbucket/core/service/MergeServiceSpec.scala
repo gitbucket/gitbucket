@@ -24,6 +24,7 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jetty.webapp.WebAppContext
 import org.eclipse.jetty.server.{Request, Server}
 import org.json4s.jackson.JsonMethods._
+import org.json4s.jvalue2monadic
 import MergeServiceSpec._
 import org.json4s.JsonAST.{JArray, JString}
 

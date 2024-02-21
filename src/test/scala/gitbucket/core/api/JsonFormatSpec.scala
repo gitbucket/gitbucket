@@ -2,6 +2,7 @@ package gitbucket.core.api
 
 import org.json4s.Formats
 import org.json4s.jackson.JsonMethods
+import org.json4s.jvalue2extractable
 import org.scalatest.funsuite.AnyFunSuite
 
 class JsonFormatSpec extends AnyFunSuite {
