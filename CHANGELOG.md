@@ -3,10 +3,10 @@ All changes to the project will be documented in this file.
 
 ## 4.41.0 - 18 May 2024
 - Simplify pull request UI
-- Fix layout of branch selector
-- Integrate keyword search with filtering in the search box
-- Make max files and lines limit in showing diff configurable
+- Keyword search for issues and pull requests
+- New settings for max files and lines limit in showing diff
 - Adjust the default branch automatically when cloning external repo
+- Fix layout of branch selector
 - Performance improvement for listing branches
 - Upgrade internal libraries
 
