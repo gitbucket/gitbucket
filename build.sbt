@@ -5,7 +5,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.40.0"
 val ScalatraVersion = "3.0.0"
-val JettyVersion = "10.0.20"
+val JettyVersion = "10.0.21"
 val JgitVersion = "6.9.0.202403050737-r"
 
 lazy val root = (project in file("."))
@@ -15,9 +15,9 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.13.13"
+scalaVersion := "2.13.14"
 
-crossScalaVersions += "3.4.0"
+crossScalaVersions += "3.4.2"
 
 // scalafmtOnCompile := true
 
@@ -30,21 +30,21 @@ libraryDependencies ++= Seq(
   "org.scalatra"             %% "scalatra-json-javax"          % ScalatraVersion,
   "org.scalatra"             %% "scalatra-forms-javax"         % ScalatraVersion,
   "org.json4s"               %% "json4s-jackson"               % "4.0.7",
-  "commons-io"                % "commons-io"                   % "2.15.1",
-  "io.github.gitbucket"       % "solidbase"                    % "1.0.5",
+  "commons-io"                % "commons-io"                   % "2.16.1",
+  "io.github.gitbucket"       % "solidbase"                    % "1.1.0",
   "io.github.gitbucket"       % "markedj"                      % "1.0.20",
   "org.apache.commons"        % "commons-compress"             % "1.26.1",
   "org.apache.commons"        % "commons-email"                % "1.6.0",
   "commons-net"               % "commons-net"                  % "3.10.0",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.14",
   "org.apache.sshd" % "apache-sshd" % "2.12.1" exclude ("org.slf4j", "slf4j-jdk14") exclude ("org.apache.sshd", "sshd-mina") exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                % "2.9.1",
+  "org.apache.tika"                 % "tika-core"                % "2.9.2",
   "com.github.takezoe"             %% "blocking-slick"           % "0.0.14",
   "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
   "com.h2database"                  % "h2"                       % "1.4.199",
   "org.mariadb.jdbc"                % "mariadb-java-client"      % "2.7.6",
-  "org.postgresql"                  % "postgresql"               % "42.7.2",
-  "ch.qos.logback"                  % "logback-classic"          % "1.5.3",
+  "org.postgresql"                  % "postgresql"               % "42.7.3",
+  "ch.qos.logback"                  % "logback-classic"          % "1.5.6",
   "com.zaxxer"                      % "HikariCP"                 % "5.1.0" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                   % "1.4.3",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
@@ -52,19 +52,19 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"            % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"              % "0.10.2",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.10.1",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.12",
   "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
   "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
   "junit"                           % "junit"                    % "4.13.2"        % "test",
   "org.scalatra"                   %% "scalatra-scalatest-javax" % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"             % "5.11.0"        % "test",
+  "org.mockito"                     % "mockito-core"             % "5.12.0"        % "test",
   "com.dimafeng"                   %% "testcontainers-scala"     % "0.41.3"        % "test",
-  "org.testcontainers"              % "mysql"                    % "1.19.7"        % "test",
-  "org.testcontainers"              % "postgresql"               % "1.19.7"        % "test",
+  "org.testcontainers"              % "mysql"                    % "1.19.8"        % "test",
+  "org.testcontainers"              % "postgresql"               % "1.19.8"        % "test",
   "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"             % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                % "0.3.0",
-  "org.kohsuke"                     % "github-api"               % "1.319"         % "test"
+  "org.kohsuke"                     % "github-api"               % "1.321"         % "test"
 )
 
 // Compiler settings
