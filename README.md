@@ -70,4 +70,4 @@ What's New in 4.41.x
 - Performance improvement for listing branches
 - Upgrade internal libraries
 
-- See the [change log](CHANGELOG.md) for all of the updates.
+See the [change log](CHANGELOG.md) for all of the updates.
