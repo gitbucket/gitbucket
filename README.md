@@ -65,7 +65,7 @@ What's New in 4.41.x
 - Simplify pull request UI
 - Keyword search for issues and pull requests
 - New settings for max files and lines limit in showing diff
-- Adjust the default branch automatically when cloning external repo
+- Adjust the default branch automatically when cloning external repository
 - Fix layout of branch selector
 - Performance improvement for listing branches
 - Upgrade internal libraries
