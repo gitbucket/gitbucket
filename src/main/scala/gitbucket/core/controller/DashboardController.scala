@@ -28,12 +28,8 @@ class DashboardController
     with RequestCache
 
 trait DashboardControllerBase extends ControllerBase {
-  self: IssuesService
-    with PullRequestService
-    with RepositoryService
-    with AccountService
-    with CommitStatusService
-    with UsersAuthenticator =>
+  self: IssuesService & PullRequestService & RepositoryService & AccountService & CommitStatusService &
+    UsersAuthenticator =>
 
   get("/dashboard/repos")(usersOnly {
     context.withLoginAccount { loginAccount =>

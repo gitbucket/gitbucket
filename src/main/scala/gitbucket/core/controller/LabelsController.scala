@@ -28,11 +28,7 @@ class LabelsController
     with WritableUsersAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
-  self: LabelsService
-    with IssuesService
-    with RepositoryService
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+  self: LabelsService & IssuesService & RepositoryService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 

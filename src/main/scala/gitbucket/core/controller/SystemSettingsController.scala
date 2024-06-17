@@ -29,7 +29,7 @@ case class Table(name: String, columns: Seq[Column])
 case class Column(name: String, primaryKey: Boolean)
 
 trait SystemSettingsControllerBase extends AccountManagementControllerBase {
-  self: AccountService with RepositoryService with AdminAuthenticator =>
+  self: AccountService & RepositoryService & AdminAuthenticator =>
 
   private val form = mapping(
     "baseUrl" -> trim(label("Base URL", optional(text()))),

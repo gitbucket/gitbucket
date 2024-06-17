@@ -34,15 +34,8 @@ class IndexController
     with RequestCache
 
 trait IndexControllerBase extends ControllerBase {
-  self: RepositoryService
-    with ActivityService
-    with AccountService
-    with RepositorySearchService
-    with UsersAuthenticator
-    with ReferrerAuthenticator
-    with AccessTokenService
-    with AccountFederationService
-    with OpenIDConnectService =>
+  self: RepositoryService & ActivityService & AccountService & RepositorySearchService & UsersAuthenticator &
+    ReferrerAuthenticator & AccessTokenService & AccountFederationService & OpenIDConnectService =>
 
   case class SignInForm(userName: String, password: String, hash: Option[String])
 

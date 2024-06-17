@@ -15,16 +15,9 @@ import scala.concurrent.duration.Duration
 import scala.util.Using
 
 trait ApiRepositoryControllerBase extends ControllerBase {
-  self: RepositoryService
-    with ApiGitReferenceControllerBase
-    with RepositoryCreationService
-    with AccountService
-    with OwnerAuthenticator
-    with UsersAuthenticator
-    with GroupManagerAuthenticator
-    with ReferrerAuthenticator
-    with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+  self: RepositoryService & ApiGitReferenceControllerBase & RepositoryCreationService & AccountService &
+    OwnerAuthenticator & UsersAuthenticator & GroupManagerAuthenticator & ReferrerAuthenticator &
+    ReadableUsersAuthenticator & WritableUsersAuthenticator =>
 
   /**
    * i. List your repositories

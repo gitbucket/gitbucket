@@ -46,12 +46,7 @@ object RepositoryCreationService {
 }
 
 trait RepositoryCreationService {
-  self: AccountService
-    with RepositoryService
-    with LabelsService
-    with WikiService
-    with ActivityService
-    with PrioritiesService =>
+  self: AccountService & RepositoryService & LabelsService & WikiService & ActivityService & PrioritiesService =>
 
   def canCreateRepository(repositoryOwner: String, loginAccount: Account)(implicit session: Session): Boolean = {
     repositoryOwner == loginAccount.userName || getGroupsByUserName(loginAccount.userName)

@@ -40,23 +40,10 @@ class PullRequestsController
     with RequestCache
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: RepositoryService
-    with AccountService
-    with IssuesService
-    with MilestonesService
-    with LabelsService
-    with CustomFieldsService
-    with CommitsService
-    with ActivityService
-    with PullRequestService
-    with WebHookPullRequestService
-    with ReadableUsersAuthenticator
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator
-    with CommitStatusService
-    with MergeService
-    with ProtectedBranchService
-    with PrioritiesService =>
+  self: RepositoryService & AccountService & IssuesService & MilestonesService & LabelsService & CustomFieldsService &
+    CommitsService & ActivityService & PullRequestService & WebHookPullRequestService & ReadableUsersAuthenticator &
+    ReferrerAuthenticator & WritableUsersAuthenticator & CommitStatusService & MergeService & ProtectedBranchService &
+    PrioritiesService =>
 
   val pullRequestForm = mapping(
     "title" -> trim(label("Title", text(required))),
@@ -569,7 +556,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     val (originOwner, tmpOriginBranch) = parseCompareIdentifier(origin, forkedRepository.owner)
     val (forkedOwner, tmpForkedBranch) = parseCompareIdentifier(forked, forkedRepository.owner)
 
-    (for (
+    (for {
       originRepositoryName <-
         if (originOwner == forkedOwner) {
           Some(forkedRepository.name)
@@ -579,9 +566,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               .find(_.userName == originOwner)
               .map(_.repositoryName)
           }
-        };
+        }
       originRepository <- getRepository(originOwner, originRepositoryName)
-    ) yield {
+    } yield {
       Using.resources(
         Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
         Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))

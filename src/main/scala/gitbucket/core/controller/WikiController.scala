@@ -29,13 +29,8 @@ class WikiController
     with RequestCache
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService
-    with RepositoryService
-    with AccountService
-    with ActivityService
-    with WebHookService
-    with ReadableUsersAuthenticator
-    with ReferrerAuthenticator =>
+  self: WikiService & RepositoryService & AccountService & ActivityService & WebHookService &
+    ReadableUsersAuthenticator & ReferrerAuthenticator =>
 
   case class WikiPageEditForm(
     pageName: String,

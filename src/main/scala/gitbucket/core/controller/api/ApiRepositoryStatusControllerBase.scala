@@ -7,7 +7,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{JGitUtil, ReferrerAuthenticator, WritableUsersAuthenticator}
 
 trait ApiRepositoryStatusControllerBase extends ControllerBase {
-  self: AccountService with CommitStatusService with ReferrerAuthenticator with WritableUsersAuthenticator =>
+  self: AccountService & CommitStatusService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
   /*
    * i. Create a status

@@ -12,15 +12,8 @@ import org.scalatra.NoContent
 import scala.util.Using
 
 trait ApiRepositoryBranchControllerBase extends ControllerBase {
-  self: RepositoryService
-    with AccountService
-    with OwnerAuthenticator
-    with UsersAuthenticator
-    with GroupManagerAuthenticator
-    with ProtectedBranchService
-    with ReferrerAuthenticator
-    with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+  self: RepositoryService & AccountService & OwnerAuthenticator & UsersAuthenticator & GroupManagerAuthenticator &
+    ProtectedBranchService & ReferrerAuthenticator & ReadableUsersAuthenticator & WritableUsersAuthenticator =>
 
   /**
    * i. List branches

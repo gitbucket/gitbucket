@@ -37,16 +37,8 @@ class RepositorySettingsController
     with RequestCache
 
 trait RepositorySettingsControllerBase extends ControllerBase {
-  self: RepositoryService
-    with AccountService
-    with WebHookService
-    with ProtectedBranchService
-    with CommitStatusService
-    with DeployKeyService
-    with CustomFieldsService
-    with ActivityService
-    with OwnerAuthenticator
-    with UsersAuthenticator =>
+  self: RepositoryService & AccountService & WebHookService & ProtectedBranchService & CommitStatusService &
+    DeployKeyService & CustomFieldsService & ActivityService & OwnerAuthenticator & UsersAuthenticator =>
 
   // for repository options
   case class OptionsForm(

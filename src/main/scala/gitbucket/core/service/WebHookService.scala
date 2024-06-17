@@ -367,7 +367,7 @@ trait WebHookService {
 }
 
 trait WebHookPullRequestService extends WebHookService {
-  self: AccountService with RepositoryService with PullRequestService with IssuesService =>
+  self: AccountService & RepositoryService & PullRequestService & IssuesService =>
 
   import WebHookService._
   // https://developer.github.com/v3/activity/events/types/#issuesevent
@@ -513,7 +513,7 @@ trait WebHookPullRequestService extends WebHookService {
 }
 
 trait WebHookPullRequestReviewCommentService extends WebHookService {
-  self: AccountService with RepositoryService with PullRequestService with IssuesService with CommitsService =>
+  self: AccountService & RepositoryService & PullRequestService & IssuesService & CommitsService =>
   def callPullRequestReviewCommentWebHook(
     action: String,
     comment: CommitComment,
@@ -561,7 +561,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
 }
 
 trait WebHookIssueCommentService extends WebHookPullRequestService {
-  self: AccountService with RepositoryService with PullRequestService with IssuesService =>
+  self: AccountService & RepositoryService & PullRequestService & IssuesService =>
 
   import WebHookService._
   def callIssueCommentWebHook(

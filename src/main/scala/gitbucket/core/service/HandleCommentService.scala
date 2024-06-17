@@ -16,12 +16,8 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Implicits._
 
 trait HandleCommentService {
-  self: RepositoryService
-    with IssuesService
-    with ActivityService
-    with WebHookService
-    with WebHookIssueCommentService
-    with WebHookPullRequestService =>
+  self: RepositoryService & IssuesService & ActivityService & WebHookService & WebHookIssueCommentService &
+    WebHookPullRequestService =>
 
   /**
    * @see [[https://github.com/gitbucket/gitbucket/wiki/CommentAction]]

@@ -33,13 +33,8 @@ class ReleaseController
     with RequestCache
 
 trait ReleaseControllerBase extends ControllerBase {
-  self: RepositoryService
-    with AccountService
-    with ReleaseService
-    with ReadableUsersAuthenticator
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator
-    with ActivityService =>
+  self: RepositoryService & AccountService & ReleaseService & ReadableUsersAuthenticator & ReferrerAuthenticator &
+    WritableUsersAuthenticator & ActivityService =>
 
   case class ReleaseForm(
     name: String,

@@ -25,13 +25,8 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 trait PullRequestService {
-  self: IssuesService
-    with CommitsService
-    with WebHookService
-    with WebHookPullRequestService
-    with RepositoryService
-    with MergeService
-    with ActivityService =>
+  self: IssuesService & CommitsService & WebHookService & WebHookPullRequestService & RepositoryService & MergeService &
+    ActivityService =>
   import PullRequestService.*
 
   def getPullRequest(owner: String, repository: String, issueId: Int)(implicit

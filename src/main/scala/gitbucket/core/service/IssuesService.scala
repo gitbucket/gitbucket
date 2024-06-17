@@ -26,7 +26,7 @@ import gitbucket.core.plugin.PluginRegistry
 import scala.jdk.CollectionConverters._
 
 trait IssuesService {
-  self: AccountService with RepositoryService with LabelsService with PrioritiesService with MilestonesService =>
+  self: AccountService & RepositoryService & LabelsService & PrioritiesService & MilestonesService =>
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =

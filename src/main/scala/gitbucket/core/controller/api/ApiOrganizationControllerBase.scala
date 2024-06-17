@@ -6,7 +6,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{AdminAuthenticator, UsersAuthenticator}
 
 trait ApiOrganizationControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with AdminAuthenticator with UsersAuthenticator =>
+  self: RepositoryService & AccountService & AdminAuthenticator & UsersAuthenticator =>
 
   /*
    * i. List your organizations

@@ -28,11 +28,7 @@ class PrioritiesController
     with WritableUsersAuthenticator
 
 trait PrioritiesControllerBase extends ControllerBase {
-  self: PrioritiesService
-    with IssuesService
-    with RepositoryService
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+  self: PrioritiesService & IssuesService & RepositoryService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
   case class PriorityForm(priorityName: String, description: Option[String], color: String)
 
