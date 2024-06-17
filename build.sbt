@@ -82,7 +82,7 @@ scalacOptions := Seq(
 scalacOptions ++= {
   scalaBinaryVersion.value match {
     case "2.13" =>
-      Seq("-Xsource:3")
+      Seq("-Xsource:3-cross")
     case _ =>
       Nil
   }
