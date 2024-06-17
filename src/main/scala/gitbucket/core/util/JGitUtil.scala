@@ -502,9 +502,15 @@ object JGitUtil {
           val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
             getSubmodules(git, revCommit.getTree, baseUrl).find(_.path == treeWalk.getPathString).map(_.viewerUrl)
           } else None
-          fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(
-            0
-          ), treeWalk.getNameString, treeWalk.getPathString, linkUrl)
+          fileList +:= (
+            treeWalk.getObjectId(0),
+            treeWalk.getFileMode(
+              0
+            ),
+            treeWalk.getNameString,
+            treeWalk.getPathString,
+            linkUrl
+          )
         }
       }
 
