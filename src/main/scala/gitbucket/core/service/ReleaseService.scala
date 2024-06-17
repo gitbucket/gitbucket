@@ -8,7 +8,7 @@ import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.JGitUtil
 
 trait ReleaseService {
-  self: AccountService with RepositoryService =>
+  self: AccountService & RepositoryService =>
 
   def createReleaseAsset(
     owner: String,

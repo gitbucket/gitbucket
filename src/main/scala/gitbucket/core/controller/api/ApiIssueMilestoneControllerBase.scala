@@ -7,7 +7,7 @@ import gitbucket.core.util.Implicits._
 import org.scalatra.NoContent
 
 trait ApiIssueMilestoneControllerBase extends ControllerBase {
-  self: MilestonesService with WritableUsersAuthenticator with ReferrerAuthenticator =>
+  self: MilestonesService & WritableUsersAuthenticator & ReferrerAuthenticator =>
 
   /*
    * i. List milestones

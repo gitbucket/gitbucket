@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with WritableUsersAuthenticator =>
+  self: ReferrerAuthenticator & WritableUsersAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[ApiGitReferenceControllerBase])
 

@@ -38,21 +38,9 @@ class AccountController
     with RequestCache
 
 trait AccountControllerBase extends AccountManagementControllerBase {
-  self: AccountService
-    with RepositoryService
-    with ActivityService
-    with WikiService
-    with LabelsService
-    with SshKeyService
-    with GpgKeyService
-    with OneselfAuthenticator
-    with UsersAuthenticator
-    with GroupManagerAuthenticator
-    with ReadableUsersAuthenticator
-    with AccessTokenService
-    with WebHookService
-    with PrioritiesService
-    with RepositoryCreationService =>
+  self: AccountService & RepositoryService & ActivityService & WikiService & LabelsService & SshKeyService &
+    GpgKeyService & OneselfAuthenticator & UsersAuthenticator & GroupManagerAuthenticator & ReadableUsersAuthenticator &
+    AccessTokenService & WebHookService & PrioritiesService & RepositoryCreationService =>
 
   case class AccountNewForm(
     userName: String,

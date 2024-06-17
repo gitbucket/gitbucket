@@ -26,11 +26,8 @@ class MilestonesController
     with WritableUsersAuthenticator
 
 trait MilestonesControllerBase extends ControllerBase {
-  self: MilestonesService
-    with RepositoryService
-    with CommitStatusService
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+  self: MilestonesService & RepositoryService & CommitStatusService & ReferrerAuthenticator &
+    WritableUsersAuthenticator =>
 
   case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 

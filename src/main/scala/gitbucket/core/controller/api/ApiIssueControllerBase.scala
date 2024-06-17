@@ -9,12 +9,8 @@ import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, R
 import gitbucket.core.util.Implicits._
 
 trait ApiIssueControllerBase extends ControllerBase {
-  self: AccountService
-    with IssuesService
-    with IssueCreationService
-    with MilestonesService
-    with ReadableUsersAuthenticator
-    with ReferrerAuthenticator =>
+  self: AccountService & IssuesService & IssueCreationService & MilestonesService & ReadableUsersAuthenticator &
+    ReferrerAuthenticator =>
   /*
    * i. List issues
    * https://developer.github.com/v3/issues/#list-issues

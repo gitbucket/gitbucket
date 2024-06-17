@@ -7,11 +7,7 @@ import gitbucket.core.util._
 import org.scalatra.{Created, NoContent, UnprocessableEntity}
 
 trait ApiIssueLabelControllerBase extends ControllerBase {
-  self: AccountService
-    with IssuesService
-    with LabelsService
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator =>
+  self: AccountService & IssuesService & LabelsService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
   /*
    * i. List all labels for this repository

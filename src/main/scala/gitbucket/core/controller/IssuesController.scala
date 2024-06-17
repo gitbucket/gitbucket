@@ -34,21 +34,10 @@ class IssuesController
     with RequestCache
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService
-    with RepositoryService
-    with AccountService
-    with LabelsService
-    with MilestonesService
-    with ActivityService
-    with HandleCommentService
-    with IssueCreationService
-    with CustomFieldsService
-    with ReadableUsersAuthenticator
-    with ReferrerAuthenticator
-    with WritableUsersAuthenticator
-    with PullRequestService
-    with WebHookIssueCommentService
-    with PrioritiesService =>
+  self: IssuesService & RepositoryService & AccountService & LabelsService & MilestonesService & ActivityService &
+    HandleCommentService & IssueCreationService & CustomFieldsService & ReadableUsersAuthenticator &
+    ReferrerAuthenticator & WritableUsersAuthenticator & PullRequestService & WebHookIssueCommentService &
+    PrioritiesService =>
 
   case class IssueCreateForm(
     title: String,

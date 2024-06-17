@@ -10,7 +10,7 @@ import gitbucket.core.util.Implicits._
 
 trait IssueCreationService {
 
-  self: RepositoryService with WebHookIssueCommentService with LabelsService with IssuesService with ActivityService =>
+  self: RepositoryService & WebHookIssueCommentService & LabelsService & IssuesService & ActivityService =>
 
   def createIssue(
     repository: RepositoryInfo,

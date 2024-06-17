@@ -12,7 +12,7 @@ import org.eclipse.jgit.api.Git
 import scala.util.Using
 
 trait ApiRepositoryContentsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with WritableUsersAuthenticator with RepositoryCommitFileService =>
+  self: ReferrerAuthenticator & WritableUsersAuthenticator & RepositoryCommitFileService =>
 
   /**
    * i. Get a repository README

@@ -16,7 +16,7 @@ import gitbucket.core.util.{FileUtil, StringUtil}
 import org.apache.commons.io.FileUtils
 
 trait CommitsService {
-  self: ActivityService with PullRequestService with WebHookPullRequestReviewCommentService =>
+  self: ActivityService & PullRequestService & WebHookPullRequestReviewCommentService =>
 
   def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(implicit
     s: Session

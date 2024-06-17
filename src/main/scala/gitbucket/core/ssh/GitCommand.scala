@@ -92,7 +92,7 @@ abstract class GitCommand extends Command with ServerSessionAware {
 }
 
 abstract class DefaultGitCommand(val owner: String, val repoName: String) extends GitCommand {
-  self: RepositoryService with AccountService with DeployKeyService =>
+  self: RepositoryService & AccountService & DeployKeyService =>
 
   protected def userName(authType: AuthType): String = {
     authType match {

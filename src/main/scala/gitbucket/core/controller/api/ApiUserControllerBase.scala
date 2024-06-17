@@ -8,7 +8,7 @@ import gitbucket.core.util.StringUtil._
 import org.scalatra.NoContent
 
 trait ApiUserControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with AdminAuthenticator with UsersAuthenticator =>
+  self: RepositoryService & AccountService & AdminAuthenticator & UsersAuthenticator =>
 
   /**
    * i. Get a single user

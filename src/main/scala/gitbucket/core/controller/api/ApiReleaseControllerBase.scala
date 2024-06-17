@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.NoContent
 
 trait ApiReleaseControllerBase extends ControllerBase {
-  self: AccountService with ReleaseService with ReferrerAuthenticator with WritableUsersAuthenticator =>
+  self: AccountService & ReleaseService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
   /**
    * i. List releases for a repository

@@ -7,13 +7,8 @@ import gitbucket.core.util.{ReadableUsersAuthenticator, ReferrerAuthenticator, R
 import org.scalatra.ActionResult
 
 trait ApiIssueCommentControllerBase extends ControllerBase {
-  self: AccountService
-    with IssuesService
-    with RepositoryService
-    with HandleCommentService
-    with MilestonesService
-    with ReadableUsersAuthenticator
-    with ReferrerAuthenticator =>
+  self: AccountService & IssuesService & RepositoryService & HandleCommentService & MilestonesService &
+    ReadableUsersAuthenticator & ReferrerAuthenticator =>
   /*
    * i. List issue comments for a repository
    * https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository

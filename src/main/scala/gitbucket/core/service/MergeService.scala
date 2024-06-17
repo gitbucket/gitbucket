@@ -23,13 +23,8 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 trait MergeService {
-  self: AccountService
-    with ActivityService
-    with IssuesService
-    with RepositoryService
-    with PullRequestService
-    with WebHookPullRequestService
-    with WebHookService =>
+  self: AccountService & ActivityService & IssuesService & RepositoryService & PullRequestService &
+    WebHookPullRequestService & WebHookService =>
 
   import MergeService._
 

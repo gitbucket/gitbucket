@@ -16,14 +16,8 @@ import scala.util.Using
 import scala.jdk.CollectionConverters._
 
 trait ApiPullRequestControllerBase extends ControllerBase {
-  self: AccountService
-    with IssuesService
-    with PullRequestService
-    with RepositoryService
-    with MergeService
-    with ReferrerAuthenticator
-    with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+  self: AccountService & IssuesService & PullRequestService & RepositoryService & MergeService & ReferrerAuthenticator &
+    ReadableUsersAuthenticator & WritableUsersAuthenticator =>
 
   /*
    * i. Link Relations

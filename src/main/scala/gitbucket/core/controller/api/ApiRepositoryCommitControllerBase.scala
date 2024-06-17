@@ -21,7 +21,7 @@ import scala.math.min
 import scala.util.Using
 
 trait ApiRepositoryCommitControllerBase extends ControllerBase {
-  self: AccountService with CommitsService with ProtectedBranchService with ReferrerAuthenticator =>
+  self: AccountService & CommitsService & ProtectedBranchService & ReferrerAuthenticator =>
   /*
    * i. List commits on a repository
    * https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository

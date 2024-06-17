@@ -25,7 +25,7 @@ trait OneselfAuthenticator { self: ControllerBase =>
 /**
  * Allows only the repository owner and administrators.
  */
-trait OwnerAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
+trait OwnerAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def ownerOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -82,7 +82,7 @@ trait AdminAuthenticator { self: ControllerBase =>
 /**
  * Allows only guests and signed in users who can access the repository.
  */
-trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
+trait ReferrerAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def referrersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def referrersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -102,7 +102,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with A
 /**
  * Allows only signed in users who have read permission for the repository.
  */
-trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
+trait ReadableUsersAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def readableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def readableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
     authenticate(action(form, _))
@@ -124,7 +124,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService w
 /**
  * Allows only signed in users who have write permission for the repository.
  */
-trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
+trait WritableUsersAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def writableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def writableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
     authenticate(action(form, _))
@@ -151,7 +151,7 @@ trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService w
 /**
  * Allows only the group managers.
  */
-trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
+trait GroupManagerAuthenticator { self: ControllerBase & AccountService =>
   protected def managersOnly(action: => Any) = { authenticate(action) }
   protected def managersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 

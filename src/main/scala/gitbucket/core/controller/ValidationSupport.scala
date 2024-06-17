@@ -10,7 +10,7 @@ import org.scalatra.servlet.ServletBase
 /**
  * Extends scalatra-forms to support the client-side validation and Ajax requests as well.
  */
-trait ValidationSupport extends FormSupport { self: ServletBase with JacksonJsonSupport with I18nSupport =>
+trait ValidationSupport extends FormSupport { self: ServletBase & JacksonJsonSupport & I18nSupport =>
 
   def get[T](path: String, form: ValueType[T])(action: T => Any): Route = {
     registerValidate(path, form)
