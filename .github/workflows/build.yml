@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        java: [11, 21]
+        java: [17, 21]
     steps:
     - uses: actions/checkout@v4
     - name: Cache
