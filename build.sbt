@@ -92,6 +92,7 @@ Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 
 // Test settings
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 Test / javaOptions += "-Dgitbucket.home=target/gitbucket_home_for_test"
 Test / testOptions += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
 Test / fork := true
