@@ -7,6 +7,12 @@ pipeline {
                 git url: 'https://github.com/gitbucket/gitbucket.git', branch: 'master'
             }
         }
+        
+        stage('Run tests') {
+            steps {
+                sh 'sbt "testOnly * -- -l ExternalDBTest"'
+            }
+        }
 
         stage('Build') {
             steps {
@@ -15,15 +21,6 @@ pipeline {
                     sh 'sbt package'
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Build completed successfully!'
-        }
-        failure {
-            echo 'Build failed!'
         }
     }
 }
