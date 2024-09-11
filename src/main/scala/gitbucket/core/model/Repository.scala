@@ -67,7 +67,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
             repository._10,
             repository._11,
             repository._12,
-            RepositoryOptions.tupled.apply(options)
+            RepositoryOptions.apply.tupled.apply(options)
           )
         },
         { (r: Repository) =>
