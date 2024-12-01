@@ -13,7 +13,7 @@ Run for Development
 If you want to test GitBucket, type the following command in the root directory of the source tree.
 
 ```shell
-$ sbt ~jetty:start
+$ sbt ~container:start
 ```
 
 Then access `http://localhost:8080/` in your browser. The default administrator account is `root` and password is `root`.
@@ -24,11 +24,11 @@ You can modify the logging configuration by editing `src/main/resources/logback-
 Note that HttpSession is cleared when auto-reloading happened.
 This is a bit annoying when developing features that requires sign-in.
 You can keep HttpSession even if GitBucket is restarted by enabling this configuration in `build.sbt`:
-https://github.com/gitbucket/gitbucket/blob/d5c083b70f7f3748d080166252e9a3dcaf579648/build.sbt#L292
+https://github.com/gitbucket/gitbucket/blob/3dcc0aee3c4413b05be7c03476626cb202674afc/build.sbt#L292
 
 Or by launching GitBucket with the following command:
 ```shell
-sbt '; set Jetty/javaOptions += "-Ddev-features=keep-session" ; ~jetty:start'
+sbt '; set Container/javaOptions += "-Ddev-features=keep-session" ; ~container:start'
 ```
 
 Note that this feature serializes HttpSession on the local disk and assigns all requests to the same session
