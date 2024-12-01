@@ -9,7 +9,7 @@ val JettyVersion = "10.0.24"
 val JgitVersion = "6.10.0.202406032230-r"
 
 lazy val root = (project in file("."))
-  .enablePlugins(SbtTwirl, ScalatraPlugin)
+  .enablePlugins(SbtTwirl, ContainerPlugin)
 
 sourcesInBase := false
 organization := Organization
@@ -89,7 +89,7 @@ scalacOptions ++= {
   }
 }
 compile / javacOptions ++= Seq("-target", "11", "-source", "11")
-Jetty / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
+Container / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 
 // Test settings
 //testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
@@ -284,10 +284,12 @@ Test / testOptions ++= {
   }
 }
 
-Jetty / javaOptions ++= Seq(
+Container / javaOptions ++= Seq(
   "-Dlogback.configurationFile=/logback-dev.xml",
   "-Xdebug",
   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000",
   "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
   // "-Ddev-features=keep-session"
 )
+Container / containerLibs := Seq(("org.eclipse.jetty" % "jetty-runner" % JettyVersion).intransitive())
+Container / containerMain := "org.eclipse.jetty.runner.Runner"
