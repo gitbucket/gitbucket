@@ -28,6 +28,7 @@ import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.LoggerFactory
 
 import scala.util.Using.Releasable
+import scala.util.{Try, Using}
 
 /**
  * Provides complex JGit operations.
@@ -661,15 +662,60 @@ object JGitUtil {
 
   /**
    * Returns the commit list between two revisions.
+   * `to` and `from` must be valid revision strings.
+   *
+   * @see [[org.eclipse.jgit.lib.Repository#resolve]]
+   * @param git  the Git object
+   * @param from Must refer to a valid commit object.
+   * @param to   Must refer to a valid commit object.
+   * @return The commits before 'to', that are not already present in the tree of 'from'.
+   */
+  def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] = {
+    def resolveString(name: String): ObjectId = {
+      val objectId = git.getRepository.resolve(name)
+      git.getRepository.open(objectId).getType match {
+        case Constants.OBJ_COMMIT => objectId
+        case Constants.OBJ_TAG =>
+          val ref = git.getRepository.getRefDatabase.findRef(name)
+          git.getRepository.getRefDatabase.peel(ref).getPeeledObjectId
+        case _ => ObjectId.zeroId()
+      }
+    }
+
+    getCommitLog(git, resolveString(from), resolveString(to))
+  }
+
+  /**
+   * Returns the commit list between two revisions.
    *
    * @param git the Git object
-   * @param from the from revision
-   * @param to the to revision
-   * @return the commit list
+   * @param from Must refer to a valid commit object.
+   * @param to Must refer to a valid commit object.
+   * @return The commits before 'to', that are not already present in the tree of 'from'.
    */
-  // TODO swap parameters 'from' and 'to'!?
-  def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] =
-    getCommitLogs(git, to)(_.getName == from)
+  def getCommitLog(git: Git, from: ObjectId, to: ObjectId): List[CommitInfo] =
+    Option(from)
+      .filter(f => f != ObjectId.zeroId)
+      // find the common ancestor of the two commits
+      .flatMap(f =>
+        git
+          .log()
+          .add(f)
+          .add(to)
+          .setRevFilter(RevFilter.MERGE_BASE)
+          .call()
+          .asScala
+          .headOption
+      )
+      .fold(
+        git.log() // no stop condition when merge base with 'from' is not found
+      )(f => git.log().not(f)) // we have a stop condition (start commit)
+      .add(to)
+      .call()
+      .asScala
+      .map(new CommitInfo(_))
+      .toList
+      .reverse
 
   /**
    * Returns the latest RevCommit of the specified path.
