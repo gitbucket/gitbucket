@@ -183,7 +183,7 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, ss
         val receive = new ReceivePack(repository)
         if (!repoName.endsWith(".wiki")) {
           val hook =
-            new CommitLogHook(owner, repoName, userName(authType), baseUrl, Some(sshAddress.getUrl(owner, repoName)))
+            new CommitLogHook(owner, repoName, userName(authType), baseUrl, Some(sshAddress.getUrl))
           receive.setPreReceiveHook(hook)
           receive.setPostReceiveHook(hook)
         }

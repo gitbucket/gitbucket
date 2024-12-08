@@ -204,7 +204,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
       val settings = loadSystemSettings()
       val baseUrl = settings.baseUrl(request)
-      val sshUrl = settings.sshUrl(owner, repository)
+      val sshUrl = settings.sshUrl
 
       if (!repository.endsWith(".wiki")) {
         val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
