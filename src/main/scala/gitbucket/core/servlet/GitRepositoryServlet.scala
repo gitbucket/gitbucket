@@ -296,7 +296,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     } else {
       command.getType match {
         case ReceiveCommand.Type.DELETE => Nil
-        case _                          => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+        case _                          => JGitUtil.getCommitLog(git, command.getOldId, command.getNewId)
       }
     }
   }
@@ -492,7 +492,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
           } else {
             command.getType match {
               case ReceiveCommand.Type.DELETE => None
-              case _                          => Some((command.getOldId.getName, command.getNewId.name))
+              case _                          => Some((command.getOldId, command.getNewId))
             }
           }
 
