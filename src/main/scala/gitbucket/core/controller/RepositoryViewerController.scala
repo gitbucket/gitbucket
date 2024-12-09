@@ -629,7 +629,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           sender,
           repository,
           owner,
-          ref = newBranchName,
+          ref = s"refs/heads/${newBranchName}",
           refType = "branch"
         )
       }
@@ -1017,7 +1017,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               WebHookPushPayload(
                 git,
                 pusherAccount,
-                newBranchName,
+                s"refs/heads/${newBranchName}",
                 repository,
                 List(),
                 ownerAccount,
@@ -1036,7 +1036,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 sender,
                 repository,
                 owner,
-                ref = newBranchName,
+                ref = s"refs/heads/${newBranchName}",
                 refType = "branch"
               )
             }
