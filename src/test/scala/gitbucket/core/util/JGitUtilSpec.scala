@@ -119,6 +119,62 @@ class JGitUtilSpec extends AnyFunSuite {
     }
   }
 
+  test("getCommitLog") {
+    withTestRepository { git =>
+      /** repo looks like this
+       * commit1 -> commit2 -> commit3 [main]
+       * \-> commit4 [branch1]
+       * */
+      val root = git.getRepository.resolve("main")
+
+      createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
+      val commit1 = git.getRepository.resolve("main")
+
+      createFile(git, Constants.HEAD, "LICENSE", "Apache License", message = "commit2")
+      val commit2 = git.getRepository.resolve("main")
+      // also make a tag
+      JGitUtil.createTag(git, "t1", None, commit2.getName)
+
+      createFile(git, Constants.HEAD, "README.md", "body1\nbody2", message = "commit3")
+      val commit3 = git.getRepository.resolve("main")
+
+      // create branch
+      JGitUtil.createBranch(git, "main", "branch1")
+      createFile(git, "branch1", "README.md", "body2", message = "commit4")
+      val commit4 = git.getRepository.resolve("branch1")
+
+      // compare results for empty → commit3
+      assert(
+        JGitUtil.getCommitLogs(git, commit3.getName, includesLastCommit = true)(_ => false) == JGitUtil.getCommitLog(
+          git,
+          root,
+          commit3
+        )
+      )
+      // compare results for commit1 → commit3
+      assert(
+        JGitUtil.getCommitLogs(git, commit3.getName, includesLastCommit = true)(
+          _.getName != commit3.getName
+        ) == JGitUtil.getCommitLog(git, commit1, commit3)
+      )
+
+      // compare results for empty → commit4
+      assert(
+        JGitUtil.getCommitLogs(git, commit4.getName, includesLastCommit = true)(_ => false) == JGitUtil.getCommitLog(
+          git,
+          root,
+          commit4
+        )
+      )
+
+      // check with names
+      assert(JGitUtil.getCommitLog(git, "main", "branch1").size == 1)
+
+      // tag names must work, too
+      assertResult(JGitUtil.getCommitLog(git, "t1", "main").length)(1)
+    }
+  }
+
   test("createBranch, branchesOfCommit and getBranches") {
     withTestRepository { git =>
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
