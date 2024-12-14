@@ -90,7 +90,7 @@ class SystemSettingsServiceSpec extends AnyWordSpecLike with Matchers {
     "getUrl" which {
       "returns the port number when not using port 22" in new MockContext {
         override val port = 8022
-        sshAddress.getUrl shouldBe "git@code.these.solutions:8022"
+        sshAddress.getUrl shouldBe "ssh://git@code.these.solutions:8022"
       }
       "leaves off the port number when using port 22" in new MockContext {
         override val port = 22
