@@ -4,7 +4,6 @@ import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.Connection
 import java.util.UUID
-
 import gitbucket.core.model.Activity
 import gitbucket.core.util.Directory.ActivityLog
 import gitbucket.core.util.JDBCUtil
@@ -15,6 +14,7 @@ import org.json4s.{Formats, NoTypeHints}
 import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.write
 
+import java.util.logging.Level
 import scala.util.Using
 
 object GitBucketCoreModule
@@ -118,4 +118,6 @@ object GitBucketCoreModule
       new Version("4.39.0", new LiquibaseMigration("update/gitbucket-core_4.39.xml")),
       new Version("4.40.0"),
       new Version("4.41.0")
-    )
+    ) {
+  java.util.logging.Logger.getLogger("liquibase").setLevel(Level.SEVERE)
+}
