@@ -182,7 +182,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/tags")(referrersOnly { repository =>
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       JsonFormat(
-        self.getRef("tags", repository)
+        repository.tags.map(tagInfo => ApiTag(tagInfo.name, RepositoryName(repository), tagInfo.commitId))
       )
     }
   })
