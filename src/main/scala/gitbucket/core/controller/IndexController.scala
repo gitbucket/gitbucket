@@ -192,6 +192,16 @@ trait IndexControllerBase extends ControllerBase {
     Ok()
   }
 
+  get("/user.css") {
+    context.settings.userDefinedCss match {
+      case Some(css) =>
+        contentType = "text/css"
+        css
+      case None =>
+        NotFound()
+    }
+  }
+
   /**
    * Set account information into HttpSession and redirect.
    */
