@@ -159,5 +159,10 @@
         @Html(script)
       </script>
     }
+    @if(context.settings.userDefinedCss.isDefined) {
+      <script>
+        $('head').append($('<link rel="stylesheet" type="text/css" href="@context.baseUrl/user.css">'))
+      </script>
+    }
   </body>
 </html>
