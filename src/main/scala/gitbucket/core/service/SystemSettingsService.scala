@@ -373,7 +373,7 @@ object SystemSettingsService {
       if (isDefaultPort) {
         s"${genericUser}@${host}"
       } else {
-        s"${genericUser}@${host}:${port}"
+        s"ssh://${genericUser}@${host}:${port}"
       }
 
     def getUrl(owner: String, name: String): String =
