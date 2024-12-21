@@ -38,6 +38,7 @@ class AccountServiceSpec extends AnyFunSuite with ServiceSpecBase {
       assert(user().lastLoginDate.isEmpty)
 
       val date1 = new Date
+      Thread.sleep(1000)
       AccountService.updateLastLoginDate(root)
       assert(user().lastLoginDate.get.compareTo(date1) > 0)
 
