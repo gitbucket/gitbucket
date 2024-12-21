@@ -178,7 +178,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
     if (!repository.branchList.contains(form.defaultBranch)) {
-      redirect(s"/${repository.owner}/${repository.name}/settings/options")
+      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
       // Change repository HEAD
