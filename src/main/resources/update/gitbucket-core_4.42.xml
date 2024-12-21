@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <dropForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_FK0" baseTableName="PROTECTED_BRANCH_REQUIRE_CONTEXT"/>
+  <dropPrimaryKey constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_PK" tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT"/>
+
+  <dropForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH"/>
+  <dropPrimaryKey constraintName="IDX_PROTECTED_BRANCH_PK" tableName="PROTECTED_BRANCH"/>
+
+  <modifyDataType columnName="DEFAULT_BRANCH" newDataType="varchar(255)" tableName="REPOSITORY"/>
+  <modifyDataType columnName="BRANCH" newDataType="varchar(255)" tableName="PULL_REQUEST"/>
+  <modifyDataType columnName="REQUEST_BRANCH" newDataType="varchar(255)" tableName="PULL_REQUEST"/>
+  <modifyDataType columnName="BRANCH" newDataType="varchar(255)" tableName="PROTECTED_BRANCH"/>
+  <modifyDataType columnName="BRANCH" newDataType="varchar(255)" tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT"/>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_PK" tableName="PROTECTED_BRANCH" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_PK" tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH, CONTEXT"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_FK0" baseTableName="PROTECTED_BRANCH_REQUIRE_CONTEXT" baseColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" referencedTableName="PROTECTED_BRANCH" referencedColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" onDelete="CASCADE" onUpdate="CASCADE"/>
+</changeSet>
