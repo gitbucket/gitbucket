@@ -21,45 +21,47 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
-    <div class="pullreq-info">
-      <div id="compare-edit">
-        @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
-          @members.map { case (owner, name, defaultBranch) =>
-            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
+    <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+      <div class="pullreq-info">
+        <div id="compare-edit">
+          @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
+            @members.map { case (owner, name, defaultBranch) =>
+              <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
+            }
           }
-        }
-        @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
-          @if(!originRepository.branchList.contains(originId)){
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(originId)">@gitbucket.core.helper.html.checkicon(true) @originId</a></li>
+          @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
+            @if(!originRepository.branchList.contains(originId)){
+              <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(originId)">@gitbucket.core.helper.html.checkicon(true) @originId</a></li>
+            }
+            @originRepository.branchList.map { branch =>
+              <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
+            }
           }
-          @originRepository.branchList.map { branch =>
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
+          <span class="error" id="error-targetBranch"></span>
+          ...
+          @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
+            @members.map { case (owner, name, defaultBranch) =>
+              <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
+            }
           }
-        }
-        ...
-        @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
-          @members.map { case (owner, name, defaultBranch) =>
-            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
+          @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
+            @if(!forkedRepository.branchList.contains(forkedId)){
+              <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(forkedId)">@gitbucket.core.helper.html.checkicon(true) @forkedId</a></li>
+            }
+            @forkedRepository.branchList.map { branch =>
+              <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
+            }
           }
-        }
-        @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
-          @if(!forkedRepository.branchList.contains(forkedId)){
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(forkedId)">@gitbucket.core.helper.html.checkicon(true) @forkedId</a></li>
-          }
-          @forkedRepository.branchList.map { branch =>
-            <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
-          }
+          <span class="error" id="error-requestBranch"></span>
+        </div>
+        @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+          <div class="check-conflict" style="display: none;">
+            <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
+          </div>
         }
       </div>
-      @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-        <div class="check-conflict" style="display: none;">
-          <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
-        </div>
-      }
-    </div>
-    @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-      <div id="pull-request-form" style="margin-bottom: 20px;">
-        <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+      @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+        <div id="pull-request-form" style="margin-bottom: 20px;">
           <div class="row">
             <div class="col-md-9">
               <span class="error" id="error-title"></span>
@@ -113,9 +115,9 @@
               )
             </div>
           </div>
-        </form>
-      </div>
-    }
+        </div>
+      }
+    </form>
     @if(commits.isEmpty){
       <div class="panel panel-default" style="padding: 20px; background-color: #eee; text-align: center;">
         <h4>There isn't anything to compare.</h4>
