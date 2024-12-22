@@ -2,11 +2,11 @@ package gitbucket.core.controller
 
 import gitbucket.core.dashboard.html
 import gitbucket.core.model.Account
-import gitbucket.core.service._
-import gitbucket.core.util.{Keys, UsersAuthenticator}
-import gitbucket.core.util.Implicits._
-import gitbucket.core.service.IssuesService._
-import gitbucket.core.service.ActivityService._
+import gitbucket.core.service.*
+import gitbucket.core.util.UsersAuthenticator
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.service.IssuesService.*
+import gitbucket.core.service.ActivityService.*
 
 class DashboardController
     extends DashboardControllerBase
@@ -91,7 +91,7 @@ trait DashboardControllerBase extends ControllerBase {
     }
   })
 
-  private def getOrCreateCondition(key: String, filter: String, userName: String) = {
+  private def getOrCreateCondition(filter: String, userName: String) = {
     val condition = IssueSearchCondition(request)
 
     filter match {
@@ -102,11 +102,11 @@ trait DashboardControllerBase extends ControllerBase {
   }
 
   private def searchIssues(loginAccount: Account, filter: String) = {
-    import IssuesService._
+    import IssuesService.*
 
     val userName = loginAccount.userName
-    val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
-    val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
+    val condition = getOrCreateCondition(filter, userName)
+    val userRepos = getUserRepositories(userName, withoutPhysicalInfo = true).map(repo => repo.owner -> repo.name)
     val page = IssueSearchCondition.page(request)
     val issues = searchIssue(condition, IssueSearchOption.Issues, (page - 1) * IssueLimit, IssueLimit, userRepos*)
 
@@ -133,11 +133,11 @@ trait DashboardControllerBase extends ControllerBase {
   }
 
   private def searchPullRequests(loginAccount: Account, filter: String) = {
-    import IssuesService._
-    import PullRequestService._
+    import IssuesService.*
+    import PullRequestService.*
 
     val userName = loginAccount.userName
-    val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
+    val condition = getOrCreateCondition(filter, userName)
     val allRepos = getAllRepositories(userName)
     val page = IssueSearchCondition.page(request)
     val issues = searchIssue(

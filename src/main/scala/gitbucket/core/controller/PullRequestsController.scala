@@ -4,14 +4,14 @@ import gitbucket.core.model.activity.DeleteBranchInfo
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
-import gitbucket.core.service.IssuesService._
-import gitbucket.core.service.PullRequestService._
+import gitbucket.core.service.IssuesService.*
+import gitbucket.core.service.PullRequestService.*
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.service._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util._
-import org.scalatra.forms._
+import gitbucket.core.service.*
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.*
+import org.scalatra.forms.*
 import org.eclipse.jgit.api.Git
 import org.scalatra.BadRequest
 
@@ -45,7 +45,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     ReferrerAuthenticator & WritableUsersAuthenticator & CommitStatusService & MergeService & ProtectedBranchService &
     PrioritiesService =>
 
-  val pullRequestForm = mapping(
+  private val pullRequestForm = mapping(
     "title" -> trim(label("Title", text(required))),
     "content" -> trim(label("Content", optional(text()))),
     "targetUserName" -> trim(text(required, maxlength(100))),
@@ -62,13 +62,13 @@ trait PullRequestsControllerBase extends ControllerBase {
     "labelNames" -> trim(optional(text()))
   )(PullRequestForm.apply)
 
-  val mergeForm = mapping(
+  private val mergeForm = mapping(
     "message" -> trim(label("Message", text(required))),
     "strategy" -> trim(label("Strategy", text(required))),
     "isDraft" -> trim(boolean(required))
   )(MergeForm.apply)
 
-  case class PullRequestForm(
+  private case class PullRequestForm(
     title: String,
     content: Option[String],
     targetUserName: String,
@@ -85,7 +85,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     labelNames: Option[String]
   )
 
-  case class MergeForm(message: String, strategy: String, isDraft: Boolean)
+  private case class MergeForm(message: String, strategy: String, isDraft: Boolean)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     val q = request.getParameter("q")
@@ -250,7 +250,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     (for {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
-      (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      case (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
       owner = pullreq.requestUserName
       name = pullreq.requestRepositoryName
       if hasDeveloperRole(owner, name, context.loginAccount)
@@ -288,7 +288,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     (for {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
-      (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      case (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
       repository <- getRepository(pullreq.requestUserName, pullreq.requestRepositoryName)
       remoteRepository <- getRepository(pullreq.userName, pullreq.repositoryName)
       owner = pullreq.requestUserName
@@ -299,7 +299,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       if (branchProtection.needStatusCheck(loginAccount.userName)) {
         flash.update("error", s"branch ${pullreq.requestBranch} is protected need status check.")
       } else {
-        LockUtil.lock(s"${owner}/${name}") {
+        LockUtil.lock(s"$owner/$name") {
           val alias =
             if (
               pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName
@@ -308,27 +308,27 @@ trait PullRequestsControllerBase extends ControllerBase {
             } else {
               s"${pullreq.userName}:${pullreq.branch}"
             }
-          val existIds = Using
-            .resource(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
-              JGitUtil.getAllCommitIds(git)
-            }
-            .toSet
+//          val existIds = Using
+//            .resource(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
+//              JGitUtil.getAllCommitIds(git)
+//            }
+//            .toSet
           pullRemote(
             repository,
             pullreq.requestBranch,
             remoteRepository,
             pullreq.branch,
             loginAccount,
-            s"Merge branch '${alias}' into ${pullreq.requestBranch}",
+            s"Merge branch '$alias' into ${pullreq.requestBranch}",
             Some(pullreq),
             context.settings
           ) match {
             case None => // conflict
-              flash.update("error", s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}.")
+              flash.update("error", s"Can't automatic merging branch '$alias' into ${pullreq.requestBranch}.")
             case Some(oldId) =>
               // update pull request
               updatePullRequests(owner, name, pullreq.requestBranch, loginAccount, "synchronize", context.settings)
-              flash.update("info", s"Merge branch '${alias}' into ${pullreq.requestBranch}")
+              flash.update("info", s"Merge branch '$alias' into ${pullreq.requestBranch}")
           }
         }
       }
@@ -340,7 +340,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   post("/:owner/:repository/pull/:id/update_draft")(readableUsersOnly { baseRepository =>
     (for {
       issueId <- params("id").toIntOpt
-      (_, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      case (_, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
       owner = pullreq.requestUserName
       name = pullreq.requestRepositoryName
       if hasDeveloperRole(owner, name, context.loginAccount)
@@ -361,7 +361,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           form.isDraft,
           context.settings
         ) match {
-          case Right(objectId) => redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+          case Right(objectId) => redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
           case Left(message)   => Some(BadRequest(message))
         }
       } getOrElse NotFound()
@@ -383,7 +383,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               .getOrElse(JGitUtil.getDefaultBranch(oldGit, originRepository).get._2)
 
             redirect(
-              s"/${forkedRepository.owner}/${forkedRepository.name}/compare/${originUserName}:${oldBranch}...${newBranch}"
+              s"/${forkedRepository.owner}/${forkedRepository.name}/compare/$originUserName:$oldBranch...$newBranch"
             )
           }
         } getOrElse NotFound()
@@ -391,7 +391,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         Using.resource(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))) { git =>
           JGitUtil.getDefaultBranch(git, forkedRepository).map { case (_, defaultBranch) =>
             redirect(
-              s"/${forkedRepository.owner}/${forkedRepository.name}/compare/${defaultBranch}...${headBranch.getOrElse(defaultBranch)}"
+              s"/${forkedRepository.owner}/${forkedRepository.name}/compare/$defaultBranch...${headBranch.getOrElse(defaultBranch)}"
             )
           } getOrElse {
             redirect(s"/${forkedRepository.owner}/${forkedRepository.name}")
@@ -413,7 +413,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       getForkedRepositories(forkedRepository.owner, forkedRepository.name)
         .find(_.userName == originOwner)
         .map(_.repositoryName)
-    } else if (Some(originOwner) == forkedRepository.repository.originUserName) {
+    } else if (forkedRepository.repository.originUserName.contains(originOwner)) {
       // Original repository
       forkedRepository.repository.originRepositoryName
     } else {
@@ -474,7 +474,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               (repository.userName, repository.repositoryName, repository.defaultBranch)
             },
             commits.flatten
-              .flatMap(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false))
+              .flatMap(commit =>
+                getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, includePullRequest = false)
+              )
               .toList,
             originId,
             forkedId,
@@ -495,8 +497,8 @@ trait PullRequestsControllerBase extends ControllerBase {
         case (oldId, newId) =>
           redirect(
             s"/${forkedRepository.owner}/${forkedRepository.name}/compare/" +
-              s"${originOwner}:${oldId.map(_ => originId).getOrElse(originRepository.repository.defaultBranch)}..." +
-              s"${forkedOwner}:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}"
+              s"$originOwner:${oldId.map(_ => originId).getOrElse(originRepository.repository.defaultBranch)}..." +
+              s"$forkedOwner:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}"
           )
 
       }
@@ -637,7 +639,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         }
       }
 
-      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+      redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
     }
   })
 

@@ -84,7 +84,7 @@ class FileUploadController
         execute(
           { (file, fileId) =>
             val fileName = file.getName
-            LockUtil.lock(s"${owner}/${repository}/wiki") {
+            LockUtil.lock(s"$owner/$repository/wiki") {
               Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
                 val builder = DirCache.newInCore.builder()
                 val inserter = git.getRepository.newObjectInserter()
@@ -108,7 +108,7 @@ class FileUploadController
                 )
                 builder.finish()
 
-                val newHeadId = JGitUtil.createNewCommit(
+                JGitUtil.createNewCommit(
                   git,
                   inserter,
                   headId,
@@ -116,7 +116,7 @@ class FileUploadController
                   Constants.HEAD,
                   loginAccount.fullName,
                   loginAccount.mailAddress,
-                  s"Uploaded ${fileName}"
+                  s"Uploaded $fileName"
                 )
 
                 fileName
@@ -151,7 +151,7 @@ class FileUploadController
   }
 
   post("/import") {
-    import JDBCUtil._
+    import JDBCUtil.*
     setMultipartConfig()
     session.get(Keys.Session.LoginAccount).collect {
       case loginAccount: Account if loginAccount.isAdmin =>
@@ -168,13 +168,13 @@ class FileUploadController
   private def setMultipartConfig(): Unit = {
     val settings = loadSystemSettings()
     val config = MultipartConfig(maxFileSize = Some(settings.upload.maxFileSize))
-    config.apply(request.getServletContext())
+    config.apply(request.getServletContext)
   }
 
   private def setMultipartConfigForLargeFile(): Unit = {
     val settings = loadSystemSettings()
     val config = MultipartConfig(maxFileSize = Some(settings.upload.largeMaxFileSize))
-    config.apply(request.getServletContext())
+    config.apply(request.getServletContext)
   }
 
   private def onlyWikiEditable(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
@@ -191,7 +191,7 @@ class FileUploadController
     }
   }
 
-  private def execute(f: (FileItem, String) => Unit, mimeTypeChecker: (String) => Boolean) =
+  private def execute(f: (FileItem, String) => Unit, mimeTypeChecker: String => Boolean) =
     fileParams.get("file") match {
       case Some(file) if mimeTypeChecker(file.name) =>
         val fileId = FileUtil.generateFileId
