@@ -96,11 +96,10 @@ abstract class ControllerBase
    */
   implicit def context: Context = {
     contextCache.get match {
-      case null => {
+      case null =>
         val context = Context(loadSystemSettings(), LoginAccount, request)
         contextCache.set(context)
         context
-      }
       case context => context
     }
   }
@@ -140,7 +139,7 @@ abstract class ControllerBase
       action(form)
     }
 
-  protected def NotFound() =
+  protected def NotFound(): ActionResult =
     if (request.hasAttribute(Keys.Request.Ajax)) {
       org.scalatra.NotFound()
     } else if (request.hasAttribute(Keys.Request.APIv3)) {
@@ -160,7 +159,7 @@ abstract class ControllerBase
     }
   }
 
-  protected def Unauthorized()(implicit context: Context) =
+  protected def Unauthorized()(implicit context: Context): ActionResult =
     if (request.hasAttribute(Keys.Request.Ajax)) {
       org.scalatra.Unauthorized()
     } else if (request.hasAttribute(Keys.Request.APIv3)) {
@@ -211,7 +210,7 @@ abstract class ControllerBase
     withSessionId: Boolean = true
   )(implicit request: HttpServletRequest, response: HttpServletResponse): String =
     if (path.startsWith("http")) path
-    else baseUrl + super.url(path, params, false, false, false)
+    else baseUrl + super.url(path, params, includeContextPath = false, includeServletPath = false, absolutize = false)
 
   /**
    * Extends scalatra-form's trim rule to eliminate CR and LF.
@@ -255,9 +254,9 @@ abstract class ControllerBase
   protected def getPathObjectId(git: Git, path: String, revCommit: RevCommit): Option[ObjectId] = {
     @scala.annotation.tailrec
     def _getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
-      case true if (walk.getPathString == path) => Some(walk.getObjectId(0))
-      case true                                 => _getPathObjectId(path, walk)
-      case false                                => None
+      case true if walk.getPathString == path => Some(walk.getObjectId(0))
+      case true                               => _getPathObjectId(path, walk)
+      case false                              => None
     }
 
     Using.resource(new TreeWalk(git.getRepository)) { treeWalk =>
@@ -349,18 +348,18 @@ case class Context(
   loginAccount: Option[Account],
   request: HttpServletRequest
 ) {
-  val path = settings.baseUrl.getOrElse(request.getContextPath)
-  val currentPath = request.getRequestURI.substring(request.getContextPath.length)
-  val baseUrl = settings.baseUrl(request)
-  val host = new java.net.URL(baseUrl).getHost
-  val platform = request.getHeader("User-Agent") match {
+  val path: String = settings.baseUrl.getOrElse(request.getContextPath)
+  val currentPath: String = request.getRequestURI.substring(request.getContextPath.length)
+  val baseUrl: String = settings.baseUrl(request)
+  val host: String = new java.net.URL(baseUrl).getHost
+  val platform: String = request.getHeader("User-Agent") match {
     case null                             => null
     case agent if agent.contains("Mac")   => "mac"
     case agent if agent.contains("Linux") => "linux"
     case agent if agent.contains("Win")   => "windows"
     case _                                => null
   }
-  val sidebarCollapse = request.getSession.getAttribute("sidebar-collapse") != null
+  val sidebarCollapse: Boolean = request.getSession.getAttribute("sidebar-collapse") != null
 
   def withLoginAccount(f: Account => Any): Any = {
     loginAccount match {
@@ -441,9 +440,9 @@ trait AccountManagementControllerBase extends ControllerBase {
       ) {
         Some("These mail addresses are duplicated.")
       } else {
-        getAccountByMailAddress(value, true)
+        getAccountByMailAddress(value, includeRemoved = true)
           .collect {
-            case x if paramName.isEmpty || Some(x.userName) != params.optionValue(paramName) =>
+            case x if paramName.isEmpty || !params.optionValue(paramName).contains(x.userName) =>
               "Mail address is already registered."
           }
       }
@@ -459,22 +458,22 @@ trait AccountManagementControllerBase extends ControllerBase {
     ): Option[String] = {
       val extraMailAddresses = params.view.filterKeys(k => k.startsWith("extraMailAddresses"))
       if (
-        Some(value) == params.optionValue("mailAddress") || extraMailAddresses.count { case (k, v) =>
+        params.optionValue("mailAddress").contains(value) || extraMailAddresses.count { case (k, v) =>
           v.contains(value)
         } > 1
       ) {
         Some("These mail addresses are duplicated.")
       } else {
-        getAccountByMailAddress(value, true)
+        getAccountByMailAddress(value, includeRemoved = true)
           .collect {
-            case x if paramName.isEmpty || Some(x.userName) != params.optionValue(paramName) =>
+            case x if paramName.isEmpty || !params.optionValue(paramName).contains(x.userName) =>
               "Mail address is already registered."
           }
       }
     }
   }
 
-  val allReservedNames = Set(
+  private val allReservedNames = Set(
     "git",
     "admin",
     "upload",
@@ -493,7 +492,7 @@ trait AccountManagementControllerBase extends ControllerBase {
   protected def reservedNames: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (allReservedNames.contains(value.toLowerCase)) {
-        Some(s"${value} is reserved")
+        Some(s"$value is reserved")
       } else {
         None
       }
