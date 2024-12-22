@@ -4,15 +4,15 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import gitbucket.core.api.{ApiError, JsonFormat}
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
-import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util._
-import org.json4s._
-import org.scalatra._
-import org.scalatra.i18n._
-import org.scalatra.json._
-import org.scalatra.forms._
+import gitbucket.core.util.SyntaxSugars.*
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.*
+import org.json4s.*
+import org.scalatra.{MultiParams, *}
+import org.scalatra.i18n.*
+import org.scalatra.json.*
+import org.scalatra.forms.*
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
@@ -24,7 +24,7 @@ import net.coobird.thumbnailator.Thumbnails
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.treewalk._
+import org.eclipse.jgit.treewalk.*
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.json4s.Formats
@@ -48,9 +48,19 @@ abstract class ControllerBase
 
   implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
 
+  private case class HttpException(status: Int) extends RuntimeException
+
   before("/api/v3/*") {
     contentType = formats("json")
     request.setAttribute(Keys.Request.APIv3, true)
+  }
+
+  override def multiParams(implicit request: HttpServletRequest): MultiParams = {
+    try {
+      super.multiParams
+    } catch {
+      case _: Exception => throw HttpException(400)
+    }
   }
 
   override def requestPath(uri: String, idx: Int): String = {
@@ -178,7 +188,9 @@ abstract class ControllerBase
     }
 
   error {
-    case e => {
+    case e: HttpException =>
+      ActionResult(e.status, (), Map.empty)
+    case e =>
       logger.error(s"Catch unhandled error in request: ${request}", e)
       if (request.hasAttribute(Keys.Request.Ajax)) {
         org.scalatra.InternalServerError()
@@ -188,7 +200,6 @@ abstract class ControllerBase
       } else {
         org.scalatra.InternalServerError(gitbucket.core.html.error("Internal Server Error", Some(e)))
       }
-    }
   }
 
   override def url(
@@ -487,5 +498,4 @@ trait AccountManagementControllerBase extends ControllerBase {
         None
       }
   }
-
 }
