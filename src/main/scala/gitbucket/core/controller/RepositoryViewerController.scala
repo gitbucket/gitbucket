@@ -6,12 +6,12 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.model.activity.DeleteBranchInfo
-import gitbucket.core.service._
+import gitbucket.core.service.*
 import gitbucket.core.service.RepositoryCommitFileService.CommitFile
-import gitbucket.core.util._
-import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.Directory._
+import gitbucket.core.util.*
+import gitbucket.core.util.StringUtil.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.Directory.*
 import gitbucket.core.model.{Account, WebHook}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.WebHookService.{WebHookCreatePayload, WebHookPushPayload}
@@ -25,11 +25,11 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream
 import org.apache.commons.compress.utils.IOUtils
 import org.apache.commons.io.FileUtils
-import org.scalatra.forms._
+import org.scalatra.forms.*
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.errors.MissingObjectException
-import org.eclipse.jgit.lib._
+import org.eclipse.jgit.lib.*
 import org.eclipse.jgit.treewalk.{TreeWalk, WorkingTreeOptions}
 import org.eclipse.jgit.treewalk.TreeWalk.OperationType
 import org.eclipse.jgit.treewalk.filter.PathFilter
@@ -73,7 +73,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
 
-  case class UploadForm(
+  private case class UploadForm(
     branch: String,
     path: String,
     uploadFiles: String,
@@ -82,7 +82,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     newBranch: Boolean
   )
 
-  case class EditorForm(
+  private case class EditorForm(
     branch: String,
     path: String,
     content: String,
@@ -95,7 +95,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     newBranch: Boolean
   )
 
-  case class DeleteForm(
+  private case class DeleteForm(
     branch: String,
     path: String,
     message: Option[String],
@@ -104,7 +104,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     newBranch: Boolean
   )
 
-  case class CommentForm(
+  private case class CommentForm(
     fileName: Option[String],
     oldLineNumber: Option[Int],
     newLineNumber: Option[Int],
@@ -113,13 +113,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     diff: Option[String]
   )
 
-  case class TagForm(
+  private case class TagForm(
     commitId: String,
     tagName: String,
     message: Option[String]
   )
 
-  val uploadForm = mapping(
+  private val uploadForm = mapping(
     "branch" -> trim(label("Branch", text(required))),
     "path" -> trim(label("Path", text())),
     "uploadFiles" -> trim(label("Upload files", text(required))),
@@ -128,7 +128,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "newBranch" -> trim(label("New Branch", boolean()))
   )(UploadForm.apply)
 
-  val editorForm = mapping(
+  private val editorForm = mapping(
     "branch" -> trim(label("Branch", text(required))),
     "path" -> trim(label("Path", text())),
     "content" -> trim(label("Content", text(required))),
@@ -141,7 +141,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "newBranch" -> trim(label("New Branch", boolean()))
   )(EditorForm.apply)
 
-  val deleteForm = mapping(
+  private val deleteForm = mapping(
     "branch" -> trim(label("Branch", text(required))),
     "path" -> trim(label("Path", text())),
     "message" -> trim(label("Message", optional(text()))),
@@ -150,7 +150,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "newBranch" -> trim(label("New Branch", boolean()))
   )(DeleteForm.apply)
 
-  val commentForm = mapping(
+  private val commentForm = mapping(
     "fileName" -> trim(label("Filename", optional(text()))),
     "oldLineNumber" -> trim(label("Old line number", optional(number()))),
     "newLineNumber" -> trim(label("New line number", optional(number()))),
@@ -159,7 +159,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "diff" -> optional(text())
   )(CommentForm.apply)
 
-  val tagForm = mapping(
+  private val tagForm = mapping(
     "commitId" -> trim(label("Commit id", text(required))),
     "tagName" -> trim(label("Tag name", text(required))),
     "message" -> trim(label("Message", optional(text())))
@@ -285,7 +285,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         html.editor(
           branch = branch,
           repository = repository,
-          pathList = if (path.length == 0) Nil else path.split("/").toList,
+          pathList = if (path.isEmpty) Nil else path.split("/").toList,
           fileName = None,
           content = JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
           protectedBranch = protectedBranch,
@@ -305,7 +305,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         html.upload(
           branch,
           repository,
-          if (path.length == 0) Nil else path.split("/").toList,
+          if (path.isEmpty) Nil else path.split("/").toList,
           protectedBranch,
           revCommit.name
         )
@@ -353,7 +353,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         .toSeq
 
       val newFiles = files.map { file =>
-        file.copy(name = if (form.path.length == 0) file.name else s"${form.path}/${file.name}")
+        file.copy(name = if (form.path.isEmpty) file.name else s"${form.path}/${file.name}")
       }
 
       if (form.newBranch) {
@@ -370,13 +370,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 form.message,
                 loginAccount
               )
-            redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
           case Left(error) => Forbidden(gitbucket.core.html.error(error))
         }
       } else {
         _commit(form.branch, newFiles, loginAccount) match {
           case Right(_) =>
-            if (form.path.length == 0) {
+            if (form.path.isEmpty) {
               redirect(s"/${repository.owner}/${repository.name}/tree/${encodeRefName(form.branch)}")
             } else {
               redirect(
@@ -471,13 +471,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 form.message,
                 loginAccount
               )
-            redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
           case Left(error) => Forbidden(gitbucket.core.html.error(error))
         }
       } else {
         _commit(form.branch, loginAccount) match {
           case Right(_) =>
-            if (form.path.length == 0) {
+            if (form.path.isEmpty) {
               redirect(
                 s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${urlEncode(form.newFileName)}"
               )
@@ -528,13 +528,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 form.message,
                 loginAccount
               )
-            redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
           case Left(error) => Forbidden(gitbucket.core.html.error(error))
         }
       } else {
         _commit(form.branch, loginAccount) match {
           case Right(_) =>
-            if (form.path.length == 0) {
+            if (form.path.isEmpty) {
               redirect(
                 s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${urlEncode(form.newFileName)}"
               )
@@ -581,7 +581,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 form.message,
                 loginAccount
               )
-            redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+            redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
           case Left(error) => Forbidden(gitbucket.core.html.error(error))
         }
       } else {
@@ -629,7 +629,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           sender,
           repository,
           owner,
-          ref = s"refs/heads/${newBranchName}",
+          ref = s"refs/heads/$newBranchName",
           refType = "branch"
         )
       }
@@ -686,7 +686,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file content of the specified branch or commit.
    */
-  val blobRoute = get("/:owner/:repository/blob/*")(referrersOnly { repository =>
+  private val blobRoute = get("/:owner/:repository/blob/*")(referrersOnly { repository =>
     val (id, path) = repository.splitPath(multiParams("splat").head)
     val raw = params.get("raw").getOrElse("false").toBoolean
     val highlighterTheme = getSyntaxHighlighterTheme()
@@ -792,7 +792,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           JGitUtil.getBranchesOfCommit(git, revCommit.getName),
           JGitUtil.getTagsOfCommit(git, revCommit.getName),
           getCommitStatusWithSummary(repository.owner, repository.name, revCommit.getName),
-          getCommitComments(repository.owner, repository.name, id, true),
+          getCommitComments(repository.owner, repository.name, id, includePullRequest = true),
           repository,
           diffs,
           oldCommitId,
@@ -802,7 +802,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         )
       }
     } catch {
-      case e: MissingObjectException => NotFound()
+      case _: MissingObjectException => NotFound()
     }
   })
 
@@ -814,7 +814,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         diff
       }
     } catch {
-      case e: MissingObjectException => NotFound()
+      case _: MissingObjectException => NotFound()
     }
   })
 
@@ -827,7 +827,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         diff
       }
     } catch {
-      case e: MissingObjectException => NotFound()
+      case _: MissingObjectException => NotFound()
     }
   })
 
@@ -846,7 +846,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         form.issueId
       )
 
-      redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
+      redirect(s"/${repository.owner}/${repository.name}/commit/$id")
     }
   })
 
@@ -1006,7 +1006,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case Right(message) =>
           flash.update("info", message)
           val settings = loadSystemSettings()
-          val newCommitId = git.getRepository.resolve(s"refs/heads/${newBranchName}")
+          val newCommitId = git.getRepository.resolve(s"refs/heads/$newBranchName")
           val oldCommitId = ObjectId.fromString("0" * 40)
           // call push webhook
           callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
@@ -1017,7 +1017,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               WebHookPushPayload(
                 git,
                 pusherAccount,
-                s"refs/heads/${newBranchName}",
+                s"refs/heads/$newBranchName",
                 repository,
                 List(),
                 ownerAccount,
@@ -1036,7 +1036,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 sender,
                 repository,
                 owner,
-                ref = s"refs/heads/${newBranchName}",
+                ref = s"refs/heads/$newBranchName",
                 refType = "branch"
               )
             }
@@ -1046,7 +1046,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           )
         case Left(message) =>
           flash.update("error", message)
-          redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
+          redirect(s"/${repository.owner}/${repository.name}/tree/$fromBranchName")
       }
     }
   })
@@ -1132,9 +1132,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  case class UploadFiles(branch: String, path: String, fileIds: Map[String, String], message: String) {
-    lazy val isValid: Boolean = fileIds.nonEmpty
-  }
+//  case class UploadFiles(branch: String, path: String, fileIds: Map[String, String], message: String) {
+//    lazy val isValid: Boolean = fileIds.nonEmpty
+//  }
 
   /**
    * Provides HTML of the file list.
@@ -1174,7 +1174,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               val path = (file.name :: parentPath.reverse).reverse
               path -> StringUtil.convertFromByteArray(
                 JGitUtil
-                  .getContentFromId(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true)
+                  .getContentFromId(
+                    Git.open(getRepositoryDir(repository.owner, repository.name)),
+                    file.id,
+                    fetchLargeFile = true
+                  )
                   .get
               )
             }
@@ -1215,7 +1219,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val oid = git.getRepository.resolve(revision)
         val commit = JGitUtil.getRevCommitFromId(git, oid)
         val date = commit.getCommitterIdent.getWhen
-        val sha1 = oid.getName()
+        val sha1 = oid.getName
         val repositorySuffix = (if (sha1.startsWith(revision)) sha1 else revision).replace('/', '-')
         val pathSuffix = if (path.isEmpty) "" else s"-${path.replace('/', '-')}"
         val baseName = repository.name + "-" + repositorySuffix + pathSuffix
@@ -1223,7 +1227,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         Using.resource(new TreeWalk(git.getRepository)) { treeWalk =>
           treeWalk.addTree(commit.getTree)
           treeWalk.setRecursive(true)
-          if (!path.isEmpty) {
+          if (path.nonEmpty) {
             treeWalk.setFilter(PathFilter.create(path))
           }
           if (treeWalk != null) {
@@ -1267,7 +1271,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
 
     val suffix =
-      path.split("/").lastOption.collect { case x if x.length > 0 => "-" + x.replace('/', '_') }.getOrElse("")
+      path.split("/").lastOption.collect { case x if x.nonEmpty => "-" + x.replace('/', '_') }.getOrElse("")
     val zipRe = """(.+)\.zip$""".r
     val tarRe = """(.+)\.tar\.(gz|bz2|xz)$""".r
 
@@ -1275,7 +1279,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case zipRe(revision) =>
         response.setHeader(
           "Content-Disposition",
-          s"attachment; filename=${repository.name}-${revision}${suffix}.zip"
+          s"attachment; filename=${repository.name}-$revision$suffix.zip"
         )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
@@ -1292,7 +1296,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case tarRe(revision, compressor) =>
         response.setHeader(
           "Content-Disposition",
-          s"attachment; filename=${repository.name}-${revision}${suffix}.tar.${compressor}"
+          s"attachment; filename=${repository.name}-$revision$suffix.tar.$compressor"
         )
         contentType = "application/octet-stream"
         response.setBufferSize(1024 * 1024)
@@ -1330,9 +1334,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val repository = params("repository")
       val branch = params("branch")
 
-      LockUtil.lock(s"${owner}/${repository}") {
+      LockUtil.lock(s"$owner/$repository") {
         Using.resource(Git.open(getRepositoryDir(owner, repository))) { git =>
-          val headName = s"refs/heads/${branch}"
+          val headName = s"refs/heads/$branch"
           val headTip = git.getRepository.resolve(headName)
           if (headTip.getName != value) {
             Some("Someone pushed new commits before you. Please reload this page and re-apply your changes.")

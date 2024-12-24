@@ -7,14 +7,14 @@ import com.nimbusds.oauth2.sdk.id.State
 import com.nimbusds.openid.connect.sdk.Nonce
 import gitbucket.core.helper.xml
 import gitbucket.core.model.Account
-import gitbucket.core.service._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util._
-import gitbucket.core.view.helpers._
+import gitbucket.core.service.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.*
+import gitbucket.core.view.helpers.*
 import org.scalatra.Ok
-import org.scalatra.forms._
+import org.scalatra.forms.*
 
-import gitbucket.core.service.ActivityService._
+import gitbucket.core.service.ActivityService.*
 
 class IndexController
     extends IndexControllerBase
@@ -37,9 +37,9 @@ trait IndexControllerBase extends ControllerBase {
   self: RepositoryService & ActivityService & AccountService & RepositorySearchService & UsersAuthenticator &
     ReferrerAuthenticator & AccessTokenService & AccountFederationService & OpenIDConnectService =>
 
-  case class SignInForm(userName: String, password: String, hash: Option[String])
+  private case class SignInForm(userName: String, password: String, hash: Option[String])
 
-  val signinForm = mapping(
+  private val signinForm = mapping(
     "userName" -> trim(label("Username", text(required))),
     "password" -> trim(label("Password", text(required))),
     "hash" -> trim(optional(text()))
@@ -53,13 +53,13 @@ trait IndexControllerBase extends ControllerBase {
 //
 //  case class SearchForm(query: String, owner: String, repository: String)
 
-  case class OidcAuthContext(state: State, nonce: Nonce, redirectBackURI: String)
-  case class OidcSessionContext(token: JWT)
+  private case class OidcAuthContext(state: State, nonce: Nonce, redirectBackURI: String)
+  private case class OidcSessionContext(token: JWT)
 
   get("/") {
     context.loginAccount
       .map { account =>
-        val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
+        // val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
         if (!isNewsFeedEnabled) {
           redirect("/dashboard/repos")
         } else {
@@ -232,7 +232,7 @@ trait IndexControllerBase extends ControllerBase {
     val group = params("group").toBoolean
     org.json4s.jackson.Serialization.write(
       Map(
-        "options" -> (
+        "options" ->
           getAllUsers(includeRemoved = false)
             .withFilter { t =>
               (user, group) match {
@@ -251,7 +251,6 @@ trait IndexControllerBase extends ControllerBase {
                 "value" -> t.userName
               )
             }
-        )
       )
     )
   })

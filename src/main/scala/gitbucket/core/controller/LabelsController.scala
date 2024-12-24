@@ -10,9 +10,9 @@ import gitbucket.core.service.{
   PrioritiesService
 }
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.SyntaxSugars._
-import org.scalatra.forms._
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.SyntaxSugars.*
+import org.scalatra.forms.*
 import org.scalatra.i18n.Messages
 import org.scalatra.Ok
 
@@ -30,9 +30,9 @@ class LabelsController
 trait LabelsControllerBase extends ControllerBase {
   self: LabelsService & IssuesService & RepositoryService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
-  case class LabelForm(labelName: String, color: String)
+  private case class LabelForm(labelName: String, color: String)
 
-  val labelForm = mapping(
+  private val labelForm = mapping(
     "labelName" -> trim(label("Label name", text(required, labelName, uniqueLabelName, maxlength(100)))),
     "labelColor" -> trim(label("Color", text(required, color)))
   )(LabelForm.apply)
@@ -89,9 +89,9 @@ trait LabelsControllerBase extends ControllerBase {
   private def labelName: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (value.contains(',')) {
-        Some(s"${name} contains invalid character.")
+        Some(s"$name contains invalid character.")
       } else if (value.startsWith("_") || value.startsWith("-")) {
-        Some(s"${name} starts with invalid character.")
+        Some(s"$name starts with invalid character.")
       } else {
         None
       }

@@ -30,9 +30,9 @@ class PrioritiesController
 trait PrioritiesControllerBase extends ControllerBase {
   self: PrioritiesService & IssuesService & RepositoryService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
-  case class PriorityForm(priorityName: String, description: Option[String], color: String)
+  private case class PriorityForm(priorityName: String, description: Option[String], color: String)
 
-  val priorityForm = mapping(
+  private val priorityForm = mapping(
     "priorityName" -> trim(label("Priority name", text(required, priorityName, uniquePriorityName, maxlength(100)))),
     "description" -> trim(label("Description", optional(text(maxlength(255))))),
     "priorityColor" -> trim(label("Color", text(required, color)))
@@ -86,7 +86,7 @@ trait PrioritiesControllerBase extends ControllerBase {
       )
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/reorder")(writableUsersOnly { (repository) =>
+  ajaxPost("/:owner/:repository/issues/priorities/reorder")(writableUsersOnly { repository =>
     reorderPriorities(
       repository.owner,
       repository.name,
@@ -100,7 +100,7 @@ trait PrioritiesControllerBase extends ControllerBase {
     Ok()
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/default")(writableUsersOnly { (repository) =>
+  ajaxPost("/:owner/:repository/issues/priorities/default")(writableUsersOnly { repository =>
     setDefaultPriority(repository.owner, repository.name, priorityId("priorityId"))
     Ok()
   })
@@ -118,9 +118,9 @@ trait PrioritiesControllerBase extends ControllerBase {
   private def priorityName: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (value.contains(',')) {
-        Some(s"${name} contains invalid character.")
+        Some(s"$name contains invalid character.")
       } else if (value.startsWith("_") || value.startsWith("-")) {
-        Some(s"${name} starts with invalid character.")
+        Some(s"$name starts with invalid character.")
       } else {
         None
       }

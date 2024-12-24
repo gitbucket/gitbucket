@@ -5,13 +5,13 @@ import gitbucket.core.model.activity.{CreateWikiPageInfo, DeleteWikiInfo, EditWi
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.WebHookService.WebHookGollumPayload
 import gitbucket.core.wiki.html
-import gitbucket.core.service._
-import gitbucket.core.util._
-import gitbucket.core.util.StringUtil._
-import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.Directory._
-import org.scalatra.forms._
+import gitbucket.core.service.*
+import gitbucket.core.util.*
+import gitbucket.core.util.StringUtil.*
+import gitbucket.core.util.SyntaxSugars.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.Directory.*
+import org.scalatra.forms.*
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 
@@ -32,7 +32,7 @@ trait WikiControllerBase extends ControllerBase {
   self: WikiService & RepositoryService & AccountService & ActivityService & WebHookService &
     ReadableUsersAuthenticator & ReferrerAuthenticator =>
 
-  case class WikiPageEditForm(
+  private case class WikiPageEditForm(
     pageName: String,
     content: String,
     message: Option[String],
@@ -40,7 +40,7 @@ trait WikiControllerBase extends ControllerBase {
     id: String
   )
 
-  val newForm = mapping(
+  private val newForm = mapping(
     "pageName" -> trim(label("Page name", text(required, maxlength(40), pageName, unique))),
     "content" -> trim(label("Content", text(required, conflictForNew))),
     "message" -> trim(label("Message", optional(text()))),
@@ -48,7 +48,7 @@ trait WikiControllerBase extends ControllerBase {
     "id" -> trim(label("Latest commit id", text()))
   )(WikiPageEditForm.apply)
 
-  val editForm = mapping(
+  private val editForm = mapping(
     "pageName" -> trim(label("Page name", text(required, maxlength(40), pageName))),
     "content" -> trim(label("Content", text(required, conflictForEdit))),
     "message" -> trim(label("Message", optional(text()))),
@@ -170,7 +170,7 @@ trait WikiControllerBase extends ControllerBase {
         } else {
           flash.update("info", "This patch was not able to be reversed.")
           redirect(
-            s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}"
+            s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/$from...$to"
           )
         }
       } else Unauthorized()
@@ -187,7 +187,7 @@ trait WikiControllerBase extends ControllerBase {
           redirect(s"/${repository.owner}/${repository.name}/wiki")
         } else {
           flash.update("info", "This patch was not able to be reversed.")
-          redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
+          redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/$from...$to")
         }
       } else Unauthorized()
     }
@@ -283,7 +283,7 @@ trait WikiControllerBase extends ControllerBase {
           pageName,
           loginAccount.fullName,
           loginAccount.mailAddress,
-          s"Destroyed ${pageName}"
+          s"Destroyed $pageName"
         )
         val deleteWikiInfo = DeleteWikiInfo(
           repository.owner,
@@ -344,9 +344,9 @@ trait WikiControllerBase extends ControllerBase {
   private def pageName: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (value.exists("\\/:*?\"<>|".contains(_))) {
-        Some(s"${name} contains invalid character.")
+        Some(s"$name contains invalid character.")
       } else if (notReservedPageName(value) && (value.startsWith("_") || value.startsWith("-"))) {
-        Some(s"${name} starts with invalid character.")
+        Some(s"$name starts with invalid character.")
       } else {
         None
       }

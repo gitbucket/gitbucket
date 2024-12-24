@@ -1,10 +1,10 @@
 package gitbucket.core.controller
 
-import gitbucket.core.api._
-import gitbucket.core.controller.api._
-import gitbucket.core.service._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util._
+import gitbucket.core.api.*
+import gitbucket.core.controller.api.*
+import gitbucket.core.service.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.*
 import gitbucket.core.plugin.PluginRegistry
 
 class ApiController

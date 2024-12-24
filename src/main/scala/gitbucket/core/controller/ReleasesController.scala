@@ -11,10 +11,10 @@ import gitbucket.core.service.{
   RepositoryService,
   RequestCache
 }
-import gitbucket.core.util._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
-import org.scalatra.forms._
+import gitbucket.core.util.*
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
+import org.scalatra.forms.*
 import gitbucket.core.releases.html
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
@@ -36,12 +36,12 @@ trait ReleaseControllerBase extends ControllerBase {
   self: RepositoryService & AccountService & ReleaseService & ReadableUsersAuthenticator & ReferrerAuthenticator &
     WritableUsersAuthenticator & ActivityService =>
 
-  case class ReleaseForm(
+  private case class ReleaseForm(
     name: String,
     content: Option[String]
   )
 
-  val releaseForm = mapping(
+  private val releaseForm = mapping(
     "name" -> trim(text(required)),
     "content" -> trim(optional(text()))
   )(ReleaseForm.apply)
@@ -125,7 +125,7 @@ trait ReleaseControllerBase extends ControllerBase {
       val releaseInfo = ReleaseInfo(repository.owner, repository.name, loginAccount.userName, form.name, tagName)
       recordActivity(releaseInfo)
 
-      redirect(s"/${repository.owner}/${repository.name}/releases/${tagName}")
+      redirect(s"/${repository.owner}/${repository.name}/releases/$tagName")
     }
   })
 
@@ -199,7 +199,7 @@ trait ReleaseControllerBase extends ControllerBase {
             }
           }
 
-          redirect(s"/${release.userName}/${release.repositoryName}/releases/${tagName}")
+          redirect(s"/${release.userName}/${release.repositoryName}/releases/$tagName")
         }
         .getOrElse(NotFound())
     }
@@ -217,7 +217,7 @@ trait ReleaseControllerBase extends ControllerBase {
   })
 
   private def fetchReleases(repository: RepositoryService.RepositoryInfo, page: Int) = {
-    import gitbucket.core.service.ReleaseService._
+    import gitbucket.core.service.ReleaseService.*
 
     val (offset, limit) = ((page - 1) * ReleaseLimit, ReleaseLimit)
     val tagsToDisplay = repository.tags.reverse.slice(offset, offset + limit)

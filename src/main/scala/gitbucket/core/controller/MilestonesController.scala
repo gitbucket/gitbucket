@@ -9,11 +9,11 @@ import gitbucket.core.service.{
   MilestonesService,
   RepositoryService
 }
-import gitbucket.core.util.Implicits._
+import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
-import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.util.SyntaxSugars.*
 import gitbucket.core.view.helpers.{getAssignableUserNames, getLabels, getPriorities, searchIssue}
-import org.scalatra.forms._
+import org.scalatra.forms.*
 import org.scalatra.i18n.Messages
 
 class MilestonesController
@@ -29,9 +29,9 @@ trait MilestonesControllerBase extends ControllerBase {
   self: MilestonesService & RepositoryService & CommitStatusService & ReferrerAuthenticator &
     WritableUsersAuthenticator =>
 
-  case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
+  private case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 
-  val milestoneForm = mapping(
+  private val milestoneForm = mapping(
     "title" -> trim(label("Title", text(required, maxlength(100), uniqueMilestone))),
     "description" -> trim(label("Description", optional(text()))),
     "dueDate" -> trim(label("Due Date", optional(date())))
