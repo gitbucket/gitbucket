@@ -61,13 +61,10 @@ Support
 
 What's New in 4.41.x
 -------------
-## 4.41.0 - 18 May 2024
-- Simplify pull request UI
-- Keyword search for issues and pull requests
-- New settings for max files and lines limit in showing diff
-- Adjust the default branch automatically when cloning external repository
-- Fix layout of branch selector
-- Performance improvement for listing branches
-- Upgrade internal libraries
+## 4.42.0 - 30 Dec 2024
+- Increase max branch name length 100 -> 255
+- Fix some Web API responses that were incompatible with GitHub API
+- Apply user-defined CSS after all plugins
+- Improve performance of listing commit logs
 
 See the [change log](CHANGELOG.md) for all of the updates.
