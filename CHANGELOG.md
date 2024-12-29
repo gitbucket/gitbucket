@@ -3,7 +3,7 @@ All changes to the project will be documented in this file.
 
 ## 4.42.0 - 30 Dec 2024
 - Increase max branch name length 100 -> 255
-- Fix some Web API responses that were incompatible with GitHub API
+- Fix some GitHub incompatible Web APIs
 - Apply user-defined CSS after all plugins
 - Improve performance of listing commit logs
 
