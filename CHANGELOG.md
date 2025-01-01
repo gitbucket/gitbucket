@@ -6,6 +6,7 @@ All changes to the project will be documented in this file.
 - Fix some GitHub incompatible Web APIs
 - Apply user-defined CSS after all plugins
 - Improve performance of listing commit logs
+- Drop Java 11 support. Java 17 is now required
 
 ## 4.41.0 - 18 May 2024
 - Simplify pull request UI

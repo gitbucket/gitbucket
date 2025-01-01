@@ -24,7 +24,7 @@ The current version of GitBucket provides many features such as:
 
 Installation
 --------
-GitBucket requires **Java 11**. You have to install it, if it is not already installed.
+GitBucket requires **Java 17**. You have to install it, if it is not already installed.
 
 1. Download the latest **gitbucket.war** from [the releases page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
 2. Go to `http://[hostname]:8080/` and log in with ID: **root** / Pass: **root**.
@@ -66,5 +66,6 @@ What's New in 4.42.x
 - Fix some GitHub incompatible Web APIs
 - Apply user-defined CSS after all plugins
 - Improve performance of listing commit logs
+- Drop Java 11 support. Java 17 is now required
 
 See the [change log](CHANGELOG.md) for all of the updates.
