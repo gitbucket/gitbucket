@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import scala.util.Using
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.model.activity.DeleteBranchInfo

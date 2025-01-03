@@ -2,7 +2,7 @@ package gitbucket.core.servlet
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.text.MessageFormat
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.util.{FileUtil, StringUtil}
 import org.apache.commons.io.{FileUtils, IOUtils}

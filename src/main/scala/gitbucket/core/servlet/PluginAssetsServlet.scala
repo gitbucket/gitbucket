@@ -1,6 +1,6 @@
 package gitbucket.core.servlet
 
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.util.FileUtil
 import org.apache.commons.io.IOUtils

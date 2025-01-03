@@ -1,7 +1,7 @@
 package gitbucket.core.servlet
 
-import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet._
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.model.Account
 import gitbucket.core.service.SystemSettingsService.SystemSettings

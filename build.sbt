@@ -4,8 +4,8 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.42.1"
 val ScalatraVersion = "3.1.1"
-val JettyVersion = "10.0.24"
-val JgitVersion = "6.10.0.202406032230-r"
+val JettyVersion = "12.0.16"
+val JgitVersion = "7.1.0.202411261347-r"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl, ContainerPlugin)
@@ -25,9 +25,9 @@ coverageExcludedPackages := ".*\\.html\\..*"
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % JgitVersion,
   "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % JgitVersion,
-  "org.scalatra"             %% "scalatra-javax"               % ScalatraVersion,
-  "org.scalatra"             %% "scalatra-json-javax"          % ScalatraVersion,
-  "org.scalatra"             %% "scalatra-forms-javax"         % ScalatraVersion,
+  "org.scalatra"             %% "scalatra-jakarta"             % ScalatraVersion,
+  "org.scalatra"             %% "scalatra-json-jakarta"        % ScalatraVersion,
+  "org.scalatra"             %% "scalatra-forms-jakarta"       % ScalatraVersion,
   "org.json4s"               %% "json4s-jackson"               % "4.1.0-M8",
   "commons-io"                % "commons-io"                   % "2.18.0",
   "io.github.gitbucket"       % "solidbase"                    % "1.1.0",
@@ -41,33 +41,32 @@ libraryDependencies ++= Seq(
     "org.apache.sshd",
     "sshd-mina"
   ) exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                % "3.1.0",
-  "com.github.takezoe"             %% "blocking-slick"           % "0.0.14",
-  "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
-  "com.h2database"                  % "h2"                       % "1.4.199",
-  "org.mariadb.jdbc"                % "mariadb-java-client"      % "2.7.12",
-  "org.postgresql"                  % "postgresql"               % "42.7.5",
-  "ch.qos.logback"                  % "logback-classic"          % "1.5.16",
-  "com.zaxxer"                      % "HikariCP"                 % "6.2.1" exclude ("org.slf4j", "slf4j-api"),
-  "com.typesafe"                    % "config"                   % "1.4.3",
-  "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
-  "io.github.java-diff-utils"       % "java-diff-utils"          % "4.15",
-  "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
-  "net.coobird"                     % "thumbnailator"            % "0.4.20",
-  "com.github.zafarkhaja"           % "java-semver"              % "0.10.2",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.21.3",
-  "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
-  "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
-  "junit"                           % "junit"                    % "4.13.2"        % "test",
-  "org.scalatra"                   %% "scalatra-scalatest-javax" % ScalatraVersion % "test",
-  "org.mockito"                     % "mockito-core"             % "5.15.2"        % "test",
-  "com.dimafeng"                   %% "testcontainers-scala"     % "0.41.8"        % "test",
-  "org.testcontainers"              % "mysql"                    % "1.20.4"        % "test",
-  "org.testcontainers"              % "postgresql"               % "1.20.4"        % "test",
-  "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
-  "is.tagomor.woothee"              % "woothee-java"             % "1.11.0",
-  "org.ec4j.core"                   % "ec4j-core"                % "1.1.0",
-  "org.kohsuke"                     % "github-api"               % "1.326"         % "test"
+  "org.apache.tika"                 % "tika-core"                  % "3.1.0",
+  "com.github.takezoe"             %% "blocking-slick"             % "0.0.14",
+  "com.novell.ldap"                 % "jldap"                      % "2009-10-07",
+  "com.h2database"                  % "h2"                         % "1.4.199",
+  "org.mariadb.jdbc"                % "mariadb-java-client"        % "2.7.12",
+  "org.postgresql"                  % "postgresql"                 % "42.7.5",
+  "ch.qos.logback"                  % "logback-classic"            % "1.5.16",
+  "com.zaxxer"                      % "HikariCP"                   % "6.2.1" exclude ("org.slf4j", "slf4j-api"),
+  "com.typesafe"                    % "config"                     % "1.4.3",
+  "fr.brouillard.oss.security.xhub" % "xhub4j-core"                % "1.1.0",
+  "io.github.java-diff-utils"       % "java-diff-utils"            % "4.15",
+  "org.cache2k"                     % "cache2k-all"                % "1.6.0.Final",
+  "net.coobird"                     % "thumbnailator"              % "0.4.20",
+  "com.github.zafarkhaja"           % "java-semver"                % "0.10.2",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"            % "11.21.3",
+  "org.eclipse.jetty.ee10"          % "jetty-ee10-webapp"          % JettyVersion,
+  "junit"                           % "junit"                      % "4.13.2"        % "test",
+  "org.scalatra"                   %% "scalatra-scalatest-jakarta" % ScalatraVersion % "test",
+  "org.mockito"                     % "mockito-core"               % "5.15.2"        % "test",
+  "com.dimafeng"                   %% "testcontainers-scala"       % "0.41.8"        % "test",
+  "org.testcontainers"              % "mysql"                      % "1.20.4"        % "test",
+  "org.testcontainers"              % "postgresql"                 % "1.20.4"        % "test",
+  "net.i2p.crypto"                  % "eddsa"                      % "0.3.0",
+  "is.tagomor.woothee"              % "woothee-java"               % "1.11.0",
+  "org.ec4j.core"                   % "ec4j-core"                  % "1.1.0",
+  "org.kohsuke"                     % "github-api"                 % "1.326"         % "test"
 )
 
 // Compiler settings
@@ -121,14 +120,8 @@ signedArtifacts := {
 val ExecutableConfig = config("executable").hide
 Keys.ivyConfigurations += ExecutableConfig
 libraryDependencies ++= Seq(
-  "org.eclipse.jetty" % "jetty-security" % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-webapp"   % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-server"   % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-xml"      % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-http"     % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-servlet"  % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-io"       % JettyVersion % "executable",
-  "org.eclipse.jetty" % "jetty-util"     % JettyVersion % "executable"
+  "org.eclipse.jetty.ee10" % "jetty-ee10-webapp"  % JettyVersion % "executable",
+  "org.eclipse.jetty.ee10" % "jetty-ee10-servlet" % JettyVersion % "executable",
 )
 
 // Run package task before test to generate target/webapp for integration test
@@ -158,7 +151,8 @@ executableKey := {
     IO unzip (
       jar,
       temp,
-      (name: String) => (name startsWith "javax/") || (name startsWith "org/") || (name startsWith "META-INF/services/")
+      (name: String) =>
+        (name startsWith "jakarta/") || (name startsWith "org/") || (name startsWith "META-INF/services/")
     )
   }
 
@@ -290,5 +284,5 @@ Container / javaOptions ++= Seq(
   "-Dorg.eclipse.jetty.annotations.AnnotationParser.LEVEL=OFF",
   // "-Ddev-features=keep-session"
 )
-Container / containerLibs := Seq(("org.eclipse.jetty" % "jetty-runner" % JettyVersion).intransitive())
+Container / containerLibs := Seq(("org.eclipse.jetty.ee10" % "jetty-ee10-runner" % JettyVersion).intransitive())
 Container / containerMain := "org.eclipse.jetty.runner.Runner"
