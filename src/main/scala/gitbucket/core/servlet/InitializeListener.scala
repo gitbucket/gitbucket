@@ -15,7 +15,7 @@ import gitbucket.core.servlet.Database
 
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
-import javax.servlet.{ServletContextEvent, ServletContextListener}
+import jakarta.servlet.{ServletContextEvent, ServletContextListener}
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory

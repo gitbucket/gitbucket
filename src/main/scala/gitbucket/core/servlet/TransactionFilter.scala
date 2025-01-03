@@ -1,7 +1,7 @@
 package gitbucket.core.servlet
 
-import javax.servlet._
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet._
+import jakarta.servlet.http.HttpServletRequest
 import com.zaxxer.hikari._
 import gitbucket.core.util.DatabaseConfig
 import org.scalatra.ScalatraBase

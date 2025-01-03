@@ -1,7 +1,7 @@
 package gitbucket.core.ssh
 
 import java.util.concurrent.atomic.AtomicReference
-import javax.servlet.{ServletContextEvent, ServletContextListener}
+import jakarta.servlet.{ServletContextEvent, ServletContextListener}
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.util.Directory

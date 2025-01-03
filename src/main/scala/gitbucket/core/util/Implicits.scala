@@ -6,7 +6,7 @@ import gitbucket.core.servlet.Database
 
 import java.util.regex.Pattern.quote
 
-import javax.servlet.http.{HttpSession, HttpServletRequest}
+import jakarta.servlet.http.{HttpSession, HttpServletRequest}
 
 import scala.util.matching.Regex
 import scala.util.control.Exception._

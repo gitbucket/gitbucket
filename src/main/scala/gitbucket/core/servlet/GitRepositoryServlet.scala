@@ -37,8 +37,8 @@ import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport._
 import org.eclipse.jgit.transport.resolver._
 import org.slf4j.LoggerFactory
-import javax.servlet.ServletConfig
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.ServletConfig
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.json4s.Formats

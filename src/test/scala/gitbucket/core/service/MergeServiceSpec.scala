@@ -2,14 +2,11 @@ package gitbucket.core.service
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk._
-import org.eclipse.jetty.server.handler.AbstractHandler
 import org.scalatest.funspec.AnyFunSpec
 import java.io.File
 import java.util.Date
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
-
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import scala.util.Using
 import scala.jdk.CollectionConverters._
@@ -21,11 +18,12 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-import org.eclipse.jetty.webapp.WebAppContext
-import org.eclipse.jetty.server.{Request, Server}
+import org.eclipse.jetty.server.{Handler, Request, Response, Server}
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jvalue2monadic
 import MergeServiceSpec._
+import org.eclipse.jetty.ee10.webapp.WebAppContext
+import org.eclipse.jetty.util.Callback
 import org.json4s.JsonAST.{JArray, JString}
 
 class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
@@ -274,23 +272,25 @@ object MergeServiceSpec {
     val context = new WebAppContext()
     context.setServer(server)
     server.setStopAtShutdown(true)
-    server.setStopTimeout(500)
-    server.setHandler(new AbstractHandler {
+    server.setStopTimeout(5000)
+    server.setHandler(new Handler.Abstract {
       override def handle(
-        target: String,
-        baseRequest: Request,
-        request: HttpServletRequest,
-        response: HttpServletResponse
-      ): Unit = {
-        lastRequestURI = request.getRequestURI
-        lastRequestHeaders = request.getHeaderNames.asScala.map { key =>
-          key -> request.getHeader(key)
+        request: Request,
+        response: Response,
+        callback: Callback
+      ): Boolean = {
+        lastRequestURI = request.getHttpURI.asString()
+        lastRequestHeaders = request.getHeaders.asScala.map { header =>
+          header.getName -> header.getValue
         }.toMap
-        val bytes = new Array[Byte](request.getContentLength)
+        val buf = request.read().getByteBuffer
+        val bytes = new Array[Byte](buf.remaining())
         if (bytes.length > 0) {
-          request.getInputStream.read(bytes)
+          buf.get(bytes)
           lastRequestContent = bytes
         }
+        callback.succeeded()
+        true
       }
     })
     server.start()

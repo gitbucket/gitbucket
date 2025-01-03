@@ -1,3 +1,4 @@
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -6,15 +7,12 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.SecuredRedirectHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
-import org.eclipse.jetty.server.session.DefaultSessionCache;
-import org.eclipse.jetty.server.session.FileSessionDataStore;
-import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.session.DefaultSessionCache;
+import org.eclipse.jetty.session.FileSessionDataStore;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -195,9 +193,9 @@ public class JettyLauncher {
             if(!sessDir.exists()){
                 mkdir(sessDir);
             }
-            SessionHandler sessions = context.getSessionHandler();
-            SessionCache cache = new DefaultSessionCache(sessions);
-            FileSessionDataStore fsds = new FileSessionDataStore();
+            var sessions = context.getSessionHandler();
+            var cache = new DefaultSessionCache(sessions);
+            var fsds = new FileSessionDataStore();
             fsds.setStoreDir(sessDir);
             cache.setSessionDataStore(fsds);
             sessions.setSessionCache(cache);
@@ -232,7 +230,7 @@ public class JettyLauncher {
         context.setServer(server);
         context.setWar(location.toExternalForm());
 
-        final HandlerList handlers = new HandlerList();
+        final var handlers = new ContextHandlerCollection();
 
         if (fallback(redirectHttps, Defaults.REDIRECT_HTTPS, Boolean::parseBoolean)) {
             handlers.addHandler(new SecuredRedirectHandler());

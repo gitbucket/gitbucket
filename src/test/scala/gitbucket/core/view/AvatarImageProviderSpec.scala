@@ -2,7 +2,7 @@ package gitbucket.core.view
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import javax.servlet.http.{HttpServletRequest, HttpSession}
+import jakarta.servlet.http.{HttpServletRequest, HttpSession}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RequestCache

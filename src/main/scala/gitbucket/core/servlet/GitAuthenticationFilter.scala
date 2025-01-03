@@ -1,7 +1,7 @@
 package gitbucket.core.servlet
 
-import javax.servlet._
-import javax.servlet.http._
+import jakarta.servlet._
+import jakarta.servlet.http._
 
 import gitbucket.core.model.Account
 import gitbucket.core.plugin.{GitRepositoryFilter, GitRepositoryRouting, PluginRegistry}
