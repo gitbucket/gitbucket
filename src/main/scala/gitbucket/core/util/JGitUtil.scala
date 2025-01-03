@@ -28,7 +28,6 @@ import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.LoggerFactory
 
 import scala.util.Using.Releasable
-import scala.util.{Try, Using}
 
 /**
  * Provides complex JGit operations.
