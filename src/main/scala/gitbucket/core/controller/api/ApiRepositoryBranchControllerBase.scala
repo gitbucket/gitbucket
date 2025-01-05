@@ -23,10 +23,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       JsonFormat(
         JGitUtil
-          .getBranchesNoMergeInfo(
-            git = git,
-            defaultBranch = repository.repository.defaultBranch
-          )
+          .getBranchesNoMergeInfo(git)
           .map { br =>
             ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
           }
@@ -42,10 +39,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       (for {
         branch <- params.get("splat") if repository.branchList.contains(branch)
-        br <- getBranchesNoMergeInfo(
-          git,
-          repository.repository.defaultBranch
-        ).find(_.name == branch)
+        br <- getBranchesNoMergeInfo(git).find(_.name == branch)
       } yield {
         val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
         JsonFormat(
@@ -269,10 +263,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
       (for {
         branch <- params.get("splat") if repository.branchList.contains(branch)
         protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
-        br <- getBranchesNoMergeInfo(
-          git,
-          repository.repository.defaultBranch
-        ).find(_.name == branch)
+        br <- getBranchesNoMergeInfo(git).find(_.name == branch)
       } yield {
         if (protection.enabled) {
           enableBranchProtection(

@@ -13,10 +13,10 @@ class JGitUtilSpec extends AnyFunSuite {
 
   test("isEmpty") {
     withTestRepository { git =>
-      assert(JGitUtil.isEmpty(git) == true)
+      assert(JGitUtil.isEmpty(git))
 
       createFile(git, Constants.HEAD, "README.md", "body1", message = "commit1")
-      assert(JGitUtil.isEmpty(git) == false)
+      assert(!JGitUtil.isEmpty(git))
     }
   }
 
@@ -31,13 +31,13 @@ class JGitUtilSpec extends AnyFunSuite {
       createFile(git, Constants.HEAD, "README.md", "body1\nbody2", message = "commit1")
 
       // latest commit
-      val diff1 = JGitUtil.getDiffs(git, None, "main", false, true)
+      val diff1 = JGitUtil.getDiffs(git, None, "main", fetchContent = false, makePatch = true)
       assert(diff1.size == 1)
       assert(diff1(0).changeType == ChangeType.MODIFY)
       assert(diff1(0).oldPath == "README.md")
       assert(diff1(0).newPath == "README.md")
-      assert(diff1(0).tooLarge == false)
-      assert(diff1(0).patch == Some("""@@ -1 +1,2 @@
+      assert(!diff1(0).tooLarge)
+      assert(diff1(0).patch.contains("""@@ -1 +1,2 @@
           |-body1
           |\ No newline at end of file
           |+body1
@@ -45,13 +45,13 @@ class JGitUtilSpec extends AnyFunSuite {
           |\ No newline at end of file""".stripMargin))
 
       // from specified commit
-      val diff2 = JGitUtil.getDiffs(git, Some(commit.getName), "main", false, true)
+      val diff2 = JGitUtil.getDiffs(git, Some(commit.getName), "main", fetchContent = false, makePatch = true)
       assert(diff2.size == 2)
       assert(diff2(0).changeType == ChangeType.ADD)
       assert(diff2(0).oldPath == "/dev/null")
       assert(diff2(0).newPath == "LICENSE")
-      assert(diff2(0).tooLarge == false)
-      assert(diff2(0).patch == Some("""+++ b/LICENSE
+      assert(!diff2(0).tooLarge)
+      assert(diff2(0).patch.contains("""+++ b/LICENSE
           |@@ -0,0 +1 @@
           |+Apache License
           |\ No newline at end of file""".stripMargin))
@@ -59,8 +59,8 @@ class JGitUtilSpec extends AnyFunSuite {
       assert(diff2(1).changeType == ChangeType.MODIFY)
       assert(diff2(1).oldPath == "README.md")
       assert(diff2(1).newPath == "README.md")
-      assert(diff2(1).tooLarge == false)
-      assert(diff2(1).patch == Some("""@@ -1 +1,2 @@
+      assert(!diff2(1).tooLarge)
+      assert(diff2(1).patch.contains("""@@ -1 +1,2 @@
           |-body1
           |\ No newline at end of file
           |+body1
@@ -210,7 +210,7 @@ class JGitUtilSpec extends AnyFunSuite {
       JGitUtil.createBranch(git, "main", "test2")
 
       // getBranches
-      val branches = JGitUtil.getBranches(git, "main", true)
+      val branches = JGitUtil.getBranches(git, "main", origin = true)
       assert(branches.size == 3)
 
       assert(branches(0).name == "main")
@@ -239,8 +239,8 @@ class JGitUtilSpec extends AnyFunSuite {
       JGitUtil.createBranch(git, "main", "test2")
 
       // getBranches
-      val branchesNMI = JGitUtil.getBranchesNoMergeInfo(git, "main")
-      val branches = JGitUtil.getBranches(git, "main", true)
+      val branchesNMI = JGitUtil.getBranchesNoMergeInfo(git)
+      val branches = JGitUtil.getBranches(git, "main", origin = true)
 
       assert(
         branches.map(bi =>
@@ -313,14 +313,14 @@ class JGitUtilSpec extends AnyFunSuite {
       val objectId = git.getRepository.resolve("main")
       val commit = JGitUtil.getRevCommitFromId(git, objectId)
 
-      val content1 = JGitUtil.getContentFromPath(git, commit.getTree, "README.md", true)
-      assert(content1.map(x => new String(x, "UTF-8")) == Some("body1"))
+      val content1 = JGitUtil.getContentFromPath(git, commit.getTree, "README.md", fetchLargeFile = true)
+      assert(content1.map(x => new String(x, "UTF-8")).contains("body1"))
 
-      val content2 = JGitUtil.getContentFromPath(git, commit.getTree, "LARGE_FILE", false)
+      val content2 = JGitUtil.getContentFromPath(git, commit.getTree, "LARGE_FILE", fetchLargeFile = false)
       assert(content2.isEmpty)
 
-      val content3 = JGitUtil.getContentFromPath(git, commit.getTree, "LARGE_FILE", true)
-      assert(content3.map(x => new String(x, "UTF-8")) == Some("body1" * 1000000))
+      val content3 = JGitUtil.getContentFromPath(git, commit.getTree, "LARGE_FILE", fetchLargeFile = true)
+      assert(content3.map(x => new String(x, "UTF-8")).contains("body1" * 1000000))
     }
   }
 

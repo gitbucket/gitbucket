@@ -313,7 +313,7 @@ trait PullRequestService {
         base.foreach { _base =>
           if (pr.branch != _base) {
             Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-              getBranchesNoMergeInfo(git, repository.repository.defaultBranch)
+              getBranchesNoMergeInfo(git)
                 .find(_.name == _base)
                 .foreach(br => updateBaseBranch(repository.owner, repository.name, issueId, br.name, br.commitId))
             }

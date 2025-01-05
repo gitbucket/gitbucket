@@ -159,7 +159,7 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       val apiBranchForCommits = for {
         branch <- getBranchesOfCommit(git, sha)
-        br <- getBranchesNoMergeInfo(git, branch).find(_.name == branch)
+        br <- getBranchesNoMergeInfo(git).find(_.name == branch)
       } yield {
         val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
         ApiBranchForHeadCommit(branch, ApiBranchCommit(br.commitId), protection.enabled)
