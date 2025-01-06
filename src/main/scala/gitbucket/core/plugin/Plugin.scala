@@ -1,6 +1,6 @@
 package gitbucket.core.plugin
 
-import javax.servlet.ServletContext
+import jakarta.servlet.ServletContext
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.RepositoryService.RepositoryInfo

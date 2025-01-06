@@ -1,7 +1,7 @@
 package gitbucket.core.util
 
 import java.util.Base64
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * Provides HTTP (Basic) Authentication related functions.

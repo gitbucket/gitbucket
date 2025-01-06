@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.oauth2.sdk.auth.Secret
 import com.nimbusds.oauth2.sdk.id.{ClientID, Issuer}
