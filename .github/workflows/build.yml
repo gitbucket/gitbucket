@@ -27,6 +27,8 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
         distribution: adopt
+    - name: Setup sbt launcher
+      uses: sbt/setup-sbt@v1
     - name: Run tests
       run: sbt scalafmtSbtCheck scalafmtCheckAll test
     - name: Scala 3
