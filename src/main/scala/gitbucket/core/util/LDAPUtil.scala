@@ -3,9 +3,7 @@ package gitbucket.core.util
 import gitbucket.core.model.Account
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.Ldap
-import com.novell.ldap._
-import java.security.{Provider, Security}
-import java.util.concurrent.atomic.AtomicReference
+import com.novell.ldap.*
 
 import org.slf4j.LoggerFactory
 
@@ -19,8 +17,7 @@ object LDAPUtil {
   private val LDAP_VERSION: Int = LDAPConnection.LDAP_V3
   private val LDAP_DUMMY_MAL = "@ldap-devnull"
 
-  private val logger = LoggerFactory.getLogger(getClass().getName())
-  private val provider = new AtomicReference[Provider](null)
+  private val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Returns true if mail address ends with "@ldap-devnull"
@@ -119,32 +116,8 @@ object LDAPUtil {
   private def getUserNameFromMailAddress(userName: String): String = {
     (userName.indexOf('@') match {
       case i if i >= 0 => userName.substring(0, i)
-      case i           => userName
+      case _           => userName
     }).replaceAll("[^a-zA-Z0-9\\-_.]", "").replaceAll("^[_\\-]", "")
-  }
-
-  private def getSslProvider(): Provider = {
-    import scala.language.existentials
-
-    val cachedInstance = provider.get()
-    if (cachedInstance == null) {
-      val cls =
-        try {
-          Class.forName("com.sun.net.ssl.internal.ssl.Provider")
-        } catch {
-          case e: ClassNotFoundException =>
-            Class.forName("com.ibm.jsse.IBMJSSEProvider")
-          case e: Throwable => throw e
-        }
-      val newInstance = cls
-        .getDeclaredConstructor()
-        .newInstance()
-        .asInstanceOf[Provider]
-      provider.compareAndSet(null, newInstance)
-      newInstance
-    } else {
-      cachedInstance
-    }
   }
 
   private def bind[A](
@@ -158,9 +131,6 @@ object LDAPUtil {
     error: String
   )(f: LDAPConnection => Either[String, A]): Either[String, A] = {
     if (tls || ssl) {
-      // Dynamically set Sun as the security provider
-      Security.addProvider(getSslProvider())
-
       if (keystore.compareTo("") != 0) {
         // Dynamically set the property that JSSE uses to identify
         // the keystore that holds trusted root certificates
@@ -191,7 +161,7 @@ object LDAPUtil {
       f(conn)
 
     } catch {
-      case e: Exception => {
+      case e: Exception =>
         // Provide more information if something goes wrong
         logger.info("" + e)
 
@@ -200,7 +170,6 @@ object LDAPUtil {
         }
         // Returns an error message
         Left(error)
-      }
     }
   }
 
@@ -222,7 +191,7 @@ object LDAPUtil {
           entries :+ (try {
             Option(results.next)
           } catch {
-            case ex: LDAPReferralException => None // NOTE(tanacasino): Referral follow is off. so ignores it.(for AD)
+            case _: LDAPReferralException => None // NOTE(tanacasino): Referral follow is off. so ignores it.(for AD)
           })
         )
       } else {
