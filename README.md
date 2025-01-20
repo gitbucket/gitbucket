@@ -61,6 +61,9 @@ Support
 
 What's New in 4.42.x
 -------------
+## 4.42.1 - 20 Jan 2025
+- Fix LDAP issue with SSL
+
 ## 4.42.0 - 30 Dec 2024
 - Increase max branch name length 100 -> 255
 - Fix some GitHub incompatible Web APIs
