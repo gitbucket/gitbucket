@@ -1,5 +1,5 @@
 import java.util.EnumSet
-import javax.servlet._
+import jakarta.servlet._
 
 import gitbucket.core.controller.{ReleaseController, _}
 import gitbucket.core.service.SystemSettingsService

@@ -14,8 +14,8 @@ import org.scalatra.i18n.*
 import org.scalatra.json.*
 import org.scalatra.forms.*
 
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.{FilterChain, ServletRequest, ServletResponse}
 import is.tagomor.woothee.Classifier
 
 import scala.util.Try

@@ -6,7 +6,7 @@ import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
-import javax.servlet.ServletContext
+import jakarta.servlet.ServletContext
 import com.github.zafarkhaja.semver.Version
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.{Account, Issue}
