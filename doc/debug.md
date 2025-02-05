@@ -12,7 +12,7 @@ javaOptions in Jetty ++= Seq(
 Run GitBucket:
 
 ```shell
-$ sbt ~jetty:start
+$ sbt ~container:start
 ```
 
 In IntelliJ, create remote debug configuration as follows. Make sure port number is same as above configuration.
