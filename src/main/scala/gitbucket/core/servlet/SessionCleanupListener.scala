@@ -3,7 +3,7 @@ package gitbucket.core.servlet
 import gitbucket.core.util.Directory.*
 import org.apache.commons.io.FileUtils
 
-import javax.servlet.http.{HttpSessionEvent, HttpSessionListener}
+import jakarta.servlet.http.{HttpSessionEvent, HttpSessionListener}
 
 /**
  * Removes session associated temporary files when session is destroyed.

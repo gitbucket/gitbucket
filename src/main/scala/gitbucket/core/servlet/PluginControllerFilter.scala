@@ -1,6 +1,6 @@
 package gitbucket.core.servlet
 
-import javax.servlet._
+import jakarta.servlet._
 
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.plugin.PluginRegistry
