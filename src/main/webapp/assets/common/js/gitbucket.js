@@ -770,3 +770,344 @@ var applyTaskListCheckedStatus = function(commentArea, checkboxes) {
   ss.pop();
   return ss.join('');
 };
+
+/**
+ * helper function for markdown toolbar operation
+ * check if index position is the middle of a word.
+ * @param {String} txt
+ * @param {Number} pos position in 'txt'
+ * @returns {Boolean}
+ */
+function isInWord(txt, pos){
+  if(pos <= 0){
+    return false;
+  }else if(pos === txt.length){
+    return false;
+  }else{
+    return (txt[pos - 1].match(/\s/g) === null) && (txt[pos].match(/\s/g) === null);
+  }
+}
+
+/**
+ * helper function for markdown toolbar operation
+ * get index of start position and end position according to pattern.
+ * if pattern is '\s' means word, if '\n' means line.
+ * @param {String} txt
+ * @param {Number} pos position in 'txt'
+ * @param {String} pattern e.g. ' ', '\n'
+ * @returns {Array}
+ */
+function findStartEnd(txt, pos, pattern){
+  var start;
+  var end;
+  var indexOfSpace;
+  for (var i = pos; i >= 0; i--) {
+    indexOfSpace = txt.indexOf(pattern, i)
+    if (indexOfSpace !== -1 && indexOfSpace <= i) {
+      start = indexOfSpace + 1;
+      break;
+    } else {
+      start = i;
+    }
+  }
+  end = txt.indexOf(pattern, pos);
+  if(end === -1){
+    end = txt.length;
+  }
+  return [start, end];
+}
+
+/**
+ * helper function for markdown toolbar operation
+ * check if target range is already wrapped by pattern
+ * @param {String} txt
+ * @param {Number} posStart where cursor position start
+ * @param {Number} posEnd where cursor position end
+ * @param {String} patternHead
+ * @param {String} patternTail
+ * @returns {Boolean}
+ */
+function isAlreadyWrapped(txt, posStart, posEnd, patternHead, patternTail){
+  if(posStart < patternHead.length || (txt.length - posEnd) < patternTail.length ){
+    return false;
+  }else{
+    return txt.slice(posStart - patternHead.length, posStart) === patternHead
+      && txt.slice(posEnd, posEnd + patternTail.length) === patternTail;
+  }
+}
+
+/**
+ * helper function for markdown toolbar operation
+ * post process, set new txt, focus, set cursor.
+ * @param {Element} element Dom
+ * @param {{focus: {start: number, end: number}, text: string}}  newTextInfo
+ */
+function mdePostProcess(element, newTextInfo){
+  element.val(newTextInfo["text"]);
+  element.focus();
+  element.prop('selectionStart', newTextInfo["focus"]["start"]);
+  element.prop('selectionEnd', newTextInfo["focus"]["end"]);
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * for heading and mention, etc. e.g. a|bs => {pattern} a|bs ('|' means cursor)
+ * @param {String} txt
+ * @param {Number} posStart where cursor position start
+ * @param {Number} posEnd where cursor position end
+ * @param {String} pattern e.g. '###'
+ * @param {Number} posOffset the number of space after pattern.
+ * @returns {{focus: {start: *, end: *}, text: (string|*)}}
+ */
+function mdeDecorateWord(txt, posStart, posEnd, pattern, posOffset){
+  var newTxt;
+  var focusPosStart;
+  var focusPosEnd;
+  if(posStart !== posEnd){
+    newTxt = txt.slice(0, posStart) + pattern + " ".repeat(posOffset) + txt.slice(posStart);
+    focusPosStart = posStart + pattern.length + posOffset;
+    focusPosEnd = posEnd + pattern.length + posOffset;
+  }else{
+    if(isInWord(txt, posStart)){
+      var wordPos = findStartEnd(txt, posStart, " ");
+      newTxt = txt.slice(0, wordPos[0]) + pattern + " ".repeat(posOffset) + txt.slice(wordPos[0]);
+    }else{
+      newTxt = txt.slice(0, posStart) + pattern + " ".repeat(posOffset) + txt.slice(posStart);
+    }
+    focusPosStart = posStart + pattern.length + posOffset;
+    focusPosEnd = focusPosStart;
+  }
+  return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * insert line before 'pattern' and after 'txtMiddle' if necessary.
+ * txtHead + (line){1or2} + pattern + txtMiddle + (line){0or1} + txtTail
+ * @param {String} txtHead
+ * @param {String} txtMiddle
+ * @param {String} txtTail
+ * @param {String} pattern pattern to insert before txtMiddle
+ * @param {Number} numSpaces the number of spaces to add after pattern.
+ * @return {{numBreaksTail: number, text: string, numBreaksHead: number}}
+ */
+function insertBreaks(txtHead, txtMiddle, txtTail, pattern, numSpaces){
+  var txtAll;
+  var numBreaksHead;
+  var numBreaksTail;
+  if(txtHead === "" || txtHead.endsWith("\n\n")){
+    numBreaksHead = 0;
+  }else if(txtHead.endsWith("\n")){
+    numBreaksHead = 1;
+  }else{
+    numBreaksHead = 2;
+  }
+  if(txtTail.match(/^\n{1}.+$/g) !== null){
+    numBreaksTail = 1;
+  }else{
+    numBreaksTail = 0;
+  }
+  txtAll = txtHead + "\n".repeat(numBreaksHead) + pattern + " ".repeat(numSpaces) + txtMiddle + "\n".repeat(numBreaksTail) + txtTail;
+  return {"text": txtAll, "numBreaksHead": numBreaksHead, "numBreaksTail": numBreaksTail};
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * for quote, list, task list, etc.
+ * @param {String} txt
+ * @param {Number} posStart where cursor position start
+ * @param {Number} posEnd where cursor position end
+ * @param {String} pattern e.g. '-', '1.', '- [ ]'
+ * @param {String} patternRegex regex of pattern e.g. '-', '1\\.', '-\\[\\s\\]'
+ * @return {{focus: {start: number, end: number}, text: string}}
+ */
+function mdeDecorateWordWithNewLine(txt, posStart, posEnd, pattern, patternRegex){
+  var newTxt;
+  var patternWithSpace = pattern + " ";
+  var focusPosStart;
+  var focusPosEnd;
+  if(txt.length === 0){  // if text area is empty
+    newTxt = patternWithSpace + txt;
+    focusPosStart = posStart + pattern.length + 1;
+    focusPosEnd = posEnd + pattern.length + 1;
+    return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+  }
+  // If decorated
+  if(posStart !== posEnd){
+    // Undo multi list
+    if(txt.slice(posStart, posEnd).match(new RegExp("(\\n?" + patternRegex + "\\s)+")) !== null){
+      var txtLines = txt.slice(posStart, posEnd).split("\n");
+      for(var i=0;i<txtLines.length;i++){
+        txtLines[i] = txtLines[i].replace(new RegExp("^" + patternRegex + "\\s"), "");
+      }
+      newTxt = txt.slice(0, posStart) + txtLines.join("\n") + txt.slice(posEnd);
+      focusPosStart = posStart;
+      focusPosEnd = posStart + txtLines.join("\n").length;
+      return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+    }
+    // Make multi list
+    if(txt.slice(posStart, posEnd).match(/\n{1}.+/g) !== null){
+      var txtLines = txt.slice(posStart, posEnd).split("\n");
+      for(var i=0;i<txtLines.length;i++){
+        txtLines[i] = pattern + " " + txtLines[i];
+      }
+      var txtWithLine = insertBreaks(
+        txt.slice(0, posStart), txtLines.join("\n"), txt.slice(posEnd), "", 0);
+      newTxt = txtWithLine["text"];
+      focusPosStart = posStart + txtWithLine["numBreaksHead"];
+      focusPosEnd = posStart + txtWithLine["numBreaksHead"] + txtLines.join("\n").length;
+      return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+    }
+    // if cursor is at origin.
+    if(posStart===0){
+      newTxt = patternWithSpace + txt.slice(posStart);
+      focusPosStart = posStart + pattern.length + 1;
+      focusPosEnd = posEnd + pattern.length + 1;
+      return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+    }
+    // Undo list
+    if(txt.slice(0, posStart).endsWith(patternWithSpace)){
+      newTxt = txt.slice(0, posStart - pattern.length - 1) + txt.slice(posStart);
+      focusPosStart = posStart - pattern.length - 1;
+      focusPosEnd = posEnd - pattern.length - 1;
+      return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+    }
+    // Other cases
+    var txtWithLine = insertBreaks(
+      txt.slice(0, posStart), txt.slice(posStart, posEnd), txt.slice(posEnd), pattern, 1);
+    newTxt = txtWithLine["text"];
+    focusPosStart = posStart + txtWithLine["numBreaksHead"] + pattern.length + 1;
+    focusPosEnd = posEnd + txtWithLine["numBreaksHead"] + pattern.length + 1;
+    return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+  }else{  // If not decorated
+    var linePos = findStartEnd(txt, posStart, "\n");
+    if(isInWord(txt, posStart)){  // If cursor is in word
+      var wordPos = findStartEnd(txt, posStart, " ");
+      if(wordPos[0] < linePos[0]){
+        wordPos[0] = linePos[0];
+      }
+      if(wordPos[1] > linePos[1]){
+        wordPos[1] = linePos[1];
+      }
+      if(wordPos[0] === 0){
+        newTxt = patternWithSpace + txt.slice(wordPos[0]);
+        focusPosStart = pattern.length + 3;
+      }else{
+        var txtWithLine = insertBreaks(
+          txt.slice(0, wordPos[0]), txt.slice(wordPos[0], wordPos[1]), txt.slice(wordPos[1]), pattern, 1);
+        newTxt = txtWithLine["text"];
+        focusPosStart = posStart + txtWithLine["numBreaksHead"] + pattern.length + 1;
+      }
+    }else{  // If cursor is not in word
+      if(posStart === 0){
+        newTxt = patternWithSpace + txt.slice(posStart);
+        focusPosStart = pattern.length + 1;
+      }else{
+        var txtWithLine = insertBreaks(
+          txt.slice(0, posStart), txt.slice(posStart, linePos[1]), txt.slice(linePos[1]), pattern, 1);
+        newTxt = txtWithLine["text"];
+        focusPosStart = posStart + txtWithLine["numBreaksHead"] + pattern.length + 1;
+      }
+    }
+    focusPosEnd = focusPosStart;
+    return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+  }
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * for italic ,bold, code, etc. e.g. a|bs => {pattern}a|bs{pattern}
+ * @param {String} txt
+ * @param {Number} posStart where cursor position start
+ * @param {Number} posEnd where cursor position end
+ * @param {String} pattern e.g. **, _, `
+ * @returns {{focus: {start: number, end: number}, text: (string|*)}}
+ */
+function mdeWrapWord(txt, posStart, posEnd, pattern){
+  var newTxt;
+  var focusPosStart;
+  var focusPosEnd;
+  if(posStart !== posEnd){
+    if(isAlreadyWrapped(txt, posStart, posEnd, pattern, pattern)){
+      newTxt = txt.slice(0, posStart - pattern.length)
+        + txt.slice(posStart, posEnd)
+        + txt.slice(posEnd + pattern.length);
+      focusPosStart = posStart - pattern.length;
+      focusPosEnd = posEnd - pattern.length;
+    }else{
+      newTxt = txt.slice(0, posStart) + pattern + txt.slice(posStart, posEnd) + pattern + txt.slice(posEnd);
+      focusPosStart = posStart + pattern.length;
+      focusPosEnd = posEnd + pattern.length;
+    }
+  }else{
+    var linePos = findStartEnd(txt, posStart, "\n");
+    if(isInWord(txt, posStart)){
+      var wordPos = findStartEnd(txt, posStart, " ");
+      if(wordPos[0] < linePos[0]){
+        wordPos[0] = linePos[0];
+      }
+      if(wordPos[1] > linePos[1]){
+        wordPos[1] = linePos[1];
+      }
+      if(isAlreadyWrapped(txt, wordPos[0] + pattern.length, wordPos[1] - pattern.length, pattern, pattern)){
+        newTxt = txt.slice(0, wordPos[0])
+          + txt.slice(wordPos[0] + pattern.length, wordPos[1] - pattern.length)
+          + txt.slice(wordPos[1]);
+        focusPosStart = posStart - pattern.length;
+        focusPosEnd = focusPosStart;
+      }else{
+        newTxt = txt.slice(0, wordPos[0])
+          + pattern + txt.slice(wordPos[0], wordPos[1])
+          + pattern + txt.slice(wordPos[1]);
+        focusPosStart = wordPos[0] + pattern.length + (posStart - wordPos[0]);
+        focusPosEnd = focusPosStart;
+      }
+    }else{
+      newTxt = txt.slice(0, posStart) + pattern + pattern + txt.slice(posStart);
+      focusPosStart = posStart + pattern.length;
+      focusPosEnd = focusPosStart;
+    }
+  }
+  return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+}
+
+/**
+ * functions for insert markdown pattern into text.
+ * for link. e.g. a|bs => [abs](|url)
+ * @param {String} txt
+ * @param {Number} posStart where cursor position start
+ * @param {Number} posEnd where cursor position end
+ * @returns {{focus: {start: number, end: number}, text: string}}
+ */
+function mdeWrapWordLink(txt, posStart, posEnd){
+  var newTxt;
+  var focusPosStart;
+  var focusPosEnd;
+  var offset;  // cursor offset
+  if(posStart !== posEnd){
+    offset = 1; // for  "["
+    newTxt = txt.slice(0, posStart) + "[" + txt.slice(posStart, posEnd) + "](url)" + txt.slice(posEnd);
+    focusPosStart = posStart + offset;
+    focusPosEnd = posEnd + offset;
+  }else{
+    offset = 3; // for  "[" + "]("
+    var linePos = findStartEnd(txt, posStart, "\n");
+    if(isInWord(txt, posStart)){
+      var wordPos = findStartEnd(txt, posStart, " ");
+      if(wordPos[0] < linePos[0]){
+        wordPos[0] = linePos[0];
+      }
+      if(wordPos[1] > linePos[1]){
+        wordPos[1] = linePos[1];
+      }
+      newTxt = txt.slice(0, wordPos[0]) + "[" + txt.slice(wordPos[0], wordPos[1]) + "](url)" + txt.slice(wordPos[1]);
+      focusPosStart = wordPos[1] + offset;
+      focusPosEnd = focusPosStart;
+    }else{
+      newTxt = txt.slice(0, posStart) + "[](url)" + txt.slice(posStart);
+      focusPosStart = posStart + offset;
+      focusPosEnd = focusPosStart;
+    }
+  }
+  return {"text": newTxt, "focus": {"start": focusPosStart, "end": focusPosEnd}};
+}
