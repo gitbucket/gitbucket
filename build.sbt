@@ -61,7 +61,7 @@ libraryDependencies ++= Seq(
   "junit"                           % "junit"                    % "4.13.2"        % "test",
   "org.scalatra"                   %% "scalatra-scalatest-javax" % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"             % "5.16.0"        % "test",
-  "com.dimafeng"                   %% "testcontainers-scala"     % "0.41.8"        % "test",
+  "com.dimafeng"                   %% "testcontainers-scala"     % "0.43.0"        % "test",
   "org.testcontainers"              % "mysql"                    % "1.20.6"        % "test",
   "org.testcontainers"              % "postgresql"               % "1.20.6"        % "test",
   "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
