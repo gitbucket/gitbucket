@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"        % "commons-email"                % "1.6.0",
   "commons-net"               % "commons-net"                  % "3.11.1",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.14",
-  "org.apache.sshd"           % "apache-sshd"                  % "2.14.0" exclude ("org.slf4j", "slf4j-jdk14") exclude (
+  "org.apache.sshd"           % "apache-sshd"                  % "2.15.0" exclude ("org.slf4j", "slf4j-jdk14") exclude (
     "org.apache.sshd",
     "sshd-mina"
   ) exclude ("org.apache.sshd", "sshd-netty"),
