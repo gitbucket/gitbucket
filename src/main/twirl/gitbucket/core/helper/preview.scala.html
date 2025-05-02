@@ -19,6 +19,15 @@
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab" id="write@uid">Write</a></li>
     <li><a href="#tab@(uid + 1)" data-toggle="tab" id="preview@uid">Preview</a></li>
+    <li class="mde-toolbar"><a id="mde-tasklist@uid"><i class="fa fa-check-square-o" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-list-ol@uid"><i class="fa fa-list-ol" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-list-ul@uid"><i class="fa fa-list-ul" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-link@uid"><i class="fa fa-link" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-code@uid"><i class="fa fa-code" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-quote@uid"><i class="fa fa-quote-right" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-italic@uid"><i class="fa fa-italic" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-bold@uid"><i class="fa fa-bold" aria-hidden="true"></i></a></li>
+    <li class="mde-toolbar"><a id="mde-heading@uid"><i class="fa fa-header" aria-hidden="true"></i></a></li>
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
@@ -46,12 +55,14 @@ $(function(){
     $('#content@uid').elastic();
     $('#content@uid').trigger('blur');
   }
+
   @if(focus){
     $('#content@uid').trigger('focus');
   }
 
   $('#write@uid').on('shown.bs.tab', function(){
     $('#content@uid').trigger('focus');
+    $('.mde-toolbar').show();
   });
 
   $('#preview@uid').click(function(){
@@ -67,6 +78,63 @@ $(function(){
       $('#preview-area@uid input').prop('disabled', true);
       prettyPrint();
     });
+    $('.mde-toolbar').hide();
   });
+
+  $('#mde-heading@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '###', 1);
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-bold@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '**');
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-italic@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '_');
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-code@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWord(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '`');
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-link@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeWrapWordLink(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'));
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-quote@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '>', '>');
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-list-ul@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '-', '-');
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-list-ol@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '1.', "1\\.");
+    mdePostProcess(content, newTextInfo);
+  });
+  $('#mde-tasklist@uid').click(function(){
+    var content = $('#content@uid');
+    var newTextInfo = mdeDecorateWordWithNewLine(
+            content.val(), content.prop('selectionStart'), content.prop('selectionEnd'), '- [ ]', "-\\s\\[\\s\\]");
+    mdePostProcess(content, newTextInfo);
+  });
+
 });
 </script>
