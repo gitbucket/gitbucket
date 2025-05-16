@@ -20,7 +20,7 @@ object DatabaseConfig {
       FileUtils.write(
         file,
         """db {
-          |  url = "jdbc:h2:${DatabaseHome};MVCC=true"
+          |  url = "jdbc:h2:${DatabaseHome}"
           |  user = "sa"
           |  password = "sa"
           |#  connectionTimeout = 30000
