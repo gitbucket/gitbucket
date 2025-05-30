@@ -46,7 +46,7 @@ trait AccountService {
       case account if !account.isGroupAccount =>
         account.password match {
           case pbkdf2re(iter, salt, hash) if (pbkdf2_sha256(iter.toInt, salt, password) == hash) => Some(account)
-          case p if p == sha1(password) =>
+          case p if p == sha1(password)                                                          =>
             updateAccount(account.copy(password = pbkdf2_sha256(password)))
             Some(account)
           case _ => None

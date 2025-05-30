@@ -59,7 +59,7 @@ trait AccountFederationService {
       .orElse(extractSafeStringForUserName(mailAddress)) match {
       case Some(safeUserName) =>
         getAccountByUserName(safeUserName, includeRemoved = true) match {
-          case None => Some(safeUserName)
+          case None    => Some(safeUserName)
           case Some(_) =>
             logger.info(
               s"User ($safeUserName) already exists. preferredUserName=$preferredUserName, mailAddress=$mailAddress"

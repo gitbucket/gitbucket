@@ -29,7 +29,7 @@ trait ApiIssueMilestoneControllerBase extends ControllerBase {
         )
       }).reverse
     state match {
-      case "all" => JsonFormat(apiMilestones)
+      case "all"             => JsonFormat(apiMilestones)
       case "open" | "closed" =>
         JsonFormat(
           apiMilestones.filter(p => p.state == state)

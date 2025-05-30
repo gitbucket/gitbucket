@@ -62,7 +62,7 @@ trait HandleCommentService {
         .getOrElse(None -> None)
 
       val commentId = (content, action) match {
-        case (None, None) => None
+        case (None, None)         => None
         case (None, Some(action)) =>
           Some(createComment(owner, name, userName, issue.issueId, action.capitalize, action))
         case (Some(content), _) =>
