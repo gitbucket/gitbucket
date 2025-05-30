@@ -669,7 +669,7 @@ object JGitUtil {
       val objectId = git.getRepository.resolve(name)
       git.getRepository.open(objectId).getType match {
         case Constants.OBJ_COMMIT => objectId
-        case Constants.OBJ_TAG =>
+        case Constants.OBJ_TAG    =>
           val ref = git.getRepository.getRefDatabase.findRef(name)
           git.getRepository.getRefDatabase.peel(ref).getPeeledObjectId
         case _ => ObjectId.zeroId()

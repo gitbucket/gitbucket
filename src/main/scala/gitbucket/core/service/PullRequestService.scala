@@ -427,7 +427,7 @@ trait PullRequestService {
         case Some(patch) =>
           file -> comments.foreach { case (commentId, lineNumber) =>
             lineNumber match {
-              case Left(oldLine) => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
+              case Left(oldLine)  => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
               case Right(newLine) =>
                 var counter = newLine
                 patch.getDeltas.asScala.filter(_.getSource.getPosition < newLine).foreach { delta =>

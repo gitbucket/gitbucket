@@ -138,7 +138,7 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
 
     val name = RepositoryName(repository)
     val result = JsonFormat(revstr match {
-      case "tags" => repository.tags.map(ApiRef.fromTag(name, _))
+      case "tags"                     => repository.tags.map(ApiRef.fromTag(name, _))
       case x if x.startsWith("tags/") =>
         val tagName = x.substring("tags/".length)
         repository.tags.find(_.name == tagName) match {

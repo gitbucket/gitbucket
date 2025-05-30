@@ -543,7 +543,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     case ChangeType.ADD | ChangeType.RENAME => "created"
     case ChangeType.MODIFY                  => "edited"
     case ChangeType.DELETE                  => "deleted"
-    case other =>
+    case other                              =>
       logger.error(s"Unsupported Wiki action: $other")
       "unsupported action"
   }
@@ -560,7 +560,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
       case "created" => Some(CreateWikiPageInfo(owner, repo, commit.committerName, pageName))
       case "edited"  => Some(EditWikiPageInfo(owner, repo, commit.committerName, pageName, commit.id))
       case "deleted" => Some(DeleteWikiInfo(owner, repo, commit.committerName, pageName))
-      case other =>
+      case other     =>
         logger.info(s"Attempted to build wiki record for unsupported action: $other")
         None
     }
