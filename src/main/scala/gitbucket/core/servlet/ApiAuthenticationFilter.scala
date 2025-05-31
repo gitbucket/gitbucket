@@ -42,7 +42,7 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
           updateLastLoginDate(account.userName)
         }
         chain.doFilter(req, res)
-      case None => chain.doFilter(req, res)
+      case None          => chain.doFilter(req, res)
       case Some(Left(_)) => {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
         response.setContentType("application/json; charset=utf-8")
