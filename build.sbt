@@ -215,9 +215,9 @@ executableKey := {
   outputFile
 }
 publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (version.value.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+  if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+  else localStaging.value
 }
 publishMavenStyle := true
 pomIncludeRepository := { _ =>
