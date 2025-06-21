@@ -5,38 +5,38 @@ labels: [bug]
 body:
   - type: markdown
     attributes:
-    value: |
-      ### Before submitting an issue to GitBucket, please ensure you have:
-      - Read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
-      - Searched for similar existing issues
-      - Read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki)
+      value: |
+        ### Before submitting an issue to GitBucket, please ensure you have:
+        - Read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
+        - Searched for similar existing issues
+        - Read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki)
 
   - type: checkboxes
     id: prerequisites
     attributes:
-    label: Prerequisites
-    options:
-      - label: I have read the contribution guidelines
-      - label: I have searched for similar issues
-      - label: I have read the documentation and wiki
+      label: Prerequisites
+      options:
+        - label: I have read the contribution guidelines
+        - label: I have searched for similar issues
+        - label: I have read the documentation and wiki
 
   - type: input
     id: impacted_version
     attributes:
-    label: Impacted version
-    description: Which version of GitBucket is affected?
-    placeholder: e.g. 4.37.0
+      label: Impacted version
+      description: Which version of GitBucket is affected?
+      placeholder: e.g. 4.37.0
 
   - type: input
     id: deployment_mode
     attributes:
-    label: Deployment mode
-    description: How do you use GitBucket? (standalone app, under webcontainer, with an HTTP frontend, etc.)
-    placeholder: e.g. Standalone app, Tomcat, nginx
+      label: Deployment mode
+      description: How do you use GitBucket? (standalone app, under webcontainer, with an HTTP frontend, etc.)
+      placeholder: e.g. Standalone app, Tomcat, nginx
 
   - type: textarea
     id: problem_description
     attributes:
-    label: Problem description
-    description: Be as explicit as you can. Describe the problem, its symptoms, how to reproduce, and attach any relevant information (screenshots, logs, etc.)
-    placeholder: Describe the problem and how to reproduce it
+      label: Problem description
+      description: Be as explicit as you can. Describe the problem, its symptoms, how to reproduce, and attach any relevant information (screenshots, logs, etc.)
+      placeholder: Describe the problem and how to reproduce it
