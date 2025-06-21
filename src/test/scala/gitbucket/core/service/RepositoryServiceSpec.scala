@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
+import gitbucket.core.model.*
 import org.scalatest.funsuite.AnyFunSuite
 
 class RepositoryServiceSpec extends AnyFunSuite with ServiceSpecBase with RepositoryService with AccountService {

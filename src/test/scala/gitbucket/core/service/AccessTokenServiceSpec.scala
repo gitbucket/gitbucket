@@ -1,9 +1,9 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
+import gitbucket.core.model.*
 import org.scalatest.funsuite.AnyFunSuite
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.Profile.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
 
 class AccessTokenServiceSpec extends AnyFunSuite with ServiceSpecBase {
 

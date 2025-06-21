@@ -1,8 +1,9 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.*
+import gitbucket.core.model.Profile.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
+import gitbucket.core.model.Session
 import org.scalatest.funsuite.AnyFunSuite
 
 class CommitStatusServiceSpec
@@ -12,7 +13,7 @@ class CommitStatusServiceSpec
     with RepositoryService
     with AccountService {
   val now = new java.util.Date()
-  val fixture1 = CommitStatus(
+  val fixture1: CommitStatus = CommitStatus(
     userName = "root",
     repositoryName = "repo",
     commitId = "0e97b8f59f7cdd709418bb59de53f741fd1c1bd7",
@@ -24,8 +25,9 @@ class CommitStatusServiceSpec
     updatedDate = now,
     registeredDate = now
   )
-  def findById(id: Int)(implicit s: Session) = CommitStatuses.filter(_.byPrimaryKey(id)).firstOption
-  def generateFixture1(tester: Account)(implicit s: Session) =
+  def findById(id: Int)(implicit s: Session): Option[CommitStatus] =
+    CommitStatuses.filter(_.byPrimaryKey(id)).firstOption
+  def generateFixture1(tester: Account)(implicit s: Session): Int =
     createCommitStatus(
       userName = fixture1.userName,
       repositoryName = fixture1.repositoryName,
