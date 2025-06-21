@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.util.GitSpecUtil._
+import gitbucket.core.util.GitSpecUtil.*
 import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.CommitState

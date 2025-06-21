@@ -1,31 +1,32 @@
 package gitbucket.core.service
 
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.revwalk._
+import org.eclipse.jgit.revwalk.*
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.scalatest.funspec.AnyFunSpec
+
 import java.io.File
 import java.util.Date
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
-
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import scala.util.Using
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import gitbucket.core.controller.Context
 import gitbucket.core.plugin.ReceiveHook
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.GitSpecUtil._
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.GitSpecUtil.*
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.model._
-import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.*
+import gitbucket.core.model.Profile.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
+import gitbucket.core.model.Session
 import org.eclipse.jetty.webapp.WebAppContext
 import org.eclipse.jetty.server.{Request, Server}
-import org.json4s.jackson.JsonMethods._
-import org.json4s.jvalue2monadic
-import MergeServiceSpec._
+import org.json4s.jackson.JsonMethods.*
+import org.json4s.{Formats, jvalue2monadic}
+import MergeServiceSpec.*
+import org.eclipse.jgit.lib.ObjectId
 import org.json4s.JsonAST.{JArray, JString}
 
 class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
@@ -54,7 +55,7 @@ class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
     }
     dir
   }
-  def createConfrict(git: Git) = {
+  def createConfrict(git: Git): ObjectId = {
     createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2")
     createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge4")
   }
@@ -141,14 +142,14 @@ class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
   }
   describe("mergePullRequest") {
     it("can merge") {
-      implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
-      import gitbucket.core.util.Implicits._
+      implicit val jsonFormats: Formats = gitbucket.core.api.JsonFormat.jsonFormats
+      import gitbucket.core.util.Implicits.*
 
       withTestDB { implicit session =>
         generateNewUserWithDBRepository("user1", "repo8")
         initRepository("user1", "repo8")
 
-        implicit val context = Context(
+        implicit val context: Context = Context(
           createSystemSettings(),
           Some(createAccount("dummy2", "dummy2-fullname", "dummy2@example.com")),
           request

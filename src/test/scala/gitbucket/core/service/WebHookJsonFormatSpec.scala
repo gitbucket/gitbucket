@@ -1,12 +1,12 @@
 package gitbucket.core.service
 
 import gitbucket.core.api.JsonFormat
-import gitbucket.core.service.WebHookService._
+import gitbucket.core.service.WebHookService.*
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
 class WebHookJsonFormatSpec extends AnyFunSuite {
-  import gitbucket.core.api.ApiSpecModels._
+  import gitbucket.core.api.ApiSpecModels.*
 
   private def assert(payload: WebHookPayload, expected: String): Assertion = {
     val json = JsonFormat(payload)
@@ -34,7 +34,7 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
   }
 
   test("WebHookPushPayload") {
-    import gitbucket.core.util.GitSpecUtil._
+    import gitbucket.core.util.GitSpecUtil.*
     import org.eclipse.jgit.lib.{Constants, ObjectId}
 
     withTestRepository { git =>

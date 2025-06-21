@@ -5,8 +5,9 @@ import gitbucket.core.util.{DatabaseConfig, Directory, FileUtil, JGitUtil}
 import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
-import gitbucket.core.model._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
+import gitbucket.core.model.Session
 import org.apache.commons.io.FileUtils
 
 import java.sql.DriverManager
@@ -21,21 +22,21 @@ import gitbucket.core.service.SystemSettingsService.{
 }
 
 import javax.servlet.http.{HttpServletRequest, HttpSession}
-import org.mockito.Mockito._
+import org.mockito.Mockito.*
 
 import scala.util.Random
 import scala.util.Using
 
 trait ServiceSpecBase {
 
-  val request = mock(classOf[HttpServletRequest])
-  val session = mock(classOf[HttpSession])
+  val request: HttpServletRequest = mock(classOf[HttpServletRequest])
+  val session: HttpSession = mock(classOf[HttpSession])
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
   when(request.getRequestURI).thenReturn("/path.html")
   when(request.getContextPath).thenReturn("")
   when(request.getSession).thenReturn(session)
 
-  def createSystemSettings() =
+  def createSystemSettings(): SystemSettings =
     SystemSettings(
       baseUrl = None,
       information = None,

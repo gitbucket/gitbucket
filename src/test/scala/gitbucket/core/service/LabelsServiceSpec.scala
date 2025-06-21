@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
+import gitbucket.core.model.*
 import org.scalatest.funspec.AnyFunSpec
 
 class LabelsServiceSpec extends AnyFunSpec with ServiceSpecBase {
