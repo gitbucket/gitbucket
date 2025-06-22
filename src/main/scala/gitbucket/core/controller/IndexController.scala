@@ -93,9 +93,13 @@ trait IndexControllerBase extends ControllerBase {
   }
 
   get("/signin") {
-    val redirect = params.get("redirect")
-    if (redirect.isDefined && redirect.get.startsWith("/")) {
-      flash.update(Keys.Flash.Redirect, redirect.get)
+    if (context.loginAccount.nonEmpty) {
+      redirect("/")
+    }
+    params.get("redirect").foreach { redirect =>
+      if (redirect.startsWith("/")) {
+        flash.update(Keys.Flash.Redirect, redirect)
+      }
     }
     gitbucket.core.html.signin(flash.get("userName"), flash.get("password"), flash.get("error"))
   }
