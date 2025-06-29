@@ -7,7 +7,7 @@ All changes to the project will be documented in this file.
 Note that upgrading from h2 1.x to 2.x requires data file migration: https://www.h2database.com/html/migration-to-v2.html
 
 It can't be done automatically using GitBucket's auto migration mechanism because it relies on database itself. So, users who use h2 will have to dump and recreate their database manually with the following steps:
-```
+```bash
 # Export database using the current version of H2
 $ curl -O https://repo1.maven.org/maven2/com/h2database/h2/1.4.199/h2-1.4.199.jar
 $ java -cp h2-1.4.199.jar org.h2.tools.Script -url "jdbc:h2:~/.gitbucket/data" -user sa -password sa -script dump.sql
