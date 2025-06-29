@@ -1,6 +1,23 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.43.0 - 29 Jun 2025
+- Redirect to the top page if already authenticated at the sign-in page
+- Upgrade H2 database from 1.x to 2.x
+
+Note that upgrading from h2 1.x to 2.x requires data file migration: https://www.h2database.com/html/migration-to-v2.html
+
+It can't be done automatically using GitBucket's auto migration mechanism because it relies on database itself. So, users who use h2 will have to dump and recreate their database manually with the following steps:
+```
+# Export database using the current version of H2
+$ curl -O https://repo1.maven.org/maven2/com/h2database/h2/1.4.199/h2-1.4.199.jar
+$ java -cp h2-1.4.199.jar org.h2.tools.Script -url "jdbc:h2:~/.gitbucket/data" -user sa -password sa -script dump.sql
+
+# Recreate database using the new version of H2
+$ curl -O https://repo1.maven.org/maven2/com/h2database/h2/2.3.232/h2-2.3.232.jar
+$ java -cp h2-2.3.232.jar org.h2.tools.RunScript -url "jdbc:h2:~/.gitbucket/data" -user sa -password sa -script dump.sql
+```
+
 ## 4.42.1 - 20 Jan 2025
 - Fix LDAP issue with SSL
 
