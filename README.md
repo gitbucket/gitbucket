@@ -62,7 +62,6 @@ Support
 What's New in 4.43.x
 -------------
 ## 4.43.0 - 29 Jun 2025
-- Redirect to the top page if already authenticated at the sign-in page
 - Upgrade H2 database from 1.x to 2.x
 
 Note that upgrading from h2 1.x to 2.x requires data file migration: https://www.h2database.com/html/migration-to-v2.html
