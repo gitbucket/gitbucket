@@ -38,15 +38,26 @@ Generate release files
 
 For plug-in development, we have to publish the GitBucket jar file to the Maven central repository before release GitBucket itself.
  
-First, hit following command to publish artifacts to the sonatype OSS repository:
+First, start the sbt shell:
 
 ```bash
 $ sbt publishSigned
 ```
 
-Then logged-in to https://oss.sonatype.org/, close and release the repository.
+Next, upload artifacts to Sonatype's Central Portal with the following command:
 
-You need to wait up to a day until [gitbucket-notification-plugin](https://plugins.gitbucket-community.org/) which is default bundled plugin is built for new version of GitBucket.
+```bash
+$ sbt sonaUpload
+```
+
+Then logged-in to https://central.sonatype.com/ and publish the deployment.
+
+You need to wait up to a day until default bundled plugins:
+
+- https://github.com/gitbucket/gitbucket-notifications-plugin
+- https://github.com/gitbucket/gitbucket-gist-plugin
+- https://github.com/gitbucket/gitbucket-pages-plugin
+- https://github.com/gitbucket/gitbucket-emoji-plugin
 
 ### Make release war file
 
@@ -55,5 +66,4 @@ Run `sbt executable`. The release war file and fingerprint are generated into `t
 ```bash
 $ sbt executable
 ```
-
 Create new release from the corresponded tag on GitHub, then upload generated jar file and fingerprints to the release.
