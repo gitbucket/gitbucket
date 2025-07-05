@@ -33,7 +33,7 @@ trait PreProcessControllerBase extends ControllerBase {
     if (
       !context.currentPath.startsWith("/assets") && !context.currentPath.startsWith("/signin") &&
       !context.currentPath.startsWith("/register") && !context.currentPath.endsWith("/info/refs") &&
-      !context.currentPath.startsWith("/plugin-assets") &&
+      !context.currentPath.startsWith("/plugin-assets") && !context.currentPath.equals("/user.css") &&
       !PluginRegistry().getAnonymousAccessiblePaths().exists { path =>
         context.currentPath.startsWith(path)
       }
