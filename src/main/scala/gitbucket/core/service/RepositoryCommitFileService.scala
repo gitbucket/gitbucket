@@ -1,7 +1,7 @@
 package gitbucket.core.service
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.model.{Account, WebHook}
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.{CloseIssueInfo, PushInfo}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
@@ -11,14 +11,14 @@ import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.{JGitUtil, LockUtil}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
-import org.eclipse.jgit.lib._
+import org.eclipse.jgit.lib.*
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
 import scala.util.Using
 
 trait RepositoryCommitFileService {
   self: AccountService & ActivityService & IssuesService & PullRequestService & WebHookPullRequestService &
-    RepositoryService =>
+    RepositoryService & ProtectedBranchService =>
 
   /**
    * Create multiple files by callback function.
@@ -139,107 +139,126 @@ trait RepositoryCommitFileService {
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, R)] = {
+    if (getProtectedBranchList(repository.owner, repository.name).contains(branch)) {
+      Left(s"You cannot commit to the ${branch} branch.")
 
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        val builder = DirCache.newInCore.builder()
-        val inserter = git.getRepository.newObjectInserter()
-        val headName = s"refs/heads/${branch}"
-        val headTip = git.getRepository.resolve(headName)
+    } else {
+      LockUtil.lock(s"${repository.owner}/${repository.name}") {
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          val builder = DirCache.newInCore.builder()
+          val inserter = git.getRepository.newObjectInserter()
+          val headName = s"refs/heads/${branch}"
+          val headTip = git.getRepository.resolve(headName)
 
-        val result = f(git, headTip, builder, inserter)
+          val result = f(git, headTip, builder, inserter)
 
-        val commitId = JGitUtil.createNewCommit(
-          git,
-          inserter,
-          headTip,
-          builder.getDirCache.writeTree(inserter),
-          headName,
-          committerName,
-          committerMailAddress,
-          message
-        )
+          val commitId = JGitUtil.createNewCommit(
+            git,
+            inserter,
+            headTip,
+            builder.getDirCache.writeTree(inserter),
+            headName,
+            committerName,
+            committerMailAddress,
+            message
+          )
 
-        inserter.flush()
-        inserter.close()
+          inserter.flush()
+          inserter.close()
 
-        val receivePack = new ReceivePack(git.getRepository)
-        val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
+          val receivePack = new ReceivePack(git.getRepository)
+          val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
 
-        // call pre-commit hook
-        val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
-          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, pusherAccount.userName, false)
-        }.headOption
+          // call pre-commit hook
+          val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+            hook.preReceive(
+              repository.owner,
+              repository.name,
+              receivePack,
+              receiveCommand,
+              pusherAccount.userName,
+              false
+            )
+          }.headOption
 
-        error match {
-          case Some(error) =>
-            // commit is rejected
-            val refUpdate = git.getRepository.updateRef(headName)
-            refUpdate.setNewObjectId(headTip)
-            refUpdate.setForceUpdate(true)
-            refUpdate.update()
-            Left(error)
+          error match {
+            case Some(error) =>
+              // commit is rejected
+              val refUpdate = git.getRepository.updateRef(headName)
+              refUpdate.setNewObjectId(headTip)
+              refUpdate.setForceUpdate(true)
+              refUpdate.update()
+              Left(error)
 
-          case None =>
-            // update refs
-            val refUpdate = git.getRepository.updateRef(headName)
-            refUpdate.setNewObjectId(commitId)
-            refUpdate.setForceUpdate(false)
-            refUpdate.setRefLogIdent(new PersonIdent(committerName, committerMailAddress))
-            refUpdate.update()
+            case None =>
+              // update refs
+              val refUpdate = git.getRepository.updateRef(headName)
+              refUpdate.setNewObjectId(commitId)
+              refUpdate.setForceUpdate(false)
+              refUpdate.setRefLogIdent(new PersonIdent(committerName, committerMailAddress))
+              refUpdate.update()
 
-            // update pull request
-            updatePullRequests(repository.owner, repository.name, branch, pusherAccount, "synchronize", settings)
+              // update pull request
+              updatePullRequests(repository.owner, repository.name, branch, pusherAccount, "synchronize", settings)
 
-            // record activity
-            updateLastActivityDate(repository.owner, repository.name)
-            val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            val pushInfo = PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
-            recordActivity(pushInfo)
+              // record activity
+              updateLastActivityDate(repository.owner, repository.name)
+              val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+              val pushInfo =
+                PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
+              recordActivity(pushInfo)
 
-            // create issue comment by commit message
-            createIssueComment(repository.owner, repository.name, commitInfo)
+              // create issue comment by commit message
+              createIssueComment(repository.owner, repository.name, commitInfo)
 
-            // close issue by commit message
-            if (branch == repository.repository.defaultBranch) {
-              closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
-                getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                  callIssuesWebHook("closed", repository, issue, pusherAccount, settings)
-                  val closeIssueInfo = CloseIssueInfo(
-                    repository.owner,
-                    repository.name,
-                    pusherAccount.userName,
-                    issue.issueId,
-                    issue.title
-                  )
-                  recordActivity(closeIssueInfo)
-                  PluginRegistry().getIssueHooks
-                    .foreach(_.closedByCommitComment(issue, repository, message, pusherAccount))
+              // close issue by commit message
+              if (branch == repository.repository.defaultBranch) {
+                closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
+                  getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+                    callIssuesWebHook("closed", repository, issue, pusherAccount, settings)
+                    val closeIssueInfo = CloseIssueInfo(
+                      repository.owner,
+                      repository.name,
+                      pusherAccount.userName,
+                      issue.issueId,
+                      issue.title
+                    )
+                    recordActivity(closeIssueInfo)
+                    PluginRegistry().getIssueHooks
+                      .foreach(_.closedByCommitComment(issue, repository, message, pusherAccount))
+                  }
                 }
               }
-            }
 
-            // call post-commit hook
-            PluginRegistry().getReceiveHooks.foreach { hook =>
-              hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName, false)
-            }
-
-            val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
-              getAccountByUserName(repository.owner).map { ownerAccount =>
-                WebHookPushPayload(
-                  git,
-                  pusherAccount,
-                  headName,
-                  repository,
-                  List(commit),
-                  ownerAccount,
-                  oldId = headTip,
-                  newId = commitId
+              // call post-commit hook
+              PluginRegistry().getReceiveHooks.foreach { hook =>
+                hook.postReceive(
+                  repository.owner,
+                  repository.name,
+                  receivePack,
+                  receiveCommand,
+                  committerName,
+                  mergePullRequest = false
                 )
               }
-            }
-            Right((commitId, result))
+
+              val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+              callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
+                getAccountByUserName(repository.owner).map { ownerAccount =>
+                  WebHookPushPayload(
+                    git,
+                    pusherAccount,
+                    headName,
+                    repository,
+                    List(commit),
+                    ownerAccount,
+                    oldId = headTip,
+                    newId = commitId
+                  )
+                }
+              }
+              Right((commitId, result))
+          }
         }
       }
     }
