@@ -77,4 +77,12 @@ $ curl -O https://repo1.maven.org/maven2/com/h2database/h2/2.3.232/h2-2.3.232.ja
 $ java -cp h2-2.3.232.jar org.h2.tools.RunScript -url "jdbc:h2:~/.gitbucket/data" -user sa -password sa -script dump.sql
 ```
 
+In addition, if `~/.gitbucket/database.conf` has the following configuration, remove `;MVCC=true` from `url`.
+```
+db {
+  url = "jdbc:h2:${DatabaseHome};MVCC=true" // => "jdbc:h2:${DatabaseHome}"
+  ...
+}
+```
+
 See the [change log](CHANGELOG.md) for all the past updates.
