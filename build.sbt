@@ -51,7 +51,7 @@ libraryDependencies ++= Seq(
   "com.zaxxer"                      % "HikariCP"                 % "6.3.0" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                   % "1.4.3",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
-  "io.github.java-diff-utils"       % "java-diff-utils"          % "4.15",
+  "io.github.java-diff-utils"       % "java-diff-utils"          % "4.16",
   "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"            % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"              % "0.10.2",
