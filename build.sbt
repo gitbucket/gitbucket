@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
     "org.apache.sshd",
     "sshd-mina"
   ) exclude ("org.apache.sshd", "sshd-netty"),
-  "org.apache.tika"                 % "tika-core"                % "3.2.0",
+  "org.apache.tika"                 % "tika-core"                % "3.2.1",
   "com.github.takezoe"             %% "blocking-slick"           % "0.0.14",
   "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
   "com.h2database"                  % "h2"                       % "2.3.232",
