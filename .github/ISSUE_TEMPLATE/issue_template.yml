@@ -1,7 +1,5 @@
-name: Bug report
-description: Report a problem with GitBucket
-title: "[Bug] "
-labels: [bug]
+name: Report issue
+description: Report a problem or feature request with GitBucket
 body:
   - type: markdown
     attributes:
@@ -10,6 +8,7 @@ body:
         - Read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
         - Searched for similar existing issues
         - Read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki)
+        - You can use [Gitter chat room](https://gitter.im/gitbucket/gitbucket) instead of GitHub Issues for casual discussion or inquiry
 
   - type: checkboxes
     id: prerequisites
