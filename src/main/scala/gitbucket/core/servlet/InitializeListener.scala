@@ -6,9 +6,9 @@ import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.util.DatabaseConfig
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.JDBCUtil._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.JDBCUtil.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
 import gitbucket.core.servlet.Database
@@ -20,7 +20,7 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 /**
@@ -50,51 +50,57 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 //  )
 
   override def contextInitialized(event: ServletContextEvent): Unit = {
-    val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
-    if (dataDir != null) {
-      System.setProperty("gitbucket.home", dataDir)
-    }
-    org.h2.Driver.load()
+    try {
+      val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
+      if (dataDir != null) {
+        System.setProperty("gitbucket.home", dataDir)
+      }
+      org.h2.Driver.load()
 
-    Database() withTransaction { session =>
-      val conn = session.conn
-      val manager = new JDBCVersionManager(conn)
+      Database() withTransaction { session =>
+        val conn = session.conn
+        val manager = new JDBCVersionManager(conn)
 
-      // Check version
-      checkVersion(manager, conn)
+        // Check version
+        checkVersion(manager, conn)
 
-      // Run normal migration
-      logger.info("Start schema update")
-      new Solidbase()
-        .migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
+        // Run normal migration
+        logger.info("Start schema update")
+        new Solidbase()
+          .migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
 
-      // Rescue code for users who updated from 3.14 to 4.0.0
-      // https://github.com/gitbucket/gitbucket/issues/1227
-      val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
-      val databaseVersion = if (currentVersion == "4.0") {
-        manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
-        "4.0.0"
-      } else currentVersion
+        // Rescue code for users who updated from 3.14 to 4.0.0
+        // https://github.com/gitbucket/gitbucket/issues/1227
+        val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
+        val databaseVersion = if (currentVersion == "4.0") {
+          manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
+          "4.0.0"
+        } else currentVersion
 
-      val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
-      if (databaseVersion != gitbucketVersion) {
-        throw new IllegalStateException(
-          s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}."
-        )
+        val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+        if (databaseVersion != gitbucketVersion) {
+          throw new IllegalStateException(
+            s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}."
+          )
+        }
+
+        // Install bundled plugins
+        extractBundledPlugins()
+
+        // Load plugins
+        logger.info("Initialize plugins")
+        PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
       }
 
-      // Install bundled plugins
-      extractBundledPlugins()
-
-      // Load plugins
-      logger.info("Initialize plugins")
-      PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
+      //    // Start Quartz scheduler
+      //    val scheduler = QuartzSchedulerExtension(system)
+      //
+      //    scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
+    } catch {
+      case e: Exception =>
+        logger.error(e.getMessage, e)
+        throw e
     }
-
-//    // Start Quartz scheduler
-//    val scheduler = QuartzSchedulerExtension(system)
-//
-//    scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
   }
 
   private def checkVersion(manager: JDBCVersionManager, conn: java.sql.Connection): Unit = {
@@ -141,7 +147,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       Using.resource(cl.getResourceAsStream("bundle-plugins.txt")) { pluginsFile =>
         if (pluginsFile != null) {
           val plugins = IOUtils.readLines(pluginsFile, "UTF-8")
-          val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+          // val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
 
           plugins.asScala.foreach { plugin =>
             plugin.trim.split(":") match {
