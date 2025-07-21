@@ -40,7 +40,8 @@ libraryDependencies ++= Seq(
   "org.apache.sshd"           % "apache-sshd"                  % "2.15.0" exclude ("org.slf4j", "slf4j-jdk14") exclude (
     "org.apache.sshd",
     "sshd-mina"
-  ) exclude ("org.apache.sshd", "sshd-netty"),
+  ) exclude ("org.apache.sshd", "sshd-netty")
+    exclude ("org.apache.sshd", "sshd-spring-sftp"),
   "org.apache.tika"                 % "tika-core"                % "3.2.1",
   "com.github.takezoe"             %% "blocking-slick"           % "0.0.14",
   "com.novell.ldap"                 % "jldap"                    % "2009-10-07",
