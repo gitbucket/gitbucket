@@ -62,7 +62,6 @@ trait ProtectedBranchService {
   def disableBranchProtection(owner: String, repository: String, branch: String)(implicit session: Session): Unit =
     ProtectedBranches.filter(_.byPrimaryKey(owner, repository, branch)).delete
 
-
   def isPushAllowed(owner: String, repository: String, branch: String, pusher: String)(implicit s: Session): Boolean = {
     if (getProtectedBranchList(owner, repository).contains(branch)) {
       val protection = getProtectedBranchInfo(owner, repository, branch)
