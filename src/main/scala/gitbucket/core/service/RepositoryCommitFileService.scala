@@ -139,7 +139,8 @@ trait RepositoryCommitFileService {
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, R)] = {
-    if (getProtectedBranchList(repository.owner, repository.name).contains(branch)) {
+    // branch protection
+    if (!isPushAllowed(repository.owner, repository.name, branch, pusherAccount.userName)) {
       Left(s"You cannot commit to the ${branch} branch.")
 
     } else {
