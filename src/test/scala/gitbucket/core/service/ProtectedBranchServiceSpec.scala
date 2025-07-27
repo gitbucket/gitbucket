@@ -221,6 +221,7 @@ class ProtectedBranchServiceSpec
             ReceiveCommand.Type.UPDATE_NONFASTFORWARD
           )
           generateNewUserWithDBRepository("user1", "repo1")
+          generateNewAccount("user2")
           enableBranchProtection("user1", "repo1", "branch", false, Nil, Seq("user2"))
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false).isEmpty)
           assert(
