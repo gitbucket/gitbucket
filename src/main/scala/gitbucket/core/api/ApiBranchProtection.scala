@@ -42,7 +42,7 @@ object ApiBranchProtection {
           )
         )
       ),
-      restrictions = None // TODO
+      restrictions = if (info.restrictionsUsers.isEmpty) None else Some(Restrictions(info.restrictionsUsers))
     )
 
   val statusNone = Status(None, Off, Seq.empty, None)
