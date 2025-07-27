@@ -23,9 +23,12 @@
               <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
             </div>
 
+            <!--====================================================================-->
+            <!-- Push restrictions -->
+            <!--====================================================================-->
             <div class="checkbox js-enabled" style="display:none">
               <label>
-                <input type="checkbox" name="restrictions" onclick="update()" @check(false)>
+                <input type="checkbox" name="restrictions" onclick="update()" @check(protection.restrictions.isDefined)>
                 <span class="strong">Restrict users for push</span>
               </label>
               <p class="help-block">Restrict users who can push to this branch</p>
@@ -33,13 +36,16 @@
                 <ul id="restrictions-user-list">
                 </ul>
                 @gitbucket.core.helper.html.account("userName-restrictions-user", 200, true, false)
-                <input type="button" class="btn btn-default add" value="Add" id="addRestriction"/>
+                <input type="button" class="btn btn-default add-restrictions-user" value="Add"/>
                 <div>
                   <span class="error" id="error-restrictions-user"></span>
                 </div>
               </div>
             </div>
 
+            <!--====================================================================-->
+            <!-- Status check -->
+            <!--====================================================================-->
             <div class="checkbox js-enabled" style="display:none">
               <label>
                 <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
@@ -117,6 +123,9 @@ function getValue(){
       required_status_checks: {
         enforcement_level: "off",
         contexts: []
+      },
+      restrictions: {
+        users: undefined
       }
     };
   }
@@ -124,7 +133,7 @@ function getValue(){
 
 function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
-  $('.js-restrictions_enabled').toggle(protection.restrictions !== undefined);
+  $('.js-restrictions_enabled').toggle(protection.restrictions.users !== undefined);
   $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level !== 'off');
   $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level !== 'off' && protection.required_status_checks.contexts.length === 0);
 }
@@ -165,11 +174,15 @@ $(function() {
   // Initialize
   update();
 
-  $('.add').click(function(){
-    const id = $(this).attr('id') === 'addRestriction' ? 'restrictions-user' : 'restrictions-group';
+  @protection.restrictions.map(_.users).map { users =>
+    @users.map { user =>
+      addUserToListHTML('@user', '#restrictions-user-list');
+    }
+  }
 
-    $('#error-' + id).text('');
-    const userName = $('#userName-' + id).val();
+  $('.add-restrictions-user').click(function(){
+    $('#error-restrictions-user').text('');
+    const userName = $('#userName-restrictions-user').val();
 
     // check empty
     if($.trim(userName) === ''){
@@ -177,7 +190,7 @@ $(function() {
     }
 
     // check duplication
-    const exists = $('#' + id + '-list li').filter(function(){
+    const exists = $('#restrictions-user-list li').filter(function(){
       return $(this).data('name') === userName;
     }).length > 0;
     if(exists){
@@ -189,7 +202,7 @@ $(function() {
     $.post('@context.path/_user/existence', { 'userName': userName },
       function(data, status){
         if(data !== ''){
-          addUserToListHTML(userName, '#' + id + '-list');
+          addUserToListHTML(userName, '#restrictions-user-list');
           $('#userName-' + id).val('');
         } else {
           $('#error-' + id).text('User does not exist.');
