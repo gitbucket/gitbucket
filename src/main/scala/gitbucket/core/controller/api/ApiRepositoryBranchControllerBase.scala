@@ -265,6 +265,8 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
         protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
         br <- getBranchesNoMergeInfo(git).find(_.name == branch)
       } yield {
+        println(protection) // TODO debug
+
         if (protection.enabled) {
           enableBranchProtection(
             repository.owner,

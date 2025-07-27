@@ -7,7 +7,8 @@ import org.json4s._
 case class ApiBranchProtection(
   url: Option[ApiPath], // for output
   enabled: Boolean,
-  required_status_checks: Option[ApiBranchProtection.Status]
+  required_status_checks: Option[ApiBranchProtection.Status],
+  restrictions: Option[ApiBranchProtection.Restrictions]
 ) {
   def status: ApiBranchProtection.Status = required_status_checks.getOrElse(ApiBranchProtection.statusNone)
 }
@@ -40,19 +41,24 @@ object ApiBranchProtection {
             )
           )
         )
-      )
+      ),
+      restrictions = None // TODO
     )
+
   val statusNone = Status(None, Off, Seq.empty, None)
+
   case class Status(
     url: Option[ApiPath], // for output
     enforcement_level: EnforcementLevel,
     contexts: Seq[String],
     contexts_url: Option[ApiPath] // for output
   )
+
   sealed class EnforcementLevel(val name: String)
   case object Off extends EnforcementLevel("off")
   case object NonAdmins extends EnforcementLevel("non_admins")
   case object Everyone extends EnforcementLevel("everyone")
+
   object EnforcementLevel {
     def apply(enabled: Boolean, includeAdministrators: Boolean): EnforcementLevel =
       if (enabled) {
@@ -65,6 +71,8 @@ object ApiBranchProtection {
         Off
       }
   }
+
+  case class Restrictions(users: Seq[String])
 
   implicit val enforcementLevelSerializer: CustomSerializer[EnforcementLevel] =
     new CustomSerializer[EnforcementLevel](format =>

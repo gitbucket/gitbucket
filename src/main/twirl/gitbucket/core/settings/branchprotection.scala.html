@@ -22,6 +22,24 @@
               </label>
               <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
             </div>
+
+            <div class="checkbox js-enabled" style="display:none">
+              <label>
+                <input type="checkbox" name="restrictions" onclick="update()" @check(false)>
+                <span class="strong">Restrict users for push</span>
+              </label>
+              <p class="help-block">Restrict users who can push to this branch</p>
+              <div class="js-restrictions_enabled" style="display: none;">
+                <ul id="restrictions-user-list">
+                </ul>
+                @gitbucket.core.helper.html.account("userName-restrictions-user", 200, true, false)
+                <input type="button" class="btn btn-default add" value="Add" id="addRestriction"/>
+                <div>
+                  <span class="error" id="error-restrictions-user"></span>
+                </div>
+              </div>
+            </div>
+
             <div class="checkbox js-enabled" style="display:none">
               <label>
                 <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
@@ -68,20 +86,29 @@
 }
 <script>
 function getValue(){
-  var v = {}, contexts=[];
+  const v = {}, contexts = [];
+  let restrictions = undefined;
   $("input[type=checkbox]:checked").each(function(){
-    if(this.name === 'contexts'){
+    if(this.name === 'contexts') {
       contexts.push(this.value);
+    } else if (this.name === 'restrictions') {
+      restrictions = $('#restrictions-user-list li').map(function(i, e){
+        return $(e).data('name');
+      }).get();
     } else {
       v[this.name] = true;
     }
   });
+
   if(v.enabled){
     return {
       enabled: true,
       required_status_checks: {
         enforcement_level: v.has_required_statuses ? ((v.enforce_for_admins ? 'everyone' : 'non_admins')) : 'off',
         contexts: v.has_required_statuses ? contexts : []
+      },
+      restrictions: {
+        users: restrictions
       }
     };
   } else {
@@ -94,33 +121,80 @@ function getValue(){
     };
   }
 }
+
 function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
-  $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level != 'off');
-  $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level != 'off' && protection.required_status_checks.contexts.length == 0);
+  $('.js-restrictions_enabled').toggle(protection.restrictions !== undefined);
+  $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level !== 'off');
+  $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level !== 'off' && protection.required_status_checks.contexts.length === 0);
 }
+
 function update(){
-  var protection = getValue();
+  const protection = getValue();
   updateView(protection);
 }
-$(update);
+
 function submitForm(e){
   e.stopPropagation();
   e.preventDefault();
-  var protection = getValue();
+  const protection = getValue();
   $.ajax({
-    method:'PATCH',
-    url:'@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.urlEncode(branch)',
+    method: 'PATCH',
+    url: '@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.urlEncode(branch)',
     contentType: 'application/json',
     dataType: 'json',
-    data:JSON.stringify({protection:protection}),
-    success:function(r){
+    data: JSON.stringify({protection:protection}),
+    success: function(r){
       $('#saved-info').show();
     },
-    error:function(err){
+    error: function(err){
       console.log(err);
       alert('update error');
     }
   });
 }
+
+function addUserToListHTML(userName, id){
+  $(id).append($('<li>').data('name', userName)
+      .append(' ')
+      .append(userName)
+      .append($('<a href="#" onclick="$(this).parent().remove();" class="remove">(remove)</a>')));
+}
+
+$(function() {
+  // Initialize
+  update();
+
+  $('.add').click(function(){
+    const id = $(this).attr('id') === 'addRestriction' ? 'restrictions-user' : 'restrictions-group';
+
+    $('#error-' + id).text('');
+    const userName = $('#userName-' + id).val();
+
+    // check empty
+    if($.trim(userName) === ''){
+      return false;
+    }
+
+    // check duplication
+    const exists = $('#' + id + '-list li').filter(function(){
+      return $(this).data('name') === userName;
+    }).length > 0;
+    if(exists){
+      $('#error-' + id).text('User has been already added.');
+      return false;
+    }
+
+    // check existence
+    $.post('@context.path/_user/existence', { 'userName': userName },
+      function(data, status){
+        if(data !== ''){
+          addUserToListHTML(userName, '#' + id + '-list');
+          $('#userName-' + id).val('');
+        } else {
+          $('#error-' + id).text('User does not exist.');
+        }
+      });
+  });
+})
 </script>
