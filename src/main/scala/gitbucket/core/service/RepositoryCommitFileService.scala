@@ -92,10 +92,10 @@ trait RepositoryCommitFileService {
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, Option[ObjectId])] = {
 
     val newPath = newFileName.map { newFileName =>
-      if (path.length == 0) newFileName else s"${path}/${newFileName}"
+      if (path.isEmpty) newFileName else s"${path}/${newFileName}"
     }
     val oldPath = oldFileName.map { oldFileName =>
-      if (path.length == 0) oldFileName else s"${path}/${oldFileName}"
+      if (path.isEmpty) oldFileName else s"${path}/${oldFileName}"
     }
 
     _createFiles(repository, branch, message, pusherAccount, committerName, committerMailAddress, settings) {
@@ -139,127 +139,121 @@ trait RepositoryCommitFileService {
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, R)] = {
-    // branch protection
-    if (!isPushAllowed(repository.owner, repository.name, branch, pusherAccount.userName)) {
-      Left(s"You cannot commit to the ${branch} branch.")
+    LockUtil.lock(s"${repository.owner}/${repository.name}") {
+      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val builder = DirCache.newInCore.builder()
+        val inserter = git.getRepository.newObjectInserter()
+        val headName = s"refs/heads/${branch}"
+        val headTip = git.getRepository.resolve(headName)
 
-    } else {
-      LockUtil.lock(s"${repository.owner}/${repository.name}") {
-        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-          val builder = DirCache.newInCore.builder()
-          val inserter = git.getRepository.newObjectInserter()
-          val headName = s"refs/heads/${branch}"
-          val headTip = git.getRepository.resolve(headName)
+        val result = f(git, headTip, builder, inserter)
 
-          val result = f(git, headTip, builder, inserter)
+        val commitId = JGitUtil.createNewCommit(
+          git,
+          inserter,
+          headTip,
+          builder.getDirCache.writeTree(inserter),
+          headName,
+          committerName,
+          committerMailAddress,
+          message
+        )
 
-          val commitId = JGitUtil.createNewCommit(
-            git,
-            inserter,
-            headTip,
-            builder.getDirCache.writeTree(inserter),
-            headName,
-            committerName,
-            committerMailAddress,
-            message
+        inserter.flush()
+        inserter.close()
+
+        val receivePack = new ReceivePack(git.getRepository)
+        val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
+
+        // call pre-commit hook
+        val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+          hook.preReceive(
+            repository.owner,
+            repository.name,
+            receivePack,
+            receiveCommand,
+            pusherAccount.userName,
+            mergePullRequest = false
           )
+        }.headOption
 
-          inserter.flush()
-          inserter.close()
+        error match {
+          case Some(error) =>
+            // commit is rejected
+            val refUpdate = git.getRepository.updateRef(headName)
+            refUpdate.setNewObjectId(headTip)
+            refUpdate.setForceUpdate(true)
+            refUpdate.update()
+            Left(error)
 
-          val receivePack = new ReceivePack(git.getRepository)
-          val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
+          case None =>
+            // update refs
+            val refUpdate = git.getRepository.updateRef(headName)
+            refUpdate.setNewObjectId(commitId)
+            refUpdate.setForceUpdate(false)
+            refUpdate.setRefLogIdent(new PersonIdent(committerName, committerMailAddress))
+            refUpdate.update()
 
-          // call pre-commit hook
-          val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
-            hook.preReceive(
-              repository.owner,
-              repository.name,
-              receivePack,
-              receiveCommand,
-              pusherAccount.userName,
-              false
-            )
-          }.headOption
+            // update pull request
+            updatePullRequests(repository.owner, repository.name, branch, pusherAccount, "synchronize", settings)
 
-          error match {
-            case Some(error) =>
-              // commit is rejected
-              val refUpdate = git.getRepository.updateRef(headName)
-              refUpdate.setNewObjectId(headTip)
-              refUpdate.setForceUpdate(true)
-              refUpdate.update()
-              Left(error)
+            // record activity
+            updateLastActivityDate(repository.owner, repository.name)
+            val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+            val pushInfo =
+              PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
+            recordActivity(pushInfo)
 
-            case None =>
-              // update refs
-              val refUpdate = git.getRepository.updateRef(headName)
-              refUpdate.setNewObjectId(commitId)
-              refUpdate.setForceUpdate(false)
-              refUpdate.setRefLogIdent(new PersonIdent(committerName, committerMailAddress))
-              refUpdate.update()
+            // create issue comment by commit message
+            createIssueComment(repository.owner, repository.name, commitInfo)
 
-              // update pull request
-              updatePullRequests(repository.owner, repository.name, branch, pusherAccount, "synchronize", settings)
-
-              // record activity
-              updateLastActivityDate(repository.owner, repository.name)
-              val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-              val pushInfo =
-                PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
-              recordActivity(pushInfo)
-
-              // create issue comment by commit message
-              createIssueComment(repository.owner, repository.name, commitInfo)
-
-              // close issue by commit message
-              if (branch == repository.repository.defaultBranch) {
-                closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
-                  getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
-                    callIssuesWebHook("closed", repository, issue, pusherAccount, settings)
-                    val closeIssueInfo = CloseIssueInfo(
-                      repository.owner,
-                      repository.name,
-                      pusherAccount.userName,
-                      issue.issueId,
-                      issue.title
-                    )
-                    recordActivity(closeIssueInfo)
-                    PluginRegistry().getIssueHooks
-                      .foreach(_.closedByCommitComment(issue, repository, message, pusherAccount))
-                  }
+            // close issue by commit message
+            if (branch == repository.repository.defaultBranch) {
+              closeIssuesFromMessage(message, committerName, repository.owner, repository.name).foreach { issueId =>
+                getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+                  callIssuesWebHook("closed", repository, issue, pusherAccount, settings)
+                  val closeIssueInfo = CloseIssueInfo(
+                    repository.owner,
+                    repository.name,
+                    pusherAccount.userName,
+                    issue.issueId,
+                    issue.title
+                  )
+                  recordActivity(closeIssueInfo)
+                  PluginRegistry().getIssueHooks
+                    .foreach(_.closedByCommitComment(issue, repository, message, pusherAccount))
                 }
               }
+            }
 
-              // call post-commit hook
-              PluginRegistry().getReceiveHooks.foreach { hook =>
-                hook.postReceive(
-                  repository.owner,
-                  repository.name,
-                  receivePack,
-                  receiveCommand,
-                  committerName,
-                  mergePullRequest = false
+            // call post-commit hook
+            PluginRegistry().getReceiveHooks.foreach { hook =>
+              hook.postReceive(
+                repository.owner,
+                repository.name,
+                receivePack,
+                receiveCommand,
+                committerName,
+                mergePullRequest = false
+              )
+            }
+
+            val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+            callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
+              getAccountByUserName(repository.owner).map { ownerAccount =>
+                WebHookPushPayload(
+                  git,
+                  pusherAccount,
+                  headName,
+                  repository,
+                  List(commit),
+                  ownerAccount,
+                  oldId = headTip,
+                  newId = commitId
                 )
               }
-
-              val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-              callWebHookOf(repository.owner, repository.name, WebHook.Push, settings) {
-                getAccountByUserName(repository.owner).map { ownerAccount =>
-                  WebHookPushPayload(
-                    git,
-                    pusherAccount,
-                    headName,
-                    repository,
-                    List(commit),
-                    ownerAccount,
-                    oldId = headTip,
-                    newId = commitId
-                  )
-                }
-              }
-              Right((commitId, result))
-          }
+            }
+            Right((commitId, result))
         }
       }
     }

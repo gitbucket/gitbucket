@@ -690,7 +690,7 @@ object ApiSpecModels {
          |"committer":{"name":"octocat","email":"octocat@example.com","date":"2011-04-14T16:00:49Z"},
          |"message":"short message",
          |"comment_count":2,
-         |"tree":{"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/tree/6dcb09b5b57875f334f61aebed695e2e4193db5e","sha":"6dcb09b5b57875f334f61aebed695e2e4193db5b"}
+         |"tree":{"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/tree/6dcb09b5b57875f334f61aebed695e2e4193db5e","sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e"}
        |},
        |"author":$jsonUser,
        |"committer":$jsonUser,
@@ -738,7 +738,11 @@ object ApiSpecModels {
          |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main/protection/required_status_checks",
          |"enforcement_level":"everyone",
          |"contexts":["continuous-integration/travis-ci"],
-         |"contexts_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main/protection/required_status_checks/contexts"}
+         |"contexts_url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/branches/main/protection/required_status_checks/contexts"
+       |},
+       |"restrictions":{
+         |"users":["admin"]
+       |}
        |}""".stripMargin
 
   val jsonBranchProtectionInput: String =
@@ -747,6 +751,9 @@ object ApiSpecModels {
       |"required_status_checks":{
         |"enforcement_level":"everyone",
         |"contexts":["continuous-integration/travis-ci"]
+      |},
+      |"restrictions":{
+        |"users":["admin"]
       |}
     |}""".stripMargin
 

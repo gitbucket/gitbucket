@@ -45,12 +45,12 @@ trait ProtectedBranchService {
     branch: String,
     includeAdministrators: Boolean,
     contexts: Seq[String],
-    restrictions: Seq[String]
+    restrictionsUsers: Seq[String]
   )(implicit session: Session): Unit = {
     disableBranchProtection(owner, repository, branch)
     ProtectedBranches.insert(ProtectedBranch(owner, repository, branch, includeAdministrators && contexts.nonEmpty))
 
-    restrictions.foreach { user =>
+    restrictionsUsers.foreach { user =>
       ProtectedBranchRestrictions.insert(ProtectedBranchRestriction(owner, repository, branch, user))
     }
 
@@ -61,19 +61,6 @@ trait ProtectedBranchService {
 
   def disableBranchProtection(owner: String, repository: String, branch: String)(implicit session: Session): Unit =
     ProtectedBranches.filter(_.byPrimaryKey(owner, repository, branch)).delete
-
-  def isPushAllowed(owner: String, repository: String, branch: String, pusher: String)(implicit s: Session): Boolean = {
-    if (getProtectedBranchList(owner, repository).contains(branch)) {
-      val protection = getProtectedBranchInfo(owner, repository, branch)
-      if (protection.restrictionsUsers.nonEmpty && !protection.restrictionsUsers.contains(pusher)) {
-        false
-      } else {
-        true
-      }
-    } else {
-      false
-    }
-  }
 }
 
 object ProtectedBranchService {
@@ -122,6 +109,7 @@ object ProtectedBranchService {
           )
         }
       } else {
+        println("-> else")
         None
       }
     }
@@ -176,6 +164,8 @@ object ProtectedBranchService {
         command.getType match {
           case ReceiveCommand.Type.UPDATE_NONFASTFORWARD if isAllowNonFastForwards =>
             Some("Cannot force-push to a protected branch")
+          case ReceiveCommand.Type.UPDATE | ReceiveCommand.Type.UPDATE_NONFASTFORWARD if !isPushAllowed(pusher) =>
+            Some("You do not have permission to push to this branch")
           case ReceiveCommand.Type.UPDATE | ReceiveCommand.Type.UPDATE_NONFASTFORWARD if needStatusCheck(pusher) =>
             unSuccessedContexts(command.getNewId.name) match {
               case s if s.sizeIs == 1 => Some(s"""Required status check "${s.head}" is expected""")
@@ -183,7 +173,7 @@ object ProtectedBranchService {
               case _                  => None
             }
           case ReceiveCommand.Type.DELETE =>
-            Some("Cannot delete a protected branch")
+            Some("You do not have permission to push to this branch")
           case _ => None
         }
       } else {
@@ -208,6 +198,8 @@ object ProtectedBranchService {
       case p if isAdministrator(p)    => false
       case _                          => true
     }
+
+    def isPushAllowed(pusher: String): Boolean = restrictionsUsers.isEmpty || restrictionsUsers.contains(pusher)
   }
 
   object ProtectedBranchInfo {

@@ -218,7 +218,7 @@ class ProtectedBranchServiceSpec
             ObjectId.fromString(sha),
             ObjectId.fromString(sha2),
             "refs/heads/branch",
-            ReceiveCommand.Type.UPDATE_NONFASTFORWARD
+            ReceiveCommand.Type.UPDATE
           )
           generateNewUserWithDBRepository("user1", "repo1")
           generateNewAccount("user2")

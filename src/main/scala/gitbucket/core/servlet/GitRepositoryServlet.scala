@@ -252,14 +252,6 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     Database() withTransaction { implicit session =>
       try {
         commands.asScala.foreach { command =>
-          // branch protection
-          if (command.getRefName.startsWith("refs/heads/")) {
-            val branch = command.getRefName.stripPrefix("refs/heads/")
-            if (!isPushAllowed(owner, repository, branch, pusher)) {
-              command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, s"Pushing to the $branch is not allowed.")
-            }
-          }
-
           // call pre-commit hook
           PluginRegistry().getReceiveHooks
             .flatMap(_.preReceive(owner, repository, receivePack, command, pusher, mergePullRequest = false))
