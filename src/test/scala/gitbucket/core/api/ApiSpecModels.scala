@@ -1,6 +1,6 @@
 package gitbucket.core.api
 
-import gitbucket.core.api.ApiBranchProtection.Restrictions
+import gitbucket.core.api.ApiBranchProtectionResponse.Restrictions
 
 import java.util.{Calendar, Date, TimeZone}
 import gitbucket.core.model.*
@@ -359,7 +359,7 @@ object ApiSpecModels {
     repository = apiRepository
   )
 
-  val apiBranchProtectionOutput: ApiBranchProtection = ApiBranchProtection(
+  val apiBranchProtectionOutput: ApiBranchProtectionResponse = ApiBranchProtectionResponse(
     info = ProtectedBranchInfo(
       owner = repo1Name.owner,
       repository = repo1Name.name,
@@ -371,13 +371,13 @@ object ApiSpecModels {
     )
   )
 
-  val apiBranchProtectionInput: ApiBranchProtection = new ApiBranchProtection(
+  val apiBranchProtectionInput: ApiBranchProtectionResponse = new ApiBranchProtectionResponse(
     url = None,
     enabled = true,
     required_status_checks = Some(
-      ApiBranchProtection.Status(
+      ApiBranchProtectionResponse.Status(
         url = None,
-        enforcement_level = ApiBranchProtection.Everyone,
+        enforcement_level = ApiBranchProtectionResponse.Everyone,
         contexts = Seq("continuous-integration/travis-ci"),
         contexts_url = None
       )

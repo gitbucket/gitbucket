@@ -203,7 +203,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     if (!repository.branchList.contains(branch)) {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
-      val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
+      val protection = ApiBranchProtectionResponse(getProtectedBranchInfo(repository.owner, repository.name, branch))
       val lastWeeks = getRecentStatusContexts(
         repository.owner,
         repository.name,

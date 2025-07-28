@@ -57,7 +57,9 @@ class JsonFormatSpec extends AnyFunSuite {
     assert(JsonFormat(apiBranchProtectionOutput) == expected(jsonBranchProtectionOutput))
   }
   test("deserialize apiBranchProtection") {
-    assert(JsonMethods.parse(jsonBranchProtectionInput).extract[ApiBranchProtection] == apiBranchProtectionInput)
+    assert(
+      JsonMethods.parse(jsonBranchProtectionInput).extract[ApiBranchProtectionResponse] == apiBranchProtectionInput
+    )
   }
   test("apiBranch") {
     assert(JsonFormat(apiBranch) == expected(jsonBranch))

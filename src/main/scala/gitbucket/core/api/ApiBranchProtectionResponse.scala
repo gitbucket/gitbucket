@@ -4,22 +4,26 @@ import gitbucket.core.service.ProtectedBranchService
 import org.json4s._
 
 /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
-case class ApiBranchProtection(
+case class ApiBranchProtectionResponse(
   url: Option[ApiPath], // for output
   enabled: Boolean,
-  required_status_checks: Option[ApiBranchProtection.Status],
-  restrictions: Option[ApiBranchProtection.Restrictions]
+  required_status_checks: Option[ApiBranchProtectionResponse.Status],
+  restrictions: Option[ApiBranchProtectionResponse.Restrictions],
+  enforce_admins: Option[ApiBranchProtectionResponse.EnforceAdmins]
 ) {
-  def status: ApiBranchProtection.Status = required_status_checks.getOrElse(ApiBranchProtection.statusNone)
+  def status: ApiBranchProtectionResponse.Status =
+    required_status_checks.getOrElse(ApiBranchProtectionResponse.statusNone)
 }
 
-object ApiBranchProtection {
+object ApiBranchProtectionResponse {
 
-  /** form for enabling-and-disabling-branch-protection */
-  case class EnablingAndDisabling(protection: ApiBranchProtection)
+  case class EnforceAdmins(enabled: Boolean)
 
-  def apply(info: ProtectedBranchService.ProtectedBranchInfo): ApiBranchProtection =
-    ApiBranchProtection(
+//  /** form for enabling-and-disabling-branch-protection */
+//  case class EnablingAndDisabling(protection: ApiBranchProtectionResponse)
+
+  def apply(info: ProtectedBranchService.ProtectedBranchInfo): ApiBranchProtectionResponse =
+    ApiBranchProtectionResponse(
       url = Some(
         ApiPath(
           s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection"
@@ -42,7 +46,8 @@ object ApiBranchProtection {
           )
         )
       ),
-      restrictions = if (info.restrictionsUsers.isEmpty) None else Some(Restrictions(info.restrictionsUsers))
+      restrictions = if (info.restrictionsUsers.isEmpty) None else Some(Restrictions(info.restrictionsUsers)),
+      enforce_admins = if (info.enabled) Some(EnforceAdmins(info.includeAdministrators)) else None
     )
 
   val statusNone = Status(None, Off, Seq.empty, None)

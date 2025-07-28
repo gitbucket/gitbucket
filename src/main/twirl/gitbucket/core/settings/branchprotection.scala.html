@@ -1,6 +1,6 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   branch: String,
-  protection: gitbucket.core.api.ApiBranchProtection,
+  protection: gitbucket.core.api.ApiBranchProtectionResponse,
   knownContexts: Seq[String],
   info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -21,6 +21,17 @@
                 <span class="strong">Protect this branch</span>
               </label>
               <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
+            </div>
+
+            <!--====================================================================-->
+            <!-- Enforce administrators -->
+            <!--====================================================================-->
+            <div class="checkbox js-enabled" style="display:none">
+              <label>
+                <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.enforce_admins.exists(_.enabled))>
+                <span class="strong">Include administrators</span>
+              </label>
+              <p class="help-block">Enforce required status checks for repository administrators.</p>
             </div>
 
             <!--====================================================================-->
@@ -72,14 +83,6 @@
                       }
                     </div>
                   </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
-                      <span class="strong">Include administrators</span>
-                    </label>
-                    <p class="help-block">Enforce required status checks for repository administrators.</p>
-                  </div>
                 </div>
               }
             </div>
@@ -109,8 +112,8 @@ function getValue(){
   if(v.enabled){
     return {
       enabled: true,
+      enforce_admins: v.enforce_for_admins,
       required_status_checks: {
-        enforcement_level: v.has_required_statuses ? ((v.enforce_for_admins ? 'everyone' : 'non_admins')) : 'off',
         contexts: v.has_required_statuses ? contexts : []
       },
       restrictions: {
@@ -120,8 +123,8 @@ function getValue(){
   } else {
     return {
       enabled: false,
+      enforce_admins: false,
       required_status_checks: {
-        enforcement_level: "off",
         contexts: []
       },
       restrictions: {
@@ -135,7 +138,9 @@ function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
   $('.js-restrictions_enabled').toggle(protection.restrictions.users !== undefined);
   $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level !== 'off');
+  @*
   $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level !== 'off' && protection.required_status_checks.contexts.length === 0);
+  *@
 }
 
 function update(){
@@ -194,7 +199,7 @@ $(function() {
       return $(this).data('name') === userName;
     }).length > 0;
     if(exists){
-      $('#error-' + id).text('User has been already added.');
+      $('#error-restrictions-user').text('User has been already added.');
       return false;
     }
 
@@ -203,9 +208,9 @@ $(function() {
       function(data, status){
         if(data !== ''){
           addUserToListHTML(userName, '#restrictions-user-list');
-          $('#userName-' + id).val('');
+          $('#userName-restrictions-user').val('');
         } else {
-          $('#error-' + id).text('User does not exist.');
+          $('#error-restrictions-user').text('User does not exist.');
         }
       });
   });

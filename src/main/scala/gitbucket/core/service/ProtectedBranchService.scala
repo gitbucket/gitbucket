@@ -48,7 +48,7 @@ trait ProtectedBranchService {
     restrictionsUsers: Seq[String]
   )(implicit session: Session): Unit = {
     disableBranchProtection(owner, repository, branch)
-    ProtectedBranches.insert(ProtectedBranch(owner, repository, branch, includeAdministrators && contexts.nonEmpty))
+    ProtectedBranches.insert(ProtectedBranch(owner, repository, branch, includeAdministrators))
 
     restrictionsUsers.foreach { user =>
       ProtectedBranchRestrictions.insert(ProtectedBranchRestriction(owner, repository, branch, user))
