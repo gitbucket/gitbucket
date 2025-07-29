@@ -59,13 +59,13 @@ class ProtectedBranchServiceSpec
         )
       }
     }
-    it("should empty contexts is no-include-administrators") {
+    it("should empty contexts is include-administrators") {
       withTestDB { implicit session =>
         generateNewUserWithDBRepository("user1", "repo1")
         enableBranchProtection("user1", "repo1", "branch", false, Nil, Nil)
         assert(!getProtectedBranchInfo("user1", "repo1", "branch").includeAdministrators)
         enableBranchProtection("user1", "repo1", "branch", true, Nil, Nil)
-        assert(!getProtectedBranchInfo("user1", "repo1", "branch").includeAdministrators)
+        assert(getProtectedBranchInfo("user1", "repo1", "branch").includeAdministrators)
       }
     }
     it("getProtectedBranchList") {
