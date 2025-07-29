@@ -199,7 +199,12 @@ object ProtectedBranchService {
       case _                          => true
     }
 
-    def isPushAllowed(pusher: String): Boolean = restrictionsUsers.isEmpty || restrictionsUsers.contains(pusher)
+    def isPushAllowed(pusher: String)(implicit session: Session): Boolean = pusher match {
+      case _ if !enabled || restrictionsUsers.isEmpty       => true
+      case _ if restrictionsUsers.contains(pusher)          => true
+      case p if isAdministrator(p) && includeAdministrators => false
+      case _                                                => false
+    }
   }
 
   object ProtectedBranchInfo {
