@@ -382,7 +382,8 @@ object ApiSpecModels {
         contexts_url = None
       )
     ),
-    restrictions = Some(Restrictions(users = Seq("admin")))
+    restrictions = Some(Restrictions(users = Seq("admin"))),
+    enforce_admins = None
   )
 
   val apiBranch: ApiBranch = ApiBranch(
@@ -742,6 +743,9 @@ object ApiSpecModels {
        |},
        |"restrictions":{
          |"users":["admin"]
+       |},
+       |"enforce_admins":{
+         |"enabled":true
        |}
        |}""".stripMargin
 
