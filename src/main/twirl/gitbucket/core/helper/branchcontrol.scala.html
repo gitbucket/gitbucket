@@ -67,7 +67,7 @@
     });
 
     function updateBranchControlList(active) {
-      if (active == 'branches') {
+      if (active === 'branches') {
         $('li#branch-control-tab-branches').addClass('active');
         $('li#branch-control-tab-tags').removeClass('active');
 
@@ -81,7 +81,7 @@
         } else {
           $('#branch-control-input').attr('placeholder', 'Find branch ...');
         }
-      } else if (active == 'tags') {
+      } else if (active === 'tags') {
         $('li#branch-control-tab-branches').removeClass('active');
         $('li#branch-control-tab-tags').addClass('active');
 
