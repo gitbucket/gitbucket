@@ -185,8 +185,9 @@ object ProtectedBranchService {
           case ReceiveCommand.Type.UPDATE | ReceiveCommand.Type.UPDATE_NONFASTFORWARD if needStatusCheck(pusher) =>
             unSuccessedContexts(command.getNewId.name) match {
               case s if s.sizeIs == 1 => Some(s"""Required status check "${s.head}" is expected""")
-              case s if s.sizeIs >= 1 => Some(s"${s.size} of ${contexts.size} required status checks are expected")
-              case _                  => None
+              case s if s.sizeIs >= 1 =>
+                Some(s"${s.size} of ${contexts.map(_.size).getOrElse(0)} required status checks are expected")
+              case _ => None
             }
           case ReceiveCommand.Type.DELETE =>
             Some("You do not have permission to push to this branch")
@@ -199,10 +200,10 @@ object ProtectedBranchService {
 
     def unSuccessedContexts(sha1: String)(implicit session: Session): Set[String] = {
       contexts match {
-        case None                               => Set.empty
-        case Some(contexts) if contexts.isEmpty => Set.empty
-        case Some(contexts)                     =>
-          contexts.toSet -- getCommitStatuses(owner, repository, sha1)
+        case None                 => Set.empty
+        case Some(x) if x.isEmpty => Set.empty
+        case Some(x)              =>
+          x.toSet -- getCommitStatuses(owner, repository, sha1)
             .filter(_.state == CommitState.SUCCESS)
             .map(_.context)
             .toSet

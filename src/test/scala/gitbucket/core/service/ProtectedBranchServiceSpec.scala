@@ -29,28 +29,28 @@ class ProtectedBranchServiceSpec
     it("should enable and update and disable") {
       withTestDB { implicit session =>
         generateNewUserWithDBRepository("user1", "repo1")
-        enableBranchProtection("user1", "repo1", "branch", false, Nil, Nil)
+        enableBranchProtection("user1", "repo1", "branch", false, false, Nil, false, Nil)
         assert(
           getProtectedBranchInfo("user1", "repo1", "branch") == ProtectedBranchInfo(
             "user1",
             "repo1",
             "branch",
             true,
-            Nil,
+            None,
             false,
-            Nil
+            None
           )
         )
-        enableBranchProtection("user1", "repo1", "branch", true, Seq("hoge", "huge"), Nil)
+        enableBranchProtection("user1", "repo1", "branch", true, true, Seq("hoge", "huge"), false, Nil)
         assert(
           getProtectedBranchInfo("user1", "repo1", "branch") == ProtectedBranchInfo(
             "user1",
             "repo1",
             "branch",
-            true,
-            Seq("hoge", "huge"),
-            true,
-            Nil
+            enabled = true,
+            contexts = Some(Seq("hoge", "huge")),
+            enforceAdmins = true,
+            restrictionsUsers = None
           )
         )
         disableBranchProtection("user1", "repo1", "branch")
@@ -62,18 +62,18 @@ class ProtectedBranchServiceSpec
     it("should empty contexts is include-administrators") {
       withTestDB { implicit session =>
         generateNewUserWithDBRepository("user1", "repo1")
-        enableBranchProtection("user1", "repo1", "branch", false, Nil, Nil)
-        assert(!getProtectedBranchInfo("user1", "repo1", "branch").includeAdministrators)
-        enableBranchProtection("user1", "repo1", "branch", true, Nil, Nil)
-        assert(getProtectedBranchInfo("user1", "repo1", "branch").includeAdministrators)
+        enableBranchProtection("user1", "repo1", "branch", false, false, Nil, false, Nil)
+        assert(!getProtectedBranchInfo("user1", "repo1", "branch").enforceAdmins)
+        enableBranchProtection("user1", "repo1", "branch", true, false, Nil, false, Nil)
+        assert(getProtectedBranchInfo("user1", "repo1", "branch").enforceAdmins)
       }
     }
     it("getProtectedBranchList") {
       withTestDB { implicit session =>
         generateNewUserWithDBRepository("user1", "repo1")
-        enableBranchProtection("user1", "repo1", "branch", false, Nil, Nil)
-        enableBranchProtection("user1", "repo1", "branch2", false, Seq("fuga"), Nil)
-        enableBranchProtection("user1", "repo1", "branch3", true, Seq("hoge"), Nil)
+        enableBranchProtection("user1", "repo1", "branch", false, false, Nil, false, Nil)
+        enableBranchProtection("user1", "repo1", "branch2", false, false, Seq("fuga"), false, Nil)
+        enableBranchProtection("user1", "repo1", "branch3", true, false, Seq("hoge"), false, Nil)
         assert(getProtectedBranchList("user1", "repo1").toSet == Set("branch", "branch2", "branch3"))
       }
     }
@@ -90,7 +90,7 @@ class ProtectedBranchServiceSpec
           )
           generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false).isEmpty)
-          enableBranchProtection("user1", "repo1", "branch", false, Nil, Nil)
+          enableBranchProtection("user1", "repo1", "branch", false, false, Nil, false, Nil)
           assert(
             receiveHook
               .preReceive("user1", "repo1", rp, rc, "user1", false)
@@ -112,7 +112,7 @@ class ProtectedBranchServiceSpec
           )
           generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false).isEmpty)
-          enableBranchProtection("user1", "repo1", "branch", false, Nil, Nil)
+          enableBranchProtection("user1", "repo1", "branch", false, false, Nil, false, Nil)
           assert(
             receiveHook
               .preReceive("user1", "repo1", rp, rc, "user2", false)
@@ -134,13 +134,13 @@ class ProtectedBranchServiceSpec
           )
           val user1 = generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false).isEmpty)
-          enableBranchProtection("user1", "repo1", "branch", false, Seq("must"), Nil)
+          enableBranchProtection("user1", "repo1", "branch", false, true, Seq("must"), false, Nil)
           assert(
             receiveHook
               .preReceive("user1", "repo1", rp, rc, "user2", false)
               .contains("Required status check \"must\" is expected")
           )
-          enableBranchProtection("user1", "repo1", "branch", false, Seq("must", "must2"), Nil)
+          enableBranchProtection("user1", "repo1", "branch", false, true, Seq("must", "must2"), false, Nil)
           assert(
             receiveHook
               .preReceive("user1", "repo1", rp, rc, "user2", false)
@@ -176,17 +176,17 @@ class ProtectedBranchServiceSpec
           )
           val user1 = generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false).isEmpty)
-          enableBranchProtection("user1", "repo1", "branch", false, Seq("must"), Nil)
+          enableBranchProtection("user1", "repo1", "branch", false, true, Seq("must"), false, Nil)
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false).isEmpty)
-          enableBranchProtection("user1", "repo1", "branch", true, Seq("must"), Nil)
+          enableBranchProtection("user1", "repo1", "branch", true, true, Seq("must"), false, Nil)
           assert(
             receiveHook
               .preReceive("user1", "repo1", rp, rc, "user1", false)
               .contains("Required status check \"must\" is expected")
           )
-          enableBranchProtection("user1", "repo1", "branch", false, Seq("must", "must2"), Nil)
+          enableBranchProtection("user1", "repo1", "branch", false, true, Seq("must", "must2"), false, Nil)
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1", false).isEmpty)
-          enableBranchProtection("user1", "repo1", "branch", true, Seq("must", "must2"), Nil)
+          enableBranchProtection("user1", "repo1", "branch", true, true, Seq("must", "must2"), false, Nil)
           assert(
             receiveHook
               .preReceive("user1", "repo1", rp, rc, "user1", false)
@@ -222,7 +222,7 @@ class ProtectedBranchServiceSpec
           )
           generateNewUserWithDBRepository("user1", "repo1")
           generateNewAccount("user2")
-          enableBranchProtection("user1", "repo1", "branch", false, Nil, Seq("user2"))
+          enableBranchProtection("user1", "repo1", "branch", false, false, Nil, true, Seq("user2"))
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2", false).isEmpty)
           assert(
             receiveHook
@@ -237,14 +237,30 @@ class ProtectedBranchServiceSpec
     it("administrator is owner") {
       withTestDB { implicit session =>
         generateNewUserWithDBRepository("user1", "repo1")
-        val x = ProtectedBranchInfo("user1", "repo1", "branch", true, Nil, false, Nil)
+        val x = ProtectedBranchInfo(
+          "user1",
+          "repo1",
+          "branch",
+          enabled = true,
+          contexts = Some(Nil),
+          enforceAdmins = false,
+          restrictionsUsers = None
+        )
         assert(x.isAdministrator("user1"))
         assert(!x.isAdministrator("user2"))
       }
     }
     it("administrator is manager") {
       withTestDB { implicit session =>
-        val x = ProtectedBranchInfo("grp1", "repo1", "branch", true, Nil, false, Nil)
+        val x = ProtectedBranchInfo(
+          "grp1",
+          "repo1",
+          "branch",
+          enabled = true,
+          contexts = Some(Nil),
+          enforceAdmins = false,
+          restrictionsUsers = None
+        )
         x.createGroup("grp1", None, None)
         generateNewAccount("user1")
         generateNewAccount("user2")
@@ -259,7 +275,15 @@ class ProtectedBranchServiceSpec
     it("unSuccessedContexts") {
       withTestDB { implicit session =>
         val user1 = generateNewUserWithDBRepository("user1", "repo1")
-        val x = ProtectedBranchInfo("user1", "repo1", "branch", true, List("must"), false, Nil)
+        val x = ProtectedBranchInfo(
+          "user1",
+          "repo1",
+          "branch",
+          enabled = true,
+          contexts = Some(List("must")),
+          enforceAdmins = false,
+          restrictionsUsers = None
+        )
         assert(x.unSuccessedContexts(sha) == Set("must"))
         createCommitStatus("user1", "repo1", sha, "context", CommitState.SUCCESS, None, None, now, user1)
         assert(x.unSuccessedContexts(sha) == Set("must"))
@@ -276,7 +300,15 @@ class ProtectedBranchServiceSpec
     it("unSuccessedContexts when empty") {
       withTestDB { implicit session =>
         val user1 = generateNewUserWithDBRepository("user1", "repo1")
-        val x = ProtectedBranchInfo("user1", "repo1", "branch", true, Nil, false, Nil)
+        val x = ProtectedBranchInfo(
+          "user1",
+          "repo1",
+          "branch",
+          enabled = true,
+          contexts = Some(Nil),
+          enforceAdmins = false,
+          restrictionsUsers = None
+        )
         val sha = "0c77148632618b59b6f70004e3084002be2b8804"
         assert(x.unSuccessedContexts(sha) == Set())
         createCommitStatus("user1", "repo1", sha, "context", CommitState.SUCCESS, None, None, now, user1)
@@ -285,15 +317,65 @@ class ProtectedBranchServiceSpec
     }
     it("if disabled, needStatusCheck is false") {
       withTestDB { implicit session =>
-        assert(!ProtectedBranchInfo("user1", "repo1", "branch", false, Seq("must"), true, Nil).needStatusCheck("user1"))
+        assert(
+          !ProtectedBranchInfo(
+            "user1",
+            "repo1",
+            "branch",
+            enabled = false,
+            contexts = Some(Seq("must")),
+            enforceAdmins = true,
+            restrictionsUsers = None
+          ).needStatusCheck("user1")
+        )
       }
     }
     it("needStatusCheck includeAdministrators") {
       withTestDB { implicit session =>
-        assert(ProtectedBranchInfo("user1", "repo1", "branch", true, Seq("must"), false, Nil).needStatusCheck("user2"))
-        assert(!ProtectedBranchInfo("user1", "repo1", "branch", true, Seq("must"), false, Nil).needStatusCheck("user1"))
-        assert(ProtectedBranchInfo("user1", "repo1", "branch", true, Seq("must"), true, Nil).needStatusCheck("user2"))
-        assert(ProtectedBranchInfo("user1", "repo1", "branch", true, Seq("must"), true, Nil).needStatusCheck("user1"))
+        assert(
+          ProtectedBranchInfo(
+            "user1",
+            "repo1",
+            "branch",
+            enabled = true,
+            contexts = Some(Seq("must")),
+            enforceAdmins = false,
+            restrictionsUsers = None
+          ).needStatusCheck("user2")
+        )
+        assert(
+          !ProtectedBranchInfo(
+            "user1",
+            "repo1",
+            "branch",
+            enabled = true,
+            contexts = Some(Seq("must")),
+            enforceAdmins = false,
+            restrictionsUsers = None
+          ).needStatusCheck("user1")
+        )
+        assert(
+          ProtectedBranchInfo(
+            "user1",
+            "repo1",
+            "branch",
+            enabled = true,
+            contexts = Some(Seq("must")),
+            enforceAdmins = true,
+            restrictionsUsers = None
+          ).needStatusCheck("user2")
+        )
+        assert(
+          ProtectedBranchInfo(
+            "user1",
+            "repo1",
+            "branch",
+            enabled = true,
+            contexts = Some(Seq("must")),
+            enforceAdmins = true,
+            restrictionsUsers = None
+          ).needStatusCheck("user1")
+        )
       }
     }
   }

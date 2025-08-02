@@ -365,9 +365,9 @@ object ApiSpecModels {
       repository = repo1Name.name,
       branch = "main",
       enabled = true,
-      contexts = Seq("continuous-integration/travis-ci"),
-      includeAdministrators = true,
-      restrictionsUsers = Seq("admin")
+      contexts = Some(Seq("continuous-integration/travis-ci")),
+      enforceAdmins = true,
+      restrictionsUsers = Some(Seq("admin"))
     )
   )
 
