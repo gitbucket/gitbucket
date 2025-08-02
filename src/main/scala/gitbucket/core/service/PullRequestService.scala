@@ -653,18 +653,18 @@ object PullRequestService {
     commitIdTo: String
   ) {
 
-    val hasConflict = conflictMessage.isDefined
+    val hasConflict: Boolean = conflictMessage.isDefined
     val statuses: List[CommitStatus] =
-      commitStatuses ++ (branchProtection.contexts.toSet -- commitStatuses.map(_.context).toSet)
+      commitStatuses ++ (branchProtection.contexts.getOrElse(Nil).toSet -- commitStatuses.map(_.context).toSet)
         .map(CommitStatus.pending(branchProtection.owner, branchProtection.repository, _))
-    val hasRequiredStatusProblem = needStatusCheck && branchProtection.contexts.exists(context =>
-      statuses.find(_.context == context).map(_.state) != Some(CommitState.SUCCESS)
-    )
-    val hasProblem = hasRequiredStatusProblem || hasConflict || (statuses.nonEmpty && CommitState.combine(
+    val hasRequiredStatusProblem: Boolean = needStatusCheck && branchProtection.contexts
+      .getOrElse(Nil)
+      .exists(context => !statuses.find(_.context == context).map(_.state).contains(CommitState.SUCCESS))
+    val hasProblem: Boolean = hasRequiredStatusProblem || hasConflict || (statuses.nonEmpty && CommitState.combine(
       statuses.map(_.state).toSet
     ) != CommitState.SUCCESS)
-    val canUpdate = branchIsOutOfDate && !hasConflict
-    val canMerge = hasMergePermission && !hasConflict && !hasRequiredStatusProblem
+    val canUpdate: Boolean = branchIsOutOfDate && !hasConflict
+    val canMerge: Boolean = hasMergePermission && !hasConflict && !hasRequiredStatusProblem
     lazy val commitStateSummary: (CommitState, String) = {
       val stateMap = statuses.groupBy(_.state)
       val state = CommitState.combine(stateMap.keySet)
@@ -672,8 +672,8 @@ object PullRequestService {
       state -> summary
     }
     lazy val statusesAndRequired: List[(CommitStatus, Boolean)] = statuses.map { s =>
-      s -> branchProtection.contexts.contains(s.context)
+      s -> branchProtection.contexts.getOrElse(Nil).contains(s.context)
     }
-    lazy val isAllSuccess = commitStateSummary._1 == CommitState.SUCCESS
+    lazy val isAllSuccess: Boolean = commitStateSummary._1 == CommitState.SUCCESS
   }
 }

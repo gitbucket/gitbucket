@@ -1,19 +1,19 @@
 package gitbucket.core.api
 
-import org.json4s.Formats
+import org.json4s.{Formats, JValue, jvalue2extractable}
 import org.json4s.jackson.JsonMethods
-import org.json4s.jvalue2extractable
+import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
 class JsonFormatSpec extends AnyFunSuite {
-  import ApiSpecModels._
+  import ApiSpecModels.*
   implicit val format: Formats = JsonFormat.jsonFormats
 
   private def expected(json: String) = json.replaceAll("\n", "")
-  def normalizeJson(json: String) = {
+  def normalizeJson(json: String): JValue = {
     org.json4s.jackson.parseJson(json)
   }
-  def assertEqualJson(actual: String, expected: String) = {
+  def assertEqualJson(actual: String, expected: String): Assertion = {
     assert(normalizeJson(actual) == normalizeJson(expected))
   }
 
@@ -57,7 +57,9 @@ class JsonFormatSpec extends AnyFunSuite {
     assert(JsonFormat(apiBranchProtectionOutput) == expected(jsonBranchProtectionOutput))
   }
   test("deserialize apiBranchProtection") {
-    assert(JsonMethods.parse(jsonBranchProtectionInput).extract[ApiBranchProtection] == apiBranchProtectionInput)
+    assert(
+      JsonMethods.parse(jsonBranchProtectionInput).extract[ApiBranchProtectionResponse] == apiBranchProtectionInput
+    )
   }
   test("apiBranch") {
     assert(JsonFormat(apiBranch) == expected(jsonBranch))

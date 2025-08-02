@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- PROTECTED_BRANCH -->
+  <!--================================================================================================-->
+  <addColumn tableName="PROTECTED_BRANCH">
+    <column name="REQUIRED_STATUS_CHECK" type="boolean" nullable="false" defaultValue="false"/>
+    <column name="RESTRICTIONS" type="boolean" nullable="false" defaultValue="false"/>
+  </addColumn>
+
+  <sql>
+    UPDATE PROTECTED_BRANCH SET REQUIRED_STATUS_CHECK = TRUE
+    WHERE EXISTS (SELECT * FROM PROTECTED_BRANCH_REQUIRE_CONTEXT
+    WHERE PROTECTED_BRANCH.USER_NAME       = PROTECTED_BRANCH_REQUIRE_CONTEXT.USER_NAME
+    AND PROTECTED_BRANCH.REPOSITORY_NAME = PROTECTED_BRANCH_REQUIRE_CONTEXT.REPOSITORY_NAME
+    AND PROTECTED_BRANCH.BRANCH          = PROTECTED_BRANCH_REQUIRE_CONTEXT.BRANCH)
+  </sql>
+
+  <!--================================================================================================-->
+  <!-- PROTECTED_BRANCH_RESTRICTIONS_USER -->
+  <!--================================================================================================-->
+  <createTable tableName="PROTECTED_BRANCH_RESTRICTION">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="ALLOWED_USER" type="varchar(255)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_PK" tableName="PROTECTED_BRANCH_RESTRICTION" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH, ALLOWED_USER"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_FK0" baseTableName="PROTECTED_BRANCH_RESTRICTION" baseColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" referencedTableName="PROTECTED_BRANCH" referencedColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_FK1" baseTableName="PROTECTED_BRANCH_RESTRICTION" baseColumnNames="ALLOWED_USER" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+</changeSet>
