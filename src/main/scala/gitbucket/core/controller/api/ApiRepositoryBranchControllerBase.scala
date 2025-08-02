@@ -5,7 +5,7 @@ import gitbucket.core.service.{AccountService, ProtectedBranchService, Repositor
 import gitbucket.core.util.*
 import gitbucket.core.util.Directory.*
 import gitbucket.core.util.Implicits.*
-import gitbucket.core.util.JGitUtil.getBranchesNoMergeInfo
+import gitbucket.core.util.JGitUtil.{getBranchesNoMergeInfo, processTree}
 import org.eclipse.jgit.api.Git
 import org.scalatra.NoContent
 
@@ -273,7 +273,9 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
             repository.name,
             branch,
             protection.enforce_admins.getOrElse(false),
+            protection.required_status_checks.isDefined,
             protection.required_status_checks.map(_.contexts).getOrElse(Nil),
+            protection.restrictions.isDefined,
             protection.restrictions.map(_.users).getOrElse(Nil)
           )
         } else {

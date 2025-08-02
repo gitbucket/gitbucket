@@ -30,27 +30,29 @@ object ApiBranchProtectionResponse {
         )
       ),
       enabled = info.enabled,
-      required_status_checks = Some(
+      required_status_checks = info.contexts.map { contexts =>
         Status(
           Some(
             ApiPath(
               s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection/required_status_checks"
             )
           ),
-          EnforcementLevel(info.enabled && info.contexts.nonEmpty, info.includeAdministrators),
-          info.contexts,
+          EnforcementLevel(info.enabled && info.contexts.nonEmpty, info.enforceAdmins),
+          contexts,
           Some(
             ApiPath(
               s"/api/v3/repos/${info.owner}/${info.repository}/branches/${info.branch}/protection/required_status_checks/contexts"
             )
           )
         )
-      ),
-      restrictions = if (info.restrictionsUsers.isEmpty) None else Some(Restrictions(info.restrictionsUsers)),
-      enforce_admins = if (info.enabled) Some(EnforceAdmins(info.includeAdministrators)) else None
+      },
+      restrictions = info.restrictionsUsers.map { restrictionsUsers =>
+        Restrictions(restrictionsUsers)
+      },
+      enforce_admins = if (info.enabled) Some(EnforceAdmins(info.enforceAdmins)) else None
     )
 
-  val statusNone = Status(None, Off, Seq.empty, None)
+  val statusNone: Status = Status(None, Off, Seq.empty, None)
 
   case class Status(
     url: Option[ApiPath], // for output

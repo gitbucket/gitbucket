@@ -5,8 +5,11 @@ trait ProtectedBranchComponent extends TemplateComponent { self: Profile =>
 
   lazy val ProtectedBranches = TableQuery[ProtectedBranches]
   class ProtectedBranches(tag: Tag) extends Table[ProtectedBranch](tag, "PROTECTED_BRANCH") with BranchTemplate {
-    val statusCheckAdmin = column[Boolean]("STATUS_CHECK_ADMIN")
-    def * = (userName, repositoryName, branch, statusCheckAdmin).mapTo[ProtectedBranch]
+    val statusCheckAdmin = column[Boolean]("STATUS_CHECK_ADMIN") // enforceAdmins
+    val requiredStatusCheck = column[Boolean]("REQUIRED_STATUS_CHECK")
+    val restrictions = column[Boolean]("RESTRICTIONS")
+    def * =
+      (userName, repositoryName, branch, statusCheckAdmin, requiredStatusCheck, restrictions).mapTo[ProtectedBranch]
     def byPrimaryKey(userName: String, repositoryName: String, branch: String): Rep[Boolean] =
       byBranch(userName, repositoryName, branch)
     def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], branch: Rep[String]): Rep[Boolean] =
@@ -33,7 +36,14 @@ trait ProtectedBranchComponent extends TemplateComponent { self: Profile =>
   }
 }
 
-case class ProtectedBranch(userName: String, repositoryName: String, branch: String, statusCheckAdmin: Boolean)
+case class ProtectedBranch(
+  userName: String,
+  repositoryName: String,
+  branch: String,
+  enforceAdmins: Boolean,
+  requiredStatusCheck: Boolean,
+  restrictions: Boolean
+)
 
 case class ProtectedBranchContext(userName: String, repositoryName: String, branch: String, context: String)
 

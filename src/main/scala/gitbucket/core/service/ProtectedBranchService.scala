@@ -26,7 +26,15 @@ trait ProtectedBranchService {
         p._1 -> (p._2.flatMap(_._2._1), p._2.flatMap(_._2._2))
       }
       .map { case (t1, (contexts, users)) =>
-        new ProtectedBranchInfo(t1.userName, t1.repositoryName, t1.branch, true, contexts, t1.statusCheckAdmin, users)
+        new ProtectedBranchInfo(
+          t1.userName,
+          t1.repositoryName,
+          t1.branch,
+          true,
+          if (t1.requiredStatusCheck) Some(contexts) else None,
+          t1.enforceAdmins,
+          if (t1.restrictions) Some(users) else None
+        )
       }
 
   def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit
@@ -43,19 +51,27 @@ trait ProtectedBranchService {
     owner: String,
     repository: String,
     branch: String,
-    includeAdministrators: Boolean,
+    enforceAdmins: Boolean,
+    requiredStatusCheck: Boolean,
     contexts: Seq[String],
+    restrictions: Boolean,
     restrictionsUsers: Seq[String]
   )(implicit session: Session): Unit = {
     disableBranchProtection(owner, repository, branch)
-    ProtectedBranches.insert(ProtectedBranch(owner, repository, branch, includeAdministrators))
+    ProtectedBranches.insert(
+      ProtectedBranch(owner, repository, branch, enforceAdmins, requiredStatusCheck, restrictions)
+    )
 
-    restrictionsUsers.foreach { user =>
-      ProtectedBranchRestrictions.insert(ProtectedBranchRestriction(owner, repository, branch, user))
+    if (restrictions) {
+      restrictionsUsers.foreach { user =>
+        ProtectedBranchRestrictions.insert(ProtectedBranchRestriction(owner, repository, branch, user))
+      }
     }
 
-    contexts.foreach { context =>
-      ProtectedBranchContexts.insert(ProtectedBranchContext(owner, repository, branch, context))
+    if (requiredStatusCheck) {
+      contexts.foreach { context =>
+        ProtectedBranchContexts.insert(ProtectedBranchContext(owner, repository, branch, context))
+      }
     }
   }
 
@@ -126,16 +142,16 @@ object ProtectedBranchService {
      * When enabled, commits must first be pushed to another branch,
      * then merged or pushed directly to test after status checks have passed.
      */
-    contexts: Seq[String],
+    contexts: Option[Seq[String]],
     /**
      * Include administrators
      * Enforce required status checks for repository administrators.
      */
-    includeAdministrators: Boolean,
+    enforceAdmins: Boolean,
     /**
      * Users who can push to the branch.
      */
-    restrictionsUsers: Seq[String]
+    restrictionsUsers: Option[Seq[String]]
   ) extends AccountService
       with RepositoryService
       with CommitStatusService {
@@ -181,29 +197,31 @@ object ProtectedBranchService {
       }
     }
 
-    def unSuccessedContexts(sha1: String)(implicit session: Session): Set[String] =
-      if (contexts.isEmpty) {
-        Set.empty
-      } else {
-        contexts.toSet -- getCommitStatuses(owner, repository, sha1)
-          .filter(_.state == CommitState.SUCCESS)
-          .map(_.context)
-          .toSet
+    def unSuccessedContexts(sha1: String)(implicit session: Session): Set[String] = {
+      contexts match {
+        case None                               => Set.empty
+        case Some(contexts) if contexts.isEmpty => Set.empty
+        case Some(contexts)                     =>
+          contexts.toSet -- getCommitStatuses(owner, repository, sha1)
+            .filter(_.state == CommitState.SUCCESS)
+            .map(_.context)
+            .toSet
       }
+    }
 
     def needStatusCheck(pusher: String)(implicit session: Session): Boolean = pusher match {
-      case _ if !enabled              => false
-      case _ if contexts.isEmpty      => false
-      case _ if includeAdministrators => true
-      case p if isAdministrator(p)    => false
-      case _                          => true
+      case _ if !enabled           => false
+      case _ if contexts.isEmpty   => false
+      case _ if enforceAdmins      => true
+      case p if isAdministrator(p) => false
+      case _                       => true
     }
 
     def isPushAllowed(pusher: String)(implicit session: Session): Boolean = pusher match {
-      case _ if !enabled || restrictionsUsers.isEmpty       => true
-      case _ if restrictionsUsers.contains(pusher)          => true
-      case p if isAdministrator(p) && includeAdministrators => false
-      case _                                                => false
+      case _ if !enabled || restrictionsUsers.isEmpty  => true
+      case _ if restrictionsUsers.get.contains(pusher) => true
+      case p if isAdministrator(p) && enforceAdmins    => false
+      case _                                           => false
     }
   }
 
@@ -214,9 +232,9 @@ object ProtectedBranchService {
         repository,
         branch,
         enabled = false,
-        contexts = Nil,
-        includeAdministrators = false,
-        restrictionsUsers = Nil
+        contexts = None,
+        enforceAdmins = false,
+        restrictionsUsers = None
       )
     }
   }

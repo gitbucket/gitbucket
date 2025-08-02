@@ -59,7 +59,7 @@
             <!--====================================================================-->
             <div class="checkbox js-enabled" style="display:none">
               <label>
-                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
+                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.required_status_checks.isDefined) @if(knownContexts.isEmpty){disabled }>
                 <span class="strong">Require status checks to pass before merging</span>
               </label>
               <p class="help-block">When enabled, commits must first be pushed to another branch, then merged or pushed directly to <b>@branch</b> after status checks have passed.</p>
@@ -113,31 +113,20 @@ function getValue(){
     return {
       enabled: true,
       enforce_admins: v.enforce_for_admins,
-      required_status_checks: {
-        contexts: v.has_required_statuses ? contexts : []
-      },
-      restrictions: {
-        users: restrictions
-      }
-    };
+      required_status_checks: v.has_required_statuses ? { contexts: contexts } : undefined,
+      restrictions: restrictions ? { users: restrictions } : undefined
+  };
   } else {
     return {
-      enabled: false,
-      enforce_admins: false,
-      required_status_checks: {
-        contexts: []
-      },
-      restrictions: {
-        users: undefined
-      }
+      enabled: false
     };
   }
 }
 
 function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
-  $('.js-restrictions_enabled').toggle(protection.restrictions.users !== undefined);
-  $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level !== 'off');
+  $('.js-restrictions_enabled').toggle(protection.restrictions !== undefined);
+  $('.js-has_required_statuses').toggle(protection.required_status_checks !== undefined);
   @*
   $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level !== 'off' && protection.required_status_checks.contexts.length === 0);
   *@
@@ -157,7 +146,7 @@ function submitForm(e){
     url: '@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.urlEncode(branch)',
     contentType: 'application/json',
     dataType: 'json',
-    data: JSON.stringify({protection:protection}),
+    data: JSON.stringify({protection: protection}),
     success: function(r){
       $('#saved-info').show();
     },
