@@ -16,7 +16,7 @@ name := Name
 version := GitBucketVersion
 scalaVersion := "2.13.16"
 
-crossScalaVersions += "3.7.1"
+crossScalaVersions += "3.7.2"
 
 // scalafmtOnCompile := true
 
@@ -33,9 +33,9 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"       % "solidbase"                    % "1.1.0",
   "io.github.gitbucket"       % "markedj"                      % "1.0.20",
   "org.tukaani"               % "xz"                           % "1.10",
-  "org.apache.commons"        % "commons-compress"             % "1.27.1",
+  "org.apache.commons"        % "commons-compress"             % "1.28.0",
   "org.apache.commons"        % "commons-email"                % "1.6.0",
-  "commons-net"               % "commons-net"                  % "3.11.1",
+  "commons-net"               % "commons-net"                  % "3.12.0",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.14",
   "org.apache.sshd"           % "apache-sshd"                  % "2.15.0" exclude ("org.slf4j", "slf4j-jdk14") exclude (
     "org.apache.sshd",
@@ -49,14 +49,14 @@ libraryDependencies ++= Seq(
   "org.mariadb.jdbc"                % "mariadb-java-client"      % "2.7.12",
   "org.postgresql"                  % "postgresql"               % "42.7.7",
   "ch.qos.logback"                  % "logback-classic"          % "1.5.18",
-  "com.zaxxer"                      % "HikariCP"                 % "6.3.1" exclude ("org.slf4j", "slf4j-api"),
+  "com.zaxxer"                      % "HikariCP"                 % "7.0.0" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                   % "1.4.4",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"              % "1.1.0",
   "io.github.java-diff-utils"       % "java-diff-utils"          % "4.16",
   "org.cache2k"                     % "cache2k-all"              % "1.6.0.Final",
   "net.coobird"                     % "thumbnailator"            % "0.4.20",
   "com.github.zafarkhaja"           % "java-semver"              % "0.10.2",
-  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.26",
+  "com.nimbusds"                    % "oauth2-oidc-sdk"          % "11.27",
   "org.eclipse.jetty"               % "jetty-webapp"             % JettyVersion    % "provided",
   "javax.servlet"                   % "javax.servlet-api"        % "3.1.0"         % "provided",
   "junit"                           % "junit"                    % "4.13.2"        % "test",
@@ -68,7 +68,7 @@ libraryDependencies ++= Seq(
   "net.i2p.crypto"                  % "eddsa"                    % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"             % "1.11.0",
   "org.ec4j.core"                   % "ec4j-core"                % "1.1.1",
-  "org.kohsuke"                     % "github-api"               % "1.327"         % "test"
+  "org.kohsuke"                     % "github-api"               % "1.329"         % "test"
 )
 
 // Compiler settings
