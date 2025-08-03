@@ -1,6 +1,6 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   branch: String,
-  protection: gitbucket.core.api.ApiBranchProtection,
+  protection: gitbucket.core.api.ApiBranchProtectionResponse,
   knownContexts: Seq[String],
   info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -22,9 +22,44 @@
               </label>
               <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
             </div>
+
+            <!--====================================================================-->
+            <!-- Enforce administrators -->
+            <!--====================================================================-->
             <div class="checkbox js-enabled" style="display:none">
               <label>
-                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
+                <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.enforce_admins.exists(_.enabled))>
+                <span class="strong">Include administrators</span>
+              </label>
+              <p class="help-block">Enforce restrictions even for repository administrators.</p>
+            </div>
+
+            <!--====================================================================-->
+            <!-- Push restrictions -->
+            <!--====================================================================-->
+            <div class="checkbox js-enabled" style="display:none">
+              <label>
+                <input type="checkbox" name="restrictions" onclick="update()" @check(protection.restrictions.isDefined)>
+                <span class="strong">Restrict users for push</span>
+              </label>
+              <p class="help-block">Restrict users who can push to this branch</p>
+              <div class="js-restrictions_enabled" style="display: none;">
+                <ul id="restrictions-user-list">
+                </ul>
+                @gitbucket.core.helper.html.account("userName-restrictions-user", 200, true, false)
+                <input type="button" class="btn btn-default add-restrictions-user" value="Add"/>
+                <div>
+                  <span class="error" id="error-restrictions-user"></span>
+                </div>
+              </div>
+            </div>
+
+            <!--====================================================================-->
+            <!-- Status check -->
+            <!--====================================================================-->
+            <div class="checkbox js-enabled" style="display:none">
+              <label>
+                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.required_status_checks.isDefined) @if(knownContexts.isEmpty){disabled }>
                 <span class="strong">Require status checks to pass before merging</span>
               </label>
               <p class="help-block">When enabled, commits must first be pushed to another branch, then merged or pushed directly to <b>@branch</b> after status checks have passed.</p>
@@ -48,14 +83,6 @@
                       }
                     </div>
                   </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
-                      <span class="strong">Include administrators</span>
-                    </label>
-                    <p class="help-block">Enforce required status checks for repository administrators.</p>
-                  </div>
                 </div>
               }
             </div>
@@ -68,59 +95,114 @@
 }
 <script>
 function getValue(){
-  var v = {}, contexts=[];
+  const v = {}, contexts = [];
+  let restrictions = undefined;
   $("input[type=checkbox]:checked").each(function(){
-    if(this.name === 'contexts'){
+    if(this.name === 'contexts') {
       contexts.push(this.value);
+    } else if (this.name === 'restrictions') {
+      restrictions = $('#restrictions-user-list li').map(function(i, e){
+        return $(e).data('name');
+      }).get();
     } else {
       v[this.name] = true;
     }
   });
+
   if(v.enabled){
     return {
       enabled: true,
-      required_status_checks: {
-        enforcement_level: v.has_required_statuses ? ((v.enforce_for_admins ? 'everyone' : 'non_admins')) : 'off',
-        contexts: v.has_required_statuses ? contexts : []
-      }
-    };
+      enforce_admins: v.enforce_for_admins,
+      required_status_checks: v.has_required_statuses ? { contexts: contexts } : undefined,
+      restrictions: restrictions ? { users: restrictions } : undefined
+  };
   } else {
     return {
-      enabled: false,
-      required_status_checks: {
-        enforcement_level: "off",
-        contexts: []
-      }
+      enabled: false
     };
   }
 }
+
 function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
-  $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level != 'off');
-  $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level != 'off' && protection.required_status_checks.contexts.length == 0);
+  $('.js-restrictions_enabled').toggle(protection.restrictions !== undefined);
+  $('.js-has_required_statuses').toggle(protection.required_status_checks !== undefined);
 }
+
 function update(){
-  var protection = getValue();
+  const protection = getValue();
   updateView(protection);
 }
-$(update);
+
 function submitForm(e){
   e.stopPropagation();
   e.preventDefault();
-  var protection = getValue();
+  const protection = getValue();
   $.ajax({
-    method:'PATCH',
-    url:'@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.urlEncode(branch)',
+    method: 'PATCH',
+    url: '@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.urlEncode(branch)',
     contentType: 'application/json',
     dataType: 'json',
-    data:JSON.stringify({protection:protection}),
-    success:function(r){
+    data: JSON.stringify({protection: protection}),
+    success: function(r){
       $('#saved-info').show();
     },
-    error:function(err){
+    error: function(err){
       console.log(err);
       alert('update error');
     }
   });
 }
+
+function addUserToListHTML(userName, id){
+  $(id).append($('<li>').data('name', userName)
+      .append(' ')
+      .append(userName)
+      .append($('<a href="#" onclick="$(this).parent().remove();" class="remove">(remove)</a>')));
+}
+
+$(function() {
+  // Initialize
+  update();
+
+  @protection.restrictions.map(_.users).map { users =>
+    @users.map { user =>
+      addUserToListHTML('@user', '#restrictions-user-list');
+    }
+  }
+
+  $('.add-restrictions-user').click(function(){
+    $('#error-restrictions-user').text('');
+    const userName = $('#userName-restrictions-user').val();
+
+    // check empty
+    if($.trim(userName) === ''){
+      return false;
+    }
+
+    // check duplication
+    const exists = $('#restrictions-user-list li').filter(function(){
+      return $(this).data('name') === userName;
+    }).length > 0;
+    if(exists){
+      $('#error-restrictions-user').text('User has been already added.');
+      return false;
+    }
+
+    // check existence
+    $.post('@context.path/_user/existence', {
+        'userName': userName,
+        'owner': '@repository.owner',
+        'repository': '@repository.name'
+      },
+      function(data, status){
+        if(data !== ''){
+          addUserToListHTML(userName, '#restrictions-user-list');
+          $('#userName-restrictions-user').val('');
+        } else {
+          $('#error-restrictions-user').text("User does not exist or isn't writable to this repository.");
+        }
+      });
+  });
+})
 </script>

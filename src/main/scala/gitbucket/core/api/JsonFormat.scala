@@ -44,7 +44,7 @@ object JsonFormat {
     FieldSerializer[ApiCommits.File]() +
     FieldSerializer[ApiRelease]() +
     FieldSerializer[ApiReleaseAsset]() +
-    ApiBranchProtection.enforcementLevelSerializer
+    ApiBranchProtectionResponse.enforcementLevelSerializer
 
   def apiPathSerializer(c: Context) =
     new CustomSerializer[ApiPath](_ =>

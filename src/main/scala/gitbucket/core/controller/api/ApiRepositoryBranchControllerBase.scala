@@ -5,7 +5,7 @@ import gitbucket.core.service.{AccountService, ProtectedBranchService, Repositor
 import gitbucket.core.util.*
 import gitbucket.core.util.Directory.*
 import gitbucket.core.util.Implicits.*
-import gitbucket.core.util.JGitUtil.getBranchesNoMergeInfo
+import gitbucket.core.util.JGitUtil.{getBranchesNoMergeInfo, processTree}
 import org.eclipse.jgit.api.Git
 import org.scalatra.NoContent
 
@@ -43,7 +43,9 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
       } yield {
         val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
         JsonFormat(
-          ApiBranch(branch, ApiBranchCommit(br.commitId), ApiBranchProtection(protection))(RepositoryName(repository))
+          ApiBranch(branch, ApiBranchCommit(br.commitId), ApiBranchProtectionResponse(protection))(
+            RepositoryName(repository)
+          )
         )
       }) getOrElse NotFound()
     }
@@ -58,7 +60,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     if (repository.branchList.contains(branch)) {
       val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
       JsonFormat(
-        ApiBranchProtection(protection)
+        ApiBranchProtectionResponse(protection)
       )
     } else { NotFound() }
   })
@@ -138,7 +140,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
       if (repository.branchList.contains(branch)) {
         val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
         JsonFormat(
-          ApiBranchProtection(protection).required_status_checks
+          ApiBranchProtectionResponse(protection).required_status_checks
         )
       } else { NotFound() }
   })
@@ -262,7 +264,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
     Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
       (for {
         branch <- params.get("splat") if repository.branchList.contains(branch)
-        protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
+        protection <- extractFromJsonBody[ApiBranchProtectionRequest.EnablingAndDisabling].map(_.protection)
         br <- getBranchesNoMergeInfo(git).find(_.name == branch)
       } yield {
         if (protection.enabled) {
@@ -270,13 +272,17 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
             repository.owner,
             repository.name,
             branch,
-            protection.status.enforcement_level == ApiBranchProtection.Everyone,
-            protection.status.contexts
+            protection.enforce_admins.getOrElse(false),
+            protection.required_status_checks.isDefined,
+            protection.required_status_checks.map(_.contexts).getOrElse(Nil),
+            protection.restrictions.isDefined,
+            protection.restrictions.map(_.users).getOrElse(Nil)
           )
         } else {
           disableBranchProtection(repository.owner, repository.name, branch)
         }
-        JsonFormat(ApiBranch(branch, ApiBranchCommit(br.commitId), protection)(RepositoryName(repository)))
+        val response = ApiBranchProtectionResponse(getProtectedBranchInfo(repository.owner, repository.name, branch))
+        JsonFormat(ApiBranch(branch, ApiBranchCommit(br.commitId), response)(RepositoryName(repository)))
       }) getOrElse NotFound()
     }
   })

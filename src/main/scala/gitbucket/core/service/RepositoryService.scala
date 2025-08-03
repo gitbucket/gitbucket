@@ -654,11 +654,11 @@ trait RepositoryService {
 
   def hasOwnerRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
-      case Some(a) if (a.isAdmin)                                                                         => true
-      case Some(a) if (a.userName == owner)                                                               => true
-      case Some(a) if (getGroupMembers(owner).exists(_.userName == a.userName))                           => true
-      case Some(a) if (getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN)).contains(a.userName)) => true
-      case _                                                                                              => false
+      case Some(a) if a.isAdmin                                                                         => true
+      case Some(a) if a.userName == owner                                                               => true
+      case Some(a) if getGroupMembers(owner).exists(_.userName == a.userName)                           => true
+      case Some(a) if getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN)).contains(a.userName) => true
+      case _                                                                                            => false
     }
   }
 
@@ -666,11 +666,11 @@ trait RepositoryService {
     s: Session
   ): Boolean = {
     loginAccount match {
-      case Some(a) if (a.isAdmin)                                               => true
-      case Some(a) if (a.userName == owner)                                     => true
-      case Some(a) if (getGroupMembers(owner).exists(_.userName == a.userName)) => true
+      case Some(a) if a.isAdmin                                               => true
+      case Some(a) if a.userName == owner                                     => true
+      case Some(a) if getGroupMembers(owner).exists(_.userName == a.userName) => true
       case Some(a)
-          if (getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)).contains(a.userName)) =>
+          if getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)).contains(a.userName) =>
         true
       case _ => false
     }
@@ -678,12 +678,12 @@ trait RepositoryService {
 
   def hasGuestRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
-      case Some(a) if (a.isAdmin)                                               => true
-      case Some(a) if (a.userName == owner)                                     => true
-      case Some(a) if (getGroupMembers(owner).exists(_.userName == a.userName)) => true
+      case Some(a) if a.isAdmin                                               => true
+      case Some(a) if a.userName == owner                                     => true
+      case Some(a) if getGroupMembers(owner).exists(_.userName == a.userName) => true
       case Some(a)
-          if (getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER, Role.GUEST))
-            .contains(a.userName)) =>
+          if getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER, Role.GUEST))
+            .contains(a.userName) =>
         true
       case _ => false
     }
@@ -694,14 +694,26 @@ trait RepositoryService {
       true
     } else {
       loginAccount match {
-        case Some(x) if (x.isAdmin)                                                             => true
-        case Some(x) if (repository.userName == x.userName)                                     => true
-        case Some(x) if (getGroupMembers(repository.userName).exists(_.userName == x.userName)) => true
-        case Some(x)
-            if (getCollaboratorUserNames(repository.userName, repository.repositoryName).contains(x.userName)) =>
+        case Some(x) if x.isAdmin                                                             => true
+        case Some(x) if repository.userName == x.userName                                     => true
+        case Some(x) if getGroupMembers(repository.userName).exists(_.userName == x.userName) => true
+        case Some(x) if getCollaboratorUserNames(repository.userName, repository.repositoryName).contains(x.userName) =>
           true
         case _ => false
       }
+    }
+  }
+
+  def isWritable(repository: Repository, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+    loginAccount match {
+      case Some(x) if x.isAdmin                                                             => true
+      case Some(x) if repository.userName == x.userName                                     => true
+      case Some(x) if getGroupMembers(repository.userName).exists(_.userName == x.userName) => true
+      case Some(x)
+          if getCollaboratorUserNames(repository.userName, repository.repositoryName, Seq(Role.ADMIN, Role.DEVELOPER))
+            .contains(x.userName) =>
+        true
+      case _ => false
     }
   }
 

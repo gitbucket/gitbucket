@@ -261,11 +261,22 @@ trait IndexControllerBase extends ControllerBase {
 
   /**
    * JSON API for checking user or group existence.
+   *
    * Returns a single string which is any of "group", "user" or "".
+   * Additionally, check whether the user is writable to the repository
+   * if "owner" and "repository" are given,
    */
   post("/_user/existence")(usersOnly {
     getAccountByUserNameIgnoreCase(params("userName")).map { account =>
-      if (account.isGroupAccount) "group" else "user"
+      if (!account.isGroupAccount && params.get("repository").isDefined && params.get("owner").isDefined) {
+        getRepository(params("owner"), params("repository"))
+          .collect {
+            case repository if isWritable(repository.repository, Some(account)) => "user"
+          }
+          .getOrElse("")
+      } else {
+        if (account.isGroupAccount) "group" else "user"
+      }
     } getOrElse ""
   })
 

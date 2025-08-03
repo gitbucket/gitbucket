@@ -9,11 +9,11 @@ import gitbucket.core.api.JsonFormat.Context
 import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
-import gitbucket.core.service.WebHookService._
-import gitbucket.core.service._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util._
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.service.WebHookService.*
+import gitbucket.core.service.*
+import gitbucket.core.util.Implicits.*
+import gitbucket.core.util.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.{
   BaseActivityInfo,
   CloseIssueInfo,
@@ -33,9 +33,9 @@ import gitbucket.core.servlet.Database
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.http.server.GitServlet
-import org.eclipse.jgit.lib._
-import org.eclipse.jgit.transport._
-import org.eclipse.jgit.transport.resolver._
+import org.eclipse.jgit.lib.*
+import org.eclipse.jgit.transport.*
+import org.eclipse.jgit.transport.resolver.*
 import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
@@ -43,7 +43,7 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.json4s.Formats
 import org.json4s.convertToJsonInput
-import org.json4s.jackson.Serialization._
+import org.json4s.jackson.Serialization.*
 
 /**
  * Provides Git repository via HTTP.
@@ -117,7 +117,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                       GitLfs.BatchResponseObject(
                         requestObject.oid,
                         requestObject.size,
-                        true,
+                        authenticated = true,
                         GitLfs.Actions(
                           upload = Some(
                             GitLfs.Action(
@@ -138,7 +138,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                       GitLfs.BatchResponseObject(
                         requestObject.oid,
                         requestObject.size,
-                        true,
+                        authenticated = true,
                         GitLfs.Actions(
                           download = Some(
                             GitLfs.Action(
@@ -223,7 +223,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   }
 }
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
     extends PostReceiveHook
@@ -242,6 +242,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     with WebHookPullRequestReviewCommentService
     with CommitsService
     with SystemSettingsService
+    with ProtectedBranchService
     with RequestCache {
 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
@@ -253,7 +254,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
         commands.asScala.foreach { command =>
           // call pre-commit hook
           PluginRegistry().getReceiveHooks
-            .flatMap(_.preReceive(owner, repository, receivePack, command, pusher, false))
+            .flatMap(_.preReceive(owner, repository, receivePack, command, pusher, mergePullRequest = false))
             .headOption
             .foreach { error =>
               command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
@@ -428,8 +429,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                   repositoryInfo,
                   newCommits,
                   ownerAccount,
-                  newId = command.getNewId(),
-                  oldId = command.getOldId()
+                  newId = command.getNewId,
+                  oldId = command.getOldId
                 )
               }
             }
@@ -453,7 +454,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 
             // call post-commit hook
             PluginRegistry().getReceiveHooks
-              .foreach(_.postReceive(owner, repository, receivePack, command, pusher, false))
+              .foreach(_.postReceive(owner, repository, receivePack, command, pusher, mergePullRequest = false))
           }
         }
         // update repository last modified time.

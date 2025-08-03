@@ -1,7 +1,7 @@
 package gitbucket.core.service
 import gitbucket.core.api.JsonFormat
 import gitbucket.core.model.{Account, WebHook}
-import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.activity.{CloseIssueInfo, PushInfo}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
@@ -11,14 +11,14 @@ import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.{JGitUtil, LockUtil}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
-import org.eclipse.jgit.lib._
+import org.eclipse.jgit.lib.*
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
 import scala.util.Using
 
 trait RepositoryCommitFileService {
   self: AccountService & ActivityService & IssuesService & PullRequestService & WebHookPullRequestService &
-    RepositoryService =>
+    RepositoryService & ProtectedBranchService =>
 
   /**
    * Create multiple files by callback function.
@@ -92,10 +92,10 @@ trait RepositoryCommitFileService {
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, Option[ObjectId])] = {
 
     val newPath = newFileName.map { newFileName =>
-      if (path.length == 0) newFileName else s"${path}/${newFileName}"
+      if (path.isEmpty) newFileName else s"${path}/${newFileName}"
     }
     val oldPath = oldFileName.map { oldFileName =>
-      if (path.length == 0) oldFileName else s"${path}/${oldFileName}"
+      if (path.isEmpty) oldFileName else s"${path}/${oldFileName}"
     }
 
     _createFiles(repository, branch, message, pusherAccount, committerName, committerMailAddress, settings) {
@@ -139,7 +139,6 @@ trait RepositoryCommitFileService {
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, R)] = {
-
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val builder = DirCache.newInCore.builder()
@@ -168,7 +167,14 @@ trait RepositoryCommitFileService {
 
         // call pre-commit hook
         val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
-          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, pusherAccount.userName, false)
+          hook.preReceive(
+            repository.owner,
+            repository.name,
+            receivePack,
+            receiveCommand,
+            pusherAccount.userName,
+            mergePullRequest = false
+          )
         }.headOption
 
         error match {
@@ -194,7 +200,8 @@ trait RepositoryCommitFileService {
             // record activity
             updateLastActivityDate(repository.owner, repository.name)
             val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-            val pushInfo = PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
+            val pushInfo =
+              PushInfo(repository.owner, repository.name, pusherAccount.userName, branch, List(commitInfo))
             recordActivity(pushInfo)
 
             // create issue comment by commit message
@@ -221,7 +228,14 @@ trait RepositoryCommitFileService {
 
             // call post-commit hook
             PluginRegistry().getReceiveHooks.foreach { hook =>
-              hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, committerName, false)
+              hook.postReceive(
+                repository.owner,
+                repository.name,
+                receivePack,
+                receiveCommand,
+                committerName,
+                mergePullRequest = false
+              )
             }
 
             val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
