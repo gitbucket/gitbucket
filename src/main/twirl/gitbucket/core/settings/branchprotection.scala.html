@@ -127,9 +127,6 @@ function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
   $('.js-restrictions_enabled').toggle(protection.restrictions !== undefined);
   $('.js-has_required_statuses').toggle(protection.required_status_checks !== undefined);
-  @*
-  $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level !== 'off' && protection.required_status_checks.contexts.length === 0);
-  *@
 }
 
 function update(){
@@ -193,13 +190,17 @@ $(function() {
     }
 
     // check existence
-    $.post('@context.path/_user/existence', { 'userName': userName },
+    $.post('@context.path/_user/existence', {
+        'userName': userName,
+        'owner': '@repository.owner',
+        'repository': '@repository.name'
+      },
       function(data, status){
         if(data !== ''){
           addUserToListHTML(userName, '#restrictions-user-list');
           $('#userName-restrictions-user').val('');
         } else {
-          $('#error-restrictions-user').text('User does not exist.');
+          $('#error-restrictions-user').text("User does not exist or isn't writable to this repository.");
         }
       });
   });

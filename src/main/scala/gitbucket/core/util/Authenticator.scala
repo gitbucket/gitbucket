@@ -15,9 +15,9 @@ trait OneselfAuthenticator { self: ControllerBase =>
 
   private def authenticate(action: => Any) = {
     context.loginAccount match {
-      case Some(x) if (x.isAdmin)                      => action
-      case Some(x) if (request.paths(0) == x.userName) => action
-      case _                                           => Unauthorized()
+      case Some(x) if x.isAdmin                      => action
+      case Some(x) if request.paths(0) == x.userName => action
+      case _                                         => Unauthorized()
     }
   }
 }
@@ -26,7 +26,7 @@ trait OneselfAuthenticator { self: ControllerBase =>
  * Allows only the repository owner and administrators.
  */
 trait OwnerAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
-  protected def ownerOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
+  protected def ownerOnly(action: RepositoryInfo => Any) = { authenticate(action) }
   protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
@@ -34,14 +34,14 @@ trait OwnerAuthenticator { self: ControllerBase & RepositoryService & AccountSer
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
       context.loginAccount match {
-        case Some(x) if (x.isAdmin)                      => action(repository)
-        case Some(x) if (repository.owner == x.userName) => action(repository)
+        case Some(x) if x.isAdmin                      => action(repository)
+        case Some(x) if repository.owner == x.userName => action(repository)
         // TODO Repository management is allowed for only group managers?
-        case Some(x) if (getGroupMembers(repository.owner).exists { m =>
+        case Some(x) if getGroupMembers(repository.owner).exists { m =>
               m.userName == x.userName && m.isManager
-            }) =>
+            } =>
           action(repository)
-        case Some(x) if (getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN)).contains(x.userName)) =>
+        case Some(x) if getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN)).contains(x.userName) =>
           action(repository)
         case _ => Unauthorized()
       }
@@ -83,10 +83,10 @@ trait AdminAuthenticator { self: ControllerBase =>
  * Allows only guests and signed in users who can access the repository.
  */
 trait ReferrerAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
-  protected def referrersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
+  protected def referrersOnly(action: RepositoryInfo => Any) = { authenticate(action) }
   protected def referrersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
-  private def authenticate(action: (RepositoryInfo) => Any) = {
+  private def authenticate(action: RepositoryInfo => Any) = {
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
@@ -103,12 +103,12 @@ trait ReferrerAuthenticator { self: ControllerBase & RepositoryService & Account
  * Allows only signed in users who have read permission for the repository.
  */
 trait ReadableUsersAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
-  protected def readableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
+  protected def readableUsersOnly(action: RepositoryInfo => Any) = { authenticate(action) }
   protected def readableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
     authenticate(action(form, _))
   }
 
-  private def authenticate(action: (RepositoryInfo) => Any) = {
+  private def authenticate(action: RepositoryInfo => Any) = {
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
@@ -125,24 +125,19 @@ trait ReadableUsersAuthenticator { self: ControllerBase & RepositoryService & Ac
  * Allows only signed in users who have write permission for the repository.
  */
 trait WritableUsersAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
-  protected def writableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
+  protected def writableUsersOnly(action: RepositoryInfo => Any) = { authenticate(action) }
   protected def writableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
     authenticate(action(form, _))
   }
 
-  private def authenticate(action: (RepositoryInfo) => Any) = {
+  private def authenticate(action: RepositoryInfo => Any) = {
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
-      context.loginAccount match {
-        case Some(x) if (x.isAdmin)                                                          => action(repository)
-        case Some(x) if (userName == x.userName)                                             => action(repository)
-        case Some(x) if (getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-        case Some(x)
-            if (getCollaboratorUserNames(userName, repoName, Seq(Role.ADMIN, Role.DEVELOPER))
-              .contains(x.userName)) =>
-          action(repository)
-        case _ => Unauthorized()
+      if (isWritable(repository.repository, context.loginAccount)) {
+        action(repository)
+      } else {
+        Unauthorized()
       }
     } getOrElse NotFound()
   }
@@ -159,9 +154,9 @@ trait GroupManagerAuthenticator { self: ControllerBase & AccountService =>
     context.loginAccount match {
       case Some(x) if x.isAdmin                      => action
       case Some(x) if x.userName == request.paths(0) => action
-      case Some(x) if (getGroupMembers(request.paths(0)).exists { member =>
+      case Some(x) if getGroupMembers(request.paths(0)).exists { member =>
             member.userName == x.userName && member.isManager
-          }) =>
+          } =>
         action
       case _ => Unauthorized()
     }
