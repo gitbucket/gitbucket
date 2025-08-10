@@ -81,4 +81,13 @@
     });
   });
   </script>
+  @if(issue.closed && pullreq.mergedCommitIds.isDefined){
+    <div class="issue-comment-box" style="margin-bottom: 20px;">
+      <div style="padding: 10px;">
+        <form method="post" action="@helpers.url(repository)/pull/@issue.issueId/revert" style="display:inline;">
+          <button type="submit" class="btn btn-warning pull-right" style="margin-left: 10px;">Revert</button>
+        </form>
+      </div>
+    </div>
+  }
 }
