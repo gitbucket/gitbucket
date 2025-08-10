@@ -19,7 +19,10 @@ import gitbucket.core.util.StringUtil.*
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.dircache.{DirCache, DirCacheEntry}
+import org.eclipse.jgit.lib.{CommitBuilder, FileMode, ObjectId, ObjectInserter, PersonIdent, Repository}
+import org.eclipse.jgit.revwalk.{RevTree, RevWalk}
+import org.eclipse.jgit.treewalk.{EmptyTreeIterator, TreeWalk}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
@@ -61,6 +64,15 @@ trait PullRequestService {
       .filter(_.byPrimaryKey(owner, repository, issueId))
       .map(pr => pr.branch -> pr.commitIdTo)
       .update((baseBranch, commitIdTo))
+  }
+
+  def updateMergedCommitIds(owner: String, repository: String, issueId: Int, mergedCommitIds: Seq[String])(implicit
+    s: Session
+  ): Unit = {
+    PullRequests
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map(pr => pr.mergedCommitIds)
+      .update(mergedCommitIds.mkString(","))
   }
 
   def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])(implicit
@@ -126,7 +138,8 @@ trait PullRequestService {
         requestBranch,
         commitIdFrom,
         commitIdTo,
-        isDraft
+        isDraft,
+        None
       )
 
       // fetch requested branch
@@ -408,11 +421,10 @@ trait PullRequestService {
         .find(x => x.oldPath == file)
         .map { diff =>
           (diff.oldContent, diff.newContent) match {
-            case (Some(oldContent), Some(newContent)) => {
+            case (Some(oldContent), Some(newContent)) =>
               val oldLines = convertLineSeparator(oldContent, "LF").split("\n")
               val newLines = convertLineSeparator(newContent, "LF").split("\n")
               file -> Option(DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava))
-            }
             case _ =>
               file -> None
           }
@@ -524,7 +536,6 @@ trait PullRequestService {
           helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
         }
 
-      // TODO Isolate to an another method?
       val diffs = JGitUtil.getDiffs(
         git = newGit,
         from = Some(oldId.getName),
@@ -633,6 +644,157 @@ trait PullRequestService {
         (Option(oldGit.getRepository.resolve(originId2)), Option(newGit.getRepository.resolve(forkedId2)))
       }
     }
+  }
+
+  /**
+   * Creates a revert commit directly on the bare repository without cloning.
+   * This works by creating a reverse diff of the merged commits and applying it to the base branch.
+   */
+  def createRevertCommit(
+    git: Git,
+    targetBranch: String,
+    mergedCommitIds: Seq[String],
+    committerName: String,
+    committerEmail: String,
+    commitMessage: String
+  ): Either[String, ObjectId] = {
+    try {
+      val repository = git.getRepository
+      val inserter = repository.newObjectInserter()
+
+      Using.resource(new RevWalk(repository)) { revWalk =>
+        // Get the target branch head
+        val targetHeadId = repository.resolve(s"refs/heads/$targetBranch")
+        if (targetHeadId == null) {
+          return Left(s"Branch $targetBranch not found")
+        }
+        val targetHead = revWalk.parseCommit(targetHeadId)
+
+        // Parse the commits to revert (in reverse order for proper reverting)
+        val commitsToRevert = mergedCommitIds.reverse.map { commitId =>
+          val objectId = repository.resolve(commitId)
+          if (objectId == null) {
+            throw new IllegalArgumentException(s"Commit $commitId not found")
+          }
+          revWalk.parseCommit(objectId)
+        }
+
+        // Start with the current tree of the target branch
+        var currentTreeId = targetHead.getTree.getId
+
+        // Apply reverse changes for each commit
+        for (commit <- commitsToRevert) {
+          val parentCommit = if (commit.getParentCount > 0) {
+            revWalk.parseCommit(commit.getParent(0))
+          } else {
+            // This is an initial commit, revert by creating empty tree
+            null
+          }
+
+          // Create new tree by applying reverse diff
+          currentTreeId = createTreeWithReverseDiff(
+            repository,
+            inserter,
+            currentTreeId,
+            if (parentCommit != null) parentCommit.getTree else null,
+            commit.getTree
+          )
+        }
+
+        // Create the revert commit
+        val commitBuilder = new CommitBuilder()
+        commitBuilder.setTreeId(currentTreeId)
+        commitBuilder.setParentId(targetHeadId)
+        commitBuilder.setAuthor(new PersonIdent(committerName, committerEmail))
+        commitBuilder.setCommitter(new PersonIdent(committerName, committerEmail))
+        commitBuilder.setMessage(commitMessage)
+
+        val revertCommitId = inserter.insert(commitBuilder)
+        inserter.flush()
+
+        // Update the branch to point to the new commit
+        val refUpdate = repository.updateRef(s"refs/heads/$targetBranch")
+        refUpdate.setNewObjectId(revertCommitId)
+        refUpdate.update()
+
+        Right(revertCommitId)
+      }
+    } catch {
+      case ex: Exception =>
+        Left(ex.getMessage)
+    }
+  }
+
+  /**
+   * Creates a new tree by applying the reverse of changes between fromTree and toTree to baseTree.
+   */
+  private def createTreeWithReverseDiff(
+    repository: Repository,
+    inserter: ObjectInserter,
+    baseTreeId: ObjectId,
+    fromTree: RevTree,
+    toTree: RevTree
+  ): ObjectId = {
+    val dirCache = DirCache.newInCore()
+    val builder = dirCache.builder()
+
+    val entries = scala.collection.mutable.Map[String, DirCacheEntry]()
+
+    // Start with all files from the base tree
+    if (baseTreeId != null) {
+      Using.resource(new TreeWalk(repository)) { walk =>
+        walk.addTree(baseTreeId)
+        walk.setRecursive(true)
+
+        while (walk.next()) {
+          val entry = new DirCacheEntry(walk.getPathString)
+          entry.setFileMode(walk.getFileMode(0))
+          entry.setObjectId(walk.getObjectId(0))
+          entries(walk.getPathString) = entry
+        }
+      }
+    }
+
+    // Apply reverse changes: if a file was added in the original change, remove it
+    // if a file was deleted, restore it; if modified, restore original content
+    Using.resource(new TreeWalk(repository)) { walk =>
+      if (fromTree != null) walk.addTree(fromTree) else walk.addTree(new EmptyTreeIterator())
+      walk.addTree(toTree)
+      walk.setRecursive(true)
+
+      while (walk.next()) {
+        val path = walk.getPathString
+        val fromMode = if (walk.getTreeCount > 1) walk.getFileMode(0) else FileMode.MISSING
+        val toMode = walk.getFileMode(walk.getTreeCount - 1)
+
+        if (fromMode == FileMode.MISSING && toMode != FileMode.MISSING) {
+          // File was added in the original change, so remove it in the revert
+          entries.remove(path)
+        } else if (fromMode != FileMode.MISSING && toMode == FileMode.MISSING) {
+          // File was deleted in the original change, so restore it in the revert
+          val entry = new DirCacheEntry(path)
+          entry.setFileMode(fromMode)
+          entry.setObjectId(walk.getObjectId(0))
+          entries(path) = entry
+        } else if (fromMode != FileMode.MISSING && toMode != FileMode.MISSING) {
+          val fromObjectId = walk.getObjectId(0)
+          val toObjectId = walk.getObjectId(walk.getTreeCount - 1)
+
+          if (!fromObjectId.equals(toObjectId)) {
+            // File was modified in the original change, restore original content
+            val entry = new DirCacheEntry(path)
+            entry.setFileMode(fromMode)
+            entry.setObjectId(fromObjectId)
+            entries(path) = entry
+          }
+        }
+      }
+    }
+
+    // Build the final tree
+    entries.values.toSeq.sortBy(_.getPathString).foreach(builder.add)
+    builder.finish()
+    dirCache.writeTree(inserter)
   }
 }
 
