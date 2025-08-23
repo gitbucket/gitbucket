@@ -1076,14 +1076,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     redirect(s"${repository.owner}/${repository.name}/releases")
   })
 
-  get("/:owner/:repository/archive/:name")(referrersOnly { repository =>
-    val name = params("name")
-    archiveRepository(name, repository, "")
-  })
-
-  get("/:owner/:repository/archive/*/:name")(referrersOnly { repository =>
-    val name = params("name")
-    val path = multiParams("splat").head
+  get("/:owner/:repository/archive/*")(referrersOnly { repository =>
+    val name = multiParams("splat").mkString("/")
+    val path = params.get("path").getOrElse("")
     archiveRepository(name, repository, path)
   })
 
