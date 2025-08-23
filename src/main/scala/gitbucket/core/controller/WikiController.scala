@@ -306,7 +306,8 @@ trait WikiControllerBase extends ControllerBase {
 
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
     Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
-      JGitUtil.getCommitLog(git, "master") match {
+      val branch = getWikiBranch(repository.owner, repository.name)
+      JGitUtil.getCommitLog(git, branch) match {
         case Right((logs, hasNext)) => html.history(None, logs, repository, isEditable(repository))
         case Left(_)                => NotFound()
       }
@@ -316,7 +317,8 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/_blob/*")(referrersOnly { repository =>
     val path = multiParams("splat").head
     Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve("master"))
+      val branch = getWikiBranch(repository.owner, repository.name)
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
 
       getPathObjectId(git, path, revCommit).map { objectId =>
         responseRawFile(git, objectId, path, repository)
