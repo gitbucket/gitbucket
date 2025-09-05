@@ -192,7 +192,7 @@ executableKey := {
 
   // zip it up
   IO delete (temp / "META-INF" / "MANIFEST.MF")
-  val contentMappings = (temp.allPaths --- PathFinder(temp)).get pair { file =>
+  val contentMappings = (temp.allPaths --- PathFinder(temp)).get() pair { file =>
     IO.relativizeFile(temp, file)
   }
   val manifest = new JarManifest
