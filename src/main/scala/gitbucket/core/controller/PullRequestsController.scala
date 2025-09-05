@@ -13,8 +13,10 @@ import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.*
 import org.scalatra.forms.*
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.BadRequest
 
+import java.nio.file.Files
 import scala.util.Using
 
 class PullRequestsController
@@ -247,41 +249,43 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/pull/:id/delete_branch")(readableUsersOnly { baseRepository =>
-    (for {
-      issueId <- params("id").toIntOpt
-      loginAccount <- context.loginAccount
-      case (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
-      owner = pullreq.requestUserName
-      name = pullreq.requestRepositoryName
-      if hasDeveloperRole(owner, name, context.loginAccount)
-    } yield {
-      val repository = getRepository(owner, name).get
-      val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
-      if (branchProtection.enabled) {
-        flash.update("error", s"branch ${pullreq.requestBranch} is protected.")
-      } else {
-        if (repository.repository.defaultBranch != pullreq.requestBranch) {
-          val userName = context.loginAccount.get.userName
-          Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-            git.branchDelete().setForce(true).setBranchNames(pullreq.requestBranch).call()
-            val deleteBranchInfo = DeleteBranchInfo(repository.owner, repository.name, userName, pullreq.requestBranch)
-            recordActivity(deleteBranchInfo)
-          }
-          createComment(
-            baseRepository.owner,
-            baseRepository.name,
-            userName,
-            issueId,
-            pullreq.requestBranch,
-            "delete_branch"
-          )
+    context.withLoginAccount { _ =>
+      (for {
+        issueId <- params("id").toIntOpt
+        case (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+        owner = pullreq.requestUserName
+        name = pullreq.requestRepositoryName
+        if hasDeveloperRole(owner, name, context.loginAccount)
+      } yield {
+        val repository = getRepository(owner, name).get
+        val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
+        if (branchProtection.enabled) {
+          flash.update("error", s"branch ${pullreq.requestBranch} is protected.")
         } else {
-          flash.update("error", s"""Can't delete the default branch "${pullreq.requestBranch}".""")
+          if (repository.repository.defaultBranch != pullreq.requestBranch) {
+            val userName = context.loginAccount.get.userName
+            Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+              git.branchDelete().setForce(true).setBranchNames(pullreq.requestBranch).call()
+              val deleteBranchInfo =
+                DeleteBranchInfo(repository.owner, repository.name, userName, pullreq.requestBranch)
+              recordActivity(deleteBranchInfo)
+            }
+            createComment(
+              baseRepository.owner,
+              baseRepository.name,
+              userName,
+              issueId,
+              pullreq.requestBranch,
+              "delete_branch"
+            )
+          } else {
+            flash.update("error", s"""Can't delete the default branch "${pullreq.requestBranch}".""")
+          }
         }
-      }
 
-      redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
-    }) getOrElse NotFound()
+        redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
+      }) getOrElse NotFound()
+    }
   })
 
   post("/:owner/:repository/pull/:id/update_branch")(readableUsersOnly { baseRepository =>
@@ -361,8 +365,11 @@ trait PullRequestsControllerBase extends ControllerBase {
           form.isDraft,
           context.settings
         ) match {
-          case Right(objectId) => redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
-          case Left(message)   => Some(BadRequest(message))
+          case Right(result) =>
+            updateMergedCommitIds(repository.owner, repository.name, issueId, result.mergedCommitId)
+            redirect(s"/${repository.owner}/${repository.name}/pull/$issueId")
+          case Left(message) =>
+            Some(BadRequest(message))
         }
       } getOrElse NotFound()
     }
@@ -722,6 +729,107 @@ trait PullRequestsControllerBase extends ControllerBase {
     )
   }
 
+  post("/:owner/:repository/pull/:id/revert")(writableUsersOnly { repository =>
+    context.withLoginAccount { loginAccount =>
+      (for {
+        issueId <- params.get("id").map(_.toInt)
+        (issue, pullreq) <- getPullRequest(repository.owner, repository.name, issueId) if issue.closed
+      } yield {
+        val baseBranch = pullreq.branch
+        val revertBranch = s"revert-pr-$issueId-${System.currentTimeMillis()}"
+
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          try {
+            // Create a new branch from base
+            JGitUtil.createBranch(git, baseBranch, revertBranch)
+            // TODO Call webhook ???
+
+            val tempDir = Files.createTempDirectory("jgit-revert-")
+            val revertCommitName =
+              try {
+                // Clone bare repository
+                Using.resource(
+                  Git.cloneRepository
+                    .setURI(getRepositoryDir(repository.owner, repository.name).getAbsolutePath)
+                    .setDirectory(tempDir.toFile)
+                    .setBranch(revertBranch)
+                    .setBare(false)
+                    .setNoCheckout(false)
+                    .call()
+                ) { git =>
+                  // Get commit Ids to be reverted
+                  val commitsToRevert = Using.resource(new RevWalk(git.getRepository)) { revWalk =>
+                    pullreq.mergedCommitIds
+                      .map(
+                        _.split(",")
+                          .map { mergedCommitId =>
+                            revWalk.parseCommit(git.getRepository.resolve(mergedCommitId))
+                          }
+                          .toSeq
+                          .reverse
+                      )
+                      .getOrElse(Nil)
+                  }
+
+                  // revert
+                  var revert = git.revert
+                  commitsToRevert.foreach { id =>
+                    revert = revert.include(id)
+                  }
+                  val newCommit = revert.call()
+                  if (newCommit != null) {
+                    System.out.println("Reverted commit created: " + newCommit.getName)
+                    git.push.call()
+                    Some(newCommit.getName)
+                  } else {
+                    System.out.println("Revert resulted in conflicts.")
+                    None
+                  }
+                }
+              } finally {
+                FileUtil.deleteRecursively(tempDir.toFile)
+              }
+
+            revertCommitName match {
+              case Some(revertCommitName) =>
+                val newIssueId = insertIssue(
+                  owner = repository.owner,
+                  repository = repository.name,
+                  loginUser = loginAccount.userName,
+                  title = s"Revert #${issueId}",
+                  content = Some(s"Revert #${issueId}"),
+                  milestoneId = None,
+                  priorityId = None,
+                  isPullRequest = true
+                )
+                createPullRequest(
+                  originRepository = repository,
+                  issueId = newIssueId,
+                  originBranch = baseBranch,
+                  requestUserName = repository.owner,
+                  requestRepositoryName = repository.name,
+                  requestBranch = revertBranch,
+                  commitIdFrom = baseBranch,
+                  commitIdTo = revertCommitName,
+                  isDraft = false,
+                  loginAccount = loginAccount,
+                  settings = context.settings
+                )
+                redirect(s"/${repository.owner}/${repository.name}/pull/$newIssueId")
+
+              case None =>
+                BadRequest("Failed to create revert commit.")
+            }
+          } catch {
+            case ex: Exception =>
+              ex.printStackTrace()
+              BadRequest(s"Revert failed: ${ex.getMessage}")
+          }
+        }
+      }) getOrElse NotFound()
+    }
+  })
+
   /**
    * Tests whether an logged-in user can manage pull requests.
    */
@@ -740,5 +848,4 @@ trait PullRequestsControllerBase extends ControllerBase {
       case "DISABLE" => false
     }
   }
-
 }
