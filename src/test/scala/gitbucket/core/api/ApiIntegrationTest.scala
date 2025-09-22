@@ -183,14 +183,14 @@ class ApiIntegrationTest extends AnyFunSuite {
           .branch("main")
           .content("create")
           .message("Create content")
-          .path("README.md")
+          .path("test.txt")
           .commit()
 
-      assert(createResult.getContent.isFile == true)
+      assert(createResult.getContent.isFile)
       assert(IOUtils.toString(createResult.getContent.read(), "UTF-8") == "create")
 
-      val content1 = repo.getFileContent("README.md")
-      assert(content1.isFile == true)
+      val content1 = repo.getFileContent("test.txt")
+      assert(content1.isFile)
       assert(IOUtils.toString(content1.read(), "UTF-8") == "create")
       assert(content1.getSha == createResult.getContent.getSha)
 
@@ -200,14 +200,14 @@ class ApiIntegrationTest extends AnyFunSuite {
           .branch("main")
           .content("update")
           .message("Update content")
-          .path("README.md")
+          .path("test.txt")
           .sha(content1.getSha)
           .commit()
 
-      assert(updateResult.getContent.isFile == true)
+      assert(updateResult.getContent.isFile)
       assert(IOUtils.toString(updateResult.getContent.read(), "UTF-8") == "update")
 
-      val content2 = repo.getFileContent("README.md")
+      val content2 = repo.getFileContent("test.txt")
       assert(content2.isFile == true)
       assert(IOUtils.toString(content2.read(), "UTF-8") == "update")
       assert(content2.getSha == updateResult.getContent.getSha)
