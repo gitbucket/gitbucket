@@ -59,12 +59,13 @@ Support
 - If you can't find same question and report, send it to our [Gitter chat room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.43.x
+What's New in 4.44.x
 -------------
-## 4.43.0 - 29 Jun 2025
-- Upgrade H2 database from 1.x to 2.x
+## 4.44.0 - 23 Sep 2025
+- Enhanced branch protection which supports rejecting users fo push, etc.
+- Improve logging for initialization errors
 
-Note that upgrading from h2 1.x to 2.x requires data file migration: https://www.h2database.com/html/migration-to-v2.html
+Note that you have to migrate h2 database file if you will upgrade GitBucket from 4.42 or before to 4.43 or later and you are using the default h2 database because h2 1.x and h2.x don't have compatibility: https://www.h2database.com/html/migration-to-v2.html
 
 It can't be done automatically using GitBucket's auto migration mechanism because it relies on database itself. So, users who use h2 will have to dump and recreate their database manually with the following steps:
 ```bash
