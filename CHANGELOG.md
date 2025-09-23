@@ -2,7 +2,9 @@
 All changes to the project will be documented in this file.
 
 ## 4.44.0 - 23 Sep 2025
-- Enhanced branch protection which supports rejecting users fo push, etc.
+- Enhanced branch protection which supports:
+  - Rejecting users for push
+  - Applying protection to administrators
 - Improve logging for initialization errors
 
 ## 4.43.0 - 29 Jun 2025
