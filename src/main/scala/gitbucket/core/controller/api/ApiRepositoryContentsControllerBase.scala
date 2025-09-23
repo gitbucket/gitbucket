@@ -142,10 +142,11 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
           val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
           revCommit.name
         }
-        val paths = multiParams("splat").head.split("/")
+        val fullPath = multiParams("splat").head
+        val paths = fullPath.split("/")
         val path = paths.take(paths.size - 1).toList.mkString("/")
         Using.resource(Git.open(getRepositoryDir(params("owner"), params("repository")))) { git =>
-          val fileInfo = getFileInfo(git, commit, path, false)
+          val fileInfo = getFileInfo(git, commit, fullPath, ignoreCase = false)
 
           fileInfo match {
             case Some(f) if !data.sha.contains(f.id.getName) =>
