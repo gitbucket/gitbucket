@@ -1,6 +1,10 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.44.0 - 23 Sep 2025
+- Enhanced branch protection which supports rejecting users fo push, etc.
+- Improve logging for initialization errors
+
 ## 4.43.0 - 29 Jun 2025
 - Upgrade H2 database from 1.x to 2.x
 
