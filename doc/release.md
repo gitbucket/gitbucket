@@ -38,7 +38,7 @@ Generate release files
 
 For plug-in development, we have to publish the GitBucket jar file to the Maven central repository before release GitBucket itself.
  
-First, start the sbt shell:
+First, stage artifacts on your machine:
 
 ```bash
 $ sbt publishSigned
