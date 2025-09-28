@@ -23,7 +23,7 @@ GitBucket adalah sebuah platform web untuk Git yang dibangun dengan Scala, diran
 
 ## Instalasi
 
-### 1. Persiapan Server
+_**1. Persiapan Server**_
 
 Pastikan sudah ada:
 
@@ -43,13 +43,15 @@ Install Java:
 sudo apt install openjdk-11-jre -y
 ```
 
-### 2. Buat User Khusus untuk GitBucket
+
+_**2. Buat User Khusus untuk GitBucket**_
 
 ``` 
 sudo adduser --system --group --home /opt/gitbucket gitbucket
 ```
 
-### 3. Download GitBucket
+
+_**3. Download GitBucket**_
 
 ``` 
 cd /opt/gitbucket
@@ -57,7 +59,8 @@ sudo wget https://github.com/gitbucket/gitbucket/releases/download/4.39.0/gitbuc
 sudo chown gitbucket:gitbucket gitbucket.war
 ```
 
-### 4. Buat Systemd Service
+
+_**4. Buat Systemd Service**_
 
 Buat file service:
 
@@ -98,7 +101,8 @@ Cek status:
 sudo systemctl status gitbucket
 ```
 
-### 5. Akses GitBucket
+
+_**5. Akses GitBucket**_
 
 Secara default, GitBucket berjalan di port `8080`.
 Coba akses di browser:
@@ -109,7 +113,8 @@ http://<IP-VPS>:8080
 
 Jika memakai domain, buat subdomain (misal `gitbucket.example.com`) → arahkan ke IP VPS via DNS `A Record`.
 
-### 6. Setup Reverse Proxy dengan Nginx
+
+_**6. Setup Reverse Proxy dengan Nginx**_
 
 Install Nginx:
 
@@ -154,7 +159,8 @@ Coba akses:
 http://gitbucket.example.com
 ```
 
-### 7. Tambahkan HTTPS (Opsional tapi Disarankan)
+
+_**7. Tambahkan HTTPS (Opsional tapi Disarankan)**_
 
 Gunakan **Certbot** untuk SSL:
 
