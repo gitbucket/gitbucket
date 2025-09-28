@@ -5,7 +5,7 @@ GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.svg)](htt
 
 GitBucket adalah sebuah platform web untuk Git yang dibangun dengan Scala, dirancang untuk memberikan pengalaman mirip GitHub dengan kemudahan instalasi dan fleksibilitas tinggi.
 
-✨ Fitur Utama
+**✨ Fitur Utama**
 
 - 🚀 Instalasi mudah dan siap digunakan
 - 🎨 Antarmuka intuitif dan ramah pengguna
