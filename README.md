@@ -3,20 +3,20 @@ GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.svg)](htt
 
 ## Sekilas Tentang
 
-GitBucket is a Git web platform powered by Scala offering:
+GitBucket adalah sebuah platform web untuk Git yang dibangun dengan Scala, dirancang untuk memberikan pengalaman mirip GitHub dengan kemudahan instalasi dan fleksibilitas tinggi.
 
-- Easy installation
-- Intuitive UI
-- High extensibility by plugins
-- API compatibility with GitHub
+✨ Fitur Utama
 
-- Public / Private Git repositories (with http/https and ssh access)
-- GitLFS support
-- Repository viewer including an online file editor
-- Issues, Pull Requests and Wiki for repositories
-- Activity timeline and email notifications
-- Account and group management with LDAP integration
-- a Plug-in system
+- 🚀 Instalasi mudah dan siap digunakan
+- 🎨 Antarmuka intuitif dan ramah pengguna
+- 🔌 Sistem plug-in untuk memperluas fungsionalitas
+- 🔄 Kompatibel dengan API GitHub
+- 🔒 Mendukung repository publik maupun privat (akses via http/https dan ssh)
+- 📂 GitLFS support untuk file besar
+- 👀 Repository viewer lengkap dengan online file editor
+- 📌 Manajemen proyek dengan Issues, Pull Requests, dan Wiki
+- 🕑 Activity timeline & email notifications
+- 👥 Manajemen akun dan grup, termasuk integrasi LDAP
 
 
 ![GitBucket](https://gitbucket.github.io/img/screenshots/screenshot-repository_viewer.png)
