@@ -23,8 +23,152 @@ GitBucket adalah sebuah platform web untuk Git yang dibangun dengan Scala, diran
 
 ## Instalasi
 
-- Prasyarat, apa saja yang harus diinstal sebelumnya.
-- Langkah instalasi dalam CLI.
+### 1. Persiapan Server
+
+Pastikan sudah ada:
+
+* **Java 11+**
+* Akses root / sudo
+* VPS dengan IP publik
+
+Update sistem:
+
+``` 
+sudo apt update && sudo apt upgrade -y
+```
+
+Install Java:
+
+``` 
+sudo apt install openjdk-11-jre -y
+```
+
+### 2. Buat User Khusus untuk GitBucket
+
+``` 
+sudo adduser --system --group --home /opt/gitbucket gitbucket
+```
+
+### 3. Download GitBucket
+
+``` 
+cd /opt/gitbucket
+sudo wget https://github.com/gitbucket/gitbucket/releases/download/4.39.0/gitbucket.war
+sudo chown gitbucket:gitbucket gitbucket.war
+```
+
+### 4. Buat Systemd Service
+
+Buat file service:
+
+``` 
+sudo nano /etc/systemd/system/gitbucket.service
+```
+
+Isi dengan:
+
+```
+[Unit]
+Description=GitBucket Service
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/gitbucket
+ExecStart=/usr/bin/java -Xms128m -Xmx256m -jar gitbucket.war
+User=gitbucket
+Group=gitbucket
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Reload & enable service:
+
+```
+sudo systemctl daemon-reexec
+sudo systemctl enable gitbucket
+sudo systemctl start gitbucket
+```
+
+Cek status:
+
+``` 
+sudo systemctl status gitbucket
+```
+
+### 5. Akses GitBucket
+
+Secara default, GitBucket berjalan di port `8080`.
+Coba akses di browser:
+
+```
+http://<IP-VPS>:8080
+```
+
+Jika memakai domain, buat subdomain (misal `gitbucket.example.com`) → arahkan ke IP VPS via DNS `A Record`.
+
+### 6. Setup Reverse Proxy dengan Nginx
+
+Install Nginx:
+
+``` 
+sudo apt install nginx -y
+```
+
+Buat konfigurasi:
+
+``` 
+sudo nano /etc/nginx/sites-available/gitbucket.conf
+```
+
+Isi:
+
+```
+server {
+    listen 80;
+    server_name gitbucket.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Aktifkan config:
+
+``` 
+sudo ln -s /etc/nginx/sites-available/gitbucket.conf /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Coba akses:
+
+```
+http://gitbucket.example.com
+```
+
+### 7. Tambahkan HTTPS (Opsional tapi Disarankan)
+
+Gunakan **Certbot** untuk SSL:
+
+``` 
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d gitbucket.example.com
+```
+
+Pilih opsi redirect → selesai.
+Sekarang akses dengan:
+
+```
+https://gitbucket.example.com
+```
 
 
 ## Cara Pemakaian
