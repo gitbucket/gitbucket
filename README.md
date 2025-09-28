@@ -3,54 +3,178 @@ GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.svg)](htt
 
 ## Sekilas Tentang
 
-GitBucket is a Git web platform powered by Scala offering:
+GitBucket adalah sebuah platform web untuk Git yang dibangun dengan Scala, dirancang untuk memberikan pengalaman mirip GitHub dengan kemudahan instalasi dan fleksibilitas tinggi.
 
-- Easy installation
-- Intuitive UI
-- High extensibility by plugins
-- API compatibility with GitHub
+**✨ Fitur Utama**
 
-- Public / Private Git repositories (with http/https and ssh access)
-- GitLFS support
-- Repository viewer including an online file editor
-- Issues, Pull Requests and Wiki for repositories
-- Activity timeline and email notifications
-- Account and group management with LDAP integration
-- a Plug-in system
+- 🚀 Instalasi mudah dan siap digunakan
+- 🎨 Antarmuka intuitif dan ramah pengguna
+- 🔌 Sistem plug-in untuk memperluas fungsionalitas
+- 🔄 Kompatibel dengan API GitHub
+- 🔒 Mendukung repository publik maupun privat (akses via http/https dan ssh)
+- 📂 GitLFS support untuk file besar
+- 👀 Repository viewer lengkap dengan online file editor
+- 📌 Manajemen proyek dengan Issues, Pull Requests, dan Wiki
+- 🕑 Activity timeline & email notifications
+- 👥 Manajemen akun dan grup, termasuk integrasi LDAP
 
 
 ![GitBucket](https://gitbucket.github.io/img/screenshots/screenshot-repository_viewer.png)
 
 ## Instalasi
 
-- Prasyarat, apa saja yang harus diinstal sebelumnya.
-- Langkah instalasi dalam CLI.
+_**1. Persiapan Server**_
+
+Pastikan sudah ada:
+
+* **Java 11+**
+* Akses root / sudo
+* VPS dengan IP publik
+
+Update sistem:
+
+``` 
+sudo apt update && sudo apt upgrade -y
+```
+
+Install Java:
+
+``` 
+sudo apt install openjdk-11-jre -y
+```
 
 
-## Konfigurasi (opsional)
+_**2. Buat User Khusus untuk GitBucket**_
 
-Setting server tambahan yang diperlukan untuk meningkatkan fungsi dan kinerja aplikasi, misalnya:
-- batas upload file
-- batas memori
-- dll
-
-Plugin untuk fungsi tambahan
-- login dengan Google/Facebook
-- editor Markdown
-- dll
+``` 
+sudo adduser --system --group --home /opt/gitbucket gitbucket
+```
 
 
-##  Maintenance (opsional)
+_**3. Download GitBucket**_
 
-Setting tambahan untuk maintenance secara periodik, misalnya:
-- buat backup database tiap pekan
-- hapus direktori sampah tiap hari
-- dll
+``` 
+cd /opt/gitbucket
+sudo wget https://github.com/gitbucket/gitbucket/releases/download/4.39.0/gitbucket.war
+sudo chown gitbucket:gitbucket gitbucket.war
+```
 
 
-## Otomatisasi (opsional)
+_**4. Buat Systemd Service**_
 
-Skrip shell untuk otomatisasi instalasi, konfigurasi, dan maintenance.
+Buat file service:
+
+``` 
+sudo nano /etc/systemd/system/gitbucket.service
+```
+
+Isi dengan:
+
+```
+[Unit]
+Description=GitBucket Service
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/gitbucket
+ExecStart=/usr/bin/java -Xms128m -Xmx256m -jar gitbucket.war
+User=gitbucket
+Group=gitbucket
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Reload & enable service:
+
+```
+sudo systemctl daemon-reexec
+sudo systemctl enable gitbucket
+sudo systemctl start gitbucket
+```
+
+Cek status:
+
+``` 
+sudo systemctl status gitbucket
+```
+
+
+_**5. Akses GitBucket**_
+
+Secara default, GitBucket berjalan di port `8080`.
+Coba akses di browser:
+
+```
+http://<IP-VPS>:8080
+```
+
+Jika memakai domain, buat subdomain (misal `gitbucket.example.com`) → arahkan ke IP VPS via DNS `A Record`.
+
+
+_**6. Setup Reverse Proxy dengan Nginx**_
+
+Install Nginx:
+
+``` 
+sudo apt install nginx -y
+```
+
+Buat konfigurasi:
+
+``` 
+sudo nano /etc/nginx/sites-available/gitbucket.conf
+```
+
+Isi:
+
+```
+server {
+    listen 80;
+    server_name gitbucket.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Aktifkan config:
+
+``` 
+sudo ln -s /etc/nginx/sites-available/gitbucket.conf /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Coba akses:
+
+```
+http://gitbucket.example.com
+```
+
+
+_**7. Tambahkan HTTPS (Opsional tapi Disarankan)**_
+
+Gunakan **Certbot** untuk SSL:
+
+``` 
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d gitbucket.example.com
+```
+
+Pilih opsi redirect → selesai.
+Sekarang akses dengan:
+
+```
+https://gitbucket.example.com
+```
 
 
 ## Cara Pemakaian
