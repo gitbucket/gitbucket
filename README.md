@@ -200,7 +200,7 @@ Penjelasan =  Fitur Branches mengelola semua jalur pengembangan independen dalam
 Penjelasan = Releases digunakan untuk menandai secara resmi versi stabil dan teruji dari perangkat lunak, biasanya dihubungkan dengan tag Git tertentu. Fungsinya adalah menyediakan titik sejarah yang terdefinisi dengan baik dan siap didistribusikan kepada pengguna akhir atau sistem lainnya. Pengguna memanfaatkan fitur ini untuk melacak sejarah versi produk dan menyediakan paket unduhan sumber kode yang relevan.
 
   - Issues.
-  <img width="747" height="286" alt="image" src="https://github.com/user-attachments/assets/b92c07d7-6b62-4cdd-af46-86e66f62086e" />
+  <img width="1887" height="935" alt="image" src="https://github.com/user-attachments/assets/c65ea7e2-b0d7-41a2-9c32-0bc0d247a053" />
 
 Penjelasan = Issues Merupakan sistem terstruktur untuk mencatat, mengelola, dan mendiskusikan bug, permintaan fitur, serta tugas yang perlu diselesaikan. Fungsi utamanya adalah terletak pada menyediakan pusat terpadu untuk mengatur dan lalu memprioritaskan semua pekerjaan yang diperlukan proyek. Pengguna menggunakannya untuk melaporkan masalah baru, memberikan label, menetapkan penanggung jawab, dan melacak kemajuan solusi.
 
