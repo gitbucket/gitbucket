@@ -178,31 +178,37 @@ https://gitbucket.example.com
 
 
 ## Cara Pemakaian
+```
+  1. Dashboard.
+<img width="735" height="373" alt="image" src="https://github.com/user-attachments/assets/05bc5a38-f118-4403-a446-5092bb4a84b9" />
 
-  **1. Dashboard.
-<img width="735" height="373" alt="image" src="https://github.com/user-attachmentse6a38892-e0dc-4ca6-ba67-28f3138f09f0/assets/" />
 Penjelasan = Dashboard berfungsi sebagai halaman beranda utama setelah pengguna masuk ke platform. Fitur ini menyajikan tinjauan umum mengenai aktivitas terkini, menyertakan News Feed yang menampilkan pembaruan dari repositori yang diikuti. Pengguna memanfaatkannya sebagai pusat navigasi untuk memantau aktivitas keseluruhan akun dan mengakses cepat repositori yang baru saja diperbarui. Anda bisa menelusuri fitur lainnya ketika berada disini sebab seluruh fitur telah terpresentasi dan terlihat dalam ui dashboard.
 
-  **2. File.
+  2. File.
 <img width="735" height="373" alt="image" src="https://github.com/user-attachments/assets/05bc5a38-f118-4403-a446-5092bb4a84b9" />
+
 Penjelasan = Files adalah tampilan utama di dalam repositori yang menunjukkan hierarki folder dan file dari kode sumber proyek pada branch tertentu. Fungsi utamanya adalah menyajikan status kode terbaru dan commit terakhir yang dianggap relevan. Pengguna menggunakannya untuk menelusuri isi proyek secara detail, memeriksa struktur kode, mengamati history perubahan file, serta melihat daftar file. Ini bisa di akses pada menu file.
 
-  **3. Branches.
+  3. Branches.
 <img width="730" height="380" alt="image" src="https://github.com/user-attachments/assets/f6815385-eb1a-4689-b02f-abe49d17b2e3" />
+
 Penjelasan =  Fitur Branches mengelola semua jalur pengembangan independen dalam proyek. Fungsinya memastikan stabilitas kode utama dengan mengisolasi atau menjaga pekerjaan fitur atau perbaikan bug yang sedang dilakukan atau sedang berlangsung. Pengguna membuat branch baru untuk melakukan pekerjaan tanpa mengganggu kode utama, serta membandingkan dan mengelola perkembangan task/pekerjaan.
 
-  **4. Releases.
+  4. Releases.
   <img width="749" height="353" alt="image" src="https://github.com/user-attachments/assets/30107764-bc0f-46d5-9860-2bb570d72b86" />
+
 Penjelasan = Releases digunakan untuk menandai secara resmi versi stabil dan teruji dari perangkat lunak, biasanya dihubungkan dengan tag Git tertentu. Fungsinya adalah menyediakan titik sejarah yang terdefinisi dengan baik dan siap didistribusikan kepada pengguna akhir atau sistem lainnya. Pengguna memanfaatkan fitur ini untuk melacak sejarah versi produk dan menyediakan paket unduhan sumber kode yang relevan.
 
-  **5. Issues.
+  5. Issues.
   <img width="747" height="286" alt="image" src="https://github.com/user-attachments/assets/b92c07d7-6b62-4cdd-af46-86e66f62086e" />
+
 Penjelasan = Issues Merupakan sistem terstruktur untuk mencatat, mengelola, dan mendiskusikan bug, permintaan fitur, serta tugas yang perlu diselesaikan. Fungsi utamanya adalah terletak pada menyediakan pusat terpadu untuk mengatur dan lalu memprioritaskan semua pekerjaan yang diperlukan proyek. Pengguna menggunakannya untuk melaporkan masalah baru, memberikan label, menetapkan penanggung jawab, dan melacak kemajuan solusi.
 
-  **6. Pull Request.
+  6. Pull Request.
   <img width="747" height="286" alt="image" src="https://github.com/user-attachments/assets/80f8d781-c621-4d77-9c85-1937e4736650" />
+  
 PPull Requests (PR) pada GitBucket merupakan mekanisme penting yang membuat pengguna bisa mengajukan perubahan kode yang telah mereka kembangkan pada branch terpisah agar dapat diintegrasikan ke branch utama proyek, seperti master. Fungsi utamanya adalah memfasilitasi proses tinjauan kode / code review secara kolaboratif, dimana anggota tim dapat memeriksa, mendiskusikan, dan memberikan umpan balik pada diff / perbedaan kode sebelum persetujuan diberikan. Setelah mendapatkan persetujuan nantinya, PR memungkinkan pengguna atau pengelola repositori untuk secara resmi menggabungkan (merge) perubahan tersebut, memastikan bahwa setiap kontribusinya telah melewati verifikasi sebelum menjadi bagian permanen dari basis kode proyek.
-
+ ```
 
 ## Pembahasan
 
