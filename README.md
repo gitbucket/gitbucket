@@ -207,7 +207,7 @@ Penjelasan = Issues Merupakan sistem terstruktur untuk mencatat, mengelola, dan 
   - Pull Request.
   <img width="747" height="286" alt="image" src="https://github.com/user-attachments/assets/80f8d781-c621-4d77-9c85-1937e4736650" />
   
-PPull Requests (PR) pada GitBucket merupakan mekanisme penting yang membuat pengguna bisa mengajukan perubahan kode yang telah mereka kembangkan pada branch terpisah agar dapat diintegrasikan ke branch utama proyek, seperti master. Fungsi utamanya adalah memfasilitasi proses tinjauan kode / code review secara kolaboratif, dimana anggota tim dapat memeriksa, mendiskusikan, dan memberikan umpan balik pada diff / perbedaan kode sebelum persetujuan diberikan. Setelah mendapatkan persetujuan nantinya, PR memungkinkan pengguna atau pengelola repositori untuk secara resmi menggabungkan (merge) perubahan tersebut, memastikan bahwa setiap kontribusinya telah melewati verifikasi sebelum menjadi bagian permanen dari basis kode proyek.
+Penjelasan = Pull Requests (PR) adalah fitur penting di GitBucket yang memungkinkan pengguna mengusulkan dan mengajukan perubahan kode dari satu branch ke branch lain (misalnya, master). Fungsi utamanya adalah memastikan kualitas kode tetap terjaga karena PR mewajibkan anggota tim melakukan tinjauan kode (code review) secara menyeluruh sebelum perubahan diizinkan untuk digabungkan. Selain itu, fitur ini sangat memfasilitasi kolaborasi karena semua diskusi, komentar, dan revisi yang terkait dengan usulan perubahan kode tersimpan secara terpusat dan transparan di dalam satu tempat.
  
 
 ## Pembahasan
