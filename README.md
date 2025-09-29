@@ -205,7 +205,7 @@ Penjelasan = Releases digunakan untuk menandai secara resmi versi stabil dan ter
 Penjelasan = Issues Merupakan sistem terstruktur untuk mencatat, mengelola, dan mendiskusikan bug, permintaan fitur, serta tugas yang perlu diselesaikan. Fungsi utamanya adalah terletak pada menyediakan pusat terpadu untuk mengatur dan lalu memprioritaskan semua pekerjaan yang diperlukan proyek. Pengguna menggunakannya untuk melaporkan masalah baru, memberikan label, menetapkan penanggung jawab, dan melacak kemajuan solusi.
 
   - Pull Request.
-  <img width="747" height="286" alt="image" src="https://github.com/user-attachments/assets/80f8d781-c621-4d77-9c85-1937e4736650" />
+  <img width="1869" height="995" alt="image" src="https://github.com/user-attachments/assets/57a14f23-a398-4644-ab09-669b45102f4d" />
   
 Penjelasan = Pull Requests (PR) adalah fitur penting di GitBucket yang memungkinkan pengguna mengusulkan dan mengajukan perubahan kode dari satu branch ke branch lain (misalnya, master). Fungsi utamanya adalah memastikan kualitas kode tetap terjaga karena PR mewajibkan anggota tim melakukan tinjauan kode (code review) secara menyeluruh sebelum perubahan diizinkan untuk digabungkan. Selain itu, fitur ini sangat memfasilitasi kolaborasi karena semua diskusi, komentar, dan revisi yang terkait dengan usulan perubahan kode tersimpan secara terpusat dan transparan di dalam satu tempat.
  
