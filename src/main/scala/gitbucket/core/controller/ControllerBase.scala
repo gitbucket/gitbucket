@@ -351,7 +351,7 @@ case class Context(
   val path: String = settings.baseUrl.getOrElse(request.getContextPath)
   val currentPath: String = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl: String = settings.baseUrl(request)
-  val host: String = new java.net.URL(baseUrl).getHost
+  val host: String = new java.net.URI(baseUrl).toURL.getHost
   val platform: String = request.getHeader("User-Agent") match {
     case null                             => null
     case agent if agent.contains("Mac")   => "mac"

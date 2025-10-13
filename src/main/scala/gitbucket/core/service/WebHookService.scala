@@ -265,7 +265,7 @@ trait WebHookService {
   }
 
   private def validateTargetAddress(settings: SystemSettings, url: String): Boolean = {
-    val host = new java.net.URL(url).getHost
+    val host = new java.net.URI(url).toURL.getHost
 
     !settings.webHook.blockPrivateAddress ||
     !HttpClientUtil.isPrivateAddress(host) ||
