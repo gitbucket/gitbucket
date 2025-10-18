@@ -26,7 +26,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   implicit private val suiteDescription: Description = Description.createSuiteDescription(getClass)
 
-  Seq("8.0", "5.7").foreach { tag =>
+  Seq("8.4", "5.7").foreach { tag =>
     test(s"Migration MySQL $tag", ExternalDBTest) {
       val container = new MySQLContainer() {
         override val container: org.testcontainers.containers.MySQLContainer[?] =
@@ -34,8 +34,6 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
             override def getDriverClassName = "org.mariadb.jdbc.Driver"
             override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
           }
-        // TODO https://jira.mariadb.org/browse/CONJ-663
-        container.withCommand("mysqld --default-authentication-plugin=mysql_native_password")
       }
       container.start()
       try {
