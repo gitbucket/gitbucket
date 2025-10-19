@@ -1,14 +1,14 @@
 package gitbucket.core
 
 import java.sql.DriverManager
-
-import com.dimafeng.testcontainers.{MySQLContainer, PostgreSQLContainer}
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
 import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.junit.runner.Description
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Tag
+import org.testcontainers.postgresql.PostgreSQLContainer
+import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.utility.DockerImageName
 
 object ExternalDBTest extends Tag("ExternalDBTest")
@@ -28,20 +28,17 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   Seq("8.4", "5.7").foreach { tag =>
     test(s"Migration MySQL $tag", ExternalDBTest) {
-      val container = new MySQLContainer() {
-        override val container: org.testcontainers.containers.MySQLContainer[?] =
-          new org.testcontainers.containers.MySQLContainer(s"mysql:$tag") {
-            override def getDriverClassName = "org.mariadb.jdbc.Driver"
-            override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-          }
+      val container = new MySQLContainer(s"mysql:$tag") {
+        override def getDriverClassName = "org.mariadb.jdbc.Driver"
+        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
       }
       container.start()
       try {
         new Solidbase().migrate(
           DriverManager.getConnection(
-            container.jdbcUrl,
-            container.username,
-            container.password
+            container.getJdbcUrl,
+            container.getUsername,
+            container.getPassword
           ),
           Thread.currentThread().getContextClassLoader(),
           new MySQLDatabase(),
@@ -55,12 +52,12 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   Seq("11", "10").foreach { tag =>
     test(s"Migration PostgreSQL $tag", ExternalDBTest) {
-      val container = PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
 
       container.start()
       try {
         new Solidbase().migrate(
-          DriverManager.getConnection(container.jdbcUrl, container.username, container.password),
+          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword),
           Thread.currentThread().getContextClassLoader(),
           new PostgresDatabase(),
           new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
