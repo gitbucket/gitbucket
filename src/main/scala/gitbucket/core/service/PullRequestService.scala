@@ -63,6 +63,15 @@ trait PullRequestService {
       .update((baseBranch, commitIdTo))
   }
 
+  def updateMergedCommitIds(owner: String, repository: String, issueId: Int, mergedCommitIds: Seq[String])(implicit
+    s: Session
+  ): Unit = {
+    PullRequests
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map(pr => pr.mergedCommitIds)
+      .update(mergedCommitIds.mkString(","))
+  }
+
   def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])(implicit
     s: Session
   ): List[PullRequestCount] =
@@ -126,7 +135,8 @@ trait PullRequestService {
         requestBranch,
         commitIdFrom,
         commitIdTo,
-        isDraft
+        isDraft,
+        None
       )
 
       // fetch requested branch
@@ -408,11 +418,10 @@ trait PullRequestService {
         .find(x => x.oldPath == file)
         .map { diff =>
           (diff.oldContent, diff.newContent) match {
-            case (Some(oldContent), Some(newContent)) => {
+            case (Some(oldContent), Some(newContent)) =>
               val oldLines = convertLineSeparator(oldContent, "LF").split("\n")
               val newLines = convertLineSeparator(newContent, "LF").split("\n")
               file -> Option(DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava))
-            }
             case _ =>
               file -> None
           }
