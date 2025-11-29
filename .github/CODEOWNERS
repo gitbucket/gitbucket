@@ -3,3 +3,4 @@
 build.sbt @xuwei-k
 project/* @xuwei-k
 .github/workflows/* @xuwei-k
+.scalafmt.conf @xuwei-k
