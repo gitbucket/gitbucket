@@ -32,16 +32,24 @@
     }
   </div>
   <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
-    @helpers.markdown(
-      markdown           = comment.content,
-      repository         = repository,
-      branch             = repository.repository.defaultBranch,
-      enableWikiLink     = false,
-      enableRefsLink     = true,
-      enableLineBreaks   = true,
-      enableTaskList     = true,
-      hasWritePermission = isManageable
-    )
+    @{
+      var commentContent = helpers.renderMarkup(
+        filePath           = List("temporary.md"),
+        fileContent        = comment.content,
+        branch             = repository.repository.defaultBranch,
+        repository         = repository,
+        enableWikiLink     = false,
+        enableRefsLink     = true,
+        enableAnchor       = true
+      ).toString()
+      if(isManageable){
+        val re = "disabled[^<>]*>".r
+        commentContent = re.replaceAllIn(commentContent, ">")
+        Html(commentContent)
+      } else {
+        Html(commentContent)
+      }
+    }
   </div>
 </div>
 }
@@ -58,16 +66,24 @@
       </span>
     </div>
     <div class="panel-body markdown-body" id="issueContent">
-      @helpers.markdown(
-        markdown           = issue.get.content getOrElse "No description provided.",
-        repository         = repository,
-        branch             = repository.repository.defaultBranch,
-        enableWikiLink     = false,
-        enableRefsLink     = true,
-        enableLineBreaks   = true,
-        enableTaskList     = true,
-        hasWritePermission = isManageable
-      )
+      @{
+        var commentContent = helpers.renderMarkup(
+          filePath           = List("temporary.md"),
+          fileContent        = issue.get.content getOrElse "No description provided.",
+          branch             = repository.repository.defaultBranch,
+          repository         = repository,
+          enableWikiLink     = false,
+          enableRefsLink     = true,
+          enableAnchor       = true
+        ).toString()
+        if(isManageable){
+          val re = "disabled[^<>]*>".r
+          commentContent = re.replaceAllIn(commentContent, ">")
+          Html(commentContent)
+        } else {
+          Html(commentContent)
+        }
+      }
     </div>
   </div>
 }
@@ -331,16 +347,24 @@
         }
       </div>
       <div class="panel-body markdown-body commit-commentContent-@comment.commentId">
-        @helpers.markdown(
-          markdown           = comment.content,
-          repository         = repository,
-          branch             = repository.repository.defaultBranch,
-          enableWikiLink     = false,
-          enableRefsLink     = true,
-          enableLineBreaks   = true,
-          enableTaskList     = true,
-          hasWritePermission = isManageable
-        )
+        @{
+          var commentContent = helpers.renderMarkup(
+            filePath           = List("temporary.md"),
+            fileContent        = comment.content,
+            branch             = repository.repository.defaultBranch,
+            repository         = repository,
+            enableWikiLink     = false,
+            enableRefsLink     = true,
+            enableAnchor       = true
+          ).toString()
+          if(isManageable){
+            val re = "disabled[^<>]*>".r
+            commentContent = re.replaceAllIn(commentContent, ">")
+            Html(commentContent)
+          } else {
+            Html(commentContent)
+          }
+        }
       </div>
     </div>
   }

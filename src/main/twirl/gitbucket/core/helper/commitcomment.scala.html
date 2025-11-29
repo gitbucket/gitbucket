@@ -21,16 +21,24 @@
         </span>
       </div>
       <div class="commit-commentContent-@comment.commentId">
-        @helpers.markdown(
-          markdown           = comment.content,
-          repository         = repository,
-          branch             = repository.repository.defaultBranch,
-          enableWikiLink     = false,
-          enableRefsLink     = true,
-          enableLineBreaks   = true,
-          enableTaskList     = true,
-          hasWritePermission = hasWritePermission
-        )
+        @{
+          var commentContent = helpers.renderMarkup(
+            filePath = List("temporary.md"),
+            fileContent = comment.content,
+            branch = repository.repository.defaultBranch,
+            repository = repository,
+            enableWikiLink = false,
+            enableRefsLink = true,
+            enableAnchor = true
+          ).toString()
+          if(hasWritePermission) {
+            val re = "disabled[^<>]*>".r
+            commentContent = re.replaceAllIn(commentContent, ">")
+            Html(commentContent)
+          } else {
+            Html(commentContent)
+          }
+        }
       </div>
     </div>
   </div>

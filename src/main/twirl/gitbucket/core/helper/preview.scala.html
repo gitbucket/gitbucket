@@ -57,6 +57,7 @@ $(function(){
   $('#preview@uid').click(function(){
     $('#preview-area@uid').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
     $.post('@helpers.url(repository)/_preview', {
+      filename         : "temporary.md",
       content          : $('#content@uid').val(),
       enableWikiLink   : @enableWikiLink,
       enableRefsLink   : @enableRefsLink,
