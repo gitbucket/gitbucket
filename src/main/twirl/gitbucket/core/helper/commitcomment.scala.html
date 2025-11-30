@@ -32,8 +32,8 @@
             enableAnchor = true
           ).toString()
           if(hasWritePermission) {
-            val re = "disabled[^<>]*>".r
-            commentContent = re.replaceAllIn(commentContent, ">")
+            val re = "(<input\\s+[^<>]*type=\"checkbox\"\\s+[^<>]*)\\s+disabled[^<>]*>".r
+            commentContent = re.replaceAllIn(commentContent, "$1>")
             Html(commentContent)
           } else {
             Html(commentContent)
