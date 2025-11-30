@@ -511,6 +511,18 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     Html(sb.toString())
   }
 
+  /**
+    * Utility method to enable checkboxes
+    */
+  def enableCheckbox(html: Html, enable: Boolean): Html = {
+    if (enable) {
+      val re = "(<input\\s+[^<>]*type=\"checkbox\"\\s+[^<>]*)\\s+disabled[^<>]*>".r
+      Html(re.replaceAllIn(html.toString(), "$1>"))
+    } else {
+      html
+    }
+  }
+
   case class CommentDiffLine(newLine: Option[String], oldLine: Option[String], `type`: String, text: String)
 
   def appendQueryString(baseUrl: String, queryString: String): String = {

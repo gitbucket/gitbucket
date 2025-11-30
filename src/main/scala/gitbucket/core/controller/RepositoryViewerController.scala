@@ -897,19 +897,21 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
           } getOrElse {
             contentType = formats("json")
-            val re = "(<input\\s+[^<>]*type=\"checkbox\"\\s+[^<>]*)\\s+disabled[^<>]*>".r
-            var content = helpers
-              .renderMarkup(
-                filePath = List("temporary.md"),
-                fileContent = x.content,
-                branch = repository.repository.defaultBranch,
-                repository = repository,
-                enableWikiLink = false,
-                enableRefsLink = true,
-                enableAnchor = true
+            val content = helpers
+              .enableCheckbox(
+                helpers
+                  .renderMarkup(
+                    filePath = List("temporary.md"),
+                    fileContent = x.content,
+                    branch = repository.repository.defaultBranch,
+                    repository = repository,
+                    enableWikiLink = false,
+                    enableRefsLink = true,
+                    enableAnchor = true
+                  ),
+                true
               )
               .toString()
-            content = re.replaceAllIn(content, "$1>")
             org.json4s.jackson.Serialization.write(
               Map(
                 "content" -> content
