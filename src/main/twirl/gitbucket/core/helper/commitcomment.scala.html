@@ -34,10 +34,8 @@
           if(hasWritePermission) {
             val re = "(<input\\s+[^<>]*type=\"checkbox\"\\s+[^<>]*)\\s+disabled[^<>]*>".r
             commentContent = re.replaceAllIn(commentContent, "$1>")
-            Html(commentContent)
-          } else {
-            Html(commentContent)
           }
+          Html(commentContent)
         }
       </div>
     </div>
