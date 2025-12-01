@@ -59,7 +59,15 @@
           @if(isEditable){
             <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
-          @helpers.markdown(sidebarPage.content, repository, "master", true, false, false, false, pages)
+          @helpers.renderMarkup(
+            filePath = sidebarPage.name.split("/").toList,
+            fileContent = sidebarPage.content,
+            branch = "master",
+            repository = repository,
+            enableWikiLink = true,
+            enableRefsLink = false,
+            enableAnchor = false
+          )
         </div>
       }.getOrElse{
         @if(isEditable){
@@ -82,16 +90,14 @@
     </div>
     <div class="wiki-main">
       <div class="markdown-body">
-        @helpers.markdown(
-          markdown = page.content,
-          repository = repository,
+        @helpers.renderMarkup(
+          filePath = page.name.split("/").toList,
+          fileContent = page.content,
           branch = "master",
+          repository = repository,
           enableWikiLink = true,
           enableRefsLink = false,
-          enableLineBreaks = false,
-          enableTaskList = false,
-          hasWritePermission = false,
-          pages = pages
+          enableAnchor = true
         )
       </div>
       @footer.map { footerPage =>
@@ -99,15 +105,14 @@
           @if(isEditable){
             <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
-          @helpers.markdown(
-            markdown         = footerPage.content,
-            repository       = repository,
-            branch           = "master",
-            enableWikiLink   = true,
-            enableRefsLink   = false,
-            enableLineBreaks = false,
-            enableAnchor     = false,
-            pages            = pages
+          @helpers.renderMarkup(
+            filePath = footerPage.name.split("/").toList,
+            fileContent = footerPage.content,
+            branch = "master",
+            repository = repository,
+            enableWikiLink = true,
+            enableRefsLink = false,
+            enableAnchor = false
           )
         </div>
       }.getOrElse{
