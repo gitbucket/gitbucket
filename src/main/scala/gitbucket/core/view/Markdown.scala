@@ -192,7 +192,11 @@ object Markdown {
               .stripSuffix(".git") + "/blob/" + branch + "/" + urlWithRawParam
           }
         } else {
-          repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
+          if (url.lastIndexOf(".") > 0) {
+            repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
+          } else {
+            repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/" + url
+          }
         }
       }
     }
