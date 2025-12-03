@@ -66,7 +66,7 @@ libraryDependencies ++= Seq(
   "org.testcontainers"              % "testcontainers-postgresql" % "2.0.2"         % "test",
   "net.i2p.crypto"                  % "eddsa"                     % "0.3.0",
   "is.tagomor.woothee"              % "woothee-java"              % "1.11.0",
-  "org.ec4j.core"                   % "ec4j-core"                 % "1.1.1",
+  "org.ec4j.core"                   % "ec4j-core"                 % "1.2.0",
   "org.kohsuke"                     % "github-api"                % "1.330"         % "test"
 )
 
