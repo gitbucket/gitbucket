@@ -82,16 +82,14 @@
     </div>
     <div class="wiki-main">
       <div class="markdown-body">
-        @helpers.markdown(
-          markdown = page.content,
-          repository = repository,
+        @helpers.renderMarkup(
+          filePath = page.name.split("/").toList,
+          fileContent = page.content,
           branch = "master",
+          repository = repository,
           enableWikiLink = true,
           enableRefsLink = false,
-          enableLineBreaks = false,
-          enableTaskList = false,
-          hasWritePermission = false,
-          pages = pages
+          enableAnchor = true
         )
       </div>
       @footer.map { footerPage =>
