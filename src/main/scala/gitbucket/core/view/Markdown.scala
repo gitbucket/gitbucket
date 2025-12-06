@@ -192,6 +192,8 @@ object Markdown {
               .stripSuffix(".git") + "/blob/" + branch + "/" + urlWithRawParam
           }
         } else {
+          // URL is being modified to link to the image file on the repository, but users may want to link to the page if the page name is a link.
+          // As a interim solution, if the link contains a ., it will use the current conversion, otherwise it will perform the conversion the user wants.
           if (url.lastIndexOf(".") > 0) {
             repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
           } else {
