@@ -180,8 +180,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repository = repository,
           enableWikiLink = params("enableWikiLink").toBoolean,
           enableRefsLink = params("enableRefsLink").toBoolean,
-          enableAnchor = false,
-          hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+          enableAnchor = false
         )
       case None =>
         helpers.markdown(
