@@ -32,17 +32,15 @@
     }
   </div>
   <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
-    @helpers.enableCheckbox(
-      helpers.renderMarkup(
-        filePath           = List("temporary.md"),
-        fileContent        = comment.content,
-        branch             = repository.repository.defaultBranch,
-        repository         = repository,
-        enableWikiLink     = false,
-        enableRefsLink     = true,
-        enableAnchor       = true
-      ),
-      isManageable
+    @helpers.renderMarkup(
+      filePath           = List("temporary.md"),
+      fileContent        = comment.content,
+      branch             = repository.repository.defaultBranch,
+      repository         = repository,
+      enableWikiLink     = false,
+      enableRefsLink     = true,
+      enableAnchor       = true,
+      hasWritePermission = isManageable
     )
   </div>
 </div>
@@ -60,17 +58,15 @@
       </span>
     </div>
     <div class="panel-body markdown-body" id="issueContent">
-      @helpers.enableCheckbox(
-        helpers.renderMarkup(
-          filePath           = List("temporary.md"),
-          fileContent        = issue.get.content getOrElse "No description provided.",
-          branch             = repository.repository.defaultBranch,
-          repository         = repository,
-          enableWikiLink     = false,
-          enableRefsLink     = true,
-          enableAnchor       = true
-        ),
-        isManageable
+      @helpers.renderMarkup(
+        filePath           = List("temporary.md"),
+        fileContent        = issue.get.content getOrElse "No description provided.",
+        branch             = repository.repository.defaultBranch,
+        repository         = repository,
+        enableWikiLink     = false,
+        enableRefsLink     = true,
+        enableAnchor       = true,
+        hasWritePermission = isManageable
       )
     </div>
   </div>
@@ -335,17 +331,15 @@
         }
       </div>
       <div class="panel-body markdown-body commit-commentContent-@comment.commentId">
-        @helpers.enableCheckbox(
-          helpers.renderMarkup(
-            filePath           = List("temporary.md"),
-            fileContent        = comment.content,
-            branch             = repository.repository.defaultBranch,
-            repository         = repository,
-            enableWikiLink     = false,
-            enableRefsLink     = true,
-            enableAnchor       = true
-          ),
-          isManageable
+        @helpers.renderMarkup(
+          filePath           = List("temporary.md"),
+          fileContent        = comment.content,
+          branch             = repository.repository.defaultBranch,
+          repository         = repository,
+          enableWikiLink     = false,
+          enableRefsLink     = true,
+          enableAnchor       = true,
+          hasWritePermission = isManageable
         )
       </div>
     </div>

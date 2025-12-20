@@ -180,7 +180,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repository = repository,
           enableWikiLink = params("enableWikiLink").toBoolean,
           enableRefsLink = params("enableRefsLink").toBoolean,
-          enableAnchor = false
+          enableAnchor = false,
+          hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
         )
       case None =>
         helpers.markdown(
@@ -898,18 +899,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           } getOrElse {
             contentType = formats("json")
             val content = helpers
-              .enableCheckbox(
-                helpers
-                  .renderMarkup(
-                    filePath = List("temporary.md"),
-                    fileContent = x.content,
-                    branch = repository.repository.defaultBranch,
-                    repository = repository,
-                    enableWikiLink = false,
-                    enableRefsLink = true,
-                    enableAnchor = true
-                  ),
-                true
+              .renderMarkup(
+                filePath = List("temporary.md"),
+                fileContent = x.content,
+                branch = repository.repository.defaultBranch,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                hasWritePermission = true
               )
               .toString()
             org.json4s.jackson.Serialization.write(

@@ -21,15 +21,16 @@
         </span>
       </div>
       <div class="commit-commentContent-@comment.commentId">
-          @helpers.enableCheckbox(helpers.renderMarkup(
+          @helpers.renderMarkup(
             filePath = List("temporary.md"),
             fileContent = comment.content,
             branch = repository.repository.defaultBranch,
             repository = repository,
             enableWikiLink = false,
             enableRefsLink = true,
-            enableAnchor = true
-          ), hasWritePermission)
+            enableAnchor = true,
+            hasWritePermission = hasWritePermission
+          )
       </div>
     </div>
   </div>

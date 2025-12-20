@@ -273,18 +273,15 @@ trait IssuesControllerBase extends ControllerBase {
           } getOrElse {
             contentType = formats("json")
             val content = helpers
-              .enableCheckbox(
-                helpers
-                  .renderMarkup(
-                    filePath = List("temporary.md"),
-                    fileContent = x.content getOrElse "No description given.",
-                    branch = repository.repository.defaultBranch,
-                    repository = repository,
-                    enableWikiLink = false,
-                    enableRefsLink = true,
-                    enableAnchor = true
-                  ),
-                true
+              .renderMarkup(
+                filePath = List("temporary.md"),
+                fileContent = x.content getOrElse "No description given.",
+                branch = repository.repository.defaultBranch,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                hasWritePermission = true
               )
               .toString()
             org.json4s.jackson.Serialization.write(
@@ -308,18 +305,15 @@ trait IssuesControllerBase extends ControllerBase {
           } getOrElse {
             contentType = formats("json")
             val content = helpers
-              .enableCheckbox(
-                helpers
-                  .renderMarkup(
-                    filePath = List("temporary.md"),
-                    fileContent = x.content,
-                    branch = repository.repository.defaultBranch,
-                    repository = repository,
-                    enableWikiLink = false,
-                    enableRefsLink = true,
-                    enableAnchor = true
-                  ),
-                true
+              .renderMarkup(
+                filePath = List("temporary.md"),
+                fileContent = x.content,
+                branch = repository.repository.defaultBranch,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                hasWritePermission = true
               )
               .toString()
             org.json4s.jackson.Serialization.write(
