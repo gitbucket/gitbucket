@@ -139,14 +139,25 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     repository: RepositoryService.RepositoryInfo,
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
-    enableAnchor: Boolean
+    enableAnchor: Boolean,
+    hasWritePermission: Boolean = false
   )(implicit context: Context): Html = {
 
     val fileName = filePath.last.toLowerCase
     val extension = FileUtil.getExtension(fileName)
     val renderer = PluginRegistry().getRenderer(extension)
     renderer.render(
-      RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, enableAnchor, context)
+      RenderRequest(
+        filePath,
+        fileContent,
+        branch,
+        repository,
+        enableWikiLink,
+        enableRefsLink,
+        enableAnchor,
+        hasWritePermission,
+        context
+      )
     )
   }
 
@@ -509,6 +520,18 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     sb.append("</table>")
 
     Html(sb.toString())
+  }
+
+  /**
+    * Utility method to enable checkboxes
+    */
+  def enableCheckbox(html: Html, enable: Boolean): Html = {
+    if (enable) {
+      val re = "(<input\\s+[^<>]*type=\"checkbox\"\\s+[^<>]*)\\s+disabled[^<>]*>".r
+      Html(re.replaceAllIn(html.toString(), "$1>"))
+    } else {
+      html
+    }
   }
 
   case class CommentDiffLine(newLine: Option[String], oldLine: Option[String], `type`: String, text: String)

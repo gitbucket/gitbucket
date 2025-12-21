@@ -897,19 +897,21 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
           } getOrElse {
             contentType = formats("json")
+            val content = helpers
+              .renderMarkup(
+                filePath = List("temporary.md"),
+                fileContent = x.content,
+                branch = repository.repository.defaultBranch,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                hasWritePermission = true
+              )
+              .toString()
             org.json4s.jackson.Serialization.write(
               Map(
-                "content" -> view.Markdown.toHtml(
-                  markdown = x.content,
-                  repository = repository,
-                  branch = repository.repository.defaultBranch,
-                  enableWikiLink = false,
-                  enableRefsLink = true,
-                  enableAnchor = true,
-                  enableLineBreaks = true,
-                  enableTaskList = true,
-                  hasWritePermission = true
-                )
+                "content" -> content
               )
             )
           }

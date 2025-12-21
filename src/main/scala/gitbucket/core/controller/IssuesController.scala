@@ -8,6 +8,7 @@ import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.*
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
+import gitbucket.core.view.helpers
 import org.scalatra.forms.*
 import org.scalatra.{BadRequest, Ok}
 
@@ -271,20 +272,22 @@ trait IssuesControllerBase extends ControllerBase {
             case t if t == "html" => html.editissue(x.content, x.issueId, repository)
           } getOrElse {
             contentType = formats("json")
+            val content = helpers
+              .renderMarkup(
+                filePath = List("temporary.md"),
+                fileContent = x.content getOrElse "No description given.",
+                branch = repository.repository.defaultBranch,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                hasWritePermission = true
+              )
+              .toString()
             org.json4s.jackson.Serialization.write(
               Map(
                 "title" -> x.title,
-                "content" -> Markdown.toHtml(
-                  markdown = x.content getOrElse "No description given.",
-                  repository = repository,
-                  branch = repository.repository.defaultBranch,
-                  enableWikiLink = false,
-                  enableRefsLink = true,
-                  enableAnchor = true,
-                  enableLineBreaks = true,
-                  enableTaskList = true,
-                  hasWritePermission = true
-                )
+                "content" -> content
               )
             )
           }
@@ -301,19 +304,21 @@ trait IssuesControllerBase extends ControllerBase {
             case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
           } getOrElse {
             contentType = formats("json")
+            val content = helpers
+              .renderMarkup(
+                filePath = List("temporary.md"),
+                fileContent = x.content,
+                branch = repository.repository.defaultBranch,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                hasWritePermission = true
+              )
+              .toString()
             org.json4s.jackson.Serialization.write(
               Map(
-                "content" -> view.Markdown.toHtml(
-                  markdown = x.content,
-                  repository = repository,
-                  branch = repository.repository.defaultBranch,
-                  enableWikiLink = false,
-                  enableRefsLink = true,
-                  enableAnchor = true,
-                  enableLineBreaks = true,
-                  enableTaskList = true,
-                  hasWritePermission = true
-                )
+                "content" -> content
               )
             )
           }

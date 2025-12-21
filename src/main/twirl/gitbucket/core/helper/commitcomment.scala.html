@@ -21,16 +21,16 @@
         </span>
       </div>
       <div class="commit-commentContent-@comment.commentId">
-        @helpers.markdown(
-          markdown           = comment.content,
-          repository         = repository,
-          branch             = repository.repository.defaultBranch,
-          enableWikiLink     = false,
-          enableRefsLink     = true,
-          enableLineBreaks   = true,
-          enableTaskList     = true,
-          hasWritePermission = hasWritePermission
-        )
+          @helpers.renderMarkup(
+            filePath = List("temporary.md"),
+            fileContent = comment.content,
+            branch = repository.repository.defaultBranch,
+            repository = repository,
+            enableWikiLink = false,
+            enableRefsLink = true,
+            enableAnchor = true,
+            hasWritePermission = hasWritePermission
+          )
       </div>
     </div>
   </div>

@@ -31,7 +31,7 @@ object MarkdownRenderer extends Renderer {
         enableAnchor = enableAnchor,
         enableLineBreaks = false,
         enableTaskList = true,
-        hasWritePermission = false
+        hasWritePermission = hasWritePermission
       )(context)
     )
   }
@@ -51,5 +51,6 @@ case class RenderRequest(
   enableWikiLink: Boolean,
   enableRefsLink: Boolean,
   enableAnchor: Boolean,
+  hasWritePermission: Boolean,
   context: Context
 )

@@ -32,14 +32,14 @@
     }
   </div>
   <div class="panel-body markdown-body" id="commentContent-@comment.commentId">
-    @helpers.markdown(
-      markdown           = comment.content,
-      repository         = repository,
+    @helpers.renderMarkup(
+      filePath           = List("temporary.md"),
+      fileContent        = comment.content,
       branch             = repository.repository.defaultBranch,
+      repository         = repository,
       enableWikiLink     = false,
       enableRefsLink     = true,
-      enableLineBreaks   = true,
-      enableTaskList     = true,
+      enableAnchor       = true,
       hasWritePermission = isManageable
     )
   </div>
@@ -58,14 +58,14 @@
       </span>
     </div>
     <div class="panel-body markdown-body" id="issueContent">
-      @helpers.markdown(
-        markdown           = issue.get.content getOrElse "No description provided.",
-        repository         = repository,
+      @helpers.renderMarkup(
+        filePath           = List("temporary.md"),
+        fileContent        = issue.get.content getOrElse "No description provided.",
         branch             = repository.repository.defaultBranch,
+        repository         = repository,
         enableWikiLink     = false,
         enableRefsLink     = true,
-        enableLineBreaks   = true,
-        enableTaskList     = true,
+        enableAnchor       = true,
         hasWritePermission = isManageable
       )
     </div>
@@ -331,14 +331,14 @@
         }
       </div>
       <div class="panel-body markdown-body commit-commentContent-@comment.commentId">
-        @helpers.markdown(
-          markdown           = comment.content,
-          repository         = repository,
+        @helpers.renderMarkup(
+          filePath           = List("temporary.md"),
+          fileContent        = comment.content,
           branch             = repository.repository.defaultBranch,
+          repository         = repository,
           enableWikiLink     = false,
           enableRefsLink     = true,
-          enableLineBreaks   = true,
-          enableTaskList     = true,
+          enableAnchor       = true,
           hasWritePermission = isManageable
         )
       </div>
