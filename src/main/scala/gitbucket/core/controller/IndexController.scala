@@ -13,8 +13,8 @@ import gitbucket.core.util.*
 import gitbucket.core.view.helpers.*
 import org.scalatra.Ok
 import org.scalatra.forms.*
-
 import gitbucket.core.service.ActivityService.*
+import gitbucket.core.view.helpers
 
 class IndexController
     extends IndexControllerBase
@@ -90,6 +90,10 @@ trait IndexControllerBase extends ControllerBase {
           enableNewsFeed = isNewsFeedEnabled
         )
       }
+  }
+
+  get("/_is_renderable") {
+    helpers.isRenderable(params("filename"))
   }
 
   get("/signin") {

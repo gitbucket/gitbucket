@@ -208,29 +208,31 @@ $(function(){
     $('#preview').show();
     $('#btn-code').removeClass('active');
 
-    @if(fileName.map(helpers.isRenderable _).getOrElse(false)) {
-      // update preview
-      $('#preview').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
-      $.post('@helpers.url(repository)/_preview', {
-        content          : editor.getValue(),
-        enableWikiLink   : false,
-        filename         : $('#newFileName').val(),
-        enableRefsLink   : false,
-        enableLineBreaks : false,
-        enableTaskList   : false
-      }, function(data){
-        $('#preview').empty().append(
-          $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
-        prettyPrint();
-      });
-    } else {
-      // Show diff
-      $('#preview').empty()
-        .append($('<div id="diffText">'))
-        .append($('<textarea id="newText" style="display: none;">').data('file-name',$("#newFileName").val()).data('val', editor.getValue()))
-        .append($('<textarea id="oldText" style="display: none;">').data('file-name',$("#oldFileName").val()).data('val', $('#initial').val()));
-      diffUsingJS('oldText', 'newText', 'diffText', 1);
-    }
+    $.get("/_is_renderable?filename=" + encodeURIComponent($('#newFileName').val()), function(data) {
+      if (data === 'true') {
+        // update preview
+        $('#preview').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
+        $.post('@helpers.url(repository)/_preview', {
+          content          : editor.getValue(),
+          enableWikiLink   : false,
+          filename         : $('#newFileName').val(),
+          enableRefsLink   : false,
+          enableLineBreaks : false,
+          enableTaskList   : false
+        }, function(data){
+          $('#preview').empty().append(
+            $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
+          prettyPrint();
+        });
+      } else {
+        // Show diff
+        $('#preview').empty()
+          .append($('<div id="diffText">'))
+          .append($('<textarea id="newText" style="display: none;">').data('file-name',$("#newFileName").val()).data('val', editor.getValue()))
+          .append($('<textarea id="oldText" style="display: none;">').data('file-name',$("#oldFileName").val()).data('val', $('#initial').val()));
+        diffUsingJS('oldText', 'newText', 'diffText', 1);
+      }
+    });
   });
 });
 </script>
