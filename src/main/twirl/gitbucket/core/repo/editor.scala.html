@@ -215,7 +215,7 @@ $(function(){
         $.post('@helpers.url(repository)/_preview', {
           content          : editor.getValue(),
           enableWikiLink   : false,
-          filename         : $('path').val() + '/' + $('#newFileName').val(),
+          filename         : $('#path').val() + '/' + $('#newFileName').val(),
           enableRefsLink   : false,
           enableLineBreaks : false,
           enableTaskList   : false
