@@ -208,7 +208,7 @@ $(function(){
     $('#preview').show();
     $('#btn-code').removeClass('active');
 
-    $.get("/_is_renderable?filename=" + encodeURIComponent($('#newFileName').val()), function(data) {
+    $.get("@context.baseUrl/_is_renderable?filename=" + encodeURIComponent($('#newFileName').val()), function(data) {
       if (data === 'true') {
         // update preview
         $('#preview').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
