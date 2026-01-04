@@ -195,7 +195,7 @@ object Markdown {
           }
         } else {
           // URL is being modified to link to the image file on the repository, but users may want to link to the page if the page name is a link.
-          // As a interim solution, if the link contains a ., it will use the current conversion, otherwise it will perform the conversion the user wants.
+          // If the wiki page cannot be retrieved from the url, the blob address is returned; otherwise, the page address is returned.
           val pathElems = context.currentPath.split("/")
           val owner = pathElems(1)
           val repos = pathElems(2)
