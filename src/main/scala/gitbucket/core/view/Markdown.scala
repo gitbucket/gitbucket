@@ -76,7 +76,7 @@ object Markdown {
   )(implicit val context: Context)
       extends Renderer(options)
       with LinkConverter
-      with RequestCache 
+      with RequestCache
       with WikiService {
 
     override def heading(text: String, level: Int, raw: String): String = {
