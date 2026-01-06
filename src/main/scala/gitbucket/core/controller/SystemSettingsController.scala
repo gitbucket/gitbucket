@@ -125,7 +125,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "maxDiffFiles" -> trim(label("Max diff files", number(required))),
       "maxDiffLines" -> trim(label("Max diff lines", number(required)))
     )(RepositoryViewerSettings.apply),
-    "defaultBranch" -> trim(label("Default branch", text(required)))
+    "defaultBranch" -> trim(label("Default branch", text(required))),
+    "showFullName" -> trim(label("Show full name", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if (settings.ssh.enabled && settings.baseUrl.isEmpty) {

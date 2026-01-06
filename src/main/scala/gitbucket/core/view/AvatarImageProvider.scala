@@ -47,18 +47,28 @@ trait AvatarImageProvider { self: RequestCache =>
       }
     }
 
+    val displayName = if (!context.settings.showFullName) {
+      s"@$userName"
+    } else {
+      if (mailAddress.isEmpty) {
+        getAccountByUserNameFromCache(userName).map(_.fullName).getOrElse(s"@$userName")
+      } else {
+        getAccountByMailAddressFromCache(mailAddress).map(_.fullName).getOrElse(s"@$userName")
+      }
+    }
+
     if (tooltip) {
       Html(
         s"""<img src="${src}" class="${if (size > 20) { "avatar" }
           else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
-           |     alt="@${StringUtil.escapeHtml(userName)}"
-           |     data-toggle="tooltip" title="${StringUtil.escapeHtml(userName)}" />""".stripMargin
+           |     alt="${StringUtil.escapeHtml(displayName)}"
+           |     data-toggle="tooltip" title="${StringUtil.escapeHtml(displayName)}" />""".stripMargin
       )
     } else {
       Html(
         s"""<img src="${src}" class="${if (size > 20) { "avatar" }
           else { "avatar-mini" }}" style="width: ${size}px; height: ${size}px;"
-           |     alt="@${StringUtil.escapeHtml(userName)}" />""".stripMargin
+           |     alt="${StringUtil.escapeHtml(displayName)}" />""".stripMargin
       )
     }
   }

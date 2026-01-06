@@ -85,7 +85,8 @@ trait ServiceSpecBase {
         maxDiffFiles = 100,
         maxDiffLines = 1000
       ),
-      defaultBranch = "main"
+      defaultBranch = "main",
+      showFullName = false
     )
 
   def withTestDB[A](action: (Session) => A): A = {
