@@ -6,8 +6,6 @@ import gitbucket.core.service.IssuesService.*
 import gitbucket.core.service.*
 import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.*
-import gitbucket.core.view
-import gitbucket.core.view.Markdown
 import gitbucket.core.view.helpers
 import org.scalatra.forms.*
 import org.scalatra.{BadRequest, Ok}

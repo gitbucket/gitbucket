@@ -5,7 +5,7 @@ import gitbucket.core.service.{AccountService, ProtectedBranchService, Repositor
 import gitbucket.core.util.*
 import gitbucket.core.util.Directory.*
 import gitbucket.core.util.Implicits.*
-import gitbucket.core.util.JGitUtil.{getBranchesNoMergeInfo, processTree}
+import gitbucket.core.util.JGitUtil.getBranchesNoMergeInfo
 import org.eclipse.jgit.api.Git
 import org.scalatra.NoContent
 
