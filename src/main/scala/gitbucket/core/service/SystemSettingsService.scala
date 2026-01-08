@@ -93,6 +93,7 @@ trait SystemSettingsService {
     props.setProperty(RepositoryViewerMaxDiffFiles, settings.repositoryViewer.maxDiffFiles.toString)
     props.setProperty(RepositoryViewerMaxDiffLines, settings.repositoryViewer.maxDiffLines.toString)
     props.setProperty(DefaultBranch, settings.defaultBranch)
+    props.setProperty(ShowFullName, settings.showFullName.toString)
 
     Using.resource(new java.io.FileOutputStream(GitBucketConf)) { out =>
       props.store(out, null)
@@ -211,7 +212,8 @@ trait SystemSettingsService {
         getValue(props, RepositoryViewerMaxDiffFiles, 100),
         getValue(props, RepositoryViewerMaxDiffLines, 1000)
       ),
-      getValue(props, DefaultBranch, "main")
+      getValue(props, DefaultBranch, "main"),
+      getValue(props, ShowFullName, false)
     )
   }
 }
@@ -238,7 +240,8 @@ object SystemSettingsService {
     webHook: WebHook,
     upload: Upload,
     repositoryViewer: RepositoryViewerSettings,
-    defaultBranch: String
+    defaultBranch: String,
+    showFullName: Boolean
   ) {
     def baseUrl(request: HttpServletRequest): String =
       baseUrl.getOrElse(parseBaseUrl(request)).stripSuffix("/")
@@ -457,6 +460,7 @@ object SystemSettingsService {
   private val RepositoryViewerMaxDiffFiles = "repository_viewer_max_diff_files"
   private val RepositoryViewerMaxDiffLines = "repository_viewer_max_diff_lines"
   private val DefaultBranch = "default_branch"
+  private val ShowFullName = "show_full_name"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getConfigValue(key).getOrElse {

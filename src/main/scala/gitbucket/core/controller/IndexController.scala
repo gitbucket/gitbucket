@@ -251,13 +251,22 @@ trait IndexControllerBase extends ControllerBase {
               }
             }
             .map { t =>
-              Map(
-                "label" -> s"${avatar(t.userName, 16)}<b>@${StringUtil.escapeHtml(
-                    StringUtil.cutTail(t.userName, 25, "...")
-                  )}</b> ${StringUtil
-                    .escapeHtml(StringUtil.cutTail(t.fullName, 25, "..."))}",
-                "value" -> t.userName
-              )
+              if (t.isGroupAccount) {
+                Map(
+                  "label" -> s"${avatar(t.userName, 16)} <b>@${StringUtil.escapeHtml(
+                      StringUtil.cutTail(t.userName, 25, "...")
+                    )}</b>",
+                  "value" -> t.userName
+                )
+              } else {
+                Map(
+                  "label" -> s"${avatar(t.userName, 16)} <b>@${StringUtil.escapeHtml(
+                      StringUtil.cutTail(t.userName, 25, "...")
+                    )}</b> (${StringUtil
+                      .escapeHtml(StringUtil.cutTail(t.fullName, 25, "..."))})",
+                  "value" -> t.userName
+                )
+              }
             }
       )
     )

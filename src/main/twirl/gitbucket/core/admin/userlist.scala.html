@@ -25,20 +25,23 @@
                 <a href="@context.path/admin/users/@account.userName/_edituser">Edit</a>
               }
             </div>
-            <div class="strong">
-              @helpers.avatarLink(account.userName, 20)
-              @if(account.isRemoved){
-                @account.userName
-              } else {
-                <a href="@helpers.url(account.userName)">@account.userName</a>
-              }
-              @if(account.isGroupAccount){
-                (Group)
-              } else {
-                @if(account.isAdmin){
-                  (Administrator)
+            <div>
+              <span class="strong">
+                @helpers.avatarLink(account.userName, 20)
+                @if(account.isRemoved){
+                  @account.userName
                 } else {
-                  (Normal)
+                  <a href="@helpers.url(account.userName)">@account.userName</a>
+                }
+              </span>
+              @if(account.isGroupAccount){
+                - Group
+              } else {
+                (@account.fullName)
+                @if(account.isAdmin){
+                  - Administrator
+                } else {
+                  - Normal
                 }
               }
               @if(account.isGroupAccount){
@@ -50,10 +53,10 @@
             <div>
               <hr>
               @if(!account.isGroupAccount){
-                <i class="octicon octicon-mail"></i> @account.mailAddress
+                <i class="octicon octicon-mail"></i>@account.mailAddress
               }
               @account.url.map { url =>
-                <i class="octicon octicon-home"></i> @url
+                <i class="octicon octicon-home"></i>@url
               }
             </div>
             <div>

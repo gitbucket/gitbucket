@@ -48,25 +48,25 @@ $(function(){
   });
 
   $('.add').click(function(){
-    var id = $(this).attr('id') == 'addCollaborator' ? 'collaborator' : 'group';
+    const id = $(this).attr('id') === 'addCollaborator' ? 'collaborator' : 'group';
 
     $('#error-' + id).text('');
-    var userName = $('#userName-' + id).val();
+    const userName = $('#userName-' + id).val();
 
     // check empty
-    if($.trim(userName) == ''){
+    if($.trim(userName) === ''){
       return false;
     }
 
     // check owner
-    var owner = '@repository.owner' == userName
+    const owner = '@repository.owner' === userName
     if(owner){
       $('#error-' + id).text('User is owner of this repository.');
       return false;
     }
     // check duplication
-    var exists = $('#' + id + '-list li').filter(function(){
-      return $(this).data('name') == userName;
+    const exists = $('#' + id + '-list li').filter(function(){
+      return $(this).data('name') === userName;
     }).length > 0;
     if(exists){
       $('#error-' + id).text('User has been already added.');
@@ -76,7 +76,7 @@ $(function(){
     // check existence
     $.post('@context.path/_user/existence', { 'userName': userName },
       function(data, status){
-        if(data != ''){
+        if(data !== ''){
           addListHTML(userName, '@Role.ADMIN.name', '#' + id + '-list');
           $('#userName-' + id).val('');
         } else {
@@ -91,7 +91,7 @@ $(function(){
 
   // Don't submit form by ENTER key
   $('#userName-collaborator, #userName-group').keypress(function(e){
-    return !(e.keyCode == 13);
+    return !(e.keyCode === 13);
   });
 
   @collaborators.map { case (collaborator, isGroup) =>
@@ -99,16 +99,16 @@ $(function(){
   }
 
   function addListHTML(userName, role, id){
-    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.ADMIN.name" name="' + userName + '">Admin</label>');
-    if(role == '@Role.ADMIN.name'){
+    const adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.ADMIN.name" name="' + userName + '">Admin</label>');
+    if(role === '@Role.ADMIN.name'){
       adminButton.addClass('active');
     }
-    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.DEVELOPER.name" name="' + userName + '">Developer</label>');
-    if(role == '@Role.DEVELOPER.name'){
+    const writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.DEVELOPER.name" name="' + userName + '">Developer</label>');
+    if(role === '@Role.DEVELOPER.name'){
       writeButton.addClass('active');
     }
-    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.GUEST.name" name="' + userName + '">Guest</label>');
-    if(role == '@Role.GUEST.name'){
+    const readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.GUEST.name" name="' + userName + '">Guest</label>');
+    if(role === '@Role.GUEST.name'){
       readButton.addClass('active');
     }
 
@@ -124,13 +124,13 @@ $(function(){
   }
 
   function updateValues(){
-    var collaborators = $('#collaborator-list li').map(function(i, e){
-      var userName = $(e).data('name');
+    const collaborators = $('#collaborator-list li').map(function(i, e){
+      const userName = $(e).data('name');
       return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
     }).get().join(',');
 
-    var groups = $('#group-list li').map(function(i, e){
-      var userName = $(e).data('name');
+    const groups = $('#group-list li').map(function(i, e){
+      const userName = $(e).data('name');
       return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
     }).get().join(',');
 

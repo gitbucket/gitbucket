@@ -327,12 +327,30 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def assets(path: String)(implicit context: Context): String = s"${context.path}/assets${path}?${hashQuery}"
 
+  def displayUserName(userName: String, mailAddress: String = "")(implicit context: Context): String = {
+    val displayName = if (!context.settings.showFullName) {
+      userName
+    } else {
+      if (mailAddress.isEmpty) {
+        getAccountByUserNameFromCache(userName).map(_.fullName).getOrElse(userName)
+      } else {
+        getAccountByMailAddressFromCache(mailAddress).map(_.fullName).getOrElse(userName)
+      }
+    }
+    if (userName == displayName) {
+      userName
+    } else {
+      s"$userName ($displayName)"
+    }
+  }
+
+
   /**
    * Generates the text link to the account page.
    * If user does not exist or disabled, this method returns user name as text without link.
    */
   def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: Context): Html =
-    userWithContent(userName, mailAddress, styleClass)(Html(StringUtil.escapeHtml(userName)))
+    userWithContent(userName, mailAddress, styleClass)(Html(StringUtil.escapeHtml(displayUserName(userName, mailAddress))))
 
   /**
    * Generates the avatar link to the account page.

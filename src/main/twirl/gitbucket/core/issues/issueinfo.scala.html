@@ -131,7 +131,7 @@
         @collaborators.map { collaborator =>
           <li>
             <a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator">
-              @gitbucket.core.helper.html.checkicon(issueAssignees.exists(_.assigneeUserName == collaborator))@helpers.avatar(collaborator, 20) @collaborator
+              @gitbucket.core.helper.html.checkicon(issueAssignees.exists(_.assigneeUserName == collaborator))@helpers.avatar(collaborator, 20) @helpers.displayUserName(collaborator)
             </a>
           </li>
         }

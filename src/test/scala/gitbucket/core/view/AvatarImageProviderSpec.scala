@@ -107,7 +107,7 @@ class AvatarImageProviderSpec extends AnyFunSpec {
         provider.toHtml("user", 20, "hoge@hoge.com", true).toString ==
           """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
             |     alt="@user"
-            |     data-toggle="tooltip" title="user" />""".stripMargin
+            |     data-toggle="tooltip" title="@user" />""".stripMargin
       )
     }
 
@@ -125,7 +125,7 @@ class AvatarImageProviderSpec extends AnyFunSpec {
         provider.toHtml("""<user>"<name>""", 20, "hoge@hoge.com", true).toString ==
           """<img src="/_unknown/_avatar" class="avatar-mini" style="width: 20px; height: 20px;"
             |     alt="@&lt;user&gt;&quot;&lt;name&gt;"
-            |     data-toggle="tooltip" title="&lt;user&gt;&quot;&lt;name&gt;" />""".stripMargin
+            |     data-toggle="tooltip" title="@&lt;user&gt;&quot;&lt;name&gt;" />""".stripMargin
       )
     }
   }
@@ -196,7 +196,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
         maxDiffFiles = 100,
         maxDiffLines = 1000
       ),
-      "main"
+      defaultBranch = "main",
+      showFullName = false
     )
 
   /**

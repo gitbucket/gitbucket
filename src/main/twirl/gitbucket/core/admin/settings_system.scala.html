@@ -254,6 +254,21 @@
     <span class="strong">Hide</span> <span class="normal">- Hide mail address in user's profile page.</span>
   </label>
 </fieldset>
+  <!--====================================================================-->
+  <!-- Show full name -->
+  <!--====================================================================-->
+<hr>
+<label class="strong">Username display on UI</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="showFullName" value="false"@if(!context.settings.showFullName){ checked}>
+    <span class="strong">User name</span> <span class="normal">- Username is primarily displayed on UI.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="showFullName" value="true"@if(context.settings.showFullName){ checked}>
+    <span class="strong">Full name</span> <span class="normal">- Fullname is primarily displayed instead of username on UI.</span>
+  </label>
+</fieldset>
 <!--====================================================================-->
 <!-- File upload -->
 <!--====================================================================-->
