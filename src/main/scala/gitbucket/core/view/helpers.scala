@@ -101,6 +101,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
+  @deprecated("This doesn't apply render plugins. Should use renderMarkup() instead.", "4.45.0")
   def markdown(
     markdown: String,
     repository: RepositoryService.RepositoryInfo,
@@ -140,6 +141,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
     enableAnchor: Boolean,
+    enableLineBreaks: Boolean,
+    enableTaskList: Boolean,
     hasWritePermission: Boolean = false
   )(implicit context: Context): Html = {
 
@@ -155,6 +158,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
         enableWikiLink,
         enableRefsLink,
         enableAnchor,
+        enableLineBreaks,
+        enableTaskList,
         hasWritePermission,
         context
       )

@@ -169,31 +169,19 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/_preview")(referrersOnly { repository =>
     contentType = "text/html"
-    val filename = params.get("filename")
-    filename match {
-      case Some(f) =>
-        helpers.renderMarkup(
-          filePath = f.split("/").toList,
-          fileContent = params("content"),
-          branch = repository.repository.defaultBranch,
-          repository = repository,
-          enableWikiLink = params("enableWikiLink").toBoolean,
-          enableRefsLink = params("enableRefsLink").toBoolean,
-          enableAnchor = false
-        )
-      case None =>
-        helpers.markdown(
-          markdown = params("content"),
-          repository = repository,
-          branch = repository.repository.defaultBranch,
-          enableWikiLink = params("enableWikiLink").toBoolean,
-          enableRefsLink = params("enableRefsLink").toBoolean,
-          enableLineBreaks = params("enableLineBreaks").toBoolean,
-          enableTaskList = params("enableTaskList").toBoolean,
-          enableAnchor = false,
-          hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-        )
-    }
+    val filename = params.get("filename").getOrElse("temporary.md")
+    helpers.renderMarkup(
+      filePath = filename.split("/").toList,
+      fileContent = params("content"),
+      branch = repository.repository.defaultBranch,
+      repository = repository,
+      enableWikiLink = params("enableWikiLink").toBoolean,
+      enableRefsLink = params("enableRefsLink").toBoolean,
+      enableLineBreaks = params("enableLineBreaks").toBoolean,
+      enableTaskList = params("enableTaskList").toBoolean,
+      enableAnchor = false,
+      hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+    )
   })
 
   /**
@@ -905,6 +893,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 enableWikiLink = false,
                 enableRefsLink = true,
                 enableAnchor = true,
+                enableLineBreaks = true,
+                enableTaskList = true,
                 hasWritePermission = true
               )
               .toString()

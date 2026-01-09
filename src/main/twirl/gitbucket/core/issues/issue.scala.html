@@ -16,7 +16,7 @@
   @gitbucket.core.html.menu("issues", repository){
     <div>
       <div class="show-title pull-right">
-        @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
+        @if(isManageable || context.loginAccount.exists(_.userName == issue.openedUserName)){
           <a class="btn btn-default" href="#" id="edit">Edit</a>
         }
         @if(isEditable){
