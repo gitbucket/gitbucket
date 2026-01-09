@@ -90,7 +90,17 @@ trait ApiRepositoryContentsControllerBase extends ControllerBase {
                     path,
                     "\" id=\"file\">",
                     "<article>",
-                    renderMarkup(path.split("/").toList, new String(c), refStr, repository, false, false, true).body,
+                    renderMarkup(
+                      filePath = path.split("/").toList,
+                      fileContent = new String(c),
+                      branch = refStr,
+                      repository = repository,
+                      enableWikiLink = false,
+                      enableRefsLink = false,
+                      enableAnchor = false,
+                      enableLineBreaks = true,
+                      enableTaskList = true
+                    ).body,
                     "</article>",
                     "</div>"
                   ).mkString

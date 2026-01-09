@@ -66,7 +66,9 @@
             repository = repository,
             enableWikiLink = true,
             enableRefsLink = false,
-            enableAnchor = false
+            enableAnchor = false,
+            enableLineBreaks = false,
+            enableTaskList = false
           )
         </div>
       }.getOrElse{
@@ -97,7 +99,9 @@
           repository = repository,
           enableWikiLink = true,
           enableRefsLink = false,
-          enableAnchor = true
+          enableAnchor = true,
+          enableLineBreaks = false,
+          enableTaskList = false
         )
       </div>
       @footer.map { footerPage =>
@@ -112,7 +116,9 @@
             repository = repository,
             enableWikiLink = true,
             enableRefsLink = false,
-            enableAnchor = false
+            enableAnchor = false,
+            enableLineBreaks = false,
+            enableTaskList = false
           )
         </div>
       }.getOrElse{

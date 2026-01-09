@@ -279,6 +279,8 @@ trait IssuesControllerBase extends ControllerBase {
                 enableWikiLink = false,
                 enableRefsLink = true,
                 enableAnchor = true,
+                enableLineBreaks = true,
+                enableTaskList = true,
                 hasWritePermission = true
               )
               .toString()
@@ -311,6 +313,8 @@ trait IssuesControllerBase extends ControllerBase {
                 enableWikiLink = false,
                 enableRefsLink = true,
                 enableAnchor = true,
+                enableLineBreaks = true,
+                enableTaskList = true,
                 hasWritePermission = true
               )
               .toString()

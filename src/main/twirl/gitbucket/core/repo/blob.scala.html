@@ -83,7 +83,18 @@
     @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
       @if(!isBlame && isRenderable) {
         <div class="box-content-bottom @if(content.viewType == "text"){ markdown-body } " style="padding-left: 20px; padding-right: 20px;">
-          @helpers.renderMarkup(pathList, content.content.getOrElse(""), branch, repository, false, false, true, hasWritePermission)
+          @helpers.renderMarkup(
+            filePath = pathList,
+            fileContent = content.content.getOrElse(""),
+            branch = branch,
+            repository = repository,
+            enableWikiLink = false,
+            enableRefsLink = false,
+            enableAnchor = true,
+            enableLineBreaks = false,
+            enableTaskList = true,
+            hasWritePermission = hasWritePermission
+          )
         </div>
       }else{
         @if(content.viewType == "text"){
