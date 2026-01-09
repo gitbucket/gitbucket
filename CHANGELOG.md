@@ -1,6 +1,11 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.45.0 - 11 Jan 2026
+- Add new option to show full username on UI
+- Support render plugin in issues, pull requests, wiki and commit comments
+- Support link to other pages from Wiki page using Wiki link syntax
+
 ## 4.44.0 - 23 Sep 2025
 - Enhanced branch protection which supports the following settings:
   - Prevent pushes from non-allowed users
