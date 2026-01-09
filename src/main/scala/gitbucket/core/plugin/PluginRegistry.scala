@@ -15,7 +15,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.{ConfigUtil, DatabaseConfig}
-import gitbucket.core.util.Directory._
+import gitbucket.core.util.Directory.*
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
@@ -25,7 +25,7 @@ import org.apache.sshd.server.command.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class PluginRegistry {
 
@@ -233,29 +233,29 @@ object PluginRegistry {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
       })
       .toSeq
-      .sortBy(x => Version.valueOf(getPluginVersion(x.getName)))
+      .sortBy(x => Version.parse(getPluginVersion(x.getName)))
       .reverse
   }
 
-  lazy val extraPluginDir: Option[String] = ConfigUtil.getConfigValue[String]("gitbucket.pluginDir")
+  private lazy val extraPluginDir: Option[String] = ConfigUtil.getConfigValue[String]("gitbucket.pluginDir")
 
-  def getGitBucketVersion(pluginJarFileName: String): Option[String] = {
-    val regex = ".+-gitbucket\\_(\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?)-.+".r
+  private def getGitBucketVersion(pluginJarFileName: String): Option[String] = {
+    val regex = ".+-gitbucket_(\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?)-.+".r
     pluginJarFileName match {
       case regex(all, _) => Some(all)
       case _             => None
     }
   }
 
-  def getPluginVersion(pluginJarFileName: String): String = {
+  private def getPluginVersion(pluginJarFileName: String): String = {
     val regex = ".+-((\\d+)\\.(\\d+)(\\.(\\d+))?(-SNAPSHOT)?)\\.jar$".r
     pluginJarFileName match {
-      case regex(all, major, minor, _, patch, modifier) => {
-        if (patch != null) all
-        else {
+      case regex(all, major, minor, _, patch, modifier) =>
+        if (patch != null) {
+          all
+        } else {
           s"${major}.${minor}.0" + (if (modifier == null) "" else modifier)
         }
-      }
       case _ => "0.0.0"
     }
   }
@@ -295,11 +295,10 @@ object PluginRegistry {
 
         // Check duplication
         instance.getPlugins().find(_.pluginId == pluginId) match {
-          case Some(x) => {
+          case Some(x) =>
             logger.warn(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
             classLoader.close()
-          }
-          case None => {
+          case None =>
             // Migration
             val solidbase = new Solidbase()
             solidbase
@@ -334,7 +333,6 @@ object PluginRegistry {
                 classLoader = classLoader
               )
             )
-          }
         }
       } catch {
         case e: Throwable =>
@@ -369,9 +367,8 @@ object PluginRegistry {
           extraWatcher = null
         }
       } catch {
-        case e: Exception => {
+        case e: Exception =>
           logger.error(s"Error during plugin shutdown: ${plugin.pluginJar.getName}", e)
-        }
       } finally {
         plugin.classLoader.close()
       }
@@ -437,7 +434,7 @@ class PluginWatchThread(context: ServletContext, dir: String) extends Thread wit
     logger.info("Start PluginWatchThread: " + path)
 
     try {
-      while (watchKey.isValid()) {
+      while (watchKey.isValid) {
         val detectedWatchKey = watcher.take()
         val events = detectedWatchKey.pollEvents.asScala.filter { e =>
           e.context.toString != ".installed" && !e.context.toString.endsWith(".bak")
