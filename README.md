@@ -59,13 +59,12 @@ Support
 - If you can't find same question and report, send it to our [Gitter chat room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.44.x
+What's New in 4.45.x
 -------------
-## 4.44.0 - 23 Sep 2025
-- Enhanced branch protection which supports the following settings:
-  - Prevent pushes from non-allowed users
-  - Whether to apply restrictions to administrator users as well
-- Improve logging for initialization errors
+## 4.45.0 - 11 Jan 2026
+- Add new option to show full username on UI
+- Support render plugin in issues, pull requests, wiki and commit comments
+- Support link to other pages from Wiki page using Wiki link syntax
 
 Note that you have to migrate h2 database file if you will upgrade GitBucket from 4.42 or before to 4.43 or later and you are using the default h2 database because h2 1.x and h2.x don't have compatibility: https://www.h2database.com/html/migration-to-v2.html
 
