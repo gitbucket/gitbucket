@@ -61,7 +61,7 @@ Support
 
 What's New in 4.45.x
 -------------
-## 4.45.0 - 11 Jan 2026
+## 4.45.0 - 10 Jan 2026
 - Add new option to show full username on UI
 - Support render plugin in issues, pull requests, wiki and commit comments
 - Support link to other pages from Wiki page using Wiki link syntax
