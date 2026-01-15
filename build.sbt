@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"                 % "jldap"                     % "2009-10-07",
   "com.h2database"                  % "h2"                        % "2.4.240",
   "org.mariadb.jdbc"                % "mariadb-java-client"       % "2.7.13",
-  "org.postgresql"                  % "postgresql"                % "42.7.8",
+  "org.postgresql"                  % "postgresql"                % "42.7.9",
   "ch.qos.logback"                  % "logback-classic"           % "1.5.24",
   "com.zaxxer"                      % "HikariCP"                  % "7.0.2" exclude ("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                    % "1.4.5",
