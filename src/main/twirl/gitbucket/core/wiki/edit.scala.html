@@ -18,7 +18,7 @@
       <input type="text" name="pageName" value="@pageName" class="form-control" style="font-weight: bold; margin-bottom: 10px;" placeholder="Input a page name." aria-label="Page name"/>
       @gitbucket.core.helper.html.acenavbar()
       <div class="muted attachable">
-        <div id="editor" style="width: 100%; height: 600px;">@page.map(_.content).getOrElse("")</div>
+        <div id="editor" style="width: 100%; height: 600px;"></div>
         <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
         <div id="preview" style="width: 100%; display: none;"></div>
       </div>
@@ -31,6 +31,7 @@
         <input type="hidden" name="id" value="@page.map(_.id)"/>
         <input type="submit" id="saveButton" value="Save" class="btn btn-success">
         <input type="hidden" id="content" name="content" value=""/>
+        <input type="hidden" id="initial" value='@page.map(_.content).getOrElse("")'/>
       </div>
     </form>
     <script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
@@ -39,6 +40,7 @@
 }
 <script>
 $(function(){
+  $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
 
   var aceKeyboard = localStorage.getItem("gitbucket:editor:keyboard") || "";
