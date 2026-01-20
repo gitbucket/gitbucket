@@ -28,65 +28,8 @@
         <input type="hidden" name="branch" id="branch" value="@branch"/>
         <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
       </div>
+      @gitbucket.core.helper.html.acenavbar()
       <table class="table table-bordered">
-        <tr>
-          <th>
-            <div class="pull-right">
-              <select id="wrap" class="form-control" style="margin-bottom: 0px; padding: 0px;" aria-label="Wrap">
-                <optgroup label="Line Wrap Mode">
-                  <option value="false">No wrap</option>
-                  <option value="true">Soft wrap</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="pull-right">
-              <select id="theme" class="form-control" style="margin-bottom: 0px; padding: 0px;" aria-label="Theme">
-                <optgroup label="Editor Theme">
-                  <option value="ambiance">Ambiance</option>
-                  <option value="chaos">Chaos</option>
-                  <option value="chrome">Chrome</option>
-                  <option value="clouds">Clouds</option>
-                  <option value="clouds_midnight">Clouds Midnight</option>
-                  <option value="cobalt">Cobalt</option>
-                  <option value="crimson_editor">Crimson</option>
-                  <option value="dawn">Dawn</option>
-                  <option value="dracula">Dracula</option>
-                  <option value="dreamweaver">Dreamweaver</option>
-                  <option value="eclipse">Eclipse</option>
-                  <option value="github">GitHub</option>
-                  <option value="gob">Gob</option>
-                  <option value="gruvbox">Gruvbox</option>
-                  <option value="idle_fingers">Idle Fingers</option>
-                  <option value="iplastic">Iplastic</option>
-                  <option value="katzenmilch">Katzenmilch</option>
-                  <option value="kr_theme">Kr</option>
-                  <option value="kuroir">Kuroir</option>
-                  <option value="merbivore">Merbivore</option>
-                  <option value="mono_industrial">Mono Industrial</option>
-                  <option selected value="monokai">Monokai</option>
-                  <option value="nord_dark">Nord Dark</option>
-                  <option value="pastel_on_dark">Pastel on Dark</option>
-                  <option value="solarized_dark">Solarized Dark</option>
-                  <option value="solarized_light">Solarized Light</option>
-                  <option value="sqlserver">Sqlserver</option>
-                  <option value="terminal">Terminal</option>
-                  <option value="textmate">Textmate</option>
-                  <option value="tomorrow">Tomorrow</option>
-                  <option value="tomorrow_night">Tomorrow Night</option>
-                  <option value="tomorrow_night_bright">Tomorrow Night Bright</option>
-                  <option value="tomorrow_night_eighties">Tomorrow Night Eighties</option>
-                  <option value="twilight">Twilight</option>
-                  <option value="vibrant_ink">Vibrant Ink</option>
-                  <option value="xcode">Xcode</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="btn-group" data-toggle="buttons-radio">
-              <input type="button" id="btn-code" class="btn btn-default btn-small active" value="Code">
-              <input type="button" id="btn-preview" class="btn btn-default btn-small" value="Preview">
-            </div>
-          </th>
-        </tr>
         <tr>
           <td>
             <div id="editor" style="width: 100%; height: 600px;"></div>
@@ -138,6 +81,17 @@
 $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
+
+  var aceKeyboard = localStorage.getItem("gitbucket:editor:keyboard") || "";
+  editor.setKeyboardHandler(aceKeyboard == "" ? null : aceKeyboard);
+
+  var aceKeyboardSelect = document.getElementById("aceKeyboardSelect");
+  aceKeyboardSelect.value = aceKeyboard;
+
+  aceKeyboardSelect.addEventListener('change', () => {
+      editor.setKeyboardHandler(aceKeyboardSelect.value == "" ? null : aceKeyboardSelect.value);
+      localStorage.setItem("gitbucket:editor:keyboard", aceKeyboardSelect.value);
+  },true)
 
   if(typeof localStorage.getItem('gitbucket:editor:theme') == "string"){
     $('#theme').val(localStorage.getItem('gitbucket:editor:theme'));
