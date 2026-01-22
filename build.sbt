@@ -14,7 +14,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.13.18"
+scalaVersion := "3.8.1"
 
 crossScalaVersions += "3.8.0"
 
