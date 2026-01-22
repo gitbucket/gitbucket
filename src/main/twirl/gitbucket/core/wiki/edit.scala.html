@@ -30,7 +30,7 @@
         <input type="hidden" name="id" value="@page.map(_.id)"/>
         <input type="submit" id="saveButton" value="Save" class="btn btn-success">
         <input type="hidden" id="content" name="content" value=""/>
-        <input type="hidden" id="initial" value='@page.map(_.content).getOrElse("")'/>
+        <input type="hidden" id="initial" value='@page.map(_.content)'/>
       </div>
     </form>
     <script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
