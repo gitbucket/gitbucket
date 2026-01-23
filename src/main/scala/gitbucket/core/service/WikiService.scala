@@ -16,10 +16,8 @@ import org.eclipse.jgit.api.errors.PatchFormatException
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
-import org.slf4j.LoggerFactory
 
 object WikiService {
-  private val logger = LoggerFactory.getLogger(getClass)
 
   /**
    * The model for wiki page.
@@ -77,23 +75,16 @@ trait WikiService {
   def getWikiPage(owner: String, repository: String, pageName: String, branch: String): Option[WikiPageInfo] = {
     Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       if (!JGitUtil.isEmpty(git)) {
-        try {
-          val fileName = pageName + ".md"
-          JGitUtil.getLatestCommitFromPath(git, fileName, branch).map { latestCommit =>
-            val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
-            WikiPageInfo(
-              fileName,
-              StringUtil.convertFromByteArray(content.getOrElse(Array.empty)),
-              latestCommit.getAuthorIdent.getName,
-              latestCommit.getAuthorIdent.getWhen,
-              latestCommit.getName
-            )
-          }
-        } catch {
-          case e: Exception => {
-            logger.error(e.getMessage())
-            None
-          }
+        val fileName = pageName + ".md"
+        JGitUtil.getLatestCommitFromPath(git, fileName, branch).map { latestCommit =>
+          val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
+          WikiPageInfo(
+            fileName,
+            StringUtil.convertFromByteArray(content.getOrElse(Array.empty)),
+            latestCommit.getAuthorIdent.getName,
+            latestCommit.getAuthorIdent.getWhen,
+            latestCommit.getName
+          )
         }
       } else None
     }
