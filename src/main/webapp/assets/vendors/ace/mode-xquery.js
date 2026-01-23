@@ -2084,20 +2084,14 @@ exports.XQueryLexer = function(){ return new Lexer(XQueryTokenizer, Rules); };
 
 });
 
-define("ace/mode/behaviour/xml",["require","exports","module","ace/lib/oop","ace/mode/behaviour","ace/token_iterator","ace/lib/lang"], function(require, exports, module) {
-"use strict";
-
+define("ace/mode/behaviour/xml",["require","exports","module","ace/lib/oop","ace/mode/behaviour","ace/token_iterator"], function(require, exports, module){"use strict";
 var oop = require("../../lib/oop");
 var Behaviour = require("../behaviour").Behaviour;
 var TokenIterator = require("../../token_iterator").TokenIterator;
-var lang = require("../../lib/lang");
-
 function is(token, type) {
-    return token.type.lastIndexOf(type + ".xml") > -1;
+    return token && token.type.lastIndexOf(type + ".xml") > -1;
 }
-
 var XmlBehaviour = function () {
-
     this.add("string_dquotes", "insertion", function (state, action, editor, session, text) {
         if (text == '"' || text == "'") {
             var quote = text;
@@ -2108,26 +2102,21 @@ var XmlBehaviour = function () {
                     selection: false
                 };
             }
-
             var cursor = editor.getCursorPosition();
             var line = session.doc.getLine(cursor.row);
             var rightChar = line.substring(cursor.column, cursor.column + 1);
             var iterator = new TokenIterator(session, cursor.row, cursor.column);
             var token = iterator.getCurrentToken();
-
             if (rightChar == quote && (is(token, "attribute-value") || is(token, "string"))) {
                 return {
                     text: "",
                     selection: [1, 1]
                 };
             }
-
             if (!token)
                 token = iterator.stepBackward();
-
             if (!token)
                 return;
-
             while (is(token, "tag-whitespace") || is(token, "whitespace")) {
                 token = iterator.stepBackward();
             }
@@ -2140,8 +2129,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-
-    this.add("string_dquotes", "deletion", function(state, action, editor, session, range) {
+    this.add("string_dquotes", "deletion", function (state, action, editor, session, range) {
         var selected = session.doc.getTextRange(range);
         if (!range.isMultiLine() && (selected == '"' || selected == "'")) {
             var line = session.doc.getLine(range.start.row);
@@ -2152,7 +2140,6 @@ var XmlBehaviour = function () {
             }
         }
     });
-
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getSelectionRange().start;
@@ -2167,12 +2154,12 @@ var XmlBehaviour = function () {
                 if (position.column < tokenEndColumn)
                     return;
                 if (position.column == tokenEndColumn) {
-                    if (is(iterator.stepForward(), "attribute-value"))
+                    var nextToken = iterator.stepForward();
+                    if (nextToken && is(nextToken, "attribute-value"))
                         return;
                     iterator.stepBackward();
                 }
             }
-            
             if (/^\s*>/.test(session.getLine(position.row).slice(position.column)))
                 return;
             while (!is(token, "tag-name")) {
@@ -2182,63 +2169,54 @@ var XmlBehaviour = function () {
                     break;
                 }
             }
-
             var tokenRow = iterator.getCurrentTokenRow();
             var tokenColumn = iterator.getCurrentTokenColumn();
             if (is(iterator.stepBackward(), "end-tag-open"))
                 return;
-
             var element = token.value;
             if (tokenRow == position.row)
                 element = element.substring(0, position.column - tokenColumn);
-
-            if (this.voidElements.hasOwnProperty(element.toLowerCase()))
-                 return;
-
+            if (this.voidElements && this.voidElements.hasOwnProperty(element.toLowerCase()))
+                return;
             return {
-               text: ">" + "</" + element + ">",
-               selection: [1, 1]
+                text: ">" + "</" + element + ">",
+                selection: [1, 1]
             };
         }
     });
-
     this.add("autoindent", "insertion", function (state, action, editor, session, text) {
         if (text == "\n") {
             var cursor = editor.getCursorPosition();
             var line = session.getLine(cursor.row);
             var iterator = new TokenIterator(session, cursor.row, cursor.column);
             var token = iterator.getCurrentToken();
-
-            if (token && token.type.indexOf("tag-close") !== -1) {
+            if (is(token, "") && token.type.indexOf("tag-close") !== -1) {
                 if (token.value == "/>")
                     return;
                 while (token && token.type.indexOf("tag-name") === -1) {
                     token = iterator.stepBackward();
                 }
-
                 if (!token) {
                     return;
                 }
-
                 var tag = token.value;
                 var row = iterator.getCurrentTokenRow();
                 token = iterator.stepBackward();
                 if (!token || token.type.indexOf("end-tag") !== -1) {
                     return;
                 }
-
-                if (this.voidElements && !this.voidElements[tag]) {
-                    var nextToken = session.getTokenAt(cursor.row, cursor.column+1);
+                if (this.voidElements && !this.voidElements[tag] || !this.voidElements) {
+                    var nextToken = session.getTokenAt(cursor.row, cursor.column + 1);
                     var line = session.getLine(row);
                     var nextIndent = this.$getIndent(line);
                     var indent = nextIndent + session.getTabString();
-
                     if (nextToken && nextToken.value === "</") {
                         return {
                             text: "\n" + indent + "\n" + nextIndent,
                             selection: [1, indent.length, 1, indent.length]
                         };
-                    } else {
+                    }
+                    else {
                         return {
                             text: "\n" + indent
                         };
@@ -2247,28 +2225,23 @@ var XmlBehaviour = function () {
             }
         }
     });
-
 };
-
 oop.inherits(XmlBehaviour, Behaviour);
-
 exports.XmlBehaviour = XmlBehaviour;
+
 });
 
-define("ace/mode/behaviour/xquery",["require","exports","module","ace/lib/oop","ace/mode/behaviour","ace/mode/behaviour/cstyle","ace/mode/behaviour/xml","ace/token_iterator"], function(require, exports, module) {
-"use strict";
-
-  var oop = require("../../lib/oop");
-  var Behaviour = require('../behaviour').Behaviour;
-  var CstyleBehaviour = require('./cstyle').CstyleBehaviour;
-  var XmlBehaviour = require("../behaviour/xml").XmlBehaviour;
-  var TokenIterator = require("../../token_iterator").TokenIterator;
-
+define("ace/mode/behaviour/xquery",["require","exports","module","ace/lib/oop","ace/mode/behaviour","ace/mode/behaviour/cstyle","ace/mode/behaviour/xml","ace/token_iterator"], function(require, exports, module){"use strict";
+var oop = require("../../lib/oop");
+var Behaviour = require('../behaviour').Behaviour;
+var CstyleBehaviour = require('./cstyle').CstyleBehaviour;
+var XmlBehaviour = require("../behaviour/xml").XmlBehaviour;
+var TokenIterator = require("../../token_iterator").TokenIterator;
 function hasType(token, type) {
     var hasType = true;
     var typeList = token.type.split('.');
     var needleList = type.split('.');
-    needleList.forEach(function(needle){
+    needleList.forEach(function (needle) {
         if (typeList.indexOf(needle) == -1) {
             hasType = false;
             return false;
@@ -2276,25 +2249,24 @@ function hasType(token, type) {
     });
     return hasType;
 }
- 
-  var XQueryBehaviour = function () {
-      
-      this.inherit(CstyleBehaviour, ["braces", "parens", "string_dquotes"]); // Get string behaviour
-      this.inherit(XmlBehaviour); // Get xml behaviour
-      
-      this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
+var XQueryBehaviour = function () {
+    this.inherit(CstyleBehaviour, ["braces", "parens", "string_dquotes"]); // Get string behaviour
+    this.inherit(XmlBehaviour); // Get xml behaviour
+    this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
             var iterator = new TokenIterator(session, position.row, position.column);
             var token = iterator.getCurrentToken();
             var atCursor = false;
             var state = JSON.parse(state).pop();
-            if ((token && token.value === '>') || state !== "StartTag") return;
-            if (!token || !hasType(token, 'meta.tag') && !(hasType(token, 'text') && token.value.match('/'))){
+            if ((token && token.value === '>') || state !== "StartTag")
+                return;
+            if (!token || !hasType(token, 'meta.tag') && !(hasType(token, 'text') && token.value.match('/'))) {
                 do {
                     token = iterator.stepBackward();
                 } while (token && (hasType(token, 'string') || hasType(token, 'keyword.operator') || hasType(token, 'entity.attribute-name') || hasType(token, 'text')));
-            } else {
+            }
+            else {
                 atCursor = true;
             }
             var previous = iterator.stepBackward();
@@ -2302,106 +2274,80 @@ function hasType(token, type) {
                 return;
             }
             var tag = token.value.substring(1);
-            if (atCursor){
+            if (atCursor) {
                 var tag = tag.substring(0, position.column - token.start);
             }
-
             return {
-               text: '>' + '</' + tag + '>',
-               selection: [1, 1]
+                text: '>' + '</' + tag + '>',
+                selection: [1, 1]
             };
         }
     });
+};
+oop.inherits(XQueryBehaviour, Behaviour);
+exports.XQueryBehaviour = XQueryBehaviour;
 
-  };
-  oop.inherits(XQueryBehaviour, Behaviour);
-
-  exports.XQueryBehaviour = XQueryBehaviour;
 });
 
-define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"], function(require, exports, module) {
-"use strict";
-
+define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"], function(require, exports, module){"use strict";
 var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
-
-var FoldMode = exports.FoldMode = function(commentRegex) {
+var FoldMode = exports.FoldMode = function (commentRegex) {
     if (commentRegex) {
-        this.foldingStartMarker = new RegExp(
-            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
-        );
-        this.foldingStopMarker = new RegExp(
-            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
-        );
+        this.foldingStartMarker = new RegExp(this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start));
+        this.foldingStopMarker = new RegExp(this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end));
     }
 };
 oop.inherits(FoldMode, BaseFoldMode);
-
-(function() {
-    
+(function () {
     this.foldingStartMarker = /([\{\[\(])[^\}\]\)]*$|^\s*(\/\*)/;
     this.foldingStopMarker = /^[^\[\{\(]*([\}\]\)])|^[\s\*]*(\*\/)/;
-    this.singleLineBlockCommentRe= /^\s*(\/\*).*\*\/\s*$/;
+    this.singleLineBlockCommentRe = /^\s*(\/\*).*\*\/\s*$/;
     this.tripleStarBlockCommentRe = /^\s*(\/\*\*\*).*\*\/\s*$/;
     this.startRegionRe = /^\s*(\/\*|\/\/)#?region\b/;
     this._getFoldWidgetBase = this.getFoldWidget;
-    this.getFoldWidget = function(session, foldStyle, row) {
+    this.getFoldWidget = function (session, foldStyle, row) {
         var line = session.getLine(row);
-    
         if (this.singleLineBlockCommentRe.test(line)) {
             if (!this.startRegionRe.test(line) && !this.tripleStarBlockCommentRe.test(line))
                 return "";
         }
-    
         var fw = this._getFoldWidgetBase(session, foldStyle, row);
-    
         if (!fw && this.startRegionRe.test(line))
             return "start"; // lineCommentRegionStart
-    
         return fw;
     };
-
-    this.getFoldWidgetRange = function(session, foldStyle, row, forceMultiline) {
+    this.getFoldWidgetRange = function (session, foldStyle, row, forceMultiline) {
         var line = session.getLine(row);
-        
         if (this.startRegionRe.test(line))
             return this.getCommentRegionBlock(session, line, row);
-        
         var match = line.match(this.foldingStartMarker);
         if (match) {
             var i = match.index;
-
             if (match[1])
                 return this.openingBracketBlock(session, match[1], row, i);
-                
             var range = session.getCommentFoldRange(row, i + match[0].length, 1);
-            
             if (range && !range.isMultiLine()) {
                 if (forceMultiline) {
                     range = this.getSectionRange(session, row);
-                } else if (foldStyle != "all")
+                }
+                else if (foldStyle != "all")
                     range = null;
             }
-            
             return range;
         }
-
         if (foldStyle === "markbegin")
             return;
-
         var match = line.match(this.foldingStopMarker);
         if (match) {
             var i = match.index + match[0].length;
-
             if (match[1])
                 return this.closingBracketBlock(session, match[1], row, i);
-
             return session.getCommentFoldRange(row, i, -1);
         }
     };
-    
-    this.getSectionRange = function(session, row) {
+    this.getSectionRange = function (session, row) {
         var line = session.getLine(row);
         var startIndent = line.search(/\S/);
         var startRow = row;
@@ -2414,47 +2360,47 @@ oop.inherits(FoldMode, BaseFoldMode);
             var indent = line.search(/\S/);
             if (indent === -1)
                 continue;
-            if  (startIndent > indent)
+            if (startIndent > indent)
                 break;
             var subRange = this.getFoldWidgetRange(session, "all", row);
-            
             if (subRange) {
                 if (subRange.start.row <= startRow) {
                     break;
-                } else if (subRange.isMultiLine()) {
+                }
+                else if (subRange.isMultiLine()) {
                     row = subRange.end.row;
-                } else if (startIndent == indent) {
+                }
+                else if (startIndent == indent) {
                     break;
                 }
             }
             endRow = row;
         }
-        
         return new Range(startRow, startColumn, endRow, session.getLine(endRow).length);
     };
-    this.getCommentRegionBlock = function(session, line, row) {
+    this.getCommentRegionBlock = function (session, line, row) {
         var startColumn = line.search(/\s*$/);
         var maxRow = session.getLength();
         var startRow = row;
-        
         var re = /^\s*(?:\/\*|\/\/|--)#?(end)?region\b/;
         var depth = 1;
         while (++row < maxRow) {
             line = session.getLine(row);
             var m = re.exec(line);
-            if (!m) continue;
-            if (m[1]) depth--;
-            else depth++;
-
-            if (!depth) break;
+            if (!m)
+                continue;
+            if (m[1])
+                depth--;
+            else
+                depth++;
+            if (!depth)
+                break;
         }
-
         var endRow = row;
         if (endRow > startRow) {
             return new Range(startRow, startColumn, endRow, line.length);
         }
     };
-
 }).call(FoldMode.prototype);
 
 });
@@ -2629,7 +2575,15 @@ oop.inherits(Mode, TextMode);
     };    
         
     this.$id = "ace/mode/xquery";
+    this.snippetFileId = "ace/snippets/xquery";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
-});
+});                (function() {
+                    window.require(["ace/mode/xquery"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            
