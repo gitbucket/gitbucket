@@ -420,7 +420,7 @@ object JGitUtil {
     maxFiles: Int = 5
   ): List[FileInfo] = {
     logger.debug(
-      s"getFileList(${git.toString()}, ${revision}, ${path}, ${baseUrl}, ${commitCount.toString()}, ${maxFiles.toString()})"
+      s"getFileList(${git.toString()}, ${revision}, ${path}, ${baseUrl.getOrElse("")}, ${commitCount.toString()}, ${maxFiles.toString()})"
     )
 
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
@@ -773,7 +773,7 @@ object JGitUtil {
   }
 
   def getPatch(git: Git, from: Option[String], to: String): String = {
-    logger.debug(s"getPatch(${git.toString()}, ${from}, ${to})")
+    logger.debug(s"getPatch(${git.toString()}, ${from.getOrElse("")}, ${to})")
 
     val out = new ByteArrayOutputStream()
     val df = new DiffFormatter(out)
@@ -788,7 +788,7 @@ object JGitUtil {
   }
 
   private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {
-    logger.debug(s"getDiffEntries(${git.toString()}, ${from}, ${to})")
+    logger.debug(s"getDiffEntries(${git.toString()}, ${from.getOrElse("")}, ${to})")
 
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
@@ -825,7 +825,7 @@ object JGitUtil {
   }
 
   def getDiff(git: Git, from: Option[String], to: String, path: String): Option[DiffInfo] = {
-    logger.debug(s"getDiff(${git.toString()}, ${from}, ${to}, ${path})")
+    logger.debug(s"getDiff(${git.toString()}, ${from.getOrElse("")}, ${to}, ${path})")
 
     getDiffEntries(git, from, to).find(_.getNewPath == path).map { diff =>
       val oldIsImage = FileUtil.isImage(diff.getOldPath)
@@ -859,7 +859,7 @@ object JGitUtil {
     maxLines: Int = 1000
   ): List[DiffInfo] = {
     logger.debug(
-      s"getDiffs(${git.toString()}, ${from}, ${to}, ${fetchContent.toString()}, ${makePatch.toString()}, ${maxFiles.toString()}, ${maxLines.toString()})"
+      s"getDiffs(${git.toString()}, ${from.getOrElse("")}, ${to}, ${fetchContent.toString()}, ${makePatch.toString()}, ${maxFiles.toString()}, ${maxLines.toString()})"
     )
 
     val diffs = getDiffEntries(git, from, to)
@@ -1028,7 +1028,7 @@ object JGitUtil {
   }
 
   def createTag(git: Git, name: String, message: Option[String], commitId: String): Either[String, String] = {
-    logger.debug(s"createTag(${git.toString()}, ${message}, ${commitId})")
+    logger.debug(s"createTag(${git.toString()}, ${message.getOrElse("")}, ${commitId})")
 
     try {
       val objectId: ObjectId = git.getRepository.resolve(commitId)
@@ -1080,8 +1080,10 @@ object JGitUtil {
     mailAddress: String,
     message: String
   ): ObjectId = {
+    val head = if (headId != null) headId.toString() else ""
+    val tree = if (treeId != null) treeId.toString() else ""
     logger.debug(
-      s"createNewCommit(${git.toString()}, ${inserter.toString()}, ${headId.toString()}, ${treeId.toString()}, ${ref}, ${fullName}, ${mailAddress}, ${message})"
+      s"createNewCommit(${git.toString()}, ${inserter.toString()}, ${head}, ${tree}, ${ref}, ${fullName}, ${mailAddress}, ${message})"
     )
 
     val newCommit = new CommitBuilder()
@@ -1110,7 +1112,7 @@ object JGitUtil {
    * Read submodule information from .gitmodules
    */
   def getSubmodules(git: Git, tree: RevTree, baseUrl: Option[String]): List[SubmoduleInfo] = {
-    logger.debug(s"getSubmodules(${git.toString()}, ${tree.toString()}, ${baseUrl})")
+    logger.debug(s"getSubmodules(${git.toString()}, ${tree.toString()}, ${baseUrl.getOrElse("")})")
 
     val repository = git.getRepository
     getContentFromPath(git, tree, ".gitmodules", fetchLargeFile = true).map { bytes =>
