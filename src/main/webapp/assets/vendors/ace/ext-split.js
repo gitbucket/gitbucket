@@ -1,124 +1,107 @@
-define("ace/split",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/lib/event_emitter","ace/editor","ace/virtual_renderer","ace/edit_session"], function(require, exports, module) {
-"use strict";
-
+define("ace/split",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/lib/event_emitter","ace/editor","ace/virtual_renderer","ace/edit_session"], function(require, exports, module){"use strict";
 var oop = require("./lib/oop");
 var lang = require("./lib/lang");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
-
 var Editor = require("./editor").Editor;
 var Renderer = require("./virtual_renderer").VirtualRenderer;
 var EditSession = require("./edit_session").EditSession;
-
-
-var Split = function(container, theme, splits) {
+var Split;
+Split = function (container, theme, splits) {
     this.BELOW = 1;
     this.BESIDE = 0;
-
     this.$container = container;
     this.$theme = theme;
     this.$splits = 0;
     this.$editorCSS = "";
     this.$editors = [];
     this.$orientation = this.BESIDE;
-
     this.setSplits(splits || 1);
     this.$cEditor = this.$editors[0];
-
-
-    this.on("focus", function(editor) {
+    this.on("focus", function (editor) {
         this.$cEditor = editor;
     }.bind(this));
 };
-
-(function(){
-
+(function () {
     oop.implement(this, EventEmitter);
-
-    this.$createEditor = function() {
+    this.$createEditor = function () {
         var el = document.createElement("div");
         el.className = this.$editorCSS;
         el.style.cssText = "position: absolute; top:0px; bottom:0px";
         this.$container.appendChild(el);
         var editor = new Editor(new Renderer(el, this.$theme));
-
-        editor.on("focus", function() {
+        editor.on("focus", function () {
             this._emit("focus", editor);
         }.bind(this));
-
         this.$editors.push(editor);
         editor.setFontSize(this.$fontSize);
         return editor;
     };
-
-    this.setSplits = function(splits) {
+    this.setSplits = function (splits) {
         var editor;
         if (splits < 1) {
             throw "The number of splits have to be > 0!";
         }
-
         if (splits == this.$splits) {
             return;
-        } else if (splits > this.$splits) {
+        }
+        else if (splits > this.$splits) {
             while (this.$splits < this.$editors.length && this.$splits < splits) {
                 editor = this.$editors[this.$splits];
                 this.$container.appendChild(editor.container);
                 editor.setFontSize(this.$fontSize);
-                this.$splits ++;
+                this.$splits++;
             }
             while (this.$splits < splits) {
                 this.$createEditor();
-                this.$splits ++;
+                this.$splits++;
             }
-        } else {
+        }
+        else {
             while (this.$splits > splits) {
                 editor = this.$editors[this.$splits - 1];
                 this.$container.removeChild(editor.container);
-                this.$splits --;
+                this.$splits--;
             }
         }
         this.resize();
     };
-    this.getSplits = function() {
+    this.getSplits = function () {
         return this.$splits;
     };
-    this.getEditor = function(idx) {
+    this.getEditor = function (idx) {
         return this.$editors[idx];
     };
-    this.getCurrentEditor = function() {
+    this.getCurrentEditor = function () {
         return this.$cEditor;
     };
-    this.focus = function() {
+    this.focus = function () {
         this.$cEditor.focus();
     };
-    this.blur = function() {
+    this.blur = function () {
         this.$cEditor.blur();
     };
-    this.setTheme = function(theme) {
-        this.$editors.forEach(function(editor) {
+    this.setTheme = function (theme) {
+        this.$editors.forEach(function (editor) {
             editor.setTheme(theme);
         });
     };
-    this.setKeyboardHandler = function(keybinding) {
-        this.$editors.forEach(function(editor) {
+    this.setKeyboardHandler = function (keybinding) {
+        this.$editors.forEach(function (editor) {
             editor.setKeyboardHandler(keybinding);
         });
     };
-    this.forEach = function(callback, scope) {
+    this.forEach = function (callback, scope) {
         this.$editors.forEach(callback, scope);
     };
-
-
     this.$fontSize = "";
-    this.setFontSize = function(size) {
+    this.setFontSize = function (size) {
         this.$fontSize = size;
-        this.forEach(function(editor) {
-           editor.setFontSize(size);
+        this.forEach(function (editor) {
+            editor.setFontSize(size);
         });
     };
-
-    this.$cloneSession = function(session) {
+    this.$cloneSession = function (session) {
         var s = new EditSession(session.getDocument(), session.getMode());
-
         var undoManager = session.getUndoManager();
         s.setUndoManager(undoManager);
         s.setTabSize(session.getTabSize());
@@ -127,44 +110,41 @@ var Split = function(container, theme, splits) {
         s.setBreakpoints(session.getBreakpoints());
         s.setUseWrapMode(session.getUseWrapMode());
         s.setUseWorker(session.getUseWorker());
-        s.setWrapLimitRange(session.$wrapLimitRange.min,
-                            session.$wrapLimitRange.max);
+        s.setWrapLimitRange(session.$wrapLimitRange.min, session.$wrapLimitRange.max);
         s.$foldData = session.$cloneFoldData();
-
         return s;
     };
-    this.setSession = function(session, idx) {
+    this.setSession = function (session, idx) {
         var editor;
         if (idx == null) {
             editor = this.$cEditor;
-        } else {
+        }
+        else {
             editor = this.$editors[idx];
         }
-        var isUsed = this.$editors.some(function(editor) {
-           return editor.session === session;
+        var isUsed = this.$editors.some(function (editor) {
+            return editor.session === session;
         });
-
         if (isUsed) {
             session = this.$cloneSession(session);
         }
         editor.setSession(session);
         return session;
     };
-    this.getOrientation = function() {
+    this.getOrientation = function () {
         return this.$orientation;
     };
-    this.setOrientation = function(orientation) {
+    this.setOrientation = function (orientation) {
         if (this.$orientation == orientation) {
             return;
         }
         this.$orientation = orientation;
         this.resize();
     };
-    this.resize = function() {
+    this.resize = function () {
         var width = this.$container.clientWidth;
         var height = this.$container.clientHeight;
         var editor;
-
         if (this.$orientation == this.BESIDE) {
             var editorWidth = width / this.$splits;
             for (var i = 0; i < this.$splits; i++) {
@@ -175,7 +155,8 @@ var Split = function(container, theme, splits) {
                 editor.container.style.height = height + "px";
                 editor.resize();
             }
-        } else {
+        }
+        else {
             var editorHeight = height / this.$splits;
             for (var i = 0; i < this.$splits; i++) {
                 editor = this.$editors[i];
@@ -187,18 +168,36 @@ var Split = function(container, theme, splits) {
             }
         }
     };
-
 }).call(Split.prototype);
-
 exports.Split = Split;
+
 });
 
-define("ace/ext/split",["require","exports","module","ace/split"], function(require, exports, module) {
+define("ace/ext/split",["require","exports","module","ace/ext/split","ace/split"], function(require, exports, module){/**
+ * ## Split editor container extension for multiple editor instances
+ *
+ * Provides functionality to create and manage multiple editor instances within a single container,
+ * arranged either horizontally (beside) or vertically (below). Enables synchronized editing sessions
+ * with shared configurations while maintaining independent cursor positions and selections.
+ *
+ * **Usage:**
+ * ```javascript
+ * var Split = require("ace/ext/split").Split;
+ * var split = new Split(container, theme, numberOfSplits);
+ * split.setOrientation(split.BESIDE); // or split.BELOW
+ * ```
+ *
+ * @experimental
+ * @module
+ */
 "use strict";
 module.exports = require("../split");
 
-});
-                (function() {
-                    window.require(["ace/ext/split"], function() {});
+});                (function() {
+                    window.require(["ace/ext/split"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
                 })();
             
