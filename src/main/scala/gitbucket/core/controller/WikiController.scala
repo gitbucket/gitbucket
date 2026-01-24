@@ -67,7 +67,8 @@ trait WikiControllerBase extends ControllerBase {
         repository,
         isEditable(repository),
         getWikiPage(repository.owner, repository.name, "_Sidebar", branch),
-        getWikiPage(repository.owner, repository.name, "_Footer", branch)
+        getWikiPage(repository.owner, repository.name, "_Footer", branch),
+        branch
       )
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
@@ -84,7 +85,8 @@ trait WikiControllerBase extends ControllerBase {
         repository,
         isEditable(repository),
         getWikiPage(repository.owner, repository.name, "_Sidebar", branch),
-        getWikiPage(repository.owner, repository.name, "_Footer", branch)
+        getWikiPage(repository.owner, repository.name, "_Footer", branch),
+        branch
       )
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
