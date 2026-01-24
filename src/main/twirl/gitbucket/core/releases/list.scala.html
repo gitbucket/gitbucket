@@ -26,12 +26,14 @@
                   <p class="muted">
                     @helpers.avatarLink(release.author, 20) @helpers.user(release.author, styleClass="username") released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
                   </p>
-                  @helpers.markdown(
-                    markdown           = release.content getOrElse "No description provided.",
-                    repository         = repository,
+                  @helpers.renderMarkup(
+                    filePath           = List("temporary.md"),
+                    fileContent        = release.content getOrElse "No description provided.",
                     branch             = repository.repository.defaultBranch,
+                    repository         = repository,
                     enableWikiLink     = false,
                     enableRefsLink     = true,
+                    enableAnchor       = false,
                     enableLineBreaks   = true,
                     enableTaskList     = true,
                     hasWritePermission = hasWritePermission

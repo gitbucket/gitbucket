@@ -43,13 +43,16 @@
           </div>
           <div>
             <hr>
-            @status.conflictMessage.map { message => @helpers.markdown(
-              markdown         = message,
-              repository       = originRepository,
+            @status.conflictMessage.map { message => @helpers.renderMarkup(
+              filePath         = List("temporary.md"),
+              fileContent      = message,
               branch           = originRepository.repository.defaultBranch,
+              repository       = originRepository,
               enableWikiLink   = false,
               enableRefsLink   = true,
-              enableLineBreaks = false
+              enableAnchor     = false,
+              enableLineBreaks = false,
+              enableTaskList   = false
             ) }
           </div>
         } else {
