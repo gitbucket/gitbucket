@@ -91,7 +91,10 @@ object StringUtil {
    * And if given bytes contains UTF-8 BOM, it's removed from returned string.
    */
   def convertFromByteArray(content: Array[Byte]): String =
-    IOUtils.toString(new BOMInputStream(new java.io.ByteArrayInputStream(content)), detectEncoding(content))
+    IOUtils.toString(
+      BOMInputStream.builder().setInputStream(new java.io.ByteArrayInputStream(content)).setInclude(true).get(),
+      detectEncoding(content)
+    )
 
   def detectEncoding(content: Array[Byte]): String = {
     val detector = new UniversalDetector(null)
