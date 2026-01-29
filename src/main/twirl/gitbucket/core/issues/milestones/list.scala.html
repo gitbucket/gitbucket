@@ -78,13 +78,16 @@
               </div>
               @milestone.description.map { description =>
                 <div class="milestone-description markdown-body">
-                  @helpers.markdown(
-                    markdown         = description,
-                    repository       = repository,
+                  @helpers.renderMarkup(
+                    filePath         = List("temporary.md"),
+                    fileContent      = description,
                     branch           = repository.repository.defaultBranch,
+                    repository       = repository,
                     enableWikiLink   = false,
                     enableRefsLink   = false,
-                    enableLineBreaks = true
+                    enableAnchor     = false,
+                    enableLineBreaks = true,
+                    enableTaskList   = false
                   )
                 </div>
               }
