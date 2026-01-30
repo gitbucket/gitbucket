@@ -28,117 +28,37 @@
       <div class="form-group pull-right">
         <input type="hidden" name="currentPageName" value="@pageName"/>
         <input type="hidden" name="id" value="@page.map(_.id)"/>
-        <input type="submit" id="saveButton" value="Save" class="btn btn-success">
+        <input type="submit" id="commitButton" value="Save" class="btn btn-success">
         <input type="hidden" id="content" name="content" value=""/>
         <input type="hidden" id="initial" value='@page.map(_.content)'/>
       </div>
     </form>
-    <script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
-    <script src="@helpers.assets("/vendors/ace/ext-modelist.js")" type="text/javascript" charset="utf-8"></script>
+    <script src='@helpers.assets("/vendors/ace/ace.js")' type="text/javascript" charset="utf-8"></script>
+    <script src='@helpers.assets("/vendors/ace/ext-modelist.js")' type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src='@helpers.assets("/vendors/jsdifflib/difflib.js")'></script>
+    <link href='@helpers.assets("/vendors/jsdifflib/diffview.css")' type="text/css" rel="stylesheet" />
+    <script>
+      const gitbucket = {
+        editor: null,
+        enableWikiLink: true,
+        protected: false,
+        previewTemplate: '<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...',
+        previewUrl: '@helpers.url(repository)/_preview',
+        uploadUrl: '@context.path/upload/wiki/@repository.owner/@repository.name',
+        maxFilesize: @{ context.settings.upload.maxFileSize / 1024 / 1024 },
+        timeout: @{ context.settings.upload.timeout },
+        isRenderableUrl: "@context.baseUrl/_is_renderable?filename=",
+        tabSize: 8,
+        newLineMode: "auto",
+        useSoftTabs: false,
+        getFileName: function () {
+          return '@page.map(_.name).getOrElse("temporary.md")';
+        },
+        getFilePath: function () {
+          return '@page.map(_.name).getOrElse("temporary.md")';
+        },
+      };
+    </script>
+    <script src='@helpers.assets("/common/js/editor.js")' type="text/javascript" charset="utf-8"></script>
   }
 }
-<script>
-$(function(){
-  $('#editor').text($('#initial').val());
-  var editor = ace.edit("editor");
-
-  var aceKeyboard = localStorage.getItem("gitbucket:editor:keyboard") || "";
-  editor.setKeyboardHandler(aceKeyboard == "" ? null : aceKeyboard);
-
-  var aceKeyboardSelect = document.getElementById("aceKeyboardSelect");
-  aceKeyboardSelect.value = aceKeyboard;
-
-  aceKeyboardSelect.addEventListener('change', () => {
-      editor.setKeyboardHandler(aceKeyboardSelect.value == "" ? null : aceKeyboardSelect.value);
-      localStorage.setItem("gitbucket:editor:keyboard", aceKeyboardSelect.value);
-  },true)
-
-  if(typeof localStorage.getItem('gitbucket:editor:theme') == "string"){
-    $('#theme').val(localStorage.getItem('gitbucket:editor:theme'));
-  }
-
-  editor.setTheme("ace/theme/" + $('#theme').val());
-
-  $('#theme').change(function(){
-    editor.setTheme("ace/theme/" + $('#theme').val());
-    localStorage.setItem('gitbucket:editor:theme', $('#theme').val());
-  });
-
-  if(localStorage.getItem('gitbucket:editor:wrap') == 'true'){
-    editor.getSession().setUseWrapMode(true);
-    $('#wrap').val('true');
-  }
-
-  var modelist = ace.require("ace/ext/modelist");
-  var mode = modelist.getModeForPath('@page.map(_.name).getOrElse("temporary.md")');
-  editor.getSession().setMode(mode.mode);
-
-
-  $('#saveButton').click(function(){
-    $('#content').val(editor.getValue());
-  });
-
-  $('#btn-code').click(function(){
-    $('#editor').show();
-    $('.clickable').show();
-    $('#preview').hide();
-    $('#btn-preview').removeClass('active');
-  });
-
-  $('#btn-preview').click(function(){
-    $('#editor').hide();
-    $('.clickable').hide();
-    $('#preview').show();
-    $('#btn-code').removeClass('active');
-
-    // update preview
-    $('#preview').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
-    $.post('@helpers.url(repository)/_preview', {
-      content          : editor.getValue(),
-      enableWikiLink   : true,
-      filename         : '@page.map(_.name).getOrElse("temporary.md")',
-      enableRefsLink   : false,
-      enableLineBreaks : false,
-      enableTaskList   : false
-    }, function(data){
-      $('#preview').empty().append(
-        $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
-      prettyPrint();
-    });
-  });
-
-  try {
-    $('#editor').dropzone({
-      url: '@context.path/upload/wiki/@repository.owner/@repository.name',
-      maxFilesize: @{context.settings.upload.maxFileSize / 1024 / 1024},
-      timeout: @{context.settings.upload.timeout},
-      clickable: false,
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-      success: function(file, id) {
-        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
-        editor.session.insert(editor.selection.getCursor(), attachFile);
-        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
-      }
-    });
-    $('.clickable').dropzone({
-      url: '@context.path/upload/wiki/@repository.owner/@repository.name',
-      maxFilesize: @{context.settings.upload.maxFileSize / 1024 / 1024},
-      timeout: @{context.settings.upload.timeout},
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-      success: function(file, id) {
-        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
-        editor.session.insert(editor.selection.getCursor(), attachFile);
-        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
-      }
-    });
-  } catch(e) {
-    if (e.message !== "Dropzone already attached.") {
-      throw e;
-    }
-  }
-
-  $('#delete').click(function(){
-    return confirm('Are you sure you want to delete this page?');
-  });
-});
-</script>
