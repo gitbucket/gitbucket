@@ -7,6 +7,292 @@
         const clickable = document.querySelector(".clickable");
 
         /**
+         * element of markdown formatting toolbar buttons
+         * @type {Element}
+         */
+        // inline format
+        const markdownToolBar = document.getElementById("markdown-toolbar");
+        const markdownBold = document.getElementById("markdown-bold");
+        const markdownItalic = document.getElementById("markdown-italic");
+        const markdownCode = document.getElementById("markdown-code");
+        const markdownLink = document.getElementById("markdown-link");
+        // block level format
+        const markdownHeading = document.getElementById("markdown-heading");
+        const markdownQuote = document.getElementById("markdown-quote");
+        const markdownListUl = document.getElementById("markdown-list-ul");
+        const markdownListOl = document.getElementById("markdown-list-ol");
+        const markdownTask = document.getElementById("markdown-task");
+        const markdownCodeBlock = document.getElementById("markdown-code-block");
+
+        /**
+         * constants for line type
+         */
+        const headingPattern = /^#{1,6} /;
+        const quotePattern = /^((>+ )+|>+ )/;
+        const nestedQuotePattern = /^(> ?){2,}/;
+        const taskPattern = /^ *- \[ \] /;
+        const doneTaskPattern = /^ *- \[x\] /;
+        const ulPattern = /^ *- /;
+        const olPattern = /^ *[0-9]. /;
+
+        const TYPE_NONE = 0;
+        const TYPE_HEADING = 1;
+        const TYPE_QUOTE = 2;
+        const TYPE_TASK = 3;
+        const TYPE_DONE_TASK = 4;
+        const TYPE_UL = 5;
+        const TYPE_OL = 6;
+
+        /**
+         * Determine the type of line
+         *
+         * @param {*} line line of editor contents
+         * @returns [TYPE, match]
+         */
+        const getLineType = function (line) {
+            if (m = line.match(headingPattern)) {
+                return [TYPE_HEADING, m];
+            } else if (m = line.match(quotePattern)) {
+                return [TYPE_QUOTE, m];
+            } else if (m = line.match(taskPattern)) {
+                return [TYPE_TASK, m];
+            } else if (m = line.match(doneTaskPattern)) {
+                return [TYPE_DONE_TASK, m];
+            } else if (m = line.match(ulPattern)) {
+                return [TYPE_UL, m];
+            } else if (m = line.match(olPattern)) {
+                return [TYPE_OL, m];
+            } else {
+                return [TYPE_NONE, null];
+            }
+        };
+
+        /**
+         * Event Handler to capture markdown bold button clicks
+         */
+        markdownBold.addEventListener('click', (e) => {
+            var selectedText = gitbucket.editor.getSelectedText();
+            if (selectedText.length > 0) {
+                var boldText = "**" + selectedText + "**";
+                gitbucket.editor.insert(boldText);
+            }
+            markdownBold.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown italic button clicks
+         */
+        markdownItalic.addEventListener('click', (e) => {
+            var selectedText = gitbucket.editor.getSelectedText();
+            if (selectedText.length > 0) {
+                var italicText = "*" + selectedText + "*";
+                gitbucket.editor.insert(italicText);
+            }
+            markdownItalic.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown code button clicks
+         */
+        markdownCode.addEventListener('click', (e) => {
+            var selectedText = gitbucket.editor.getSelectedText();
+            if (selectedText.length > 0) {
+                var codeText = "`" + selectedText + "`";
+                gitbucket.editor.insert(codeText);
+            }
+            markdownCode.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown link button clicks
+         */
+        markdownLink.addEventListener('click', (e) => {
+            var linkText = "[" + gitbucket.editor.getSelectedText() + "]()";
+            gitbucket.editor.insert(linkText);
+            markdownLink.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown heading button clicks
+         */
+        markdownHeading.addEventListener('click', (e) => {
+            var range = gitbucket.editor.getSelectionRange();
+            for (row = range.start.row; row <= range.end.row; row++) {
+                gitbucket.editor.clearSelection();
+                gitbucket.editor.selection.moveCursorTo(row, 0);
+                gitbucket.editor.selection.selectLineEnd();
+                var selectedText = gitbucket.editor.getSelectedText();
+                var lineType = getLineType(selectedText);
+                switch(lineType[0]) {
+                    case TYPE_HEADING:
+                        var level = selectedText.indexOf(' ');
+                        if (level < 6) {
+                            var headingText = "#" + selectedText;
+                            gitbucket.editor.insert(headingText);
+                        } else {
+                            var headingText = selectedText.replace("###### ","");
+                            gitbucket.editor.insert(headingText);
+                        }
+                        break;
+                    case TYPE_NONE:
+                        var headingText = "# " + selectedText;
+                        gitbucket.editor.insert(headingText);
+                        break;
+                    default:
+                        var headingText = selectedText.replace(lineType[1][0], "# ");
+                        gitbucket.editor.insert(headingText);
+                }
+            }
+            markdownHeading.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown quote button clicks
+         */
+        markdownQuote.addEventListener('click', (e) => {
+            var range = gitbucket.editor.getSelectionRange();
+            for (row = range.start.row; row <= range.end.row; row++) {
+                gitbucket.editor.clearSelection();
+                gitbucket.editor.selection.moveCursorTo(row, 0);
+                gitbucket.editor.selection.selectLineEnd();
+                var selectedText = gitbucket.editor.getSelectedText();
+                var lineType = getLineType(selectedText);
+                switch(lineType[0]) {
+                    case TYPE_QUOTE:
+                        if (m = selectedText.match(nestedQuotePattern)) {
+                            var unquoteText = selectedText.replace(m[0], "");
+                            gitbucket.editor.insert(unquoteText);
+                        } else {
+                            var quoteText = "> " + selectedText;
+                            gitbucket.editor.insert(quoteText);
+                        }
+                        break;
+                    case TYPE_NONE:
+                        var quoteText = "> " + selectedText;
+                        gitbucket.editor.insert(quoteText);
+                        break;
+                    default:
+                        var quoteText = selectedText.replace(lineType[1][0], "> ");
+                        gitbucket.editor.insert(quoteText);
+                }
+            }
+            markdownQuote.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown unordered list button clicks
+         */
+        markdownListUl.addEventListener('click', (e) => {
+            var range = gitbucket.editor.getSelectionRange();
+            for (row = range.start.row; row <= range.end.row; row++) {
+                gitbucket.editor.clearSelection();
+                gitbucket.editor.selection.moveCursorTo(row, 0);
+                gitbucket.editor.selection.selectLineEnd();
+                var selectedText = gitbucket.editor.getSelectedText();
+                var lineType = getLineType(selectedText);
+                switch(lineType[0]) {
+                    case TYPE_UL:
+                        var unorderedList = selectedText.replace(lineType[1][0], "");
+                        gitbucket.editor.insert(unorderedList);
+                        break;
+                    case TYPE_NONE:
+                        var unorderedList = "- " + selectedText;
+                        gitbucket.editor.insert(unorderedList);
+                        break;
+                    default:
+                        var unorderedList = selectedText.replace(lineType[1][0], "- ");
+                        gitbucket.editor.insert(unorderedList);
+                }
+            }
+            markdownListUl.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown ordered list button clicks
+         */
+        markdownListOl.addEventListener('click', (e) => {
+            var range = gitbucket.editor.getSelectionRange();
+            for (row = range.start.row; row <= range.end.row; row++) {
+                gitbucket.editor.clearSelection();
+                gitbucket.editor.selection.moveCursorTo(row, 0);
+                gitbucket.editor.selection.selectLineEnd();
+                var selectedText = gitbucket.editor.getSelectedText();
+                var lineType = getLineType(selectedText);
+                switch(lineType[0]) {
+                    case TYPE_OL:
+                        var orderedList = selectedText.replace(lineType[1][0], "");
+                        gitbucket.editor.insert(orderedList);
+                        break;
+                    case TYPE_NONE:
+                        var orderedList = "1. " + selectedText;
+                        gitbucket.editor.insert(orderedList);
+                        break;
+                    default:
+                        var orderedList = selectedText.replace(lineType[1][0], "1. ");
+                        gitbucket.editor.insert(orderedList);
+                }
+            }
+            markdownListOl.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown task button clicks
+         */
+        markdownTask.addEventListener('click', (e) => {
+            var range = gitbucket.editor.getSelectionRange();
+            for (row = range.start.row; row <= range.end.row; row++) {
+                gitbucket.editor.clearSelection();
+                gitbucket.editor.selection.moveCursorTo(row, 0);
+                gitbucket.editor.selection.selectLineEnd();
+                var selectedText = gitbucket.editor.getSelectedText();
+                var lineType = getLineType(selectedText);
+                var taskList = "";
+                switch(lineType[0]) {
+                    case TYPE_DONE_TASK:
+                        taskList = selectedText.replace("[x]", "[ ]");
+                        break;
+                    case TYPE_TASK:
+                        taskList = selectedText.replace("[ ]", "[x]");
+                        break;
+                    case TYPE_NONE:
+                        taskList = "- [ ] " + selectedText;
+                        break;
+                    default:
+                        taskList = selectedText.replace(lineType[1][0], "- [ ] ");
+                }
+                gitbucket.editor.insert(taskList);
+            }
+            markdownTask.blur();
+            gitbucket.editor.focus();
+        });
+
+        /**
+         * Event Handler to capture markdown code block button
+         */
+        markdownCodeBlock.addEventListener('click', (e) => {
+            var range = gitbucket.editor.getSelectionRange();
+            gitbucket.editor.clearSelection();
+            gitbucket.editor.selection.moveCursorTo(range.start.row, 0);
+            gitbucket.editor.selection.selectLineEnd();
+            gitbucket.editor.selection.moveCursorTo(range.end.row, 0);
+            gitbucket.editor.selection.selectLineEnd();
+            var codeBlockText = "```\n" + gitbucket.editor.getSelectedText() + "\n```";
+            gitbucket.editor.insert(codeBlockText);
+            gitbucket.editor.selection.moveCursorTo(range.start.row, 3);
+            markdownCodeBlock.blur();
+            gitbucket.editor.focus();
+        });
+
+
+        /**
          * A function to update the file mode of the Ace editor
          */
         const updateFileMode = function () {
@@ -14,6 +300,13 @@
                 var modelist = ace.require("ace/ext/modelist");
                 var mode = modelist.getModeForPath(gitbucket.getFileName());
                 gitbucket.editor.getSession().setMode(mode.mode);
+                if (mode.name == "markdown") {
+                    markdownToolBar.style.display = "block";
+                } else {
+                    markdownToolBar.style.display = "none";
+                }
+            } else {
+                    markdownToolBar.style.display = "none";
             }
         };
 
