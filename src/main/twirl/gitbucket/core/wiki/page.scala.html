@@ -4,7 +4,8 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   isEditable: Boolean,
   sidebar: Option[gitbucket.core.service.WikiService.WikiPageInfo],
-  footer: Option[gitbucket.core.service.WikiService.WikiPageInfo])(implicit context: gitbucket.core.controller.Context)
+  footer: Option[gitbucket.core.service.WikiService.WikiPageInfo],
+  branch: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.WikiService
 @gitbucket.core.html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
@@ -62,7 +63,7 @@
           @helpers.renderMarkup(
             filePath = sidebarPage.name.split("/").toList,
             fileContent = sidebarPage.content,
-            branch = "master",
+            branch = branch,
             repository = repository,
             enableWikiLink = true,
             enableRefsLink = false,
@@ -95,7 +96,7 @@
         @helpers.renderMarkup(
           filePath = page.name.split("/").toList,
           fileContent = page.content,
-          branch = "master",
+          branch = branch,
           repository = repository,
           enableWikiLink = true,
           enableRefsLink = false,
@@ -112,7 +113,7 @@
           @helpers.renderMarkup(
             filePath = footerPage.name.split("/").toList,
             fileContent = footerPage.content,
-            branch = "master",
+            branch = branch,
             repository = repository,
             enableWikiLink = true,
             enableRefsLink = false,
