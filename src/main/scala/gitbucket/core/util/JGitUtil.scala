@@ -94,6 +94,8 @@ object JGitUtil {
   case class GpgVerifyInfo(signedUser: String, signedKeyId: String)
 
   private def getSignTarget(rev: RevCommit): Array[Byte] = {
+    logger.debug(s"getSignTarget(${rev})")
+
     val ascii = "ASCII"
     val os = new ByteArrayOutputStream()
     val w = new OutputStreamWriter(os, rev.getEncoding)
@@ -283,6 +285,8 @@ object JGitUtil {
    * @return the RevCommit for the specified commit or tag
    */
   def getRevCommitFromId(git: Git, objectId: ObjectId): RevCommit = {
+    logger.debug(s"getRevCommitFromId(${git}, ${objectId})")
+
     val revWalk = new RevWalk(git.getRepository)
     val revCommit = revWalk.parseAny(objectId) match {
       case r: RevTag => revWalk.parseCommit(r.getObject)
@@ -310,6 +314,8 @@ object JGitUtil {
   } else null
 
   def removeCache(git: Git): Unit = {
+    logger.debug(s"removeCache(${git})")
+
     if (isCacheEnabled) {
       val dir = git.getRepository.getDirectory
       val keyPrefix = dir.getAbsolutePath + "@"
@@ -327,6 +333,8 @@ object JGitUtil {
    * If the specified branch has over 10000 commits, this method returns 100001.
    */
   def getCommitCount(git: Git, branch: String, max: Int = 10001): Int = {
+    logger.debug(s"getCommitCount(${git}, ${branch}, ${max})")
+
     val dir = git.getRepository.getDirectory
 
     if (isCacheEnabled) {
@@ -352,6 +360,8 @@ object JGitUtil {
    * Returns the repository information. It contains branch names and tag names.
    */
   def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
+    logger.debug(s"getRepositoryInfo(${owner}, ${repository})")
+
     Using.resource(Git.open(getRepositoryDir(owner, repository))) { git =>
       try {
         RepositoryInfo(
@@ -409,6 +419,10 @@ object JGitUtil {
     commitCount: Int = 0,
     maxFiles: Int = 5
   ): List[FileInfo] = {
+    logger.debug(
+      s"getFileList(${git}, ${revision}, ${path}, ${baseUrl}, ${commitCount}, ${maxFiles})"
+    )
+
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val objectId = git.getRepository.resolve(revision)
       if (objectId == null) return Nil
@@ -484,6 +498,8 @@ object JGitUtil {
       }
 
       def getCommit(path: String): RevCommit = {
+        logger.debug(s"getCommit(${path})")
+
         git
           .log()
           .addPath(path)
@@ -543,6 +559,8 @@ object JGitUtil {
    * Returns the first line of the commit message.
    */
   private def getSummaryMessage(fullMessage: String, shortMessage: String): String = {
+    logger.debug(s"getSummaryMessage(${fullMessage}, ${shortMessage})")
+
     val i = fullMessage.trim.indexOf('\n')
     val firstLine = if (i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage
     if (firstLine.length > shortMessage.length) shortMessage else firstLine
@@ -552,6 +570,8 @@ object JGitUtil {
    * get all file list by revision. only file.
    */
   def getTreeId(git: Git, revision: String): Option[String] = {
+    logger.debug(s"getTreeId(${git}, ${revision})")
+
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val objectId = git.getRepository.resolve(revision)
       if (objectId == null) {
@@ -567,6 +587,8 @@ object JGitUtil {
    * get all file list by tree object id.
    */
   def getAllFileListByTreeId(git: Git, treeId: String): List[String] = {
+    logger.debug(s"getAllFileListByTreeId(${git}, ${treeId})")
+
     val objectId = git.getRepository.resolve(treeId + "^{tree}")
     if (objectId == null) return Nil
     Using.resource(new TreeWalk(git.getRepository)) { treeWalk =>
@@ -599,6 +621,8 @@ object JGitUtil {
     limit: Int = 0,
     path: String = ""
   ): Either[String, (List[CommitInfo], Boolean)] = {
+    logger.debug(s"getCommitLog(${git}, ${revision}, ${page}, ${limit}, ${path})")
+
     val fixedPage = if (page <= 0) 1 else page
 
     @scala.annotation.tailrec
@@ -635,6 +659,8 @@ object JGitUtil {
   def getCommitLogs(git: Git, begin: String, includesLastCommit: Boolean = false)(
     endCondition: RevCommit => Boolean
   ): List[CommitInfo] = {
+    logger.debug(s"getCommitLogs(${git}, ${begin}, ${includesLastCommit})")
+
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[CommitInfo]): List[CommitInfo] =
       if (i.hasNext) {
@@ -665,6 +691,8 @@ object JGitUtil {
    * @return The commits before 'to', that are not already present in the tree of 'from'.
    */
   def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] = {
+    logger.debug(s"getCommitLog(${git}, ${from}, ${to})")
+
     def resolveString(name: String): ObjectId = {
       val objectId = git.getRepository.resolve(name)
       git.getRepository.open(objectId).getType match {
@@ -731,6 +759,8 @@ object JGitUtil {
    * @return the list of latest commit
    */
   def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String): Map[String, RevCommit] = {
+    logger.debug(s"getLatestCommitFromPaths(${git}, ${paths}, ${revision})")
+
     val start = getRevCommitFromId(git, git.getRepository.resolve(revision))
     paths.flatMap { path =>
       val commit = git.log.add(start).addPath(path).setMaxCount(1).call.iterator.next
@@ -743,6 +773,8 @@ object JGitUtil {
   }
 
   def getPatch(git: Git, from: Option[String], to: String): String = {
+    logger.debug(s"getPatch(${git}, ${from}, ${to})")
+
     val out = new ByteArrayOutputStream()
     val df = new DiffFormatter(out)
     df.setRepository(git.getRepository)
@@ -756,6 +788,8 @@ object JGitUtil {
   }
 
   private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {
+    logger.debug(s"getDiffEntries(${git}, ${from}, ${to})")
+
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
       df.setRepository(git.getRepository)
@@ -779,6 +813,8 @@ object JGitUtil {
   }
 
   def getParentCommitId(git: Git, id: String): Option[String] = {
+    logger.debug(s"getParentCommitId(${git}, ${id})")
+
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val commit = revWalk.parseCommit(git.getRepository.resolve(id))
       commit.getParentCount match {
@@ -789,6 +825,8 @@ object JGitUtil {
   }
 
   def getDiff(git: Git, from: Option[String], to: String, path: String): Option[DiffInfo] = {
+    logger.debug(s"getDiff(${git}, ${from}, ${to}, ${path})")
+
     getDiffEntries(git, from, to).find(_.getNewPath == path).map { diff =>
       val oldIsImage = FileUtil.isImage(diff.getOldPath)
       val newIsImage = FileUtil.isImage(diff.getNewPath)
@@ -820,6 +858,10 @@ object JGitUtil {
     maxFiles: Int = 100,
     maxLines: Int = 1000
   ): List[DiffInfo] = {
+    logger.debug(
+      s"getDiffs(${git}, ${from.getOrElse("")}, ${to}, ${fetchContent}, ${makePatch}, ${maxFiles}, ${maxLines})"
+    )
+
     val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
       if (maxFiles > 0 && diffs.size > maxFiles) { // Don't show diff if there are more than maxFiles
@@ -866,6 +908,8 @@ object JGitUtil {
   }
 
   private def getTextContent(git: Git, objectId: ObjectId): Option[String] = {
+    logger.debug(s"getTextContent(${git}, ${objectId})")
+
     JGitUtil
       .getContentFromId(git, objectId, fetchLargeFile = false)
       .filter(FileUtil.isText)
@@ -873,6 +917,8 @@ object JGitUtil {
   }
 
   private def makePatchFromDiffEntry(git: Git, diff: DiffEntry): String = {
+    logger.debug(s"makePatchFromDiffEntry(${git}, ${diff})")
+
     val out = new ByteArrayOutputStream()
     Using.resource(new DiffFormatter(out)) { formatter =>
       formatter.setRepository(git.getRepository)
@@ -905,6 +951,8 @@ object JGitUtil {
    * Returns the list of tags which pointed on the specified commit.
    */
   def getTagsOnCommit(git: Git, commitId: String): List[String] = {
+    logger.debug(s"getTagsOnCommit(${git}, ${commitId})")
+
     git.getRepository.getAllRefsByPeeledObjectId.asScala
       .get(git.getRepository.resolve(commitId + "^0"))
       .map {
@@ -956,6 +1004,8 @@ object JGitUtil {
   def isEmpty(git: Git): Boolean = git.getRepository.resolve(Constants.HEAD) == null
 
   private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit = {
+    logger.debug(s"setReceivePack(${repository})")
+
     val config = repository.getConfig
     config.setBoolean("http", null, "receivepack", true)
     config.save()
@@ -966,6 +1016,8 @@ object JGitUtil {
     repository: RepositoryService.RepositoryInfo,
     revstr: String = ""
   ): Option[(ObjectId, String)] = {
+    logger.debug(s"getDefaultBranch(${git}, ${repository})")
+
     Seq(
       Some(if (revstr.isEmpty) repository.repository.defaultBranch else revstr),
       repository.branchList.headOption
@@ -976,6 +1028,8 @@ object JGitUtil {
   }
 
   def createTag(git: Git, name: String, message: Option[String], commitId: String): Either[String, String] = {
+    logger.debug(s"createTag(${git}, ${message}, ${commitId})")
+
     try {
       val objectId: ObjectId = git.getRepository.resolve(commitId)
       Using.resource(new RevWalk(git.getRepository)) { walk =>
@@ -995,6 +1049,8 @@ object JGitUtil {
   }
 
   def createBranch(git: Git, fromBranch: String, newBranch: String): Either[String, String] = {
+    logger.debug(s"createBranch(${git}, ${fromBranch}, ${newBranch})")
+
     try {
       git.branchCreate().setStartPoint(fromBranch).setName(newBranch).call()
       Right("Branch created.")
@@ -1006,6 +1062,8 @@ object JGitUtil {
   }
 
   def createDirCacheEntry(path: String, mode: FileMode, objectId: ObjectId): DirCacheEntry = {
+    logger.debug(s"createDirCacheEntry(${path}, ${mode}, ${objectId})")
+
     val entry = new DirCacheEntry(path)
     entry.setFileMode(mode)
     entry.setObjectId(objectId)
@@ -1022,6 +1080,10 @@ object JGitUtil {
     mailAddress: String,
     message: String
   ): ObjectId = {
+    logger.debug(
+      s"createNewCommit(${git}, ${inserter}, ${headId}, ${treeId}, ${ref}, ${fullName}, ${mailAddress}, ${message})"
+    )
+
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -1048,6 +1110,8 @@ object JGitUtil {
    * Read submodule information from .gitmodules
    */
   def getSubmodules(git: Git, tree: RevTree, baseUrl: Option[String]): List[SubmoduleInfo] = {
+    logger.debug(s"getSubmodules(${git}, ${tree}, ${baseUrl}")
+
     val repository = git.getRepository
     getContentFromPath(git, tree, ".gitmodules", fetchLargeFile = true).map { bytes =>
       (try {
@@ -1075,6 +1139,8 @@ object JGitUtil {
    * @return the byte array of content or None if object does not exist
    */
   def getContentFromPath(git: Git, revTree: RevTree, path: String, fetchLargeFile: Boolean): Option[Array[Byte]] = {
+    logger.debug(s"getContentFromPath(${git}, ${revTree}, ${path}, ${fetchLargeFile})")
+
     @scala.annotation.tailrec
     def getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] =
       walk.next match {
@@ -1108,6 +1174,8 @@ object JGitUtil {
   }
 
   def getContentSize(loader: ObjectLoader): Long = {
+    logger.debug(s"getContentSize(${loader})")
+
     if (loader.isLarge) {
       loader.getSize
     } else {
@@ -1123,10 +1191,14 @@ object JGitUtil {
   }
 
   def isLfsPointer(loader: ObjectLoader): Boolean = {
+    logger.debug(s"isLfsPointer(${loader})")
+
     !loader.isLarge && new String(loader.getBytes(), "UTF-8").startsWith("version https://git-lfs.github.com/spec/v1")
   }
 
   def getContentInfo(git: Git, path: String, objectId: ObjectId, safeMode: Boolean): ContentInfo = {
+    logger.debug(s"getContentInfo(${git}, ${path}, ${objectId}, ${safeMode})")
+
     // Viewer
     Using.resource(git.getRepository.getObjectDatabase) { db =>
       val loader = db.open(objectId)
@@ -1211,6 +1283,8 @@ object JGitUtil {
     }
 
   def processTree[T](git: Git, id: ObjectId)(f: (String, CanonicalTreeParser) => T): Seq[T] = {
+    logger.debug(s"processTree(${git}, ${id})")
+
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       Using.resource(new TreeWalk(git.getRepository)) { treeWalk =>
         val index = treeWalk.addTree(revWalk.parseTree(id))
@@ -1237,6 +1311,10 @@ object JGitUtil {
     requestRepositoryName: String,
     requestBranch: String
   ): String = {
+    logger.debug(
+      s"getForkedCommitId(${oldGit}, ${newGit}, ${userName}, ${repositoryName}, ${branch}, ${requestUserName}, ${requestRepositoryName}, ${requestBranch})"
+    )
+
     val existIds = getAllCommitIds(oldGit)
     getCommitLogs(newGit, requestBranch, includesLastCommit = true) { commit =>
       existIds.contains(commit.name) && getBranchesOfCommit(oldGit, commit.getName).contains(branch)
@@ -1288,10 +1366,14 @@ object JGitUtil {
    * @return the last modified commit of specified path
    */
   def getLastModifiedCommit(git: Git, startCommit: RevCommit, path: String): RevCommit = {
+    logger.debug(s"getLastModifiedCommit(${git}, ${startCommit}, ${path})")
+
     git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
   }
 
   def getBranchesNoMergeInfo(git: Git): Seq[BranchInfoSimple] = {
+    logger.debug(s"getBranchesNoMergeInfo(${git})")
+
     val repo = git.getRepository
 
     git.branchList.call.asScala.map { ref =>
@@ -1310,6 +1392,8 @@ object JGitUtil {
   }
 
   def getBranches(git: Git, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {
+    logger.debug(s"getBranches(${git}, ${defaultBranch}, ${origin})")
+
     val repo = git.getRepository
     val defaultObject = repo.resolve(defaultBranch)
 
@@ -1348,6 +1432,8 @@ object JGitUtil {
   }
 
   def getBlame(git: Git, id: String, path: String): Iterable[BlameInfo] = {
+    logger.debug(s"getBlame(${git}, ${id}, ${path})")
+
     Option(git.getRepository.resolve(id))
       .map { commitId =>
         val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository)
@@ -1392,6 +1478,8 @@ object JGitUtil {
    * @return sha1
    */
   def getShaByRef(owner: String, name: String, revstr: String): Option[String] = {
+    logger.debug(s"getShaByRef(${owner}, ${name}, ${revstr})")
+
     Using.resource(Git.open(getRepositoryDir(owner, name))) { git =>
       Option(git.getRepository.resolve(revstr)).map(ObjectId.toString)
     }
@@ -1400,6 +1488,8 @@ object JGitUtil {
   private def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk)(
     f: InputStream => T
   ): T = {
+    logger.debug(s"openFile(${git}, ${repository}, ${treeWalk})")
+
     val attrs = treeWalk.getAttributes
     val loader = git.getRepository.open(treeWalk.getObjectId(0))
     if (attrs.containsKey("filter") && attrs.get("filter").getValue == "lfs") {
@@ -1423,12 +1513,16 @@ object JGitUtil {
   def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, tree: RevTree, path: String)(
     f: InputStream => T
   ): T = {
+    logger.debug(s"openFile(${git}, ${repository}, ${tree}, ${path})")
+
     Using.resource(TreeWalk.forPath(git.getRepository, path, tree)) { treeWalk =>
       openFile(git, repository, treeWalk)(f)
     }
   }
 
   private def getLfsAttributes(loader: ObjectLoader): Map[String, String] = {
+    logger.debug(s"getLfsAttributes(${loader})")
+
     val bytes = loader.getCachedBytes
     val text = new String(bytes, "UTF-8")
 
