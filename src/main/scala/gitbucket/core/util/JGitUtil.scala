@@ -420,7 +420,7 @@ object JGitUtil {
     maxFiles: Int = 5
   ): List[FileInfo] = {
     logger.debug(
-      s"getFileList(${git}, ${revision}, ${path}, ${baseUrl.getOrElse("")}, ${commitCount}, ${maxFiles})"
+      s"getFileList(${git}, ${revision}, ${path}, ${baseUrl}, ${commitCount}, ${maxFiles})"
     )
 
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
@@ -773,7 +773,7 @@ object JGitUtil {
   }
 
   def getPatch(git: Git, from: Option[String], to: String): String = {
-    logger.debug(s"getPatch(${git}, ${from.getOrElse("")}, ${to})")
+    logger.debug(s"getPatch(${git}, ${from}, ${to})")
 
     val out = new ByteArrayOutputStream()
     val df = new DiffFormatter(out)
@@ -788,7 +788,7 @@ object JGitUtil {
   }
 
   private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {
-    logger.debug(s"getDiffEntries(${git}, ${from.getOrElse("")}, ${to})")
+    logger.debug(s"getDiffEntries(${git}, ${from}, ${to})")
 
     Using.resource(new RevWalk(git.getRepository)) { revWalk =>
       val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
@@ -825,7 +825,7 @@ object JGitUtil {
   }
 
   def getDiff(git: Git, from: Option[String], to: String, path: String): Option[DiffInfo] = {
-    logger.debug(s"getDiff(${git}, ${from.getOrElse("")}, ${to}, ${path})")
+    logger.debug(s"getDiff(${git}, ${from}, ${to}, ${path})")
 
     getDiffEntries(git, from, to).find(_.getNewPath == path).map { diff =>
       val oldIsImage = FileUtil.isImage(diff.getOldPath)
