@@ -1028,7 +1028,7 @@ object JGitUtil {
   }
 
   def createTag(git: Git, name: String, message: Option[String], commitId: String): Either[String, String] = {
-    logger.debug(s"createTag(${git}, ${message.getOrElse("")}, ${commitId})")
+    logger.debug(s"createTag(${git}, ${message}, ${commitId})")
 
     try {
       val objectId: ObjectId = git.getRepository.resolve(commitId)
@@ -1080,10 +1080,8 @@ object JGitUtil {
     mailAddress: String,
     message: String
   ): ObjectId = {
-    val head = if (headId != null) headId.toString() else "null"
-    val tree = if (treeId != null) treeId.toString() else "null"
     logger.debug(
-      s"createNewCommit(${git}, ${inserter}, ${head}, ${tree}, ${ref}, ${fullName}, ${mailAddress}, ${message})"
+      s"createNewCommit(${git}, ${inserter}, ${headId}, ${treeId}, ${ref}, ${fullName}, ${mailAddress}, ${message})"
     )
 
     val newCommit = new CommitBuilder()
@@ -1112,7 +1110,7 @@ object JGitUtil {
    * Read submodule information from .gitmodules
    */
   def getSubmodules(git: Git, tree: RevTree, baseUrl: Option[String]): List[SubmoduleInfo] = {
-    logger.debug(s"getSubmodules(${git}, ${tree}, ${baseUrl.getOrElse("")})")
+    logger.debug(s"getSubmodules(${git}, ${tree}, ${baseUrl}")
 
     val repository = git.getRepository
     getContentFromPath(git, tree, ".gitmodules", fetchLargeFile = true).map { bytes =>
@@ -1490,8 +1488,7 @@ object JGitUtil {
   private def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, treeWalk: TreeWalk)(
     f: InputStream => T
   ): T = {
-    val repos = if (repository != null) repository.toString() else "null"
-    logger.debug(s"openFile(${git}, ${repos}, ${treeWalk})")
+    logger.debug(s"openFile(${git}, ${repository}, ${treeWalk})")
 
     val attrs = treeWalk.getAttributes
     val loader = git.getRepository.open(treeWalk.getObjectId(0))
@@ -1516,8 +1513,7 @@ object JGitUtil {
   def openFile[T](git: Git, repository: RepositoryService.RepositoryInfo, tree: RevTree, path: String)(
     f: InputStream => T
   ): T = {
-    val repos = if (repository != null) repository.toString() else "null"
-    logger.debug(s"openFile(${git}, ${repos}, ${tree}, ${path})")
+    logger.debug(s"openFile(${git}, ${repository}, ${tree}, ${path})")
 
     Using.resource(TreeWalk.forPath(git.getRepository, path, tree)) { treeWalk =>
       openFile(git, repository, treeWalk)(f)
