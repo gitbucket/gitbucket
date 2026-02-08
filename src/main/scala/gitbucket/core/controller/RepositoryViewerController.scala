@@ -466,11 +466,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           case Right(_) =>
             if (form.path.isEmpty) {
               redirect(
-                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${urlEncode(form.newFileName)}"
+                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.newFileName)}"
               )
             } else {
               redirect(
-                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.path)}/${urlEncode(form.newFileName)}"
+                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.path)}/${encodeRefName(form.newFileName)}"
               )
             }
           case Left(error) => Forbidden(gitbucket.core.html.error(error))
@@ -523,11 +523,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           case Right(_) =>
             if (form.path.isEmpty) {
               redirect(
-                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${urlEncode(form.newFileName)}"
+                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.newFileName)}"
               )
             } else {
               redirect(
-                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.path)}/${urlEncode(form.newFileName)}"
+                s"/${repository.owner}/${repository.name}/blob/${encodeRefName(form.branch)}/${encodeRefName(form.path)}/${encodeRefName(form.newFileName)}"
               )
             }
           case Left(error) => Forbidden(gitbucket.core.html.error(error))
