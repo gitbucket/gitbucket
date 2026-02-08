@@ -16,9 +16,26 @@
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div class="tabbable">
-  <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
+  <ul class="nav nav-tabs" style="margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab" id="write@uid">Write</a></li>
     <li><a href="#tab@(uid + 1)" data-toggle="tab" id="preview@uid">Preview</a></li>
+    <li class="nav navbar-nav navbar-default" style="border: 1px solid gray;" id="markdown-toolbar@uid">
+      <div class="btn-group">
+        <label class="navbar-text" style="margin: 13px 5px;"><i class="octicon octicon-markdown" style="font-size: 24px;"></i></label>
+        <label class="navbar-text" style="margin-left: 0px;">inline</label>
+        <button class="btn btn-default navbar-btn" id="markdown-bold@uid" title="Bold"><i class="fa fa-bold"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-italic@uid" title="Italic"><i class="fa fa-italic"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-code@uid" title="Code"><i class="fa fa-code"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-link@uid" title="Link"><i class="fa fa-link"></i></button>
+        <label class="navbar-text">block</label>
+        <button class="btn btn-default navbar-btn" id="markdown-heading@uid" title="Heading"><i class="fa fa-header"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-quote@uid" title="Quote"><i class="fa fa-quote-right"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-list-ul@uid" title="Unordered List"><i class="fa fa-list-ul"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-list-ol@uid" title="Ordered List"><i class="fa fa-list-ol"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-task@uid" title="Task List"><i class="fa  fa-check-square-o"></i></button>
+        <button class="btn btn-default navbar-btn" id="markdown-code-block@uid" title="Code Block"><i class="fa fa-file-code-o"></i></button>
+      </div>
+    </li>
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
@@ -42,6 +59,78 @@
 </div>
 <script>
 $(function(){
+  // load textarea.js
+  var script = document.getElementById("textareajs");
+  if (script == null) {
+    script = document.createElement("script");
+    script.id = "textareajs";
+    script.src = '@helpers.assets("/common/js/textarea.js")';
+    document.body.appendChild(script);
+  }
+
+  // target textarea
+  const textarea = document.getElementById("content@uid");
+
+  // for capture markdown bold button clicks
+  const markedownBold = document.getElementById("markdown-bold@uid");
+  markedownBold.addEventListener('click', (e) => {
+    surroundSelection(textarea, "**", "**", false);
+  }, true);
+
+  // for capture markdown italic button clicks
+  const markdownItalic = document.getElementById("markdown-italic@uid");
+  markdownItalic.addEventListener('click', (e) => {
+    surroundSelection(textarea, "*", "*", false);
+  }, true);
+
+  // for capture markdown code button clicks
+  const markdownCode = document.getElementById("markdown-code@uid");
+  markdownCode.addEventListener('click', (e) => {
+    surroundSelection(textarea, "`", "`", false);
+  }, true);
+
+  // for capture markdown link button clicks
+  const markdownLink = document.getElementById("markdown-link@uid");
+  markdownLink.addEventListener('click', (e) => {
+    surroundSelection(textarea, "[", "]()", true);
+  }, true);
+
+  // for capture markdown heading button clicks
+  const markdownHeading = document.getElementById("markdown-heading@uid");
+  markdownHeading.addEventListener('click', (e) => {
+    setHeadding(textarea);
+  }, true);
+
+  // for capture markdown quote button clicks
+  const markdownQuote =document.getElementById("markdown-quote@uid");
+  markdownQuote.addEventListener('click', (e) => {
+    setQuote(textarea);
+  }, true);
+
+  // for capture markdown list ul button clicks
+  const markdownListUl =document.getElementById("markdown-list-ul@uid");
+  markdownListUl.addEventListener('click', (e) => {
+    setUnorderedList(textarea);
+  }, true);
+
+  // for capture markdown list ul button clicks
+  const markdownListOl =document.getElementById("markdown-list-ol@uid");
+  markdownListOl.addEventListener('click', (e) => {
+    setOrderedList(textarea);
+  }, true);
+
+  // for capture markdown list ul button clicks
+  const markdownTask =document.getElementById("markdown-task@uid");
+  markdownTask.addEventListener('click', (e) => {
+    setTaskList(textarea);
+  }, true);
+
+  // for capture markdown list ul button clicks
+  const markdownCodeBlock =document.getElementById("markdown-code-block@uid");
+  markdownCodeBlock.addEventListener('click', (e) => {
+    setCodeBlock(textarea);
+  }, true);
+
   @if(elastic){
     $('#content@uid').elastic();
     $('#content@uid').trigger('blur');
@@ -52,6 +141,7 @@ $(function(){
 
   $('#write@uid').on('shown.bs.tab', function(){
     $('#content@uid').trigger('focus');
+    $('#markdown-toolbar@uid').show()
   });
 
   $('#preview@uid').click(function(){
@@ -68,6 +158,7 @@ $(function(){
       $('#preview-area@uid input').prop('disabled', true);
       prettyPrint();
     });
+    $('#markdown-toolbar@uid').hide();
   });
 });
 </script>
