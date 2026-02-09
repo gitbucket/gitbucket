@@ -218,7 +218,13 @@ object JGitUtil {
    * @param charset the character encoding
    * @param hasBom true if the content has UTF-8 BOM
    */
-  case class ContentInfo(viewType: String, size: Option[Long], content: Option[String], charset: Option[String], hasBom: Boolean = false) {
+  case class ContentInfo(
+    viewType: String,
+    size: Option[Long],
+    content: Option[String],
+    charset: Option[String],
+    hasBom: Boolean = false
+  ) {
 
     /**
      * the line separator of this content ("LF" or "CRLF")
