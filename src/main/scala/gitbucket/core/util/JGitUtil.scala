@@ -638,7 +638,7 @@ object JGitUtil {
       count: Int,
       logs: List[CommitInfo]
     ): (List[CommitInfo], Boolean) =
-      if (i.hasNext) {
+      if (i.hasNext && limit <= 0 || logs.size < limit) {
         val commit = i.next
         getCommitLog(
           i,
