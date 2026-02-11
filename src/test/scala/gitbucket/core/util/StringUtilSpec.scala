@@ -150,4 +150,30 @@ class StringUtilSpec extends AnyFunSpec {
       )
     }
   }
+
+  describe("hasUtf8Bom") {
+    it("should return true for byte array starting with UTF-8 BOM") {
+      val withBom = Array[Byte](0xef.toByte, 0xbb.toByte, 0xbf.toByte, 'H'.toByte, 'i'.toByte)
+      assert(StringUtil.hasUtf8Bom(withBom) == true)
+    }
+    it("should return false for byte array without BOM") {
+      val withoutBom = Array[Byte]('H'.toByte, 'e'.toByte, 'l'.toByte, 'l'.toByte, 'o'.toByte)
+      assert(StringUtil.hasUtf8Bom(withoutBom) == false)
+    }
+    it("should return false for empty byte array") {
+      assert(StringUtil.hasUtf8Bom(Array.emptyByteArray) == false)
+    }
+    it("should return false for byte array with less than 3 bytes") {
+      assert(StringUtil.hasUtf8Bom(Array[Byte](0xef.toByte, 0xbb.toByte)) == false)
+    }
+  }
+
+  describe("Utf8Bom") {
+    it("should be the correct BOM byte sequence") {
+      assert(StringUtil.Utf8Bom.length == 3)
+      assert((StringUtil.Utf8Bom(0) & 0xff) == 0xef)
+      assert((StringUtil.Utf8Bom(1) & 0xff) == 0xbb)
+      assert((StringUtil.Utf8Bom(2) & 0xff) == 0xbf)
+    }
+  }
 }

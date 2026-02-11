@@ -88,6 +88,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     message: Option[String],
     charset: String,
     lineSeparator: String,
+    hasBom: Boolean,
     newFileName: String,
     oldFileName: Option[String],
     commit: String,
@@ -134,6 +135,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "message" -> trim(label("Message", optional(text()))),
     "charset" -> trim(label("Charset", text(required))),
     "lineSeparator" -> trim(label("Line Separator", text(required))),
+    "hasBom" -> trim(label("Has BOM", boolean())),
     "newFileName" -> trim(label("Filename", text(required))),
     "oldFileName" -> trim(label("Old filename", optional(text()))),
     "commit" -> trim(label("Commit", text(required, conflict))),
@@ -439,7 +441,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         message = form.message.getOrElse(s"Create ${form.newFileName}"),
         commit = form.commit,
         loginAccount = loginAccount,
-        settings = context.settings
+        settings = context.settings,
+        hasBom = form.hasBom
       ).map(_._1)
     }
 
@@ -496,7 +499,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         },
         commit = form.commit,
         loginAccount = loginAccount,
-        settings = context.settings
+        settings = context.settings,
+        hasBom = form.hasBom
       ).map(_._1)
     }
 

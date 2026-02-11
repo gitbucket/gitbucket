@@ -107,6 +107,19 @@ object StringUtil {
   }
 
   /**
+   * Detects if the given byte array starts with UTF-8 BOM (Byte Order Mark).
+   * UTF-8 BOM is the byte sequence: 0xEF 0xBB 0xBF
+   */
+  def hasUtf8Bom(content: Array[Byte]): Boolean =
+    content.length >= 3 &&
+      (content(0) & 0xff) == 0xef &&
+      (content(1) & 0xff) == 0xbb &&
+      (content(2) & 0xff) == 0xbf
+
+  /** UTF-8 BOM byte sequence */
+  val Utf8Bom: Array[Byte] = Array(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
+
+  /**
    * Converts line separator in the given content.
    *
    * @param content the content

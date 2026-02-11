@@ -8,7 +8,7 @@ import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.WebHookService.WebHookPushPayload
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.JGitUtil.CommitInfo
-import gitbucket.core.util.{JGitUtil, LockUtil}
+import gitbucket.core.util.{JGitUtil, LockUtil, StringUtil}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.lib.*
@@ -53,16 +53,22 @@ trait RepositoryCommitFileService {
     message: String,
     commit: String,
     loginAccount: Account,
-    settings: SystemSettings
+    settings: SystemSettings,
+    hasBom: Boolean = false
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, Option[ObjectId])] = {
+    val contentBytes = if (content.nonEmpty) {
+      val bytes = content.getBytes(charset)
+      if (hasBom) StringUtil.Utf8Bom ++ bytes else bytes
+    } else {
+      Array.emptyByteArray
+    }
     commitFile(
       repository,
       branch,
       path,
       newFileName,
       oldFileName,
-      if (content.nonEmpty) { content.getBytes(charset) }
-      else { Array.emptyByteArray },
+      contentBytes,
       message,
       commit,
       loginAccount,

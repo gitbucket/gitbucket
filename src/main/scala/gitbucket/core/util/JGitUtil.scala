@@ -216,8 +216,15 @@ object JGitUtil {
    * @param size total size of object in bytes
    * @param content the string content
    * @param charset the character encoding
+   * @param hasBom true if the content has UTF-8 BOM
    */
-  case class ContentInfo(viewType: String, size: Option[Long], content: Option[String], charset: Option[String]) {
+  case class ContentInfo(
+    viewType: String,
+    size: Option[Long],
+    content: Option[String],
+    charset: Option[String],
+    hasBom: Boolean = false
+  ) {
 
     /**
      * the line separator of this content ("LF" or "CRLF")
@@ -1215,7 +1222,8 @@ object JGitUtil {
             "text",
             size,
             Some(StringUtil.convertFromByteArray(bytes.get)),
-            Some(StringUtil.detectEncoding(bytes.get))
+            Some(StringUtil.detectEncoding(bytes.get)),
+            StringUtil.hasUtf8Bom(bytes.get)
           )
         } else {
           // binary
