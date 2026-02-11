@@ -112,12 +112,12 @@ object StringUtil {
    */
   def hasUtf8Bom(content: Array[Byte]): Boolean =
     content.length >= 3 &&
-      (content(0) & 0xFF) == 0xEF &&
-      (content(1) & 0xFF) == 0xBB &&
-      (content(2) & 0xFF) == 0xBF
+      (content(0) & 0xff) == 0xef &&
+      (content(1) & 0xff) == 0xbb &&
+      (content(2) & 0xff) == 0xbf
 
   /** UTF-8 BOM byte sequence */
-  val Utf8Bom: Array[Byte] = Array(0xEF.toByte, 0xBB.toByte, 0xBF.toByte)
+  val Utf8Bom: Array[Byte] = Array(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
 
   /**
    * Converts line separator in the given content.

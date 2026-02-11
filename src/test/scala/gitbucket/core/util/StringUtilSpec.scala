@@ -177,4 +177,3 @@ class StringUtilSpec extends AnyFunSpec {
     }
   }
 }
-
