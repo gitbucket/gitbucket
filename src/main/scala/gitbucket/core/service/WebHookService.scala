@@ -302,42 +302,45 @@ trait WebHookService {
             httpPost.addHeader("Content-Type", webHook.ctype.ctype)
             httpPost.addHeader("X-Github-Event", event.name)
             httpPost.addHeader("X-Github-Delivery", java.util.UUID.randomUUID().toString)
-
+            def addXHubSignature(content: Array[Byte]): Unit = {
+              webHook.token
+                .filter(_.trim.nonEmpty)
+                .foreach { token =>
+                  // https://developer.github.com/webhooks/securing/#validating-payloads-from-github
+                  // SHA1 is required for backward compatibility, but SHA256 is recommended.
+                  httpPost.addHeader(
+                    "X-Hub-Signature",
+                    XHub.generateHeaderXHubToken(
+                      XHubConverter.HEXA_LOWERCASE,
+                      XHubDigest.SHA1,
+                      token,
+                      content
+                    )
+                  )
+                  httpPost.addHeader(
+                    "X-Hub-Signature-256",
+                    XHub.generateHeaderXHubToken(
+                      XHubConverter.HEXA_LOWERCASE,
+                      XHubDigest.SHA256,
+                      token,
+                      content
+                    )
+                  )
+                }
+            }
             webHook.ctype match {
               case WebHookContentType.FORM => {
                 val params: java.util.List[NameValuePair] = new java.util.ArrayList()
                 params.add(new BasicNameValuePair("payload", json))
                 def postContent = new UrlEncodedFormEntity(params, "UTF-8")
                 httpPost.setEntity(postContent)
-                if (webHook.token.exists(_.trim.nonEmpty)) {
-                  // TODO find a better way and see how to extract content from postContent
-                  val contentAsBytes = URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8")
-                  httpPost.addHeader(
-                    "X-Hub-Signature",
-                    XHub.generateHeaderXHubToken(
-                      XHubConverter.HEXA_LOWERCASE,
-                      XHubDigest.SHA1,
-                      webHook.token.get,
-                      contentAsBytes
-                    )
-                  )
-                }
+                addXHubSignature(URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8"))
               }
               case WebHookContentType.JSON => {
                 httpPost.setEntity(
                   EntityBuilder.create().setContentType(ContentType.APPLICATION_JSON).setText(json).build()
                 )
-                if (webHook.token.exists(_.trim.nonEmpty)) {
-                  httpPost.addHeader(
-                    "X-Hub-Signature",
-                    XHub.generateHeaderXHubToken(
-                      XHubConverter.HEXA_LOWERCASE,
-                      XHubDigest.SHA1,
-                      webHook.token.orNull,
-                      json.getBytes("UTF-8")
-                    )
-                  )
-                }
+                addXHubSignature(json.getBytes("UTF-8"))
               }
             }
 
