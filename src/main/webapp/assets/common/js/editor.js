@@ -291,6 +291,7 @@
             gitbucket.editor.focus();
         });
 
+        var originalCompleter = null;
 
         /**
          * A function to update the file mode of the Ace editor
@@ -302,11 +303,15 @@
                 gitbucket.editor.getSession().setMode(mode.mode);
                 if (mode.name == "markdown") {
                     markdownToolBar.style.display = "block";
+                    gitbucket.editor.completers = [];
+                    gitbucket.editor.completers.push(emojiCompleter);
                 } else {
                     markdownToolBar.style.display = "none";
+                    gitbucket.editor.completers = originalCompleter;
                 }
             } else {
                     markdownToolBar.style.display = "none";
+                    gitbucket.editor.completers = originalCompleter;
             }
         };
 
@@ -325,6 +330,7 @@
         $('#editor').text($('#initial').val());
 
         // Initializing Ace editor
+        const langtools = ace.require("ace/ext/language_tools");
         gitbucket.editor = ace.edit("editor");
 
         // Initialize Ace editor keyboard handler
@@ -369,6 +375,14 @@
                 localStorage.setItem('gitbucket:editor:wrap', 'false');
             }
         });
+
+        // enable auto completion
+        gitbucket.editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true
+        });
+        originalCompleter = gitbucket.editor.completers;
 
         // Initialize file mode for Ace editor
         updateFileMode();
