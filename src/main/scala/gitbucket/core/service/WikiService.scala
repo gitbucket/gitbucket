@@ -341,4 +341,18 @@ trait WikiService {
     }
   }
 
+  /**
+    * Get the branch name from the HEAD of the Wiki repository.
+    * 
+    * from gitbucket.core.controller.WikiController
+    *
+    * @param owner Wiki owner
+    * @param repository Wiki repository
+    * @return Branch name
+    */
+  def getWikiBranch(owner: String, repository: String): String = {
+    Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+      git.getRepository.getBranch
+    }
+  }
 }

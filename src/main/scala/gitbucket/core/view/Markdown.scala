@@ -199,7 +199,7 @@ object Markdown {
           val pathElems = context.currentPath.split("/")
           val owner = pathElems(1)
           val repos = pathElems(2)
-          if (getWikiPage(owner, repos, url, branch) == None) {
+          if (getWikiPage(owner, repos, url, getWikiBranch(owner, repos)) == None) {
             repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
           } else {
             repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/" + url
