@@ -1,36 +1,34 @@
 @()(implicit context: gitbucket.core.controller.Context)
-      <nav class="navbar navbar-default" style="margin-bottom: 0px;">
+      <nav class="navbar navbar-default" style="margin-bottom: 0px; min-height: auto; border-radius: 0px;">
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li>
               <div class="btn-group" data-toggle="buttons-radio">
-                <input type="button" id="btn-code" class="btn btn-default btn-small active navbar-btn" value="Code">
-                <input type="button" id="btn-preview" class="btn btn-default btn-small navbar-btn" value="Preview">
+                <input type="button" id="btn-code" class="btn btn-default btn-sm active navbar-btn" value="Code">
+                <input type="button" id="btn-preview" class="btn btn-default btn-sm navbar-btn" value="Preview">
               </div>
             </li>
           </ul>
-          <ul class="nav navbar-nav" style="margin-left: 20px; border: 1px solid gray; padding-right: 5px;">
+          <ul class="nav navbar-nav" style="margin-left: 8px;">
             <li>
               <div class="btn-group border" id="markdown-toolbar" style="display: none;">
-                <label class="navbar-text" style="margin: 13px 5px;"><i class="octicon octicon-markdown" style="font-size: 24px;"></i></label>
-                <label class="navbar-text" style="margin-left: 0px;">inline</label>
-                <button class="btn btn-default navbar-btn" id="markdown-bold" title="Bold"><i class="fa fa-bold"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-italic" title="Italic"><i class="fa fa-italic"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-code" title="Code"><i class="fa fa-code"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-link" title="Link"><i class="fa fa-link"></i></button>
-                <label class="navbar-text">block</label>
-                <button class="btn btn-default navbar-btn" id="markdown-heading" title="Heading"><i class="fa fa-header"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-quote" title="Quote"><i class="fa fa-quote-right"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-list-ul" title="Unordered List"><i class="fa fa-list-ul"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-list-ol" title="Ordered List"><i class="fa fa-list-ol"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-task" title="Task List"><i class="fa  fa-check-square-o"></i></button>
-                <button class="btn btn-default navbar-btn" id="markdown-code-block" title="Code Block"><i class="fa fa-file-code-o"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-bold" title="Bold"><i class="fa fa-bold"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-italic" title="Italic"><i class="fa fa-italic"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-code" title="Code"><i class="fa fa-code"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-link" title="Link"><i class="fa fa-link"></i></button>
+
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-heading" title="Heading" style="margin-left: 4px;"><i class="fa fa-header"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-quote" title="Quote"><i class="fa fa-quote-right"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-list-ul" title="Unordered List"><i class="fa fa-list-ul"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-list-ol" title="Ordered List"><i class="fa fa-list-ol"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-task" title="Task List"><i class="fa  fa-check-square-o"></i></button>
+                <button class="btn btn-default navbar-btn btn-sm" id="markdown-code-block" title="Code Block"><i class="fa fa-file-code-o"></i></button>
               </div>
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li>
-              <select id="aceKeyboardSelect" class="form-control navbar-form" style="font-weight: bold;">
+              <select id="aceKeyboardSelect" class="form-control navbar-form input-sm" aria-label="Keyboard" style="margin-right: 4px;">
                 <optgroup label="Keyboard">
                   <option value="">Default</option>
                   <option value="ace/keyboard/emacs">Emacs</option>
@@ -41,7 +39,7 @@
               </select>
             </li>
             <li>
-              <select id="theme" class="form-control navbar-form" style="margin-bottom: 0px; font-weight: bold;" aria-label="Theme">
+              <select id="theme" class="form-control navbar-form input-sm" aria-label="Theme" style="margin-right: 4px;">
                 <optgroup label="Editor Theme">
                   <option value="ambiance">Ambiance</option>
                   <option value="chaos">Chaos</option>
@@ -83,7 +81,7 @@
               </select>
             </li>
             <li>
-              <select id="wrap" class="form-control navbar-form" style="margin-bottom: 0px; font-weight: bold;" aria-label="Wrap">
+              <select id="wrap" class="form-control navbar-form input-sm" aria-label="Wrap" style="margin-right: 15px;">
                 <optgroup label="Line Wrap Mode">
                   <option value="false">No wrap</option>
                   <option value="true">Soft wrap</option>
