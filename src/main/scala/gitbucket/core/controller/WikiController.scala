@@ -103,12 +103,6 @@ trait WikiControllerBase extends ControllerBase {
     }
   })
 
-  private def getWikiBranch(owner: String, repository: String): String = {
-    Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
-      git.getRepository.getBranch
-    }
-  }
-
   get("/:owner/:repository/wiki/:page/_compare/:commitId")(referrersOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
