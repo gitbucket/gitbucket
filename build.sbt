@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
   "com.github.zafarkhaja"           % "java-semver"               % "0.10.2",
   "com.nimbusds"                    % "oauth2-oidc-sdk"           % "11.33",
   "org.eclipse.jetty"               % "jetty-webapp"              % JettyVersion    % "provided",
-  "javax.servlet"                   % "javax.servlet-api"         % "3.1.0"         % "provided",
+  "javax.servlet"                   % "javax.servlet-api"         % "4.0.1"         % "provided",
   "junit"                           % "junit"                     % "4.13.2"        % "test",
   "org.scalatra"                   %% "scalatra-scalatest-javax"  % ScalatraVersion % "test",
   "org.mockito"                     % "mockito-core"              % "5.21.0"        % "test",
