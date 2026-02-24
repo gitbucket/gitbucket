@@ -50,7 +50,7 @@ libraryDependencies ++= Seq(
   "org.postgresql"                  % "postgresql"                % "42.7.10",
   "ch.qos.logback"                  % "logback-classic"           % "1.5.32",
   "com.zaxxer"                      % "HikariCP"                  % "7.0.2" exclude ("org.slf4j", "slf4j-api"),
-  "com.typesafe"                    % "config"                    % "1.4.5",
+  "com.typesafe"                    % "config"                    % "1.4.6",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"               % "1.1.0",
   "io.github.java-diff-utils"       % "java-diff-utils"           % "4.16",
   "org.cache2k"                     % "cache2k-api"               % "2.6.1.Final",
