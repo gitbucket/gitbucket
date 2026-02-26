@@ -1,0 +1,32 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  completionContext: String, generateScript: Boolean = true)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<style>
+  @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
+    @if(provider.context.contains(completionContext)){
+      @provider.options(repository).map { case (value, label) =>
+        @Html(s"""
+          .ace_${label.replaceAll("[^a-z0-9\\-_]", "_")}::after {
+            content: '';
+            display: inline-block;
+            background-image: url("${context.path}/plugin-assets/emoji/${label}.png");
+            width: 15px;
+            height: 15px;
+            background-size: contain;
+            vertical-align: middle;
+          }"""
+        )
+      }
+    }
+  }
+</style>
+<script>
+  @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
+    @if(provider.context.contains(completionContext)){
+      var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
+        Map("name" -> (":" + value + ":"), "description" -> label)
+      }));
+      @Html(provider.additionalScript(repository))
+    }
+  }
+</script>
