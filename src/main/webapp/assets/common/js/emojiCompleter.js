@@ -10,9 +10,6 @@
     if (typeof(emoji) === "object") {
         window.emojiCompleter = {
             triggerCharacters: [':'],
-            insertMatch: function (editor, data) {
-                console.log(data);
-            },
             getCompletions: function (editor, session, pos, prefix, callback) {
                 if (session.$mode && session.$mode.$id === 'ace/mode/markdown') {
                     callback(null, emoji.map(function (table) {
