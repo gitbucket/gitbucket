@@ -24,7 +24,7 @@
   @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
       var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
-        Map("name" -> (":" + value + ":"), "description" -> label)
+        Map("name" -> (s"${provider.prefix}${value}${provider.suffix}"), "description" -> label)
       }));
       @Html(provider.additionalScript(repository))
     }
