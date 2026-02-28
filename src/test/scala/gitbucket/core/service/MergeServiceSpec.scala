@@ -171,6 +171,7 @@ class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
               repository,
               branch,
               issueId,
+              Seq(git.getRepository.parseCommit(commitId)),
               "merged",
               context.loginAccount.get,
               context.settings

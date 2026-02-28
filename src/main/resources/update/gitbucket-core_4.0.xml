@@ -237,7 +237,7 @@
   <addForeignKeyConstraint constraintName="IDX_ISSUE_ID_FK1" baseTableName="ISSUE_ID" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
 
   <!--================================================================================================-->
-  <!-- ISSUE_ID -->
+  <!-- ISSUE_LABEL -->
   <!--================================================================================================-->
   <createTable tableName="ISSUE_LABEL">
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>

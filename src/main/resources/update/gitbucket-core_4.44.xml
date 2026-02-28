@@ -29,4 +29,12 @@
   <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_PK" tableName="PROTECTED_BRANCH_RESTRICTION" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH, ALLOWED_USER"/>
   <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_FK0" baseTableName="PROTECTED_BRANCH_RESTRICTION" baseColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" referencedTableName="PROTECTED_BRANCH" referencedColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" onDelete="CASCADE" onUpdate="CASCADE"/>
   <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_FK1" baseTableName="PROTECTED_BRANCH_RESTRICTION" baseColumnNames="ALLOWED_USER" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- PULL_REQUEST -->
+  <!--================================================================================================-->
+  <addColumn tableName="PULL_REQUEST">
+    <column name="MERGED_COMMIT_IDS" type="text" nullable="true"/>
+  </addColumn>
+
 </changeSet>
