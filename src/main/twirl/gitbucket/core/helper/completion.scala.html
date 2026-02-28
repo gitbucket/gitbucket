@@ -41,7 +41,7 @@
                 caption: table.description,
                 value: token ? table.value.replace(token.value, "") : table.value,
                 className: @{provider.id} == "emoji" ? strictNormalizeClassName(table.description) : "@{provider.id}",
-                meta: 'Emoji'
+                meta: "@{provider.id}"
               };
             }));
           }
