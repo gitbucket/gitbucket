@@ -4,18 +4,20 @@
 <style>
   @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
-      @provider.options(repository).map { case (value, label) =>
-        @Html(s"""
-          .ace_${label.replaceAll("[^a-z0-9\\-_]", "_")}::after {
-            content: '';
-            display: inline-block;
-            background-image: url("${context.path}/plugin-assets/emoji/${label}.png");
-            width: 15px;
-            height: 15px;
-            background-size: contain;
-            vertical-align: middle;
-          }"""
-        )
+      @if(provider.id == "emoji") {
+        @provider.options(repository).map { case (value, label) =>
+          @Html(s"""
+            .ace_${label.replaceAll("[^a-z0-9\\-_]", "_")}::after {
+              content: '';
+              display: inline-block;
+              background-image: url("${context.path}/plugin-assets/emoji/${label}.png");
+              width: 15px;
+              height: 15px;
+              background-size: contain;
+              vertical-align: middle;
+            }"""
+          )
+        }
       }
     }
   }
@@ -26,6 +28,7 @@
       var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
         Map("name" -> (s"${provider.prefix}${value}${provider.suffix}"), "description" -> label)
       }));
+      var @{provider.id}Trigger = "@provider.prefix.charAt(0)";
       @Html(provider.additionalScript(repository))
     }
   }
