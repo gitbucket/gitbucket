@@ -23,12 +23,34 @@
   }
 </style>
 <script>
+  var mdCompleters = [];
+
   @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
       var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
         Map("name" -> (s"${provider.prefix}${value}${provider.suffix}"), "description" -> label)
       }));
-      var @{provider.id}Trigger = "@provider.prefix.charAt(0)";
+
+      var @{provider.id}Completer = {
+        triggerCharacters: [ `@provider.prefix.charAt(0)` ],
+        getCompletions: function (editor, session, pos, prefix, callback) {
+          if (session.$mode && session.$mode.$id === 'ace/mode/markdown') {
+            callback(null, @{provider.id}.map(function (table) {
+              var token = session.getTokenAt(pos.row, pos.column);
+              return {
+                caption: table.description,
+                value: token ? table.name.replace(token.value, "") : table.name,
+                className: @{provider.id} == "emoji" ? strictNormalizeClassName(table.description) : "@{provider.id}",
+                meta: 'Emoji'
+              };
+            }));
+          }
+        },
+        id: "@{provider.id}Completer"
+      };
+
+      mdCompleters.push(@{provider.id}Completer);
+
       @Html(provider.additionalScript(repository))
     }
   }

@@ -303,17 +303,14 @@
                 gitbucket.editor.getSession().setMode(mode.mode);
                 if (mode.name == "markdown") {
                     markdownToolBar.style.display = "block";
-                    gitbucket.editor.completers = [];
-                    if (typeof(emojiCompleter) === "object") {
-                        gitbucket.editor.completers.push(emojiCompleter);
-                    }
+                    gitbucket.editor.completers = mdCompleters ?? [];
                 } else {
                     markdownToolBar.style.display = "none";
-                    gitbucket.editor.completers = originalCompleter;
+                    gitbucket.editor.completers = originalCompleter ?? [];
                 }
             } else {
                     markdownToolBar.style.display = "none";
-                    gitbucket.editor.completers = originalCompleter;
+                    gitbucket.editor.completers = originalCompleter ?? [];
             }
         };
 
