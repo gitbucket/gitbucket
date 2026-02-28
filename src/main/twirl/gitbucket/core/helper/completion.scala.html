@@ -28,7 +28,7 @@
   @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
       var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
-        Map("name" -> (s"${provider.prefix}${value}${provider.suffix}"), "description" -> label)
+        Map("value" -> (s"${provider.prefix}${value}${provider.suffix}"), "label" -> label)
       }));
 
       var @{provider.id}Completer = {
@@ -39,7 +39,7 @@
               var token = session.getTokenAt(pos.row, pos.column);
               return {
                 caption: table.description,
-                value: token ? table.name.replace(token.value, "") : table.name,
+                value: token ? table.value.replace(token.value, "") : table.value,
                 className: @{provider.id} == "emoji" ? strictNormalizeClassName(table.description) : "@{provider.id}",
                 meta: 'Emoji'
               };
