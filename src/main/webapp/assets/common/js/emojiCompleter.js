@@ -1,9 +1,6 @@
 (function(window) {
     function strictNormalizeClassName(rawClassName) {
         return rawClassName
-            .trim() // Remove the previous and subsequent blanks
-            .toLowerCase() // Unification in lowercase letters
-            .replace(/\s+/g, '-') // Replace whitespace with hyphens
             .replace(/[^a-z0-9\-_]/g, '_'); // Replace characters other than alphanumeric characters, hyphens, and underscores with underscores
     }
 
