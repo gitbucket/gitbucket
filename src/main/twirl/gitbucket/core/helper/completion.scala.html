@@ -36,10 +36,10 @@
         getCompletions: function (editor, session, pos, prefix, callback) {
           if (session.$mode && session.$mode.$id === 'ace/mode/markdown') {
             callback(null, @{provider.id}.map(function (table) {
-              var token = session.getTokenAt(pos.row, pos.column);
+              var token = session.getTokenAt(pos.row, pos.column).value.slice(-1);
               return {
                 caption: table.description,
-                value: token ? table.value.replace(token.value, "") : table.value,
+                value: token == "@provider.prefix.charAt(0)" ? table.value.replace(token, "") : table.value,
                 className: "@{provider.id}" == "emoji" ? table.label.replace(/[^a-z0-9\-_]/g, '_') : "@{provider.id}",
                 meta: "@{provider.id}"
               };
