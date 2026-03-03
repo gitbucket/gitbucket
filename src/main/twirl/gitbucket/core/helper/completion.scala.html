@@ -1,0 +1,57 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  completionContext: String, generateScript: Boolean = true)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<style>
+  @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
+    @if(provider.context.contains(completionContext)){
+      @if(provider.id == "emoji") {
+        @provider.options(repository).map { case (value, label) =>
+          @Html(s"""
+            .ace_${label.replaceAll("[^a-z0-9\\-_]", "_")}::after {
+              content: '';
+              display: inline-block;
+              background-image: url("${context.path}/plugin-assets/emoji/${label}.png");
+              width: 15px;
+              height: 15px;
+              background-size: contain;
+              vertical-align: middle;
+            }"""
+          )
+        }
+      }
+    }
+  }
+</style>
+<script>
+  var mdCompleters = [];
+
+  @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
+    @if(provider.context.contains(completionContext)){
+      var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
+        Map("value" -> (s"${provider.prefix}${value}${provider.suffix}"), "label" -> label)
+      }));
+
+      var @{provider.id}Completer = {
+        triggerCharacters: [ `@provider.prefix.charAt(0)` ],
+        getCompletions: function (editor, session, pos, prefix, callback) {
+          if (session.$mode && session.$mode.$id === 'ace/mode/markdown') {
+            callback(null, @{provider.id}.map(function (table) {
+              var token = session.getTokenAt(pos.row, pos.column).value.slice(-1);
+              return {
+                caption: table.description,
+                value: token == "@provider.prefix.charAt(0)" ? table.value.replace(token, "") : table.value,
+                className: "@{provider.id}" == "emoji" ? table.label.replace(/[^a-z0-9\-_]/g, '_') : "@{provider.id}",
+                meta: "@{provider.id}"
+              };
+            }));
+          }
+        },
+        id: "@{provider.id}Completer"
+      };
+
+      mdCompleters.push(@{provider.id}Completer);
+
+      @Html(provider.additionalScript(repository))
+    }
+  }
+</script>

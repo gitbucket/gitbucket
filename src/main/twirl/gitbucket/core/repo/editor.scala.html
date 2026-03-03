@@ -74,12 +74,19 @@
     </form>
     <script src='@helpers.assets("/vendors/ace/ace.js")' type="text/javascript" charset="utf-8"></script>
     <script src='@helpers.assets("/vendors/ace/ext-modelist.js")' type="text/javascript" charset="utf-8"></script>
+    <script src='@helpers.assets("/vendors/ace/ext-language_tools.js")' type="text/javascript" charset="utf-8"></script>
     <script type="text/javascript" src='@helpers.assets("/vendors/jsdifflib/difflib.js")'></script>
     <link href='@helpers.assets("/vendors/jsdifflib/diffview.css")' type="text/css" rel="stylesheet" />
+      @gitbucket.core.helper.html.completion(
+        repository        = repository,
+        completionContext = "wiki",
+        generateScript    = false 
+      )
     <script>
       const gitbucket = {
         editor: null,
         enableWikiLink: false,
+        pluginAssets: "@context.path/plugin-assets/",
         protected: @protectedBranch,
         previewTemplate: '<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...',
         previewUrl: '@helpers.url(repository)/_preview',
