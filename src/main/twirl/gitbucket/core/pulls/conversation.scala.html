@@ -36,17 +36,37 @@
           </div>
         </div>
       }
-      @if(isManageableForkedRepository && issue.closed && merged &&
-        forkedRepository.exists(r => r.branchList.contains(pullreq.requestBranch) && r.repository.defaultBranch != pullreq.requestBranch)){
-        <div class="issue-comment-box" style="background-color: #d0eeff; margin-bottom: 20px;">
-          <div class="box-content" style="border: 1px solid #87a8c9; padding: 10px;">
-            <a href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
-            <div>
-              <span class="strong">Pull request successfully merged and closed</span>
+      @defining(
+        isManageableForkedRepository && issue.closed && merged &&
+          forkedRepository.exists(r => r.branchList.contains(pullreq.requestBranch) && r.repository.defaultBranch != pullreq.requestBranch),
+        issue.closed && pullreq.mergedCommitIds.isDefined
+      ) { case (isBranchDeletable, isRevertible) =>
+        @if(isBranchDeletable || isRevertible) {
+          <div class="issue-comment-box" style="margin-bottom: 20px;">
+            <div class="box-content" style="border: 1px solid #ddd; padding: 10px;">
+                @if(isRevertible) {
+                  <form method="post" action="@helpers.url(repository)/pull/@issue.issueId/revert" style="display:inline;">
+                    <button type="submit" class="btn btn-default pull-right" onclick="return confirm('Would you create a revert pull request?');" style="margin-left: 4px;">Revert</button>
+                  </form>
+                }
+                @if(isBranchDeletable) {
+                  <a href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-default pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+                }
+              <div>
+                <span class="strong">Pull request successfully merged and closed</span>
+              </div>
+              <span class="small muted">
+                @if(isBranchDeletable) {
+                  The <code>@pullreq.requestBranch</code> branch can now be safely deleted.
+                } else {
+                  You can create another pull request to revert this merge.
+                }
+              </span>
             </div>
-            <span class="small muted">You're all set. The <span class="label label-info monospace">@pullreq.requestBranch</span> branch can now be safely deleted.</span>
           </div>
-        </div>
+        }
+        @if(isBranchDeletable) {
+        }
       }
       @gitbucket.core.issues.html.commentform(issue, !merged, isEditable, isManageable, repository)
     }

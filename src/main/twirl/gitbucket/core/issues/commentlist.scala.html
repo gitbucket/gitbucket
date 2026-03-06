@@ -156,15 +156,6 @@
               <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
             }
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-            @issue.map { issue =>
-              @pullreq.map { pullreq =>
-                @if(issue.closed && pullreq.mergedCommitIds.isDefined) {
-                  <form method="post" action="@helpers.url(repository)/pull/@issue.issueId/revert" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-warning pull-right">Revert</button>
-                  </form>
-                }
-              }
-            }
           </div>
         </div>
       }
