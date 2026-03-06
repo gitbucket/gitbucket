@@ -928,30 +928,38 @@ pre.reset.discussion-item-content-text{
   color: inherit;
 }
 
+.discussion-item-icon .octicon-bookmark,
+.discussion-item-icon .octicon-person,
+.discussion-item-icon .octicon-git-branch{
+  padding-left: 5px;
+}
+
 .discussion-item-merge .discussion-item-icon {
   background-color: #6e5494;
   color: white;
   padding-top: 1px;
-  padding-left: 3px;
+  padding-left: 4px;
 }
 
 .discussion-item-close .discussion-item-icon {
   background-color: #bd2c00;
   color: white;
+  padding-left: 2px;
   padding-top: 1px;
 }
 
 .discussion-item-delete_branch .discussion-item-icon {
-  padding-left: 2px;
-  padding-top: 1px;
   background-color: #767676;
   color: white;
+  padding-left: 2px;
+  padding-top: 1px;
 }
 
 .discussion-item-reopen .discussion-item-icon {
   background-color: #6cc644;
-  padding-top: 1px;
   color: white;
+  padding-left: 7px;
+  padding-top: 1px;
 }
 
 .discussion-item-delete-comment .discussion-item-icon {
