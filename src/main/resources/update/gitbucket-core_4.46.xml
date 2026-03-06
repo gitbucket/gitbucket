@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- PULL_REQUEST -->
+  <!--================================================================================================-->
+  <addColumn tableName="PULL_REQUEST">
+    <column name="MERGED_COMMIT_IDS" type="text" nullable="true"/>
+  </addColumn>
+
+</changeSet>
