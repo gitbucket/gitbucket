@@ -1,6 +1,14 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.46.0 - 7 Mar 2026
+- Add support for reverting pull request
+- Add markdown toolbar
+- Enable text completion in Ace editor
+- Apply Ace editor for Wiki editing
+- Webhook security: SHA-256 support
+- Preserve UTF-8 BOM when editing files in browser
+
 ## 4.45.0 - 10 Jan 2026
 - Add new option to show full username on UI
 - Support render plugin in issues, pull requests, wiki and commit comments
