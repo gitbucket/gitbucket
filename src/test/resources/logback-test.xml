@@ -16,6 +16,7 @@
   -->
 
   <logger name="gitbucket" level="DEBUG"/>
+  <logger name="gitbucket.core.util.JGitUtil" level="WARN"/>
   <root level="WARN">
     <appender-ref ref="STDOUT" />
   </root>
