@@ -61,10 +61,13 @@ Support
 
 What's New in 4.45.x
 -------------
-## 4.45.0 - 10 Jan 2026
-- Add new option to show full username on UI
-- Support render plugin in issues, pull requests, wiki and commit comments
-- Support link to other pages from Wiki page using Wiki link syntax
+## 4.46.0 - 7 Mar 2026
+- Add support for reverting pull request
+- Add markdown toolbar
+- Enable text completion in Ace editor
+- Apply Ace editor for Wiki editing
+- Webhook security: SHA-256 support
+- Preserve UTF-8 BOM when editing files in browser
 
 Note that you have to migrate h2 database file if you will upgrade GitBucket from 4.42 or before to 4.43 or later and you are using the default h2 database because h2 1.x and h2.x don't have compatibility: https://www.h2database.com/html/migration-to-v2.html
 
