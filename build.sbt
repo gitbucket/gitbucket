@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "org.tukaani"               % "xz"                           % "1.12",
   "org.apache.commons"        % "commons-compress"             % "1.28.0",
   "org.apache.commons"        % "commons-email"                % "1.6.0",
-  "commons-net"               % "commons-net"                  % "3.12.0",
+  "commons-net"               % "commons-net"                  % "3.13.0",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.14",
   "org.apache.sshd"           % "apache-sshd"                  % "2.17.1" exclude ("org.slf4j", "slf4j-jdk14") exclude (
     "org.apache.sshd",
