@@ -197,7 +197,7 @@
               @if(target == "issues"){
                 <a href="@helpers.url(repository.get)/issues/new">Create a new issue.</a>
               } else {
-                <a href="@helpers.url(repository.get)/compare">Create a new pull request.</a>
+                <a href="@helpers.url(repository.get)/compare?quick=true">Create a new pull request.</a>
               }
             }
           @*

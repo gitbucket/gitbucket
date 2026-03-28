@@ -17,11 +17,11 @@
   priorities: List[gitbucket.core.model.Priority],
   defaultPriority: Option[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
-  customFields: List[gitbucket.core.model.CustomField])(implicit context: gitbucket.core.controller.Context)
+  customFields: List[gitbucket.core.model.CustomField],
+  quickLoad: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
-    <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
       <div class="pullreq-info">
         <div id="compare-edit">
           @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
@@ -54,14 +54,24 @@
           }
           <span class="error" id="error-requestBranch"></span>
         </div>
-        @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-          <div class="check-conflict" style="display: none;">
-            <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
-          </div>
-        }
       </div>
-      @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
-        <div id="pull-request-form" style="margin-bottom: 20px;">
+      @if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+        <div style="margin-top: 8px;">
+          <button type="button" class="btn btn-primary btn-sm" id="check-conflict-button">Check mergeability</button>
+        </div>
+        <div class="check-conflict" style="display: none;">
+          <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
+        </div>
+      }
+      <div id="compare-state"
+           data-quick-load="@quickLoad"
+           data-has-valid-branches="@(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId))"
+           data-can-auto-mergecheck="@(context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId))"
+           style="display: none;"></div>
+    </div>
+    @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+      <div id="pull-request-form" style="margin-bottom: 20px;">
+        <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
           <div class="row">
             <div class="col-md-9">
               <span class="error" id="error-title"></span>
@@ -115,10 +125,15 @@
               )
             </div>
           </div>
-        </div>
-      }
-    </form>
-    @if(commits.isEmpty){
+        </form>
+      </div>
+    }
+    @if(quickLoad){
+      <div class="panel panel-default" style="padding: 20px; background-color: #eee; text-align: center;">
+        <h4>Comparison is ready to load.</h4>
+        <span class="muted">Click <span class="strong">Check mergeability</span> to compute changes and show merge status.</span>
+      </div>
+    } else if(commits.isEmpty){
       <div class="panel panel-default" style="padding: 20px; background-color: #eee; text-align: center;">
         <h4>There isn't anything to compare.</h4>
         <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
@@ -194,6 +209,15 @@ $(function(){
 
 
 $(function(){
+  var compareState = $('#compare-state');
+  var isQuickLoad = compareState.data('quick-load') === true || compareState.data('quick-load') === 'true';
+  var autoMergecheck = /(?:\?|&)check=true(?:&|$)/.test(window.location.search);
+  var hasValidBranches =
+    compareState.data('has-valid-branches') === true || compareState.data('has-valid-branches') === 'true';
+  var canAutoMergecheck =
+    compareState.data('can-auto-mergecheck') === true || compareState.data('can-auto-mergecheck') === 'true';
+  var compareQuery = '?quick=true';
+
   function updateSelector(e){
     e.parents('ul').find('i').attr('class', 'octicon');
     e.find('i').addClass('octicon-check');
@@ -209,7 +233,7 @@ $(function(){
       $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
       $.trim($('i.octicon-check').parents('a.origin-owner' ).data('default-branch')) + '...' +
       $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
-      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch')) + compareQuery;
   });
 
   $('a.forked-owner').click(function(){
@@ -221,7 +245,7 @@ $(function(){
       $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
       $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
       $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
-      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('default-branch'));
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('default-branch')) + compareQuery;
   });
 
   $('a.origin-branch, a.forked-branch').click(function(){
@@ -233,22 +257,44 @@ $(function(){
       $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
       $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
       $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
-      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch')) + compareQuery;
   });
 
-  @if(context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+  if (isQuickLoad && hasValidBranches) {
+    $('#check-conflict-button').click(function(){
+      location.href = '@helpers.url(forkedRepository)/compare/' +
+        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch')) + '?check=true';
+    });
+  } else if (canAutoMergecheck) {
     function checkConflict(from, to){
+      var button = $('#check-conflict-button');
+      button.attr('disabled', 'disabled');
       $('.check-conflict').show();
+      $('.check-conflict').html('<img src="' + '@helpers.assets("/common/images/indicator.gif")' + '"/> Checking...');
       $.get('@helpers.url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
-        function(data){ $('.check-conflict').html(data); });
+        function(data){ $('.check-conflict').html(data); }
+      ).fail(function(){
+        $('.check-conflict').html('<span class="strong" style="color: #bd2c00;">Failed to check mergeability.</span>');
+      }).always(function(){
+        button.removeAttr('disabled');
+      });
     }
 
-    checkConflict(
-      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
-      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
-      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
-      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
-    );
+    $('#check-conflict-button').click(function(){
+      checkConflict(
+        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
+      );
+    });
+
+    if (autoMergecheck) {
+      $('#check-conflict-button').click();
+    }
   }
 });
 </script>
