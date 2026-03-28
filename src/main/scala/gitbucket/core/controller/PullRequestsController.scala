@@ -375,7 +375,10 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
     val headBranch = params.get("head")
-    val quickLoad = params.get("quick").contains("true")
+    val quickLoad = params
+      .get("quick")
+      .map(_.equalsIgnoreCase("true"))
+      .getOrElse(context.settings.basicBehavior.compareNoCheckByDefault)
     val quickQuery = if (quickLoad) "?quick=true" else ""
     (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
       case (Some(originUserName), Some(originRepositoryName)) =>
@@ -438,8 +441,12 @@ trait PullRequestsControllerBase extends ControllerBase {
     val Seq(origin, forked) = multiParams("splat")
     val (originOwner, originId) = parseCompareIdentifier(origin, forkedRepository.owner)
     val (forkedOwner, forkedId) = parseCompareIdentifier(forked, forkedRepository.owner)
-    val quickLoad = params.get("quick").contains("true")
-    val autoMergecheck = params.get("check").contains("true") && !quickLoad
+    val requestedCheck = params.get("check").contains("true")
+    val quickLoad = params
+      .get("quick")
+      .map(_.equalsIgnoreCase("true"))
+      .getOrElse(!requestedCheck && context.settings.basicBehavior.compareNoCheckByDefault)
+    val autoMergecheck = requestedCheck && !quickLoad
 
     (for (
       originRepositoryName <- getOriginRepositoryName(originOwner, forkedOwner, forkedRepository);

@@ -66,6 +66,7 @@
       <div id="compare-state"
            data-quick-load="@quickLoad"
            data-has-valid-branches="@(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId))"
+         data-default-no-check="@context.settings.basicBehavior.compareNoCheckByDefault"
            data-can-auto-mergecheck="@(context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId))"
            style="display: none;"></div>
     </div>
@@ -211,12 +212,14 @@ $(function(){
 $(function(){
   var compareState = $('#compare-state');
   var isQuickLoad = compareState.data('quick-load') === true || compareState.data('quick-load') === 'true';
-  var autoMergecheck = /(?:\?|&)check=true(?:&|$)/.test(window.location.search);
+  var defaultNoCheck = compareState.data('default-no-check') === true || compareState.data('default-no-check') === 'true';
+  var autoMergecheck =
+    /(?:\?|&)check=true(?:&|$)/.test(window.location.search) || (!isQuickLoad && !defaultNoCheck);
   var hasValidBranches =
     compareState.data('has-valid-branches') === true || compareState.data('has-valid-branches') === 'true';
   var canAutoMergecheck =
     compareState.data('can-auto-mergecheck') === true || compareState.data('can-auto-mergecheck') === 'true';
-  var compareQuery = '?quick=true';
+  var compareQuery = (defaultNoCheck || isQuickLoad) ? '?quick=true' : '';
 
   function updateSelector(e){
     e.parents('ul').find('i').attr('class', 'octicon');

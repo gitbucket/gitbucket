@@ -19,7 +19,7 @@
             <a class="btn btn-default" href="#" id="edit">Edit</a>
           }
           @if(context.loginAccount.isDefined) {
-            <a class="btn btn-success" href="@helpers.url(repository)/compare?quick=true">New pull request</a>
+            <a class="btn btn-success" href="@helpers.url(repository)/compare@if(context.settings.basicBehavior.compareNoCheckByDefault){?quick=true}">New pull request</a>
           }
         </div>
         <div class="edit-title pull-right" style="display: none;">

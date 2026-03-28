@@ -30,6 +30,7 @@ trait SystemSettingsService {
     props.setProperty(Gravatar, settings.basicBehavior.gravatar.toString)
     props.setProperty(Notification, settings.basicBehavior.notification.toString)
     props.setProperty(LimitVisibleRepositories, settings.basicBehavior.limitVisibleRepositories.toString)
+    props.setProperty(CompareNoCheckByDefault, settings.basicBehavior.compareNoCheckByDefault.toString)
     props.setProperty(SshEnabled, settings.ssh.enabled.toString)
     settings.ssh.bindAddress.foreach { bindAddress =>
       props.setProperty(SshBindAddressHost, bindAddress.host.trim())
@@ -128,7 +129,8 @@ trait SystemSettingsService {
         ),
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
-        getValue(props, LimitVisibleRepositories, false)
+        getValue(props, LimitVisibleRepositories, false),
+        getValue(props, CompareNoCheckByDefault, false)
       ),
       Ssh(
         enabled = getValue(props, SshEnabled, false),
@@ -281,6 +283,7 @@ object SystemSettingsService {
     gravatar: Boolean,
     notification: Boolean,
     limitVisibleRepositories: Boolean,
+    compareNoCheckByDefault: Boolean = false,
   )
 
   case class RepositoryOperation(
@@ -413,6 +416,7 @@ object SystemSettingsService {
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val LimitVisibleRepositories = "limitVisibleRepositories"
+  private val CompareNoCheckByDefault = "compare_no_check_by_default"
   private val SshEnabled = "ssh"
   private val SshHost = "ssh.host"
   private val SshPort = "ssh.port"
