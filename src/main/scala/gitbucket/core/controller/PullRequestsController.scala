@@ -452,17 +452,18 @@ trait PullRequestsControllerBase extends ControllerBase {
       originRepositoryName <- getOriginRepositoryName(originOwner, forkedOwner, forkedRepository);
       originRepository <- getRepository(originOwner, originRepositoryName)
     ) yield {
-      val members = ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-        case (Some(userName), Some(repositoryName)) =>
-          getRepository(userName, repositoryName) match {
-            case Some(x) => x.repository :: getForkedRepositories(userName, repositoryName)
-            case None    => getForkedRepositories(userName, repositoryName)
-          }
-        case _ =>
-          forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-      }).map { repository =>
-        (repository.userName, repository.repositoryName, repository.defaultBranch)
-      }
+      val members =
+        ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+          case (Some(userName), Some(repositoryName)) =>
+            getRepository(userName, repositoryName) match {
+              case Some(x) => x.repository :: getForkedRepositories(userName, repositoryName)
+              case None    => getForkedRepositories(userName, repositoryName)
+            }
+          case _ =>
+            forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+        }).map { repository =>
+          (repository.userName, repository.repositoryName, repository.defaultBranch)
+        }
 
       val text = forkedId.replaceAll("[\\-_]", " ")
       val fallbackTitle = text.substring(0, 1).toUpperCase + text.substring(1)
