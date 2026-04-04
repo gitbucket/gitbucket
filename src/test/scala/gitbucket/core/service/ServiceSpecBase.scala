@@ -55,6 +55,7 @@ trait ServiceSpecBase {
         gravatar = false,
         notification = false,
         limitVisibleRepositories = false,
+        compareNoCheckByDefault = false,
       ),
       ssh = Ssh(
         enabled = false,

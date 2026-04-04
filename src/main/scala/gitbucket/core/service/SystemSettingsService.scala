@@ -283,7 +283,7 @@ object SystemSettingsService {
     gravatar: Boolean,
     notification: Boolean,
     limitVisibleRepositories: Boolean,
-    compareNoCheckByDefault: Boolean = false,
+    compareNoCheckByDefault: Boolean,
   )
 
   case class RepositoryOperation(

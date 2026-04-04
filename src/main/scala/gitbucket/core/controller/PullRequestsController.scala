@@ -446,7 +446,6 @@ trait PullRequestsControllerBase extends ControllerBase {
       .get("quick")
       .map(_.equalsIgnoreCase("true"))
       .getOrElse(!requestedCheck && context.settings.basicBehavior.compareNoCheckByDefault)
-    val autoMergecheck = requestedCheck && !quickLoad
 
     (for (
       originRepositoryName <- getOriginRepositoryName(originOwner, forkedOwner, forkedRepository);
