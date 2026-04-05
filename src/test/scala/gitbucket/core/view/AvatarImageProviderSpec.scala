@@ -165,7 +165,8 @@ class AvatarImageProviderSpec extends AnyFunSpec {
         ),
         gravatar = useGravatar,
         notification = false,
-        limitVisibleRepositories = false
+        limitVisibleRepositories = false,
+        compareNoCheckByDefault = false
       ),
       ssh = Ssh(
         enabled = false,

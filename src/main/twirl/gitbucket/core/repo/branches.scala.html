@@ -64,7 +64,7 @@
                       helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
                     }.getOrElse {
                       helpers.encodeRefName(repository.repository.defaultBranch)
-                    }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default btn-sm">@if(context.loginAccount.isDefined){Create pull request} else {Compare}</a>
+                    }}...@{helpers.encodeRefName(branch.name)}@if(context.settings.basicBehavior.compareNoCheckByDefault){?quick=true}" class="btn btn-default btn-sm">@if(context.loginAccount.isDefined){Create pull request} else {Compare}</a>
                   }
                   @if(hasWritePermission){
                     <span style="margin-left: 8px;">

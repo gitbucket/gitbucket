@@ -37,7 +37,7 @@
           <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
         }
         @if(target == "pulls"){
-          <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
+          <a class="btn btn-success" href="@helpers.url(repository)/compare@if(context.settings.basicBehavior.compareNoCheckByDefault){?quick=true}">New pull request</a>
         }
       }
     </form>

@@ -68,6 +68,19 @@ class SystemSettingsServiceSpec extends AnyWordSpecLike with Matchers {
       settings.ssh.bindAddress shouldNot be(empty)
       settings.ssh.publicAddress shouldNot be(empty)
     }
+    "default compare_no_check_by_default to false if not specified" in new SystemSettingsService {
+      val props = new Properties()
+
+      val settings = loadSystemSettings(props)
+      settings.basicBehavior.compareNoCheckByDefault shouldBe false
+    }
+    "read compare_no_check_by_default configuration when true" in new SystemSettingsService {
+      val props = new Properties()
+      props.setProperty("compare_no_check_by_default", "true")
+
+      val settings = loadSystemSettings(props)
+      settings.basicBehavior.compareNoCheckByDefault shouldBe true
+    }
   }
 
   "SshAddress" can {

@@ -240,6 +240,21 @@
   </label>
 </fieldset>
 <!--====================================================================-->
+<!-- Compare default mode -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Pull request compare default mode</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.compareNoCheckByDefault" value="true"@if(context.settings.basicBehavior.compareNoCheckByDefault){ checked}>
+    <span class="strong">No check (fast)</span> <span class="normal">- Open compare quickly and run checks only when clicking Check mergeability.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.compareNoCheckByDefault" value="false"@if(!context.settings.basicBehavior.compareNoCheckByDefault){ checked}>
+    <span class="strong">Check by default</span> <span class="normal">- Load full compare and mergeability behavior by default.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
 <!-- Show mail address -->
 <!--====================================================================-->
 <hr>
