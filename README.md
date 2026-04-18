@@ -59,8 +59,12 @@ Support
 - If you can't find same question and report, send it to our [Gitter chat room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.45.x
+What's New in 4.46.x
 -------------
+## 4.46.1 - 18 Apr 2026
+- Fix NullPointerException that could happen in the commits page
+- Add options to improve pull request compare performance
+
 ## 4.46.0 - 7 Mar 2026
 - Add support for reverting pull request
 - Add markdown toolbar
