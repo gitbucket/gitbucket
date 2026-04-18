@@ -1,6 +1,10 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## 4.46.1 - 18 Apr 2026
+- Fix NullPointerException that could happen in the commits page
+- Add options to improve pull request compare performance
+
 ## 4.46.0 - 7 Mar 2026
 - Add support for reverting pull request
 - Add markdown toolbar
@@ -90,7 +94,7 @@ db {
 ## 4.38.1 - 10 Sep 2022
 - Fix comment diff in Chrome 105
 - Fix Markdown table CSS
-- Fix HTML rendering of multiple asignees
+- Fix HTML rendering of multiple assignees
 
 ## 4.38.0 - 3 Sep 2022
 - Support multiple assignees for Issues and Pull requests
