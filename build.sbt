@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "org.scalatra"             %% "scalatra-json-javax"          % ScalatraVersion,
   "org.scalatra"             %% "scalatra-forms-javax"         % ScalatraVersion,
   "io.github.json4s"         %% "json4s-jackson"               % "4.1.0",
-  "commons-io"                % "commons-io"                   % "2.21.0",
+  "commons-io"                % "commons-io"                   % "2.22.0",
   "io.github.gitbucket"       % "solidbase"                    % "1.1.0",
   "io.github.gitbucket"       % "markedj"                      % "1.0.20",
   "org.tukaani"               % "xz"                           % "1.12",
