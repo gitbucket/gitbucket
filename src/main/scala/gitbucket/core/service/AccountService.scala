@@ -342,7 +342,7 @@ trait AccountService {
   def generateResetPasswordToken(mailAddress: String): String = {
     val claimsSet = new JWTClaimsSet.Builder()
       .claim("mailAddress", mailAddress)
-      .expirationTime(new java.util.Date(System.currentTimeMillis() + 10 * 1000))
+      .expirationTime(new java.util.Date(System.currentTimeMillis() + 10 * 60 * 1000)) // 10 min
       .build()
 
     val signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet)
