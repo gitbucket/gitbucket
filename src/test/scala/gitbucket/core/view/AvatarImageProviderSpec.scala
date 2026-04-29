@@ -154,6 +154,7 @@ class AvatarImageProviderSpec extends AnyFunSpec {
       basicBehavior = BasicBehavior(
         allowAccountRegistration = false,
         allowResetPassword = false,
+        resetPasswordTokenExpiration = 10,
         allowAnonymousAccess = true,
         isCreateRepoOptionPublic = true,
         repositoryOperation = RepositoryOperation(

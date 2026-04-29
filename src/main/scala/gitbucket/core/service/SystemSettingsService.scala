@@ -20,6 +20,7 @@ trait SystemSettingsService {
     settings.information.foreach(x => props.setProperty(Information, x))
     props.setProperty(AllowAccountRegistration, settings.basicBehavior.allowAccountRegistration.toString)
     props.setProperty(AllowResetPassword, settings.basicBehavior.allowResetPassword.toString)
+    props.setProperty(ResetPasswordTokenExpiration, settings.basicBehavior.resetPasswordTokenExpiration.toString)
     props.setProperty(AllowAnonymousAccess, settings.basicBehavior.allowAnonymousAccess.toString)
     props.setProperty(IsCreateRepoOptionPublic, settings.basicBehavior.isCreateRepoOptionPublic.toString)
     props.setProperty(RepositoryOperationCreate, settings.basicBehavior.repositoryOperation.create.toString)
@@ -118,6 +119,7 @@ trait SystemSettingsService {
       BasicBehavior(
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowResetPassword, false),
+        getValue(props, ResetPasswordTokenExpiration, 10),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
         RepositoryOperation(
@@ -277,6 +279,7 @@ object SystemSettingsService {
   case class BasicBehavior(
     allowAccountRegistration: Boolean,
     allowResetPassword: Boolean,
+    resetPasswordTokenExpiration: Int,
     allowAnonymousAccess: Boolean,
     isCreateRepoOptionPublic: Boolean,
     repositoryOperation: RepositoryOperation,
@@ -406,6 +409,7 @@ object SystemSettingsService {
   private val Information = "information"
   private val AllowAccountRegistration = "allow_account_registration"
   private val AllowResetPassword = "allow_reset_password"
+  private val ResetPasswordTokenExpiration = "reset_password_token_expiration"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
   private val RepositoryOperationCreate = "repository_operation_create"
