@@ -37,6 +37,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "basicBehavior" -> mapping(
       "allowAccountRegistration" -> trim(label("Account registration", boolean())),
       "allowResetPassword" -> trim(label("Reset password", boolean())),
+      "resetPasswordTokenExpiration" -> trim(label("Reset password token expiration", number())),
       "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
       "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
       "repositoryOperation" -> mapping(

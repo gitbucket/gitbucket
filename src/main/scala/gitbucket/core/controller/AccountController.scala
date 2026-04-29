@@ -625,7 +625,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/reset", resetPasswordEmailForm) { form =>
     if (context.settings.basicBehavior.allowResetPassword) {
       getAccountByMailAddress(form.mailAddress).foreach { account =>
-        val token = generateResetPasswordToken(form.mailAddress)
+        val expirationMillis = context.settings.basicBehavior.resetPasswordTokenExpiration * 60L * 1000L
+        val token = generateResetPasswordToken(form.mailAddress, expirationMillis)
         val mailer = new Mailer(context.settings)
         mailer.send(
           form.mailAddress,

@@ -140,6 +140,15 @@
     <span class="strong">Deny</span> <span class="normal">- Doesn't allow users to reset password.</span>
   </label>
 </fieldset>
+<div class="form-group">
+  <label class="control-label col-md-2" for="resetPasswordTokenExpiration">Expiration (min)</label>
+  <div class="col-md-10">
+    <div class="controls">
+      <input type="text" id="resetPasswordTokenExpiration" name="basicBehavior.resetPasswordTokenExpiration" class="form-control" value="@context.settings.basicBehavior.resetPasswordTokenExpiration"/>
+      <p class="muted">How long a password reset link remains valid.</p>
+    </div>
+  </div>
+</div>
 <!--====================================================================-->
 <!-- Repository operations -->
 <!--====================================================================-->
