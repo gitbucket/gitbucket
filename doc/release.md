@@ -36,23 +36,23 @@ Generate release files
 
 ### Deploy assembly jar file
 
-For plug-in development, we have to publish the GitBucket jar file to the Maven central repository before release GitBucket itself.
+For plugin development, we have to publish the GitBucket jar file to the Maven central repository before releasing GitBucket itself.
  
 First, stage artifacts on your machine:
 
 ```bash
-$ sbt publishSigned
+./sbt publishSigned
 ```
 
 Next, upload artifacts to Sonatype's Central Portal with the following command:
 
 ```bash
-$ sbt sonaUpload
+./sbt sonaUpload
 ```
 
-Then logged-in to https://central.sonatype.com/ and publish the deployment.
+Then log in to https://central.sonatype.com/ and publish the deployment.
 
-You need to wait up to a day until default bundled plugins:
+You need to wait up to a day for the default bundled plugins to be updated:
 
 - https://github.com/gitbucket/gitbucket-notifications-plugin
 - https://github.com/gitbucket/gitbucket-gist-plugin
@@ -61,9 +61,9 @@ You need to wait up to a day until default bundled plugins:
 
 ### Make release war file
 
-Run `sbt executable`. The release war file and fingerprint are generated into `target/executable/gitbucket.war`.
+Run `./sbt executable`. The release war file and fingerprint are generated into `target/executable/gitbucket.war`.
 
 ```bash
-$ sbt executable
+./sbt executable
 ```
-Create new release from the corresponded tag on GitHub, then upload generated jar file and fingerprints to the release.
+Create new release from the corresponding tag on GitHub, then upload the generated jar file and fingerprints to the release.

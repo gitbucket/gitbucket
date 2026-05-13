@@ -27,14 +27,14 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
         distribution: adopt
-    - name: Setup sbt launcher
-      uses: sbt/setup-sbt@v1
+    - name: Make sbt wrapper executable
+      run: chmod +x ./sbt
     - name: Run tests
-      run: sbt scalafmtSbtCheck scalafmtCheckAll test
+      run: ./sbt scalafmtSbtCheck scalafmtCheckAll test
     - name: Scala 3
-      run: sbt '++ 3.x' update # TODO
+      run: ./sbt '++ 3.x' update # TODO
     - name: Build executable
-      run: sbt executable
+      run: ./sbt executable
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
       with:
