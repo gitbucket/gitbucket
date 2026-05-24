@@ -77,6 +77,7 @@ scalacOptions := Seq(
   "-language:postfixOps",
   "-opt:l:method",
   "-feature",
+  "-Werror",
   "-Wunused:imports",
   "-Wconf:cat=unused&src=twirl/.*:s,cat=unused&src=scala/gitbucket/core/model/[^/]+\\.scala:s"
 )
