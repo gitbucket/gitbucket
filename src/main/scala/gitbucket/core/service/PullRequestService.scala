@@ -557,17 +557,17 @@ trait PullRequestService {
       repositoryName,
       issueId
     )).groupBy {
-      case x: IssueComment                        => (Some(x.commentId), None, None, None)
-      case x: CommitComment if x.fileName.isEmpty => (Some(x.commentId), None, None, None)
-      case x: CommitComment                       => (None, x.fileName, x.originalOldLine, x.originalNewLine)
+      case x: IssueComment                        => Left(x.commentId)
+      case x: CommitComment if x.fileName.isEmpty => Left(x.commentId)
+      case x: CommitComment                       => Right((x.fileName.get, x.originalOldLine, x.originalNewLine))
       case x                                      => throw new MatchError(x)
     }.toSeq
       .map {
         // Normal comment
-        case ((Some(_), _, _, _), comments) =>
+        case (Left(_), comments) =>
           comments.head
         // Comment on a specific line of a commit
-        case ((None, Some(fileName), oldLine, newLine), comments) =>
+        case (Right((fileName, oldLine, newLine)), comments) =>
           gitbucket.core.model.CommitComments(
             fileName = fileName,
             commentedUserName = comments.head.commentedUserName,
