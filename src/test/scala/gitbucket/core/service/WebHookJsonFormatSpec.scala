@@ -13,6 +13,20 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
     assert(json == expected.replaceAll("\n", ""))
   }
 
+  test("webhook payload includes non-zero repository id") {
+    assert(apiRepository.id != 0)
+    val json = JsonFormat(
+      WebHookIssuesPayload(
+        action = "opened",
+        number = 1,
+        repository = apiRepository,
+        issue = apiIssue,
+        sender = apiUser
+      )
+    )
+    assert(json.contains(s""""id":${apiRepository.id}"""))
+  }
+
   test("WebHookCreatePayload") {
     val payload = WebHookCreatePayload(
       sender = account,

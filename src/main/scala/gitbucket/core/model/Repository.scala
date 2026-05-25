@@ -25,6 +25,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val mergeOptions = column[String]("MERGE_OPTIONS")
     val defaultMergeOption = column[String]("DEFAULT_MERGE_OPTION")
     val safeMode = column[Boolean]("SAFE_MODE")
+    val repositoryId = column[Long]("REPOSITORY_ID", O AutoInc)
 
     def * =
       (
@@ -51,9 +52,10 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
           mergeOptions,
           defaultMergeOption,
           safeMode
-        )
+        ),
+        repositoryId
       ).shaped.<>(
-        { case (repository, options) =>
+        { case (repository, options, repositoryId) =>
           Repository(
             repository._1,
             repository._2,
@@ -67,7 +69,8 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
             repository._10,
             repository._11,
             repository._12,
-            RepositoryOptions.apply.tupled.apply(options)
+            RepositoryOptions.apply.tupled.apply(options),
+            repositoryId
           )
         },
         { (r: Repository) =>
@@ -87,9 +90,8 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
                 r.parentUserName,
                 r.parentRepositoryName
               ),
-              (
-                RepositoryOptions.unapply(r.options).get
-              )
+              RepositoryOptions.unapply(r.options).get,
+              r.repositoryId
             )
           )
         }
@@ -112,7 +114,8 @@ case class Repository(
   originRepositoryName: Option[String],
   parentUserName: Option[String],
   parentRepositoryName: Option[String],
-  options: RepositoryOptions
+  options: RepositoryOptions,
+  repositoryId: Long = 0L
 )
 
 case class RepositoryOptions(
