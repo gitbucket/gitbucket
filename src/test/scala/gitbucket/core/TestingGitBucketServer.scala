@@ -5,11 +5,20 @@ import java.nio.file.Files
 import java.io.File
 
 import gitbucket.core.util.{FileUtil, HttpClientUtil}
-import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.{HttpGet, HttpPost}
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
+import org.apache.http.message.BasicNameValuePair
+import org.apache.http.util.EntityUtils
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.{Handler, Server}
 import org.eclipse.jetty.webapp.WebAppContext
-import org.kohsuke.github.{GitHub, GitHubBuilder}
+import org.kohsuke.github.{GHRepository, GitHub, GitHubBuilder}
+
+import java.util.{Arrays => JArrays}
+import java.util.Base64
+import scala.util.Using
 
 class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   private var server: Server = null
@@ -56,6 +65,86 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
       .build()
 
   def getDirectory(): File = dir
+
+  /** Create a user account via the admin REST API. */
+  def createUser(login: String, password: String, email: String, adminLogin: String, adminPassword: String): Unit = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port/api/v3/admin/users")
+      val credentials = Base64.getEncoder.encodeToString(s"$adminLogin:$adminPassword".getBytes("UTF-8"))
+      post.setHeader("Authorization", s"Basic $credentials")
+      post.setHeader("Content-Type", "application/json")
+      post.setEntity(
+        new StringEntity(
+          s"""{"login":"$login","password":"$password","email":"$email"}""",
+          "UTF-8"
+        )
+      )
+      val response = httpClient.execute(post)
+      EntityUtils.consume(response.getEntity)
+      val status = response.getStatusLine.getStatusCode
+      assert(status == 200, s"createUser failed with status $status")
+    }
+  }
+
+  /** Create an organization via the admin REST API. */
+  def createOrganization(login: String, adminLogin: String, adminPassword: String): Unit = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port/api/v3/admin/organizations")
+      val credentials = Base64.getEncoder.encodeToString(s"$adminLogin:$adminPassword".getBytes("UTF-8"))
+      post.setHeader("Authorization", s"Basic $credentials")
+      post.setHeader("Content-Type", "application/json")
+      post.setEntity(
+        new StringEntity(
+          s"""{"login":"$login","admin":"$adminLogin"}""",
+          "UTF-8"
+        )
+      )
+      val response = httpClient.execute(post)
+      EntityUtils.consume(response.getEntity)
+      val status = response.getStatusLine.getStatusCode
+      assert(status == 200, s"createOrganization failed with status $status")
+    }
+  }
+
+  /** Fork a repository as the given user via the web UI form endpoint. */
+  def forkRepository(owner: String, repository: String, asLogin: String, asPassword: String): Unit = {
+    withWebSession(asLogin, asPassword) { httpClient =>
+      val fork = new HttpPost(s"http://localhost:$port/$owner/$repository/fork")
+      fork.setEntity(new UrlEncodedFormEntity(JArrays.asList(new BasicNameValuePair("account", asLogin))))
+      val forkResponse = httpClient.execute(fork)
+      EntityUtils.consume(forkResponse.getEntity)
+      assert(forkResponse.getStatusLine.getStatusCode == 302, "fork request failed")
+    }
+  }
+
+  /** Wait for a repository to appear via the API. Forking is asynchronous so
+   *  callers cannot rely on the fork POST completing synchronously. */
+  def waitForRepository(client: GitHub, fullName: String, timeoutMillis: Long = 10000): GHRepository = {
+    val deadline = System.currentTimeMillis() + timeoutMillis
+    while (System.currentTimeMillis() < deadline) {
+      try return client.getRepository(fullName)
+      catch { case _: java.io.IOException => Thread.sleep(500) }
+    }
+    throw new AssertionError(s"Repository $fullName did not appear within ${timeoutMillis}ms")
+  }
+
+  private def withWebSession[T](login: String, password: String)(f: CloseableHttpClient => T): T = {
+    Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+      val signin = new HttpPost(s"http://localhost:$port/signin")
+      signin.setEntity(
+        new UrlEncodedFormEntity(
+          JArrays.asList(
+            new BasicNameValuePair("userName", login),
+            new BasicNameValuePair("password", password)
+          )
+        )
+      )
+      val signinResponse = httpClient.execute(signin)
+      EntityUtils.consume(signinResponse.getEntity)
+      assert(signinResponse.getStatusLine.getStatusCode < 400, "signin failed")
+      f(httpClient)
+    }
+  }
 
   private def addStatisticsHandler(handler: Handler) = { // The graceful shutdown is implemented via the statistics handler.
     // See the following: https://bugs.eclipse.org/bugs/show_bug.cgi?id=420142
