@@ -77,8 +77,6 @@ trait RepositoryService {
         t.byRepository(oldUserName, oldRepositoryName)
       } firstOption).foreach { repository =>
         LockUtil.lock(s"${repository.userName}/${repository.repositoryName}") {
-          Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
-
           val webHooks = RepositoryWebHooks.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val webHookEvents = RepositoryWebHookEvents.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val milestones = Milestones.filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -118,6 +116,11 @@ trait RepositoryService {
             .update(newUserName, newRepositoryName)
 
           deleteRepositoryOnModel(oldUserName, oldRepositoryName)
+
+          // forceInsert preserves the auto-increment ID so renames keep a stable id.
+          Repositories
+            .forceInsert(repository.copy(userName = newUserName, repositoryName = newRepositoryName))
+            .run
 
           RepositoryWebHooks.insertAll(
             webHooks.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*

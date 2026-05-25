@@ -283,6 +283,27 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("organization repository ID is non-zero") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      server.createOrganization("testorg", "root", "root")
+      val repo = github.getOrganization("testorg").createRepository("org_repo").autoInit(true).create()
+      assert(repo.getId != 0)
+    }
+  }
+
+  test("repository IDs are non-zero and distinct") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val repo1 = github.createRepository("id_test_1").autoInit(true).create()
+      val repo2 = github.createRepository("id_test_2").autoInit(true).create()
+
+      assert(repo1.getId != 0)
+      assert(repo2.getId != 0)
+      assert(repo1.getId != repo2.getId)
+    }
+  }
+
   test("Git refs APIs") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")
@@ -305,6 +326,22 @@ class ApiIntegrationTest extends AnyFunSuite {
       assert(refs2.get(0).getObject.getSha == sha1)
       assert(refs2.get(1).getRef == "refs/heads/testref")
       assert(refs2.get(1).getObject.getSha == sha1)
+    }
+  }
+
+  test("fork repository has a different ID than its origin") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val base = github.createRepository("fork_origin").autoInit(true).create()
+
+      server.createUser("user2", "user2pass", "user2@example.com", "root", "root")
+      server.forkRepository("root", "fork_origin", "user2", "user2pass")
+
+      val fork = server.waitForRepository(server.client("user2", "user2pass"), "user2/fork_origin")
+
+      assert(base.getId != 0)
+      assert(fork.getId != 0)
+      assert(fork.getId != base.getId)
     }
   }
 }
