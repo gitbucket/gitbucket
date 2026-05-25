@@ -3,6 +3,16 @@
   <!--================================================================================================-->
   <!-- REPOSITORY -->
   <!--================================================================================================-->
+
+  <!-- drop foreign key constraints that transitively reference REPOSITORY via ISSUE or RELEASE_TAG,
+       so they can be re-added with ON UPDATE CASCADE below -->
+  <dropForeignKeyConstraint constraintName="IDX_ISSUE_COMMENT_FK0" baseTableName="ISSUE_COMMENT"/>
+  <dropForeignKeyConstraint constraintName="IDX_ISSUE_LABEL_FK0" baseTableName="ISSUE_LABEL"/>
+  <dropForeignKeyConstraint constraintName="IDX_PULL_REQUEST_FK0" baseTableName="PULL_REQUEST"/>
+  <dropForeignKeyConstraint constraintName="IDX_ISSUE_ASSIGNEE_FK0" baseTableName="ISSUE_ASSIGNEE"/>
+  <dropForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK0" baseTableName="RELEASE_ASSET"/>
+
+  <!-- drop foreign key constraints that directly reference REPOSITORY; they are added back below -->
   <dropForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK0" baseTableName="COLLABORATOR"/>
   <dropForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS"/>
   <dropForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT"/>
@@ -78,31 +88,42 @@
   <addPrimaryKey constraintName="IDX_REPOSITORY_PK" tableName="REPOSITORY" columnNames="USER_NAME, REPOSITORY_NAME"/>
   <addForeignKeyConstraint constraintName="IDX_REPOSITORY_FK0" baseTableName="REPOSITORY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
 
-  <addForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK0" baseTableName="COLLABORATOR" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK0" baseTableName="COLLABORATOR" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
   <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
-  <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_LABEL_FK0" baseTableName="LABEL" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_MILESTONE_FK0" baseTableName="MILESTONE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK0" baseTableName="ISSUE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_ISSUE_ID_FK1" baseTableName="ISSUE_ID" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_LABEL_FK0" baseTableName="LABEL" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_MILESTONE_FK0" baseTableName="MILESTONE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK0" baseTableName="ISSUE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ID_FK1" baseTableName="ISSUE_ID" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
 
   <!-- ACTIVITY table, added in 4.0, was dropped in 4.34 -->
 
   <!-- from 4.11 migration -->
-  <addForeignKeyConstraint constraintName="IDX_DEPLOY_KEY_FK0" baseTableName="DEPLOY_KEY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_DEPLOY_KEY_FK0" baseTableName="DEPLOY_KEY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
 
   <!-- from 4.14 migration -->
-  <addForeignKeyConstraint constraintName="IDX_PRIORITY_FK0" baseTableName="PRIORITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_PRIORITY_FK0" baseTableName="PRIORITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
 
   <!-- from 4.21 migration; table was renamed in 4.23 migration -->
-  <addForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK0" baseTableName="RELEASE_TAG" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK0" baseTableName="RELEASE_TAG" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
 
   <!-- from 4.35 migration and 4.0 migration -->
-  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
 
   <!-- from 4.38 migration -->
-  <addForeignKeyConstraint constraintName="IDX_CUSTOM_FIELD_FK0" baseTableName="CUSTOM_FIELD" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_CUSTOM_FIELD_FK0" baseTableName="CUSTOM_FIELD" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE"/>
 
   <!-- from 4.42 migration and 4.0 migration -->
   <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <!-- from 4.0 migration; ON UPDATE CASCADE added in 4.47 to complete the rename cascade chain -->
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_COMMENT_FK0" baseTableName="ISSUE_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_LABEL_FK0" baseTableName="ISSUE_LABEL" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_PULL_REQUEST_FK0" baseTableName="PULL_REQUEST" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" onUpdate="CASCADE"/>
+
+  <!-- from 4.38 migration; ON UPDATE CASCADE added in 4.47 -->
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ASSIGNEE_FK0" baseTableName="ISSUE_ASSIGNEE" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" onUpdate="CASCADE"/>
+
+  <!-- from 4.23 migration; ON UPDATE CASCADE added in 4.47 -->
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK0" baseTableName="RELEASE_ASSET" baseColumnNames="USER_NAME, REPOSITORY_NAME, TAG" referencedTableName="RELEASE_TAG" referencedColumnNames="USER_NAME, REPOSITORY_NAME, TAG" onUpdate="CASCADE"/>
 </changeSet>
