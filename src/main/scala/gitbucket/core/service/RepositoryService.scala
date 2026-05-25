@@ -347,6 +347,12 @@ trait RepositoryService {
     }
   }
 
+  def getRepositoryById(repositoryId: Long)(implicit s: Session): Option[RepositoryInfo] =
+    Repositories
+      .filter(_.repositoryId === repositoryId.bind)
+      .firstOption
+      .flatMap(r => getRepository(r.userName, r.repositoryName))
+
   /**
    * Returns the repositories except private repository that user does not have access right.
    * Include public repository, private own repository and private but collaborator repository.

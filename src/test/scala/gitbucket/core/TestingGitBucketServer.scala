@@ -21,6 +21,8 @@ import java.util.Base64
 import scala.util.Using
 
 class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
+  case class ApiResponse(status: Int, body: String)
+
   private var server: Server = null
   private var dir: File = null
 
@@ -117,6 +119,49 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     }
   }
 
+  /** Rename a repository via the web settings form. */
+  def renameRepository(owner: String, oldName: String, newName: String, login: String, password: String): Unit = {
+    withWebSession(login, password) { httpClient =>
+      val rename = new HttpPost(s"http://localhost:$port/$owner/$oldName/settings/rename")
+      rename.setEntity(new UrlEncodedFormEntity(JArrays.asList(new BasicNameValuePair("repositoryName", newName))))
+      val renameResponse = httpClient.execute(rename)
+      EntityUtils.consume(renameResponse.getEntity)
+      assert(renameResponse.getStatusLine.getStatusCode == 302, "rename request failed")
+    }
+  }
+
+  /** Delete a repository via the web settings form. */
+  def deleteRepository(owner: String, name: String, login: String, password: String): Unit = {
+    withWebSession(login, password) { httpClient =>
+      val delete = new HttpPost(s"http://localhost:$port/$owner/$name/settings/delete")
+      delete.setEntity(new UrlEncodedFormEntity(JArrays.asList()))
+      val deleteResponse = httpClient.execute(delete)
+      EntityUtils.consume(deleteResponse.getEntity)
+      assert(deleteResponse.getStatusLine.getStatusCode == 302, "delete request failed")
+    }
+  }
+
+  /** Fork a repository via the REST API; returns the HTTP status code and response body. */
+  def forkRepositoryViaApi(
+    owner: String,
+    repository: String,
+    organization: Option[String],
+    login: String,
+    password: String
+  ): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port/api/v3/repos/$owner/$repository/forks")
+      val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
+      post.setHeader("Authorization", s"Basic $credentials")
+      post.setHeader("Content-Type", "application/json")
+      val body = organization.map(org => s"""{"organization":"$org"}""").getOrElse("{}")
+      post.setEntity(new StringEntity(body, "UTF-8"))
+      val response = httpClient.execute(post)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
   /** Wait for a repository to appear via the API. Forking is asynchronous so
    *  callers cannot rely on the fork POST completing synchronously. */
   def waitForRepository(client: GitHub, fullName: String, timeoutMillis: Long = 10000): GHRepository = {
@@ -126,6 +171,37 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
       catch { case _: java.io.IOException => Thread.sleep(500) }
     }
     throw new AssertionError(s"Repository $fullName did not appear within ${timeoutMillis}ms")
+  }
+
+  /** Make an unauthenticated GET request and return the HTTP status code. */
+  def getAnonymousApiStatus(path: String): Int = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val response = httpClient.execute(new HttpGet(s"http://localhost:$port$path"))
+      EntityUtils.consume(response.getEntity)
+      response.getStatusLine.getStatusCode
+    }
+  }
+
+  /** Disable forking on a repository via the web settings options form. */
+  def disableFork(owner: String, name: String, login: String, password: String): Unit = {
+    withWebSession(login, password) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port/$owner/$name/settings/options")
+      post.setEntity(
+        new UrlEncodedFormEntity(
+          JArrays.asList(
+            new BasicNameValuePair("issuesOption", "PUBLIC"),
+            new BasicNameValuePair("wikiOption", "PUBLIC"),
+            new BasicNameValuePair("mergeOptions", "merge-commit"),
+            new BasicNameValuePair("defaultMergeOption", "merge-commit"),
+            new BasicNameValuePair("safeMode", "true"),
+            new BasicNameValuePair("allowFork", "false")
+          )
+        )
+      )
+      val response = httpClient.execute(post)
+      EntityUtils.consume(response.getEntity)
+      assert(response.getStatusLine.getStatusCode == 302, "disableFork settings update failed")
+    }
   }
 
   private def withWebSession[T](login: String, password: String)(f: CloseableHttpClient => T): T = {
