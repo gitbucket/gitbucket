@@ -112,9 +112,6 @@ class RepositoryServiceSpec extends AnyFunSuite with ServiceSpecBase with Reposi
     }
   }
 
-  // forceInsert (used by renameRepository to preserve the id) bypasses H2's auto-increment
-  // counter. If H2 does not advance its sequence past the force-inserted value, the next
-  // ordinary insert could generate an id already in use, violating the unique constraint.
   test("new repository created after rename does not reuse the renamed repository's id") {
     withTestDB { implicit session =>
       generateNewAccount("tester")
