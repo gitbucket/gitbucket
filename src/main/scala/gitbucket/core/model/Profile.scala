@@ -2,6 +2,7 @@ package gitbucket.core.model
 
 import com.github.takezoe.slick.blocking.BlockingJdbcProfile
 import gitbucket.core.util.DatabaseConfig
+import scala.annotation.nowarn
 
 trait Profile {
   val profile: BlockingJdbcProfile
@@ -42,6 +43,9 @@ trait ProfileProvider { self: Profile =>
 
 }
 
+// ActivityComponent is deprecated since 4.34.0 but retained in CoreProfile for
+// binary compatibility with plugins compiled against older GitBucket versions.
+@nowarn("cat=deprecation")
 trait CoreProfile
     extends ProfileProvider
     with Profile

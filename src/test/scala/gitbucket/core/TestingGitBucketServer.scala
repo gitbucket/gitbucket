@@ -9,7 +9,7 @@ import org.apache.http.client.methods.HttpGet
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.{Handler, Server}
 import org.eclipse.jetty.webapp.WebAppContext
-import org.kohsuke.github.GitHub
+import org.kohsuke.github.{GitHub, GitHubBuilder}
 
 class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   private var server: Server = null
@@ -50,7 +50,10 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   }
 
   def client(login: String, password: String): GitHub =
-    GitHub.connectToEnterprise(s"http://localhost:${port}/api/v3", login, password)
+    new GitHubBuilder()
+      .withEndpoint(s"http://localhost:${port}/api/v3")
+      .withPassword(login, password)
+      .build()
 
   def getDirectory(): File = dir
 
