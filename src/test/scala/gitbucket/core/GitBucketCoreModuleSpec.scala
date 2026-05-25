@@ -50,7 +50,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     }
   }
 
-  Seq("11", "10").foreach { tag =>
+  Seq("14", "18").foreach { tag =>
     test(s"Migration PostgreSQL $tag", ExternalDBTest) {
       val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
 
