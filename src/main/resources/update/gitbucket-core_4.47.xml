@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
   <!--================================================================================================-->
-  <!-- REPOSITORY -->
+  <!-- REPOSITORY - PART 1 - ADD REPOSITORY_ID COLUMN; ENABLE ON UPDATE CASCADE FOR REPOSITORY_NAME   -->
   <!--================================================================================================-->
 
   <!-- drop foreign key constraints that transitively reference REPOSITORY via ISSUE or RELEASE_TAG,
@@ -126,4 +126,26 @@
 
   <!-- from 4.23 migration; ON UPDATE CASCADE added in 4.47 -->
   <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK0" baseTableName="RELEASE_ASSET" baseColumnNames="USER_NAME, REPOSITORY_NAME, TAG" referencedTableName="RELEASE_TAG" referencedColumnNames="USER_NAME, REPOSITORY_NAME, TAG" onUpdate="CASCADE"/>
+
+  <!--================================================================================================-->
+  <!-- REPOSITORY - PART 2 - SELF-REFERENTIAL FK ON ORIGIN/PARENT WITH ON UPDATE CASCADE              -->
+  <!--================================================================================================-->
+
+  <!-- MySQL InnoDB requires indexes on FK referencing columns; H2 and PostgreSQL accept FK
+       constraints without them but benefit from the same indexes for cascade performance -->
+  <createIndex tableName="REPOSITORY" indexName="IDX_REPOSITORY_ORIGIN">
+    <column name="ORIGIN_USER_NAME"/>
+    <column name="ORIGIN_REPOSITORY_NAME"/>
+  </createIndex>
+  <createIndex tableName="REPOSITORY" indexName="IDX_REPOSITORY_PARENT">
+    <column name="PARENT_USER_NAME"/>
+    <column name="PARENT_REPOSITORY_NAME"/>
+  </createIndex>
+
+  <!-- Self-referential FK constraints: renaming a repository row cascades the updated
+       (USER_NAME, REPOSITORY_NAME) to any fork that records it as its origin or immediate
+       parent; deleting a repository row NULLs those columns on forks rather than removing
+       the fork rows -->
+  <addForeignKeyConstraint constraintName="IDX_REPOSITORY_FK1" baseTableName="REPOSITORY" baseColumnNames="ORIGIN_USER_NAME, ORIGIN_REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE" onDelete="SET NULL"/>
+  <addForeignKeyConstraint constraintName="IDX_REPOSITORY_FK2" baseTableName="REPOSITORY" baseColumnNames="PARENT_USER_NAME, PARENT_REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onUpdate="CASCADE" onDelete="SET NULL"/>
 </changeSet>

@@ -77,21 +77,6 @@ trait RepositoryService {
         t.byRepository(oldUserName, oldRepositoryName)
       } firstOption).foreach { repository =>
         LockUtil.lock(s"${repository.userName}/${repository.repositoryName}") {
-          // Update fork pointers that record this repo as origin/parent
-          Repositories
-            .filter { t =>
-              (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
-            }
-            .map(t => t.originUserName -> t.originRepositoryName)
-            .update(newUserName, newRepositoryName)
-
-          Repositories
-            .filter { t =>
-              (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
-            }
-            .map(t => t.parentUserName -> t.parentRepositoryName)
-            .update(newUserName, newRepositoryName)
-
           // Update pull request source-repo columns (no foreign key constraint)
           PullRequests
             .filter { t =>
@@ -171,38 +156,6 @@ trait RepositoryService {
     ReleaseAssets.filter(_.byRepository(userName, repositoryName)).delete
     ReleaseTags.filter(_.byRepository(userName, repositoryName)).delete
     Repositories.filter(_.byRepository(userName, repositoryName)).delete
-
-    // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
-    Repositories
-      .filter { x =>
-        (x.originUserName === userName.bind) && (x.originRepositoryName === repositoryName.bind)
-      }
-      .map { x =>
-        (x.userName, x.repositoryName)
-      }
-      .list
-      .foreach { case (userName, repositoryName) =>
-        Repositories
-          .filter(_.byRepository(userName, repositoryName))
-          .map(x => (x.originUserName ?, x.originRepositoryName ?))
-          .update(None, None)
-      }
-
-    // Update PARENT_USER_NAME and PARENT_REPOSITORY_NAME
-    Repositories
-      .filter { x =>
-        (x.parentUserName === userName.bind) && (x.parentRepositoryName === repositoryName.bind)
-      }
-      .map { x =>
-        (x.userName, x.repositoryName)
-      }
-      .list
-      .foreach { case (userName, repositoryName) =>
-        Repositories
-          .filter(_.byRepository(userName, repositoryName))
-          .map(x => (x.parentUserName ?, x.parentRepositoryName ?))
-          .update(None, None)
-      }
   }
 
   /**
