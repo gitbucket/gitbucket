@@ -511,6 +511,7 @@ object ApiSpecModels {
        |"name":"Hello-World",
        |"full_name":"octocat/Hello-World",
        |"description":"This your first repo!",
+       |"fork":true,
        |"watchers":0,
        |"forks":1,
        |"private":false,
