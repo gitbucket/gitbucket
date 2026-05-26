@@ -30,10 +30,10 @@
               <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Select method">
                 <span class="caret"></span>
               </button>
-            <ul class="dropdown-menu dropdown-menu-right">
-              <li><a id="menu-comment">Comment</a></li>
-              <li><a id="menu-x-and-comment">@{if(issue.closed) "Reopen" else "Close"} and comment</a></li>
-            </ul>
+              <ul class="dropdown-menu dropdown-menu-right">
+                <li><a id="menu-comment">Comment</a></li>
+                <li><a id="menu-x-and-comment">@{if(issue.closed) "Reopen" else "Close"} and comment</a></li>
+              </ul>
             </div>
           } else {
             <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment"/>
