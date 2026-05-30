@@ -14,14 +14,14 @@ object Checksums {
 
   def raw(file: File, algorithm: String): Array[Byte] =
     (Using fileInputStream file) { is =>
-      val md = MessageDigest getInstance algorithm
+      val md = MessageDigest.getInstance(algorithm)
       val buf = new Array[Byte](bufferSize)
       md.reset()
       @tailrec
       def loop(): Unit = {
-        val len = is read buf
+        val len = is.read(buf)
         if (len != -1) {
-          md update (buf, 0, len)
+          md.update(buf, 0, len)
           loop()
         }
       }
