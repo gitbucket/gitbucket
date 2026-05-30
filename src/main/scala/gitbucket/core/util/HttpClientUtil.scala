@@ -7,6 +7,7 @@ import org.apache.commons.net.util.SubnetUtils
 import org.apache.http.HttpHost
 import org.apache.http.auth.{AuthScope, UsernamePasswordCredentials}
 import org.apache.http.impl.client.{BasicCredentialsProvider, CloseableHttpClient, HttpClientBuilder}
+import scala.util.Using
 
 object HttpClientUtil {
 
@@ -26,13 +27,7 @@ object HttpClientUtil {
       }
     }
 
-    val httpClient = builder.build()
-
-    try {
-      f(httpClient)
-    } finally {
-      httpClient.close()
-    }
+    Using.resource(builder.build())(f)
   }
 
   def isPrivateAddress(address: String): Boolean = {
