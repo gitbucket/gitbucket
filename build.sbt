@@ -49,7 +49,7 @@ libraryDependencies ++= Seq(
   "org.mariadb.jdbc"                % "mariadb-java-client"       % "2.7.13",
   "org.postgresql"                  % "postgresql"                % "42.7.11",
   "ch.qos.logback"                  % "logback-classic"           % "1.5.33",
-  "com.zaxxer"                      % "HikariCP"                  % "7.0.2" exclude ("org.slf4j", "slf4j-api"),
+  ("com.zaxxer"                     % "HikariCP"                  % "7.0.2").exclude("org.slf4j", "slf4j-api"),
   "com.typesafe"                    % "config"                    % "1.4.8",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"               % "1.1.0",
   "io.github.java-diff-utils"       % "java-diff-utils"           % "4.17",
@@ -105,7 +105,7 @@ packageOptions += Package.MainClass("JettyLauncher")
 assembly / test := {}
 assembly / assemblyMergeStrategy := {
   case PathList("META-INF", xs @ _*) =>
-    (xs map { _.toLowerCase }) match {
+    xs.map(_.toLowerCase) match {
       case ("manifest.mf" :: Nil) => MergeStrategy.discard
       case _                      => MergeStrategy.discard
     }
@@ -148,59 +148,59 @@ executableKey := {
   val warName = Keys.name.value + ".war"
 
   val log = streams.value.log
-  log info s"building executable webapp in ${workDir}"
+  log.info(s"building executable webapp in ${workDir}")
 
   // initialize temp directory
   val temp = workDir / "webapp"
-  IO delete temp
+  IO.delete(temp)
 
   // include jetty classes
-  val jettyJars = Keys.update.value select configurationFilter(name = ExecutableConfig.name)
-  jettyJars foreach { jar =>
-    IO unzip (
+  val jettyJars = Keys.update.value.select(configurationFilter(name = ExecutableConfig.name))
+  jettyJars.foreach { jar =>
+    IO.unzip(
       jar,
       temp,
-      (name: String) => (name startsWith "javax/") || (name startsWith "org/") || (name startsWith "META-INF/services/")
+      (name: String) => name.startsWith("javax/") || name.startsWith("org/") || name.startsWith("META-INF/services/")
     )
   }
 
   // include original war file
   val warFile = (Keys.`package`).value
-  IO unzip (warFile, temp)
+  IO.unzip(warFile, temp)
 
   // include launcher classes
   val classDir = (Compile / Keys.classDirectory).value
   val launchClasses = Seq("JettyLauncher.class" /*, "HttpsSupportConnector.class" */ )
-  launchClasses foreach { name =>
-    IO copyFile (classDir / name, temp / name)
+  launchClasses.foreach { name =>
+    IO.copyFile(classDir / name, temp / name)
   }
 
   // include plugins
   val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
-  IO createDirectory (pluginsDir)
+  IO.createDirectory(pluginsDir)
 
-  val plugins = IO readLines (Keys.baseDirectory.value / "src" / "main" / "resources" / "bundle-plugins.txt")
+  val plugins = IO.readLines(Keys.baseDirectory.value / "src" / "main" / "resources" / "bundle-plugins.txt")
   plugins.foreach { plugin =>
     plugin.trim.split(":") match {
       case Array(pluginId, pluginVersion) =>
         val url = "https://github.com/" +
           s"gitbucket/gitbucket-${pluginId}-plugin/releases/download/${pluginVersion}/gitbucket-${pluginId}-plugin-${pluginVersion}.jar"
-        log info s"Download: ${url}"
-        IO transfer (new java.net.URI(url).toURL.openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
+        log.info(s"Download: ${url}")
+        IO.transfer(new java.net.URI(url).toURL.openStream, pluginsDir / url.substring(url.lastIndexOf("/") + 1))
       case _ => ()
     }
   }
 
   // zip it up
-  IO delete (temp / "META-INF" / "MANIFEST.MF")
-  val contentMappings = (temp.allPaths --- PathFinder(temp)).get() pair { file =>
+  IO.delete(temp / "META-INF" / "MANIFEST.MF")
+  val contentMappings = (temp.allPaths --- PathFinder(temp)).get().pair { file =>
     IO.relativizeFile(temp, file)
   }
   val manifest = new JarManifest
-  manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
-  manifest.getMainAttributes put (AttrName.MAIN_CLASS, "JettyLauncher")
+  manifest.getMainAttributes.put(AttrName.MANIFEST_VERSION, "1.0")
+  manifest.getMainAttributes.put(AttrName.MAIN_CLASS, "JettyLauncher")
   val outputFile = workDir / warName
-  IO jar (contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest, None)
+  IO.jar(contentMappings.map { case (file, path) => (file, path.toString) }, outputFile, manifest, None)
 
   // generate checksums
   Seq(
@@ -209,16 +209,16 @@ executableKey := {
     "sha256" -> "SHA-256"
   ).foreach { case (extension, algorithm) =>
     val checksumFile = workDir / (warName + "." + extension)
-    Checksums generate (outputFile, checksumFile, algorithm)
+    Checksums.generate(outputFile, checksumFile, algorithm)
   }
 
   // done
-  log info s"built executable webapp ${outputFile}"
+  log.info(s"built executable webapp ${outputFile}")
   outputFile
 }
 publishTo := {
   val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
-  if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+  if (isSnapshot.value) Some("central-snapshots".at(centralSnapshots))
   else localStaging.value
 }
 publishMavenStyle := true

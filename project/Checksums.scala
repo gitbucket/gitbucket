@@ -7,13 +7,13 @@ object Checksums {
   private val bufferSize = 2048
 
   def generate(source: File, target: File, algorithm: String): Unit =
-    sbt.IO write (target, compute(source, algorithm))
+    sbt.IO.write(target, compute(source, algorithm))
 
   def compute(file: File, algorithm: String): String =
     hex(raw(file, algorithm))
 
   def raw(file: File, algorithm: String): Array[Byte] =
-    (Using fileInputStream file) { is =>
+    Using.fileInputStream(file) { is =>
       val md = MessageDigest.getInstance(algorithm)
       val buf = new Array[Byte](bufferSize)
       md.reset()
@@ -30,7 +30,9 @@ object Checksums {
     }
 
   def hex(bytes: Array[Byte]): String =
-    bytes map { it =>
-      "%02x" format (it.toInt & 0xff)
-    } mkString ""
+    bytes
+      .map { it =>
+        "%02x".format(it.toInt & 0xff)
+      }
+      .mkString("")
 }
