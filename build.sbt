@@ -81,6 +81,7 @@ scalacOptions := Seq(
   "-Wunused:imports",
   "-Wconf:cat=unused&src=twirl/.*:s,cat=unused&src=scala/gitbucket/core/model/[^/]+\\.scala:s"
 )
+Compile / doc / scalacOptions -= "-Werror"
 scalacOptions ++= {
   scalaBinaryVersion.value match {
     case "2.13" =>
