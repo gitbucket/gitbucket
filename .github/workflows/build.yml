@@ -30,7 +30,7 @@ jobs:
     - name: Make sbt wrapper executable
       run: chmod +x ./sbt
     - name: Run tests
-      run: ./sbt scalafmtSbtCheck scalafmtCheckAll test
+      run: ./sbt scalafmtSbtCheck scalafmtCheckAll test doc
     - name: Scala 3
       run: ./sbt '++ 3.x' update # TODO
     - name: Build executable
