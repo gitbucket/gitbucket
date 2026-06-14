@@ -1330,7 +1330,7 @@ object JGitUtil {
   }
 
   /**
-   * Fetch pull request contents into refs/pull/${issueId}/head and return (commitIdTo, commitIdFrom)
+   * Fetch pull request contents into refs/pull/\${issueId}/head and return (commitIdTo, commitIdFrom)
    */
   // TODO should take Git instead of owner and username for testability
   def updatePullRequest(

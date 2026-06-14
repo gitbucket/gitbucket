@@ -242,7 +242,7 @@ trait PullRequestService {
       .firstOption
 
   /**
-   * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
+   * Fetch pull request contents into refs/pull/\${issueId}/head and update pull request table.
    */
   def updatePullRequests(
     owner: String,

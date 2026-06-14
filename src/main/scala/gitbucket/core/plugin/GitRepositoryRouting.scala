@@ -7,7 +7,7 @@ import gitbucket.core.service.SystemSettingsService.SystemSettings
  * Define the Git repository routing.
  *
  * @param urlPattern the regular expression which matches the repository path (e.g. "gist/(.+?)/(.+?)\\.git")
- * @param localPath the string to assemble local file path of repository (e.g. "gist/$1/$2")
+ * @param localPath the string to assemble local file path of repository (e.g. "gist/\$1/\$2")
  * @param filter the filter for request to the Git repository which is defined by this routing
  */
 case class GitRepositoryRouting(urlPattern: String, localPath: String, filter: GitRepositoryFilter) {
