@@ -1,6 +1,4 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.service.OpenIDConnectService
-@import gitbucket.core.util.DatabaseConfig
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -12,13 +10,13 @@
       </ul>
       <div class="tab-content fill-width" style="padding-top: 20px;">
         <div class="tab-pane" id="tab-system">
-          @settings_system(info)
+          @gitbucket.core.admin.html.settings_system(info)
         </div>
         <div class="tab-pane" id="tab-integrations">
-          @settings_integrations(info)
+          @gitbucket.core.admin.html.settings_integrations(info)
         </div>
         <div class="tab-pane" id="tab-authentication">
-          @settings_authentication(info)
+          @gitbucket.core.admin.html.settings_authentication(info)
         </div>
       </div>
       <hr>
