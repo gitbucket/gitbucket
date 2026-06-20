@@ -46,6 +46,7 @@ trait ServiceSpecBase {
         resetPasswordTokenExpiration = 10,
         allowAnonymousAccess = true,
         isCreateRepoOptionPublic = true,
+        allowCreateRepositoryByClone = true,
         repositoryOperation = RepositoryOperation(
           create = true,
           delete = true,
