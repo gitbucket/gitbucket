@@ -23,6 +23,7 @@ trait SystemSettingsService {
     props.setProperty(ResetPasswordTokenExpiration, settings.basicBehavior.resetPasswordTokenExpiration.toString)
     props.setProperty(AllowAnonymousAccess, settings.basicBehavior.allowAnonymousAccess.toString)
     props.setProperty(IsCreateRepoOptionPublic, settings.basicBehavior.isCreateRepoOptionPublic.toString)
+    props.setProperty(AllowCreateRepositoryByClone, settings.basicBehavior.allowCreateRepositoryByClone.toString)
     props.setProperty(RepositoryOperationCreate, settings.basicBehavior.repositoryOperation.create.toString)
     props.setProperty(RepositoryOperationDelete, settings.basicBehavior.repositoryOperation.delete.toString)
     props.setProperty(RepositoryOperationRename, settings.basicBehavior.repositoryOperation.rename.toString)
@@ -122,6 +123,7 @@ trait SystemSettingsService {
         getValue(props, ResetPasswordTokenExpiration, 10),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
+        getValue(props, AllowCreateRepositoryByClone, true),
         RepositoryOperation(
           create = getValue(props, RepositoryOperationCreate, true),
           delete = getValue(props, RepositoryOperationDelete, true),
@@ -282,6 +284,7 @@ object SystemSettingsService {
     resetPasswordTokenExpiration: Int,
     allowAnonymousAccess: Boolean,
     isCreateRepoOptionPublic: Boolean,
+    allowCreateRepositoryByClone: Boolean,
     repositoryOperation: RepositoryOperation,
     gravatar: Boolean,
     notification: Boolean,
@@ -412,6 +415,7 @@ object SystemSettingsService {
   private val ResetPasswordTokenExpiration = "reset_password_token_expiration"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
+  private val AllowCreateRepositoryByClone = "allow_create_repository_by_clone"
   private val RepositoryOperationCreate = "repository_operation_create"
   private val RepositoryOperationDelete = "repository_operation_delete"
   private val RepositoryOperationRename = "repository_operation_rename"

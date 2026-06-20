@@ -44,14 +44,14 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
       <fieldset class="border-top">
         <label class="radio">
           <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
-          <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span>
+          <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;Public</span>
           <div class="normal muted">
             Anyone can see this repository. You choose who can commit.
           </div>
         </label>
         <label class="radio">
           <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
-          <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span>
+          <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;Private</span>
           <div class="normal muted">
             You choose who can see and commit to this repository.
           </div>
@@ -79,14 +79,16 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
             Create a repository and commit README.md. You can clone the repository immediately.
           </div>
         </label>
-        <label class="radio">
-          <input type="radio" name="initOption" value="COPY"/>
-          <span class="strong">Copy existing git repository</span>
-          <div class="normal muted">
-            Create a new repository by cloning an existing git repository.
-          </div>
-        </label>
-        <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..." aria-label="Source URL"/>
+        @if(context.settings.basicBehavior.allowCreateRepositoryByClone){
+          <label class="radio">
+            <input type="radio" name="initOption" value="COPY"/>
+            <span class="strong">Copy existing git repository</span>
+            <div class="normal muted">
+              Create a new repository by cloning an existing git repository.
+            </div>
+          </label>
+          <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..." aria-label="Source URL"/>
+        }
         <span id="error-sourceUrl" class="error"></span>
       </fieldset>
       <fieldset class="border-top form-actions">

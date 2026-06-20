@@ -776,6 +776,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           } else if (!canCreateRepository(form.owner, loginAccount)) {
             // Permission error
             Forbidden()
+          } else if (form.initOption == "COPY" && !context.settings.basicBehavior.allowCreateRepositoryByClone) {
+            // Creating by cloning is disabled by system settings
+            BadRequest("Creating repositories by cloning is disabled.")
           } else {
             // create repository asynchronously
             createRepository(

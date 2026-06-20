@@ -40,6 +40,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "resetPasswordTokenExpiration" -> trim(label("Reset password token expiration", number())),
       "allowAnonymousAccess" -> trim(label("Anonymous access", boolean())),
       "isCreateRepoOptionPublic" -> trim(label("Default visibility of new repository", boolean())),
+      "allowCreateRepositoryByClone" -> trim(label("Allow creating repositories by cloning", boolean())),
       "repositoryOperation" -> mapping(
         "create" -> trim(label("Allow all users to create repository", boolean())),
         "delete" -> trim(label("Allow all users to delete repository", boolean())),
