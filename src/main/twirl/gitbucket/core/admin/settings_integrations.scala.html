@@ -137,22 +137,24 @@
   </label>
 </fieldset>
 <!--====================================================================-->
-<!-- Web hook -->
+<!-- Outbound requests -->
 <!--====================================================================-->
 <hr>
-<label class="strong">Web hook</label>
+<label class="strong">Outbound requests</label>
 <fieldset>
   <label class="checkbox" for="blockPrivateAddress">
     <input type="checkbox" id="blockPrivateAddress" name="webhook.blockPrivateAddress"@if(context.settings.webHook.blockPrivateAddress){ checked}/>
     Block sending to private addresses
+    <span class="muted normal">(applied to to web hooks and creating new repository by cloning an existing repository)</span>
   </label>
 </fieldset>
-<div class="webhook">
+<div class="outbound_requests" style="margin-top: 8px;">
   <label><span class="strong">IP whitelist</span></label>
   <fieldset>
     <textarea name="webhook.whitelist" class="form-control" style="height: 100px;">@context.settings.webHook.whitelist.mkString("\n")</textarea>
   </fieldset>
 </div>
+
 <script>
 $(function(){
   $('#sendTestMail').click(function(){
@@ -208,7 +210,7 @@ $(function(){
   }).change();
 
   $('#blockPrivateAddress').change(function(){
-    $('.webhook textarea').prop('disabled', !$(this).prop('checked'));
+    $('.outbound_requests textarea').prop('disabled', !$(this).prop('checked'));
   }).change();
 });
 </script>

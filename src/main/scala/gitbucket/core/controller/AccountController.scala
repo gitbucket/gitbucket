@@ -779,6 +779,37 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           } else if (form.initOption == "COPY" && !context.settings.basicBehavior.allowCreateRepositoryByClone) {
             // Creating by cloning is disabled by system settings
             BadRequest("Creating repositories by cloning is disabled.")
+          } else if (form.initOption == "COPY") {
+            // Additional security: block cloning to private/internal addresses unless whitelisted
+            form.sourceUrl match {
+              case Some(src) =>
+                try {
+                  val host = new java.net.URI(src).toURL.getHost
+                  val isPrivate = HttpClientUtil.isPrivateAddress(host)
+                  val whitelisted =
+                    context.settings.webHook.whitelist.exists(range => HttpClientUtil.inIpRange(range, host))
+                  if (context.settings.webHook.blockPrivateAddress && isPrivate && !whitelisted) {
+                    BadRequest("Creating repositories by cloning from this address is blocked by system settings.")
+                  } else {
+                    // OK - proceed to create
+                    createRepository(
+                      loginAccount,
+                      form.owner,
+                      form.name,
+                      form.description,
+                      form.isPrivate,
+                      form.initOption,
+                      form.sourceUrl,
+                      context.settings.defaultBranch
+                    )
+                    // redirect to the repository
+                    redirect(s"/${form.owner}/${form.name}")
+                  }
+                } catch {
+                  case _: Exception => BadRequest("Invalid source URL for cloning.")
+                }
+              case None => BadRequest("Source URL is required for cloning.")
+            }
           } else {
             // create repository asynchronously
             createRepository(
