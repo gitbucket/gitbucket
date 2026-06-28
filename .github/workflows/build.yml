@@ -26,7 +26,7 @@ jobs:
       uses: actions/setup-java@v5
       with:
         java-version: ${{ matrix.java }}
-        distribution: adopt
+        distribution: temurin
     - name: Make sbt wrapper executable
       run: chmod +x ./sbt
     - name: Run tests
