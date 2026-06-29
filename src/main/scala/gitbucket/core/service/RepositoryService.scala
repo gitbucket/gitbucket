@@ -596,13 +596,21 @@ trait RepositoryService {
         .length
     ).first
 
-  def getForkedRepositories(userName: String, repositoryName: String)(implicit s: Session): List[Repository] =
-    Repositories
-      .filter { t =>
-        (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
-      }
-      .sortBy(_.userName asc)
-      .list // .map(t => t.userName -> t.repositoryName).list
+  def getForkedRepositories(
+    userName: String,
+    repositoryName: String,
+    order: ForkedRepositoryOrder = ForkedRepositoryOrder.ByOwner
+  )(implicit s: Session): List[Repository] = {
+    val query = Repositories.filter { t =>
+      (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
+    }
+
+    order match {
+      case ForkedRepositoryOrder.ByOwner => query.sortBy(_.userName asc).list
+      case ForkedRepositoryOrder.Oldest  => query.sortBy(_.registeredDate asc).list
+      case ForkedRepositoryOrder.Newest  => query.sortBy(_.registeredDate desc).list
+    }
+  }
 
   private val templateExtensions = Seq("md", "markdown")
 
@@ -643,6 +651,13 @@ trait RepositoryService {
 }
 
 object RepositoryService {
+  sealed trait ForkedRepositoryOrder
+  object ForkedRepositoryOrder {
+    case object ByOwner extends ForkedRepositoryOrder
+    case object Oldest extends ForkedRepositoryOrder
+    case object Newest extends ForkedRepositoryOrder
+  }
+
   case class RepositoryInfo(
     owner: String,
     name: String,

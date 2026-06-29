@@ -394,6 +394,61 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("GET /repos/:owner/:repo/forks lists repository forks") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("list_forks_test").autoInit(true).create()
+      server.createOrganization("forkorg", "root", "root")
+      server.createUser("user13", "user13pass", "user13@example.com", "root", "root")
+
+      val orgForkResponse = server.forkRepositoryViaApi("root", "list_forks_test", Some("forkorg"), "root", "root")
+      assert(orgForkResponse.status == 202, s"Expected 202 for org fork but got ${orgForkResponse.status}")
+      Thread.sleep(5)
+
+      val userForkResponse = server.forkRepositoryViaApi("root", "list_forks_test", None, "user13", "user13pass")
+      assert(userForkResponse.status == 202, s"Expected 202 for user fork but got ${userForkResponse.status}")
+
+      val newestResponse = server.getApi("/api/v3/repos/root/list_forks_test/forks?sort=newest", "root", "root")
+      assert(newestResponse.status == 200, s"Expected 200 for newest fork listing but got ${newestResponse.status}")
+
+      val newestForks = parse(newestResponse.body).extract[List[Map[String, Any]]]
+      assert(newestForks.size == 2)
+      assert(newestForks.forall(_("fork") == true))
+      assert(
+        newestForks.map(_("full_name").toString) == List("user13/list_forks_test", "forkorg/list_forks_test")
+      )
+
+      val oldestResponse = server.getApi("/api/v3/repos/root/list_forks_test/forks?sort=oldest", "root", "root")
+      assert(oldestResponse.status == 200, s"Expected 200 for oldest fork listing but got ${oldestResponse.status}")
+
+      val oldestForks = parse(oldestResponse.body).extract[List[Map[String, Any]]]
+      assert(oldestForks.size == 2)
+      assert(oldestForks.forall(_("fork") == true))
+      assert(
+        oldestForks.map(_("full_name").toString) == List("forkorg/list_forks_test", "user13/list_forks_test")
+      )
+    }
+  }
+
+  test("GET /repos/:owner/:repo/forks rejects unsupported GitHub sort values") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("list_forks_unsupported_sort_test").autoInit(true).create()
+
+      List("stargazers", "watchers").foreach { sort =>
+        val response =
+          server.getApi(s"/api/v3/repos/root/list_forks_unsupported_sort_test/forks?sort=$sort", "root", "root")
+        assert(response.status == 501, s"Expected 501 for unsupported sort '$sort' but got ${response.status}")
+        assert(
+          parse(response.body).extract[ApiError] == ApiError(
+            s"Sort value '$sort' is not supported by GitBucket.",
+            Some("https://docs.github.com/en/rest/repos/forks#list-forks")
+          )
+        )
+      }
+    }
+  }
+
   test("POST /repos/:owner/:repo/forks when target user has an unrelated repo with the same name returns 422") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")
