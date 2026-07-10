@@ -86,30 +86,34 @@ trait ApiUserControllerBase extends ControllerBase {
    * ghe: vii. Suspend a user
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#suspend-a-user
    */
-  put("/api/v3/users/:userName/suspended")(adminOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName) match {
-      case Some(targetAccount) =>
-        removeUserRelatedData(userName)
-        updateAccount(targetAccount.copy(isRemoved = true))
-        NoContent()
-      case None =>
-        NotFound()
+  put("/api/v3/users/:userName/suspended")(
+    adminOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName) match {
+        case Some(targetAccount) =>
+          removeUserRelatedData(userName)
+          updateAccount(targetAccount.copy(isRemoved = true))
+          NoContent()
+        case None =>
+          NotFound()
+      }
     }
-  })
+  )
 
   /*
    * ghe: vii. Unsuspend a user
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#unsuspend-a-user
    */
-  delete("/api/v3/users/:userName/suspended")(adminOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName, true) match {
-      case Some(targetAccount) =>
-        updateAccount(targetAccount.copy(isRemoved = false))
-        NoContent()
-      case None =>
-        NotFound()
+  delete("/api/v3/users/:userName/suspended")(
+    adminOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName, true) match {
+        case Some(targetAccount) =>
+          updateAccount(targetAccount.copy(isRemoved = false))
+          NoContent()
+        case None =>
+          NotFound()
+      }
     }
-  })
+  )
 }
