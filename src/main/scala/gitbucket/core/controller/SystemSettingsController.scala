@@ -366,23 +366,27 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     html.plugins(PluginRegistry().getPlugins(), flash.get("info"))
   })
 
-  post("/admin/plugins/_reload")(adminOnly {
-    PluginRegistry.reload(request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-    flash.update("info", "All plugins were reloaded.")
-    redirect("/admin/plugins")
-  })
-
-  post("/admin/plugins/:pluginId/_uninstall")(adminOnly {
-    val pluginId = params("pluginId")
-
-    if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
-      PluginRegistry
-        .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-      flash.update("info", s"${pluginId} was uninstalled.")
+  post("/admin/plugins/_reload")(
+    adminOnly {
+      PluginRegistry.reload(request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+      flash.update("info", "All plugins were reloaded.")
+      redirect("/admin/plugins")
     }
+  )
 
-    redirect("/admin/plugins")
-  })
+  post("/admin/plugins/:pluginId/_uninstall")(
+    adminOnly {
+      val pluginId = params("pluginId")
+
+      if (PluginRegistry().getPlugins().exists(_.pluginId == pluginId)) {
+        PluginRegistry
+          .uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+        flash.update("info", s"${pluginId} was uninstalled.")
+      }
+
+      redirect("/admin/plugins")
+    }
+  )
 
   get("/admin/users")(adminOnly {
     val includeRemoved = params.get("includeRemoved").exists(_.toBoolean)
@@ -415,11 +419,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/users")
   })
 
-  get("/admin/users/:userName/_edituser")(adminOnly {
-    val userName = params("userName")
-    val extraMails = getAccountExtraMailAddresses(userName)
-    html.user(getAccountByUserName(userName, includeRemoved = true), extraMails, flash.get("error"))
-  })
+  get("/admin/users/:userName/_edituser")(
+    adminOnly {
+      val userName = params("userName")
+      val extraMails = getAccountExtraMailAddresses(userName)
+      html.user(getAccountByUserName(userName, includeRemoved = true), extraMails, flash.get("error"))
+    }
+  )
 
   post("/admin/users/:name/_edituser", editUserForm)(adminOnly { form =>
     val userName = params("userName")
@@ -484,10 +490,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/users")
   })
 
-  get("/admin/users/:groupName/_editgroup")(adminOnly {
-    val groupName = params("groupName")
-    html.usergroup(getAccountByUserName(groupName, includeRemoved = true), getGroupMembers(groupName))
-  })
+  get("/admin/users/:groupName/_editgroup")(
+    adminOnly {
+      val groupName = params("groupName")
+      html.usergroup(getAccountByUserName(groupName, includeRemoved = true), getGroupMembers(groupName))
+    }
+  )
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
     val groupName = params("groupName")

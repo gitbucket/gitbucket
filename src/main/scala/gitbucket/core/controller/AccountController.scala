@@ -314,13 +314,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
   }
 
-  get("/:userName/_edit")(oneselfOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
-      val extraMails = getAccountExtraMailAddresses(userName)
-      html.edit(x, extraMails, flash.get("info"), flash.get("error"))
-    } getOrElse NotFound()
-  })
+  get("/:userName/_edit")(
+    oneselfOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { x =>
+        val extraMails = getAccountExtraMailAddresses(userName)
+        html.edit(x, extraMails, flash.get("info"), flash.get("error"))
+      } getOrElse NotFound()
+    }
+  )
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
     val userName = params("userName")
@@ -365,12 +367,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:userName/_ssh")(oneselfOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
-      html.ssh(x, getPublicKeys(x.userName))
-    } getOrElse NotFound()
-  })
+  get("/:userName/_ssh")(
+    oneselfOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { x =>
+        html.ssh(x, getPublicKeys(x.userName))
+      } getOrElse NotFound()
+    }
+  )
 
   post("/:userName/_ssh", sshKeyForm)(oneselfOnly { form =>
     val userName = params("userName")
@@ -378,20 +382,24 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_ssh")
   })
 
-  get("/:userName/_ssh/delete/:id")(oneselfOnly {
-    val userName = params("userName")
-    val sshKeyId = params("id").toInt
-    deletePublicKey(userName, sshKeyId)
-    redirect(s"/$userName/_ssh")
-  })
+  get("/:userName/_ssh/delete/:id")(
+    oneselfOnly {
+      val userName = params("userName")
+      val sshKeyId = params("id").toInt
+      deletePublicKey(userName, sshKeyId)
+      redirect(s"/$userName/_ssh")
+    }
+  )
 
-  get("/:userName/_gpg")(oneselfOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
-      // html.ssh(x, getPublicKeys(x.userName))
-      html.gpg(x, getGpgPublicKeys(x.userName))
-    } getOrElse NotFound()
-  })
+  get("/:userName/_gpg")(
+    oneselfOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { x =>
+        // html.ssh(x, getPublicKeys(x.userName))
+        html.gpg(x, getGpgPublicKeys(x.userName))
+      } getOrElse NotFound()
+    }
+  )
 
   post("/:userName/_gpg", gpgKeyForm)(oneselfOnly { form =>
     val userName = params("userName")
@@ -399,12 +407,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_gpg")
   })
 
-  get("/:userName/_gpg/delete/:id")(oneselfOnly {
-    val userName = params("userName")
-    val keyId = params("id").toInt
-    deleteGpgPublicKey(userName, keyId)
-    redirect(s"/$userName/_gpg")
-  })
+  get("/:userName/_gpg/delete/:id")(
+    oneselfOnly {
+      val userName = params("userName")
+      val keyId = params("id").toInt
+      deleteGpgPublicKey(userName, keyId)
+      redirect(s"/$userName/_gpg")
+    }
+  )
 
   get("/:userName/_application")(oneselfOnly {
     val userName = params("userName")
@@ -432,26 +442,30 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_application")
   })
 
-  get("/:userName/_personalToken/delete/:id")(oneselfOnly {
-    val userName = params("userName")
-    val tokenId = params("id").toInt
-    deleteAccessToken(userName, tokenId)
-    redirect(s"/$userName/_application")
-  })
+  get("/:userName/_personalToken/delete/:id")(
+    oneselfOnly {
+      val userName = params("userName")
+      val tokenId = params("id").toInt
+      deleteAccessToken(userName, tokenId)
+      redirect(s"/$userName/_application")
+    }
+  )
 
   /**
    * Display the user preference settings page
    */
-  get("/:userName/_preferences")(oneselfOnly {
-    val userName = params("userName")
-    val currentTheme = getAccountPreference(userName) match {
-      case Some(accountHighlighter) => accountHighlighter.highlighterTheme
-      case _                        => "github-v2"
+  get("/:userName/_preferences")(
+    oneselfOnly {
+      val userName = params("userName")
+      val currentTheme = getAccountPreference(userName) match {
+        case Some(accountHighlighter) => accountHighlighter.highlighterTheme
+        case _                        => "github-v2"
+      }
+      getAccountByUserName(userName).map { x =>
+        html.preferences(x, currentTheme)
+      } getOrElse NotFound()
     }
-    getAccountByUserName(userName).map { x =>
-      html.preferences(x, currentTheme)
-    } getOrElse NotFound()
-  })
+  )
 
   /**
    * Update the syntax highlighter setting of user
@@ -462,23 +476,27 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_preferences")
   })
 
-  get("/:userName/_hooks")(managersOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName).map { account =>
-      gitbucket.core.account.html.hooks(account, getAccountWebHooks(account.userName), flash.get("info"))
-    } getOrElse NotFound()
-  })
+  get("/:userName/_hooks")(
+    managersOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { account =>
+        gitbucket.core.account.html.hooks(account, getAccountWebHooks(account.userName), flash.get("info"))
+      } getOrElse NotFound()
+    }
+  )
 
   /**
    * Display the account web hook edit page.
    */
-  get("/:userName/_hooks/new")(managersOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName).map { account =>
-      val webhook = AccountWebHook(userName, "", WebHookContentType.FORM, None)
-      html.edithook(webhook, Set(WebHook.Push), account, create = true)
-    } getOrElse NotFound()
-  })
+  get("/:userName/_hooks/new")(
+    managersOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { account =>
+        val webhook = AccountWebHook(userName, "", WebHookContentType.FORM, None)
+        html.edithook(webhook, Set(WebHook.Push), account, create = true)
+      } getOrElse NotFound()
+    }
+  )
 
   /**
    * Add the account web hook URL.
@@ -493,24 +511,28 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Delete the account web hook URL.
    */
-  get("/:userName/_hooks/delete")(managersOnly {
-    val userName = params("userName")
-    deleteAccountWebHook(userName, params("url"))
-    flash.update("info", s"Webhook ${params("url")} deleted")
-    redirect(s"/$userName/_hooks")
-  })
+  get("/:userName/_hooks/delete")(
+    managersOnly {
+      val userName = params("userName")
+      deleteAccountWebHook(userName, params("url"))
+      flash.update("info", s"Webhook ${params("url")} deleted")
+      redirect(s"/$userName/_hooks")
+    }
+  )
 
   /**
    * Display the account web hook edit page.
    */
-  get("/:userName/_hooks/edit")(managersOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName).flatMap { account =>
-      getAccountWebHook(userName, params("url")).map { case (webhook, events) =>
-        html.edithook(webhook, events, account, create = false)
-      }
-    } getOrElse NotFound()
-  })
+  get("/:userName/_hooks/edit")(
+    managersOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).flatMap { account =>
+        getAccountWebHook(userName, params("url")).map { case (webhook, events) =>
+          html.edithook(webhook, events, account, create = false)
+        }
+      } getOrElse NotFound()
+    }
+  )
 
   /**
    * Update account web hook settings.
@@ -697,12 +719,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/${form.groupName}")
   })
 
-  get("/:groupName/_editgroup")(managersOnly {
-    val groupName = params("groupName")
-    getAccountByUserName(groupName, includeRemoved = true).map { account =>
-      html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
-    } getOrElse NotFound()
-  })
+  get("/:groupName/_editgroup")(
+    managersOnly {
+      val groupName = params("groupName")
+      getAccountByUserName(groupName, includeRemoved = true).map { account =>
+        html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
+      } getOrElse NotFound()
+    }
+  )
 
   get("/:groupName/_deletegroup")(managersOnly {
     val groupName = params("groupName")
