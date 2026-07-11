@@ -1,7 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
   <!--================================================================================================-->
-  <!-- REPOSITORY - PART 1 - ADD REPOSITORY_ID COLUMN; ENABLE ON UPDATE CASCADE FOR REPOSITORY_NAME   -->
+  <!-- REPOSITORY - PART 1b - REPAIR ORPHANED ACCOUNT/REPOSITORY REFERENCES BEFORE ADDING CONSTRAINTS -->
+  <!--================================================================================================-->
+
+  <sql>
+    INSERT INTO REPOSITORY
+    (
+      USER_NAME, REPOSITORY_NAME, PRIVATE, DEFAULT_BRANCH, REGISTERED_DATE, UPDATED_DATE, LAST_ACTIVITY_DATE
+    )
+    SELECT
+      mr.USER_NAME,
+      mr.REPOSITORY_NAME,
+      TRUE,
+      'main',
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP
+    FROM (
+      SELECT ORIGIN_USER_NAME AS USER_NAME, ORIGIN_REPOSITORY_NAME AS REPOSITORY_NAME
+      FROM REPOSITORY
+      WHERE ORIGIN_USER_NAME IS NOT NULL AND ORIGIN_REPOSITORY_NAME IS NOT NULL
+      UNION
+      SELECT PARENT_USER_NAME AS USER_NAME, PARENT_REPOSITORY_NAME AS REPOSITORY_NAME
+      FROM REPOSITORY
+      WHERE PARENT_USER_NAME IS NOT NULL AND PARENT_REPOSITORY_NAME IS NOT NULL
+    ) mr
+    LEFT JOIN REPOSITORY er
+      ON er.USER_NAME = mr.USER_NAME
+     AND er.REPOSITORY_NAME = mr.REPOSITORY_NAME
+    WHERE er.REPOSITORY_NAME IS NULL
+  </sql>
+
+  <!--================================================================================================-->
+  <!-- REPOSITORY - PART 2 - ADD REPOSITORY_ID COLUMN; ENABLE ON UPDATE CASCADE FOR REPOSITORY_NAME   -->
   <!--================================================================================================-->
 
   <!-- drop foreign key constraints that transitively reference REPOSITORY via ISSUE or RELEASE_TAG,
@@ -128,7 +160,7 @@
   <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK0" baseTableName="RELEASE_ASSET" baseColumnNames="USER_NAME, REPOSITORY_NAME, TAG" referencedTableName="RELEASE_TAG" referencedColumnNames="USER_NAME, REPOSITORY_NAME, TAG" onUpdate="CASCADE"/>
 
   <!--================================================================================================-->
-  <!-- REPOSITORY - PART 2 - SELF-REFERENTIAL FK ON ORIGIN/PARENT WITH ON UPDATE CASCADE              -->
+  <!-- REPOSITORY - PART 3 - SELF-REFERENTIAL FK ON ORIGIN/PARENT WITH ON UPDATE CASCADE              -->
   <!--================================================================================================-->
 
   <!-- MySQL InnoDB requires indexes on FK referencing columns; H2 and PostgreSQL accept FK
