@@ -87,6 +87,7 @@ trait RepositoryService {
           val pullRequests = PullRequests.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val labels = Labels.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val priorities = Priorities.filter(_.byRepository(oldUserName, oldRepositoryName)).list
+          val issueAssignees = IssueAssignees.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val issueComments = IssueComments.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val issueLabels = IssueLabels.filter(_.byRepository(oldUserName, oldRepositoryName)).list
           val commitComments = CommitComments.filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -149,6 +150,9 @@ trait RepositoryService {
 
           PullRequests.insertAll(
             pullRequests.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
+          )
+          IssueAssignees.insertAll(
+            issueAssignees.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*
           )
           IssueComments.insertAll(
             issueComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName))*

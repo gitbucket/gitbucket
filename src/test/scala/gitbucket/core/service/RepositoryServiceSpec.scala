@@ -1,6 +1,8 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.*
+import gitbucket.core.model.Profile.*
+import gitbucket.core.model.Profile.profile.blockingApi.*
 import org.scalatest.funsuite.AnyFunSuite
 
 class RepositoryServiceSpec extends AnyFunSuite with ServiceSpecBase with RepositoryService with AccountService {
@@ -33,6 +35,64 @@ class RepositoryServiceSpec extends AnyFunSuite with ServiceSpecBase with Reposi
       assert(
         service.getProtectedBranchInfo("tester", "repo2", "branch") == orgPbi
           .copy(owner = "tester", repository = "repo2")
+      )
+    }
+  }
+
+  test("renameRepository preserves issue assignees") {
+    withTestDB { implicit session =>
+      generateNewAccount("tester")
+      dummyService.insertRepository("repo", "root", None, false, "main")
+
+      val issueId = dummyService.insertIssue(
+        owner = "root",
+        repository = "repo",
+        loginUser = "root",
+        title = "issue title",
+        content = None,
+        milestoneId = None,
+        priorityId = None,
+        isPullRequest = false
+      )
+
+      IssueAssignees insert IssueAssignee("root", "repo", issueId, "tester")
+
+      renameRepository("root", "repo", "root", "repo2")
+
+      assert(dummyService.getIssueAssignees("root", "repo", issueId).isEmpty)
+      assert(
+        dummyService.getIssueAssignees("root", "repo2", issueId) == List(
+          IssueAssignee("root", "repo2", issueId, "tester")
+        )
+      )
+    }
+  }
+
+  test("renameRepository preserves issue assignees when changing owners") {
+    withTestDB { implicit session =>
+      generateNewAccount("tester")
+      dummyService.insertRepository("repo", "root", None, false, "main")
+
+      val issueId = dummyService.insertIssue(
+        owner = "root",
+        repository = "repo",
+        loginUser = "root",
+        title = "issue title",
+        content = None,
+        milestoneId = None,
+        priorityId = None,
+        isPullRequest = false
+      )
+
+      IssueAssignees insert IssueAssignee("root", "repo", issueId, "tester")
+
+      renameRepository("root", "repo", "tester", "repo2")
+
+      assert(dummyService.getIssueAssignees("root", "repo", issueId).isEmpty)
+      assert(
+        dummyService.getIssueAssignees("tester", "repo2", issueId) == List(
+          IssueAssignee("tester", "repo2", issueId, "tester")
+        )
       )
     }
   }
