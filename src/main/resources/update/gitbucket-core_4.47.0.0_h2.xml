@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
   <!--================================================================================================-->
-  <!-- REPOSITORY - ADD REPOSITORY_ID                                                                 -->
+  <!-- REPOSITORY - PART 1 - ADD REPOSITORY_ID                                                        -->
   <!--================================================================================================-->
 
   <!-- Add REPOSITORY_ID as a unique numeric identifier for the GitHub compatibility api while

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
   <!--================================================================================================-->
-  <!-- REPOSITORY - SELF-REFERENTIAL FK ON ORIGIN/PARENT WITH ON UPDATE CASCADE                       -->
+  <!-- REPOSITORY - PART 4 - SELF-REFERENTIAL FK ON ORIGIN/PARENT WITH ON UPDATE CASCADE              -->
   <!--================================================================================================-->
 
   <!-- MySQL InnoDB requires indexes on FK referencing columns; H2 and PostgreSQL accept FK

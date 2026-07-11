@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- REPOSITORY - PART 2b - REPAIR ORPHANED ACCOUNT/REPOSITORY REFERENCES BEFORE ADDING CONSTRAINTS -->
+  <!--================================================================================================-->
+
+  <sql>
+    INSERT INTO REPOSITORY
+    (
+      USER_NAME, REPOSITORY_NAME, PRIVATE, DEFAULT_BRANCH, REGISTERED_DATE, UPDATED_DATE, LAST_ACTIVITY_DATE
+    )
+    SELECT
+      mr.USER_NAME,
+      mr.REPOSITORY_NAME,
+      TRUE,
+      'main',
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP
+    FROM (
+      SELECT ORIGIN_USER_NAME AS USER_NAME, ORIGIN_REPOSITORY_NAME AS REPOSITORY_NAME
+      FROM REPOSITORY
+      WHERE ORIGIN_USER_NAME IS NOT NULL AND ORIGIN_REPOSITORY_NAME IS NOT NULL
+      UNION
+      SELECT PARENT_USER_NAME AS USER_NAME, PARENT_REPOSITORY_NAME AS REPOSITORY_NAME
+      FROM REPOSITORY
+      WHERE PARENT_USER_NAME IS NOT NULL AND PARENT_REPOSITORY_NAME IS NOT NULL
+    ) mr
+    LEFT JOIN REPOSITORY er
+      ON er.USER_NAME = mr.USER_NAME
+     AND er.REPOSITORY_NAME = mr.REPOSITORY_NAME
+    WHERE er.REPOSITORY_NAME IS NULL
+  </sql>
+</changeSet>
