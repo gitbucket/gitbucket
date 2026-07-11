@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
   <!--================================================================================================-->
-  <!-- REPOSITORY - SIMPLIFY OWNERSHIP AND NAME CHANGES BY ENABLING ON UPDATE CASCADE                 -->
+  <!-- REPOSITORY - PART 3 - SIMPLIFY OWNERSHIP AND NAME CHANGES BY ENABLING ON UPDATE CASCADE        -->
   <!--================================================================================================-->
 
   <!-- drop foreign key constraints that transitively reference REPOSITORY via ISSUE or RELEASE_TAG,
