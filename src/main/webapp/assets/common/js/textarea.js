@@ -25,26 +25,26 @@
    * @returns [TYPE, match]
    */
   const getLineType = function (line) {
-      if (m = line.match(headingPattern)) {
-          return [TYPE_HEADING, m];
-      } else if (m = line.match(quotePattern)) {
-          return [TYPE_QUOTE, m];
-      } else if (m = line.match(taskPattern)) {
-          return [TYPE_TASK, m];
-      } else if (m = line.match(doneTaskPattern)) {
-          return [TYPE_DONE_TASK, m];
-      } else if (m = line.match(ulPattern)) {
-          return [TYPE_UL, m];
-      } else if (m = line.match(olPattern)) {
-          return [TYPE_OL, m];
-      } else {
-          return [TYPE_NONE, null];
-      }
+    if (m = line.match(headingPattern)) {
+      return [TYPE_HEADING, m];
+    } else if (m = line.match(quotePattern)) {
+      return [TYPE_QUOTE, m];
+    } else if (m = line.match(taskPattern)) {
+      return [TYPE_TASK, m];
+    } else if (m = line.match(doneTaskPattern)) {
+      return [TYPE_DONE_TASK, m];
+    } else if (m = line.match(ulPattern)) {
+      return [TYPE_UL, m];
+    } else if (m = line.match(olPattern)) {
+      return [TYPE_OL, m];
+    } else {
+      return [TYPE_NONE, null];
+    }
   };
 
   /**
    * Wraps the textarea selection with the specified string
-   * 
+   *
    * @param {Element} textarea Target textarea element
    * @param {string} prefix The string to insert before the selection
    * @param {string} suffix  The string to insert after the selection
@@ -64,7 +64,7 @@
 
   /**
    * Extend selection to entireLine in textarea
-   * 
+   *
    * @param {Element} textarea Target textarea element
    */
   window.extendSelectionToEntireLine = function (textarea) {
@@ -80,25 +80,25 @@
 
   /**
    * Make the textarea selection a heading element
-   * 
-   * @param {Element} textarea 
+   *
+   * @param {Element} textarea
    */
   window.setHeadding = function (textarea) {
     extendSelectionToEntireLine(textarea);
-    var newText = "";
+    let newText = "";
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
     selectedText.split('\n').forEach((line) => {
-      var headingText = "";
-      var lineType = getLineType(line);
+      let headingText = "";
+      const lineType = getLineType(line);
       switch(lineType[0]) {
         case TYPE_HEADING:
-          var level = selectedText.indexOf(' ');
+          const level = selectedText.indexOf(' ');
           if (level < 6) {
-              headingText = "#" + line;
+            headingText = "#" + line;
           } else {
-              headingText = line.replace("###### ","");
+            headingText = line.replace("###### ","");
           }
           break;
         case TYPE_NONE:
@@ -116,18 +116,18 @@
 
   /**
    * Make the textarea selection a quote element
-   * 
-   * @param {Element} textarea 
+   *
+   * @param {Element} textarea
    */
   window.setQuote = function (textarea) {
     extendSelectionToEntireLine(textarea);
-    var newText = "";
+    let newText = "";
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
     selectedText.split('\n').forEach((line) => {
-      var quoteText = "";
-      var lineType = getLineType(line);
+      let quoteText = "";
+      const lineType = getLineType(line);
       switch(lineType[0]) {
         case TYPE_QUOTE:
           if (m = line.match(nestedQuotePattern)) {
@@ -151,18 +151,18 @@
 
   /**
    * Make the textarea selection a unordered list element
-   * 
-   * @param {Element} textarea 
+   *
+   * @param {Element} textarea
    */
   window.setUnorderedList = function (textarea) {
     extendSelectionToEntireLine(textarea);
-    var newText = "";
+    let newText = "";
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
     selectedText.split('\n').forEach((line) => {
-      var unorderedList = "";
-      var lineType = getLineType(selectedText);
+      let unorderedList = "";
+      const lineType = getLineType(selectedText);
       switch(lineType[0]) {
         case TYPE_UL:
           unorderedList = line.replace(lineType[1][0], "");
@@ -182,18 +182,18 @@
 
   /**
    * Make the textarea selection a ordered list element
-   * 
-   * @param {Element} textarea 
+   *
+   * @param {Element} textarea
    */
   window.setOrderedList = function (textarea) {
     extendSelectionToEntireLine(textarea);
-    var newText = "";
+    let newText = "";
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
     selectedText.split('\n').forEach((line) => {
-      var orderedList = "";
-      var lineType = getLineType(selectedText);
+      let orderedList = "";
+      const lineType = getLineType(selectedText);
       switch(lineType[0]) {
         case TYPE_OL:
           orderedList = line.replace(lineType[1][0], "");
@@ -213,18 +213,18 @@
 
   /**
    * Make the textarea selection a task list element
-   * 
-   * @param {Element} textarea 
+   *
+   * @param {Element} textarea
    */
   window.setTaskList = function (textarea) {
     extendSelectionToEntireLine(textarea);
-    var newText = "";
+    let newText = "";
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
     selectedText.split('\n').forEach((line) => {
-      var taskList = "";
-      var lineType = getLineType(line);
+      let taskList = "";
+      const lineType = getLineType(line);
       switch(lineType[0]) {
         case TYPE_DONE_TASK:
           taskList = line.replace("[x]", "[ ]");
@@ -244,18 +244,32 @@
     textarea.setSelectionRange(start, start + newText.trimEnd().length);
     textarea.focus();
   };
+
+  /**
+   * Formats the selection as inline code or a fenced code block.
+   *
+   * @param {Element} textarea Target textarea element
+   */
+  window.setCode = function (textarea) {
+    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    if (selectedText.includes('\n')) {
+      setCodeBlock(textarea);
+    } else {
+      surroundSelection(textarea, "`", "`", false);
+    }
+  };
+
   /**
    * Make the textarea selection a unordered list element
-   * 
-   * @param {Element} textarea 
+   *
+   * @param {Element} textarea
    */
   window.setCodeBlock = function (textarea) {
     extendSelectionToEntireLine(textarea);
-    var newText = "";
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
-    textarea.value = textarea.value.substring(0, start) + "```\n" + selectedText + "\n```\n" + textarea.value.substring(end);
+    textarea.value = textarea.value.substring(0, start) + "```\n" + selectedText + (selectedText.endsWith("\n") ? "```" : "\n```") + textarea.value.substring(end);
     textarea.setSelectionRange(start + 3, start + 3);
     textarea.focus();
   };

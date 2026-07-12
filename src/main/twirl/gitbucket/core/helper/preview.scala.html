@@ -31,7 +31,6 @@
         <button type="button" class="btn btn-default navbar-btn btn-sm" id="markdown-list-ul@uid" title="Unordered List" style="margin-top: 8px; margin-bottom: 8px;"><i class="fa fa-list-ul"></i></button>
         <button type="button" class="btn btn-default navbar-btn btn-sm" id="markdown-list-ol@uid" title="Ordered List" style="margin-top: 8px; margin-bottom: 8px;"><i class="fa fa-list-ol"></i></button>
         <button type="button" class="btn btn-default navbar-btn btn-sm" id="markdown-task@uid" title="Task List" style="margin-top: 8px; margin-bottom: 8px;"><i class="fa  fa-check-square-o"></i></button>
-        <button type="button" class="btn btn-default navbar-btn btn-sm" id="markdown-code-block@uid" title="Code Block" style="margin-top: 8px; margin-bottom: 8px;"><i class="fa fa-file-code-o"></i></button>
       </div>
     </li>
   </ul>
@@ -84,7 +83,7 @@ $(function(){
   // for capture markdown code button clicks
   const markdownCode = document.getElementById("markdown-code@uid");
   markdownCode.addEventListener('click', (e) => {
-    surroundSelection(textarea, "`", "`", false);
+    setCode(textarea);
   }, true);
 
   // for capture markdown link button clicks
@@ -100,33 +99,27 @@ $(function(){
   }, true);
 
   // for capture markdown quote button clicks
-  const markdownQuote =document.getElementById("markdown-quote@uid");
+  const markdownQuote = document.getElementById("markdown-quote@uid");
   markdownQuote.addEventListener('click', (e) => {
     setQuote(textarea);
   }, true);
 
   // for capture markdown list ul button clicks
-  const markdownListUl =document.getElementById("markdown-list-ul@uid");
+  const markdownListUl = document.getElementById("markdown-list-ul@uid");
   markdownListUl.addEventListener('click', (e) => {
     setUnorderedList(textarea);
   }, true);
 
   // for capture markdown list ul button clicks
-  const markdownListOl =document.getElementById("markdown-list-ol@uid");
+  const markdownListOl = document.getElementById("markdown-list-ol@uid");
   markdownListOl.addEventListener('click', (e) => {
     setOrderedList(textarea);
   }, true);
 
   // for capture markdown list ul button clicks
-  const markdownTask =document.getElementById("markdown-task@uid");
+  const markdownTask = document.getElementById("markdown-task@uid");
   markdownTask.addEventListener('click', (e) => {
     setTaskList(textarea);
-  }, true);
-
-  // for capture markdown list ul button clicks
-  const markdownCodeBlock =document.getElementById("markdown-code-block@uid");
-  markdownCodeBlock.addEventListener('click', (e) => {
-    setCodeBlock(textarea);
   }, true);
 
   @if(elastic){
