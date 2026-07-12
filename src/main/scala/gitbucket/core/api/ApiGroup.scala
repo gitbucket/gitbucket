@@ -4,8 +4,7 @@ import java.util.Date
 
 import gitbucket.core.model.Account
 
-case class ApiGroup(login: String, description: Option[String], created_at: Date) {
-  val id = 0 // dummy id
+case class ApiGroup(id: Long, login: String, description: Option[String], created_at: Date) {
   val url = ApiPath(s"/api/v3/orgs/${login}")
   val html_url = ApiPath(s"/${login}")
   val avatar_url = ApiPath(s"/${login}/_avatar")
@@ -13,6 +12,7 @@ case class ApiGroup(login: String, description: Option[String], created_at: Date
 
 object ApiGroup {
   def apply(group: Account): ApiGroup = ApiGroup(
+    id = group.accountId,
     login = group.userName,
     description = group.description,
     created_at = group.registeredDate

@@ -11,8 +11,9 @@ class AccountServiceSpec extends AnyFunSuite with ServiceSpecBase {
   test("getAllUsers") {
     withTestDB { implicit session =>
       assert(AccountService.getAllUsers() match {
-        case List(Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false, None)) => true
-        case _                                                                                                => false
+        case List(Account(_, "root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false, None)) =>
+          true
+        case _ => false
       })
     }
   }
@@ -65,6 +66,41 @@ class AccountServiceSpec extends AnyFunSuite with ServiceSpecBase {
       val newDescription = Some("http://new.url.example/path")
       AccountService.updateAccount(user().copy(description = newDescription))
       assert(user().description == newDescription)
+    }
+  }
+
+  test("createAccount assigns a non-zero unique account id") {
+    withTestDB { implicit session =>
+      val created1 = AccountService.createAccount("user1", "password", "User 1", "user1@example.com", false, None, None)
+      val created2 = AccountService.createAccount("user2", "password", "User 2", "user2@example.com", false, None, None)
+
+      assert(created1.accountId != 0)
+      assert(created2.accountId != 0)
+      assert(created1.accountId != created2.accountId)
+
+      assert(AccountService.getAccountByUserName("user1").get.accountId == created1.accountId)
+      assert(AccountService.getAccountByUserName("user2").get.accountId == created2.accountId)
+    }
+  }
+
+  test("updateAccount preserves the account id") {
+    withTestDB { implicit session =>
+      val created = AccountService.createAccount("user1", "password", "User 1", "user1@example.com", false, None, None)
+
+      AccountService.updateAccount(created.copy(fullName = "Renamed"))
+
+      val updated = AccountService.getAccountByUserName("user1").get
+      assert(updated.fullName == "Renamed")
+      assert(updated.accountId == created.accountId)
+    }
+  }
+
+  test("createGroup assigns a non-zero account id") {
+    withTestDB { implicit session =>
+      val group = AccountService.createGroup("id-group", None, None)
+
+      assert(group.accountId != 0)
+      assert(AccountService.getAccountByUserName("id-group").get.accountId == group.accountId)
     }
   }
 

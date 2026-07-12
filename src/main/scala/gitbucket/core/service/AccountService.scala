@@ -185,8 +185,8 @@ trait AccountService {
       isRemoved = false,
       description = description
     )
-    Accounts insert account
-    account
+    val accountId = Accounts returning Accounts.map(_.accountId) insert account
+    account.copy(accountId = accountId)
   }
 
   def suspendAccount(account: Account)(implicit s: Session): Unit = {
@@ -261,8 +261,8 @@ trait AccountService {
       isRemoved = false,
       description = description
     )
-    Accounts insert group
-    group
+    val accountId = Accounts returning Accounts.map(_.accountId) insert group
+    group.copy(accountId = accountId)
   }
 
   def updateGroup(groupName: String, description: Option[String], url: Option[String], removed: Boolean)(implicit

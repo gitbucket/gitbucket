@@ -587,6 +587,20 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("user and organization IDs are non-zero and distinct") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      server.createOrganization("testorg", "root", "root")
+
+      val user = github.getUser("root")
+      val org = github.getOrganization("testorg")
+
+      assert(user.getId != 0)
+      assert(org.getId != 0)
+      assert(user.getId != org.getId)
+    }
+  }
+
   test("Git refs APIs") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")

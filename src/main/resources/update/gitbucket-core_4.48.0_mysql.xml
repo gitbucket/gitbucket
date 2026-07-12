@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- ACCOUNT - ADD ACCOUNT_ID COLUMN                                                                -->
+  <!--================================================================================================-->
+
+  <!-- Add ACCOUNT_ID as unique id for GitHub compatibility api; retain USER_NAME as primary key. -->
+
+  <sql>
+    ALTER TABLE ACCOUNT
+      ADD COLUMN ACCOUNT_ID BIGINT NOT NULL AUTO_INCREMENT,
+      ADD UNIQUE INDEX IDX_ACCOUNT_ID (ACCOUNT_ID)
+  </sql>
+</changeSet>
