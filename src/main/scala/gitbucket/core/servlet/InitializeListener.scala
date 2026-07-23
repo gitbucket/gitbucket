@@ -1,6 +1,7 @@
 package gitbucket.core.servlet
 
 import java.io.{File, FileOutputStream}
+import java.sql.Connection
 
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
@@ -8,6 +9,7 @@ import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory.*
 import gitbucket.core.util.JDBCUtil.*
+import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Profile.profile.blockingApi.*
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
@@ -22,6 +24,39 @@ import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
+
+object InitializeListener {
+
+  private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
+
+  private[core] def createMissingPrivateRepositories(conn: Connection): Unit = {
+    // Repair missing private repository directories. The PRIVATE filter matches how placeholder
+    // repositories are inserted by the orphan-repair migration for 4.47.
+    conn
+      .select(
+        """
+          |SELECT USER_NAME, REPOSITORY_NAME, DEFAULT_BRANCH
+          |FROM REPOSITORY
+          |WHERE PRIVATE = TRUE
+          |""".stripMargin
+      ) { rs =>
+        (
+          rs.getString("USER_NAME"),
+          rs.getString("REPOSITORY_NAME"),
+          Option(rs.getString("DEFAULT_BRANCH")).filter(_.nonEmpty).getOrElse("main")
+        )
+      }
+      .foreach { case (owner, repository, defaultBranch) =>
+        val gitdir = getRepositoryDir(owner, repository)
+        if (!gitdir.exists()) {
+          logger.info(s"Create missing repository directory for ${owner}/${repository}")
+          FileUtils.forceMkdirParent(gitdir)
+          JGitUtil.initRepository(gitdir, defaultBranch)
+        }
+      }
+  }
+
+}
 
 /**
  * Initialize GitBucket system.
@@ -83,6 +118,8 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
             s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}."
           )
         }
+
+        InitializeListener.createMissingPrivateRepositories(conn)
 
         // Install bundled plugins
         extractBundledPlugins()

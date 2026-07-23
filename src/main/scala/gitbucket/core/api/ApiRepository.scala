@@ -5,9 +5,11 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 
 // https://developer.github.com/v3/repos/
 case class ApiRepository(
+  id: Long,
   name: String,
   full_name: String,
   description: String,
+  fork: Boolean,
   watchers: Int,
   forks: Int,
   `private`: Boolean,
@@ -15,7 +17,6 @@ case class ApiRepository(
   owner: ApiUser,
   has_issues: Boolean
 ) {
-  val id = 0 // dummy id
   val forks_count = forks
   val watchers_count = watchers
   val url = ApiPath(s"/api/v3/repos/${full_name}")
@@ -35,12 +36,14 @@ object ApiRepository {
       name = repository.repositoryName,
       full_name = s"${repository.userName}/${repository.repositoryName}",
       description = repository.description.getOrElse(""),
+      fork = repository.originUserName.isDefined,
       watchers = watchers,
       forks = forkedCount,
       `private` = repository.isPrivate,
       default_branch = repository.defaultBranch,
       owner = owner,
-      has_issues = if (repository.options.issuesOption == "DISABLE") false else true
+      has_issues = if (repository.options.issuesOption == "DISABLE") false else true,
+      id = repository.repositoryId
     )
 
   def apply(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
@@ -58,11 +61,14 @@ object ApiRepository {
       name = "dummy",
       full_name = s"${owner.login}/dummy",
       description = "",
+      fork = false,
       watchers = 0,
       forks = 0,
       `private` = false,
       default_branch = "main",
       owner = owner,
-      has_issues = true
+      has_issues = true,
+      // Non-zero sentinel so this test-only payload is never mistaken for a real repository
+      id = -1L
     )
 }
