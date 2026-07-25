@@ -403,7 +403,10 @@ class ApiIntegrationTest extends AnyFunSuite {
 
       val orgForkResponse = server.forkRepositoryViaApi("root", "list_forks_test", Some("forkorg"), "root", "root")
       assert(orgForkResponse.status == 202, s"Expected 202 for org fork but got ${orgForkResponse.status}")
-      Thread.sleep(5)
+
+      // REGISTERED_DATE has only second-level precision on some supported DBs (e.g. MySQL's
+      // DATETIME), so the sleep must clear a full second to guarantee distinct timestamps.
+      Thread.sleep(1100)
 
       val userForkResponse = server.forkRepositoryViaApi("root", "list_forks_test", None, "user13", "user13pass")
       assert(userForkResponse.status == 202, s"Expected 202 for user fork but got ${userForkResponse.status}")

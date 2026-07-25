@@ -607,8 +607,8 @@ trait RepositoryService {
 
     order match {
       case ForkedRepositoryOrder.ByOwner => query.sortBy(_.userName asc).list
-      case ForkedRepositoryOrder.Oldest  => query.sortBy(_.registeredDate asc).list
-      case ForkedRepositoryOrder.Newest  => query.sortBy(_.registeredDate desc).list
+      case ForkedRepositoryOrder.Oldest  => query.sortBy(t => (t.registeredDate.asc, t.repositoryId.asc)).list
+      case ForkedRepositoryOrder.Newest  => query.sortBy(t => (t.registeredDate.desc, t.repositoryId.desc)).list
     }
   }
 
