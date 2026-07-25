@@ -29,6 +29,41 @@ object InitializeListener {
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
 
+  // The version whose migration inserts placeholder private repositories for missing
+  // origin/parent references. Only installations upgrading to or through this version
+  // require repair.
+  private[core] val RepairMissingPrivateRepositoriesVersion = "4.47.0.2"
+
+  /**
+   * Only add missing repositories when upgrading an existing database to or through
+   * migration [[RepairMissingPrivateRepositoriesVersion]], and only once.
+   */
+  private[core] def shouldRepairMissingPrivateRepositories(
+    previousVersion: Option[String],
+    currentVersion: String
+  ): Boolean = {
+    val versions = GitBucketCoreModule.getVersions.asScala.map(_.getVersion).toIndexedSeq
+    val repairIndex = versions.indexOf(RepairMissingPrivateRepositoriesVersion)
+    val currentIndex = versions.indexOf(currentVersion)
+    val previousIndex = previousVersion.map(versions.indexOf)
+
+    repairIndex >= 0 &&
+    currentIndex >= repairIndex &&
+    previousIndex.exists(index => index >= 0 && index < repairIndex)
+  }
+
+  /**
+   * This is the same as JDBCVersionManager::checkTableExists, which is not public.
+   */
+  private[core] def versionsTableExists(conn: Connection): Boolean = {
+    Using.resource(conn.getMetaData.getTables(null, null, "%", Array("TABLE"))) { rs =>
+      Iterator
+        .continually(rs.next())
+        .takeWhile(identity)
+        .exists(_ => rs.getString("TABLE_NAME").equalsIgnoreCase("VERSIONS"))
+    }
+  }
+
   private[core] def createMissingPrivateRepositories(conn: Connection): Unit = {
     // Repair missing private repository directories. The PRIVATE filter matches how placeholder
     // repositories are inserted by the orphan-repair migration for 4.47.
@@ -99,6 +134,13 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
         // Check version
         checkVersion(manager, conn)
 
+        val previousVersion =
+          if (InitializeListener.versionsTableExists(conn)) {
+            Option(manager.getCurrentVersion(GitBucketCoreModule.getModuleId))
+          } else {
+            None
+          }
+
         // Run normal migration
         logger.info("Start schema update")
         new Solidbase()
@@ -119,7 +161,9 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           )
         }
 
-        InitializeListener.createMissingPrivateRepositories(conn)
+        if (InitializeListener.shouldRepairMissingPrivateRepositories(previousVersion, databaseVersion)) {
+          InitializeListener.createMissingPrivateRepositories(conn)
+        }
 
         // Install bundled plugins
         extractBundledPlugins()
