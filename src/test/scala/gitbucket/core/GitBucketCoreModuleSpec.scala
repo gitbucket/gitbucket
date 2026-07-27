@@ -3,7 +3,6 @@ package gitbucket.core
 import java.sql.{Clob, Connection, DriverManager, Timestamp, Types}
 import java.time.Instant
 import java.util.Locale
-import gitbucket.core.servlet.InitializeListener
 import gitbucket.core.util.{Directory, JGitUtil}
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
@@ -563,7 +562,6 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     migrate(conn, db, moduleBeforeOrphanRepair)
     insertRepositoryWithMissingOriginAndParent(conn)
     migrate(conn, db, fullModule)
-    InitializeListener.createMissingPrivateRepositories(conn)
 
     val accounts = accountRows(conn)
     assert(accounts.map(_.userName).toSet == expectedAccountNames)

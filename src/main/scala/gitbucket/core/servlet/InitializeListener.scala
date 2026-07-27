@@ -1,7 +1,6 @@
 package gitbucket.core.servlet
 
 import java.io.{File, FileOutputStream}
-import java.sql.Connection
 
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
@@ -9,7 +8,6 @@ import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory.*
 import gitbucket.core.util.JDBCUtil.*
-import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Profile.profile.blockingApi.*
 // Imported names have higher precedence than names, defined in other files.
 // If Database is not bound by explicit import, then "Database" refers to the Database introduced by the wildcard import above.
@@ -24,74 +22,6 @@ import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
-
-object InitializeListener {
-
-  private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
-
-  // The version whose migration inserts placeholder private repositories for missing
-  // origin/parent references. Only installations upgrading to or through this version
-  // require repair.
-  private[core] val RepairMissingPrivateRepositoriesVersion = "4.47.0.2"
-
-  /**
-   * Only add missing repositories when upgrading an existing database to or through
-   * migration [[RepairMissingPrivateRepositoriesVersion]], and only once.
-   */
-  private[core] def shouldRepairMissingPrivateRepositories(
-    previousVersion: Option[String],
-    currentVersion: String
-  ): Boolean = {
-    val versions = GitBucketCoreModule.getVersions.asScala.map(_.getVersion).toIndexedSeq
-    val repairIndex = versions.indexOf(RepairMissingPrivateRepositoriesVersion)
-    val currentIndex = versions.indexOf(currentVersion)
-    val previousIndex = previousVersion.map(versions.indexOf)
-
-    repairIndex >= 0 &&
-    currentIndex >= repairIndex &&
-    previousIndex.exists(index => index >= 0 && index < repairIndex)
-  }
-
-  /**
-   * This is the same as JDBCVersionManager::checkTableExists, which is not public.
-   */
-  private[core] def versionsTableExists(conn: Connection): Boolean = {
-    Using.resource(conn.getMetaData.getTables(null, null, "%", Array("TABLE"))) { rs =>
-      Iterator
-        .continually(rs.next())
-        .takeWhile(identity)
-        .exists(_ => rs.getString("TABLE_NAME").equalsIgnoreCase("VERSIONS"))
-    }
-  }
-
-  private[core] def createMissingPrivateRepositories(conn: Connection): Unit = {
-    // Repair missing private repository directories. The PRIVATE filter matches how placeholder
-    // repositories are inserted by the orphan-repair migration for 4.47.
-    conn
-      .select(
-        """
-          |SELECT USER_NAME, REPOSITORY_NAME, DEFAULT_BRANCH
-          |FROM REPOSITORY
-          |WHERE PRIVATE = TRUE
-          |""".stripMargin
-      ) { rs =>
-        (
-          rs.getString("USER_NAME"),
-          rs.getString("REPOSITORY_NAME"),
-          Option(rs.getString("DEFAULT_BRANCH")).filter(_.nonEmpty).getOrElse("main")
-        )
-      }
-      .foreach { case (owner, repository, defaultBranch) =>
-        val gitdir = getRepositoryDir(owner, repository)
-        if (!gitdir.exists()) {
-          logger.info(s"Create missing repository directory for ${owner}/${repository}")
-          FileUtils.forceMkdirParent(gitdir)
-          JGitUtil.initRepository(gitdir, defaultBranch)
-        }
-      }
-  }
-
-}
 
 /**
  * Initialize GitBucket system.
@@ -134,13 +64,6 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
         // Check version
         checkVersion(manager, conn)
 
-        val previousVersion =
-          if (InitializeListener.versionsTableExists(conn)) {
-            Option(manager.getCurrentVersion(GitBucketCoreModule.getModuleId))
-          } else {
-            None
-          }
-
         // Run normal migration
         logger.info("Start schema update")
         new Solidbase()
@@ -159,10 +82,6 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           throw new IllegalStateException(
             s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}."
           )
-        }
-
-        if (InitializeListener.shouldRepairMissingPrivateRepositories(previousVersion, databaseVersion)) {
-          InitializeListener.createMissingPrivateRepositories(conn)
         }
 
         // Install bundled plugins
