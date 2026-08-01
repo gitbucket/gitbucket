@@ -8,16 +8,24 @@ import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.eclipse.jgit.api.Git
-import org.scalatra.Forbidden
+import org.scalatra.{Accepted, BadRequest, Forbidden, UnprocessableEntity}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.math.{max, min}
 import scala.util.Using
 
 trait ApiRepositoryControllerBase extends ControllerBase {
   self: RepositoryService & ApiGitReferenceControllerBase & RepositoryCreationService & AccountService &
     OwnerAuthenticator & UsersAuthenticator & GroupManagerAuthenticator & ReferrerAuthenticator &
     ReadableUsersAuthenticator & WritableUsersAuthenticator =>
+
+  private val createForkDocumentationUrl = "https://docs.github.com/en/rest/repos/forks#create-a-fork"
+  private def createForkValidationError(message: String) =
+    ApiError(message, Some(createForkDocumentationUrl))
+  private val listForksDocumentationUrl = "https://docs.github.com/en/rest/repos/forks#list-forks"
+  private def listForksValidationError(message: String) =
+    ApiError(message, Some(listForksDocumentationUrl))
 
   /**
    * i. List your repositories
@@ -196,6 +204,102 @@ trait ApiRepositoryControllerBase extends ControllerBase {
    * xv. Transfer a repository
    * https://docs.github.com/en/rest/reference/repos#transfer-a-repository
    */
+
+  /**
+   * xvi. Get a repository by its numeric id
+   * https://docs.github.com/en/rest/repos/repos#get-a-repository
+   */
+  get("/api/v3/repositories/:id") {
+    params("id").toLongOption.flatMap { id =>
+      getRepositoryById(id)
+        .filter(r => isReadable(r.repository, context.loginAccount))
+        .map(r => JsonFormat(ApiRepository(r, ApiUser(getAccountByUserName(r.owner).get))))
+    } getOrElse NotFound()
+  }
+
+  /**
+   * xvii. Fork a repository
+   * https://docs.github.com/en/rest/repos/forks#create-a-fork
+   */
+  post("/api/v3/repos/:owner/:repository/forks")(usersOnly {
+    val loginAccount = context.loginAccount.get
+    val owner = params("owner")
+    val repositoryName = params("repository")
+
+    getRepository(owner, repositoryName).filter(r => isReadable(r.repository, Some(loginAccount))) match {
+      case None             => NotFound()
+      case Some(repository) =>
+        if (!repository.repository.options.allowFork) {
+          Forbidden()
+        } else {
+          val organization = extractFromJsonBody[CreateAFork].flatMap(_.organization)
+          val targetAccount = organization.getOrElse(loginAccount.userName)
+
+          if (organization.isDefined && getAccountByUserName(targetAccount).isEmpty) {
+            UnprocessableEntity(createForkValidationError("The specified organization does not exist."))
+          } else if (targetAccount == owner) {
+            UnprocessableEntity(createForkValidationError("A user cannot fork their own repository."))
+          } else {
+            val originOwner = repository.repository.originUserName.getOrElse(owner)
+            val originName = repository.repository.originRepositoryName.getOrElse(repositoryName)
+            getRepository(targetAccount, repositoryName) match {
+              case Some(existing) =>
+                if (
+                  existing.repository.originUserName.contains(originOwner) &&
+                  existing.repository.originRepositoryName.contains(originName)
+                )
+                  Accepted(JsonFormat(ApiRepository(existing, ApiUser(getAccountByUserName(targetAccount).get))))
+                else
+                  UnprocessableEntity(createForkValidationError("A repository with the same name already exists."))
+              case None =>
+                if (canCreateRepository(targetAccount, loginAccount)) {
+                  Await.result(forkRepository(targetAccount, repository, loginAccount.userName), Duration.Inf)
+                  val fork = Database() withTransaction { implicit session =>
+                    getRepository(targetAccount, repositoryName)(session).get
+                  }
+                  Accepted(JsonFormat(ApiRepository(fork, ApiUser(getAccountByUserName(targetAccount).get))))
+                } else
+                  Forbidden()
+            }
+          }
+        }
+    }
+  })
+
+  /**
+   * xviii. List forks
+   * https://docs.github.com/en/rest/repos/forks#list-forks
+   */
+  get("/api/v3/repos/:owner/:repository/forks")(referrersOnly { repository =>
+    val page = max(params.get("page").filter(_.nonEmpty).flatMap(_.toIntOption).getOrElse(1), 1)
+    val per_page = min(max(params.get("per_page").filter(_.nonEmpty).flatMap(_.toIntOption).getOrElse(30), 1), 100)
+    val sort = params.get("sort").filter(_.nonEmpty).getOrElse("newest")
+
+    sort match {
+      case "oldest" | "newest" =>
+        val visibleForks = getForkedRepositories(
+          repository.owner,
+          repository.name,
+          order =
+            if (sort == "oldest") gitbucket.core.service.RepositoryService.ForkedRepositoryOrder.Oldest
+            else gitbucket.core.service.RepositoryService.ForkedRepositoryOrder.Newest
+        ).filter(fork => isReadable(fork, context.loginAccount))
+
+        JsonFormat(
+          visibleForks
+            .slice((page - 1) * per_page, page * per_page)
+            .flatMap { fork =>
+              getRepository(fork.userName, fork.repositoryName).map { repositoryInfo =>
+                ApiRepository(repositoryInfo, ApiUser(getAccountByUserName(repositoryInfo.owner).get))
+              }
+            }
+        )
+      case "stargazers" | "watchers" =>
+        halt(501, JsonFormat(listForksValidationError(s"Sort value '$sort' is not supported by GitBucket.")))
+      case _ =>
+        BadRequest(JsonFormat(listForksValidationError(s"Invalid sort value: $sort")))
+    }
+  })
 
   /**
    * non-GitHub compatible API for Jenkins-Plugin

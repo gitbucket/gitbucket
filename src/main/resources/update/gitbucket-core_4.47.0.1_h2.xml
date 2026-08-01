@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- REPOSITORY - PART 2a - REPAIR ORPHANED ACCOUNT/REPOSITORY REFERENCES BEFORE ADDING CONSTRAINTS -->
+  <!--================================================================================================-->
+
+  <!--
+    Only these four self-referential columns are checked here because they are the
+    columns whose foreign key constraints are added in the following migration:
+      * REPOSITORY.ORIGIN_USER_NAME / ORIGIN_REPOSITORY_NAME
+      * REPOSITORY.PARENT_USER_NAME / PARENT_REPOSITORY_NAME
+  -->
+
+  <sql>
+    INSERT INTO ACCOUNT
+    (
+      USER_NAME, MAIL_ADDRESS, PASSWORD, ADMINISTRATOR, REGISTERED_DATE, UPDATED_DATE, GROUP_ACCOUNT, FULL_NAME, REMOVED
+    )
+    SELECT
+      mu.USER_NAME,
+      CONCAT('missing+', mu.USER_NAME, '@invalid.local'),
+      SUBSTRING(
+        CONCAT(
+          REPLACE(CAST(RANDOM_UUID() AS VARCHAR), '-', ''),
+          REPLACE(CAST(RANDOM_UUID() AS VARCHAR), '-', '')
+        ),
+        1,
+        40
+      ),
+      FALSE,
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP,
+      FALSE,
+      mu.USER_NAME,
+      TRUE
+    FROM (
+      SELECT ORIGIN_USER_NAME AS USER_NAME FROM REPOSITORY WHERE ORIGIN_USER_NAME IS NOT NULL
+      UNION
+      SELECT PARENT_USER_NAME AS USER_NAME FROM REPOSITORY WHERE PARENT_USER_NAME IS NOT NULL
+    ) mu
+    LEFT JOIN ACCOUNT ea
+      ON ea.USER_NAME = mu.USER_NAME
+    WHERE ea.USER_NAME IS NULL
+  </sql>
+</changeSet>

@@ -5,14 +5,16 @@ import java.nio.charset.StandardCharsets
 import java.sql.Connection
 import java.util.UUID
 import gitbucket.core.model.Activity
-import gitbucket.core.util.Directory.ActivityLog
-import gitbucket.core.util.JDBCUtil
+import gitbucket.core.util.Directory.{ActivityLog, getRepositoryDir}
+import gitbucket.core.util.{JDBCUtil, JGitUtil}
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration}
 import io.github.gitbucket.solidbase.model.{Module, Version}
+import org.apache.commons.io.FileUtils
 import org.json4s.{Formats, NoTypeHints}
 import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.write
+import org.slf4j.LoggerFactory
 
 import java.util.logging.Level
 import scala.util.Using
@@ -124,7 +126,48 @@ object GitBucketCoreModule
       new Version("4.44.0", new LiquibaseMigration("update/gitbucket-core_4.44.xml")),
       new Version("4.45.0"),
       new Version("4.46.0", new LiquibaseMigration("update/gitbucket-core_4.46.xml")),
-      new Version("4.46.1")
+      new Version("4.46.1"),
+      new Version("4.47.0.0", new LiquibaseMigration("update/gitbucket-core_4.47.0.0.xml")),
+      new Version("4.47.0.1", new LiquibaseMigration("update/gitbucket-core_4.47.0.1.xml")),
+      new Version(
+        "4.47.0.2",
+        new LiquibaseMigration("update/gitbucket-core_4.47.0.2.xml"),
+        new Migration() {
+          private val logger = LoggerFactory.getLogger(getClass)
+
+          override def migrate(moduleId: String, version: String, context: java.util.Map[String, AnyRef]): Unit = {
+            import JDBCUtil._
+
+            val conn = context.get(Solidbase.CONNECTION).asInstanceOf[Connection]
+            // The PRIVATE filter matches how placeholder repositories are inserted by the orphan-repair
+            // migration above; existing private repositories already have a directory on disk and are skipped.
+            conn
+              .select(
+                """
+                  |SELECT USER_NAME, REPOSITORY_NAME, DEFAULT_BRANCH
+                  |FROM REPOSITORY
+                  |WHERE PRIVATE = TRUE
+                  |""".stripMargin
+              ) { rs =>
+                (
+                  rs.getString("USER_NAME"),
+                  rs.getString("REPOSITORY_NAME"),
+                  Option(rs.getString("DEFAULT_BRANCH")).filter(_.nonEmpty).getOrElse("main")
+                )
+              }
+              .foreach { case (owner, repository, defaultBranch) =>
+                val gitdir = getRepositoryDir(owner, repository)
+                if (!gitdir.exists()) {
+                  logger.info(s"Create missing repository directory for ${owner}/${repository}")
+                  FileUtils.forceMkdirParent(gitdir)
+                  JGitUtil.initRepository(gitdir, defaultBranch)
+                }
+              }
+          }
+        }
+      ),
+      new Version("4.47.0.3", new LiquibaseMigration("update/gitbucket-core_4.47.0.3.xml")),
+      new Version("4.47.0.4", new LiquibaseMigration("update/gitbucket-core_4.47.0.4.xml"))
     ) {
   java.util.logging.Logger.getLogger("liquibase").setLevel(Level.SEVERE)
 }

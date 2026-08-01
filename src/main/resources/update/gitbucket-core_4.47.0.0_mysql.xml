@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- REPOSITORY - PART 1 - ADD REPOSITORY_ID                                                        -->
+  <!--================================================================================================-->
+
+  <!-- Add REPOSITORY_ID as a unique numeric identifier for the GitHub compatibility api while
+       retaining (USER_NAME, REPOSITORY_NAME) as the primary key. -->
+
+  <sql>
+    ALTER TABLE REPOSITORY
+      ADD COLUMN REPOSITORY_ID BIGINT NOT NULL AUTO_INCREMENT,
+      ADD UNIQUE INDEX IDX_REPOSITORY_ID (REPOSITORY_ID)
+  </sql>
+</changeSet>

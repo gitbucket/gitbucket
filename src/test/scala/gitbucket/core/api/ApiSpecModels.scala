@@ -71,7 +71,8 @@ object ApiSpecModels {
       mergeOptions = "merge-commit,squash,rebase",
       defaultMergeOption = "merge-commit",
       safeMode = true
-    )
+    ),
+    repositoryId = 1L
   )
 
   val repositoryInfo: RepositoryInfo = RepositoryInfo(
@@ -506,16 +507,17 @@ object ApiSpecModels {
        |}""".stripMargin
 
   val jsonRepository: String = s"""{
+       |"id":1,
        |"name":"Hello-World",
        |"full_name":"octocat/Hello-World",
        |"description":"This your first repo!",
+       |"fork":true,
        |"watchers":0,
        |"forks":1,
        |"private":false,
        |"default_branch":"main",
        |"owner":$jsonUser,
        |"has_issues":true,
-       |"id":0,
        |"forks_count":1,
        |"watchers_count":0,
        |"url":"http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World",
