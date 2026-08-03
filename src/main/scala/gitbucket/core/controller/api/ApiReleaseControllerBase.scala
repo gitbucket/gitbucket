@@ -8,7 +8,7 @@ import gitbucket.core.util.Directory.getReleaseFilesDir
 import gitbucket.core.util.{FileUtil, ReferrerAuthenticator, RepositoryName, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import org.apache.commons.io.FileUtils
-import org.scalatra.NoContent
+import org.scalatra.{BadRequest, NoContent}
 
 trait ApiReleaseControllerBase extends ControllerBase {
   self: AccountService & ReleaseService & ReferrerAuthenticator & WritableUsersAuthenticator =>
@@ -66,9 +66,7 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/releases/#create-a-release
    */
   post("/api/v3/repos/:owner/:repository/releases")(writableUsersOnly { repository =>
-    (for {
-      data <- extractFromJsonBody[CreateARelease]
-    } yield {
+    extractFromJsonBody[CreateARelease].map { data =>
       createRelease(
         repository.owner,
         repository.name,
@@ -80,7 +78,7 @@ trait ApiReleaseControllerBase extends ControllerBase {
       val release = getRelease(repository.owner, repository.name, data.tag_name).get
       val assets = getReleaseAssets(repository.owner, repository.name, data.tag_name)
       JsonFormat(ApiRelease(release, assets, context.loginAccount.get, RepositoryName(repository)))
-    })
+    } getOrElse BadRequest()
   })
 
   /**
@@ -89,15 +87,13 @@ trait ApiReleaseControllerBase extends ControllerBase {
    * Incompatibility info: GitHub API requires :release_id, but GitBucket API requires :tag_name
    */
   patch("/api/v3/repos/:owner/:repository/releases/:tag")(writableUsersOnly { repository =>
-    (for {
-      data <- extractFromJsonBody[CreateARelease]
-    } yield {
+    extractFromJsonBody[CreateARelease].map { data =>
       val tag = params("tag")
       updateRelease(repository.owner, repository.name, tag, data.name.getOrElse(data.tag_name), data.body)
       val release = getRelease(repository.owner, repository.name, data.tag_name).get
       val assets = getReleaseAssets(repository.owner, repository.name, data.tag_name)
       JsonFormat(ApiRelease(release, assets, context.loginAccount.get, RepositoryName(repository)))
-    })
+    } getOrElse BadRequest()
   })
 
   /**

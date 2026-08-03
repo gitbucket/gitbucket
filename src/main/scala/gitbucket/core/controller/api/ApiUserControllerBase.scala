@@ -5,7 +5,7 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.util.{AdminAuthenticator, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
-import org.scalatra.NoContent
+import org.scalatra.{BadRequest, NoContent}
 
 trait ApiUserControllerBase extends ControllerBase {
   self: RepositoryService & AccountService & AdminAuthenticator & UsersAuthenticator =>
@@ -45,7 +45,7 @@ trait ApiUserControllerBase extends ControllerBase {
       )
       updateAccount(updatedAccount)
       JsonFormat(ApiUser(updatedAccount))
-    })
+    }) getOrElse BadRequest()
   })
 
   /*
@@ -66,7 +66,7 @@ trait ApiUserControllerBase extends ControllerBase {
    * https://developer.github.com/enterprise/2.14/v3/enterprise-admin/users/#create-a-new-user
    */
   post("/api/v3/admin/users")(adminOnly {
-    for {
+    (for {
       data <- extractFromJsonBody[CreateAUser]
     } yield {
       val user = createAccount(
@@ -79,7 +79,7 @@ trait ApiUserControllerBase extends ControllerBase {
         data.url
       )
       JsonFormat(ApiUser(user))
-    }
+    }) getOrElse BadRequest()
   })
 
   /*

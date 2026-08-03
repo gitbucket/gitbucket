@@ -10,7 +10,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util._
 import org.eclipse.jgit.api.Git
-import org.scalatra.{Conflict, MethodNotAllowed, NoContent, Ok}
+import org.scalatra.{BadRequest, Conflict, MethodNotAllowed, NoContent, Ok}
 import scala.util.Using
 
 import scala.jdk.CollectionConverters._
@@ -75,9 +75,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * requested #1843
    */
   post("/api/v3/repos/:owner/:repository/pulls")(readableUsersOnly { repository =>
-    (for {
-      data <- extractFromJsonBody[Either[CreateAPullRequest, CreateAPullRequestAlt]]
-    } yield {
+    extractFromJsonBody[Either[CreateAPullRequest, CreateAPullRequestAlt]].map { data =>
       data match {
         case Left(createPullReq) =>
           val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReq.head, repository.owner)
@@ -146,7 +144,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
               NotFound()
             }
       }
-    })
+    } getOrElse BadRequest()
   })
 
   /*
