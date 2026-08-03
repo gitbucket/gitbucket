@@ -345,8 +345,8 @@ object ApiSpecModels {
                        |\ No newline at end of file""".stripMargin)
       )
     ),
-    author = account,
-    committer = account,
+    author = Some(account),
+    committer = Some(account),
     commentCount = 2
   )
 

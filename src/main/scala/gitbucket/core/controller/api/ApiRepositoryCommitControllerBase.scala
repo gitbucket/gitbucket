@@ -1,7 +1,6 @@
 package gitbucket.core.controller.api
 import gitbucket.core.api.{ApiBranchCommit, ApiBranchForHeadCommit, ApiCommits, JsonFormat}
 import gitbucket.core.controller.ControllerBase
-import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, CommitsService, ProtectedBranchService}
 import gitbucket.core.util.Directory.getRepositoryDir
 import gitbucket.core.util.Implicits.*
@@ -77,8 +76,8 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
             repositoryName = RepositoryName(repository),
             commitInfo = commitInfo,
             diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
-            author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
-            committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
+            author = getAccountByMailAddress(commitInfo.authorEmailAddress),
+            committer = getAccountByMailAddress(commitInfo.committerEmailAddress),
             commentCount = getCommitComment(repository.owner, repository.name, commitInfo.id).size
           )
         })
@@ -107,33 +106,13 @@ trait ApiRepositoryCommitControllerBase extends ControllerBase {
           repositoryName = RepositoryName(repository),
           commitInfo = commitInfo,
           diffs = JGitUtil.getDiffs(git, commitInfo.parents.headOption, commitInfo.id, false, true),
-          author = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
-          committer = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
+          author = getAccountByMailAddress(commitInfo.authorEmailAddress),
+          committer = getAccountByMailAddress(commitInfo.committerEmailAddress),
           commentCount = getCommitComment(repository.owner, repository.name, sha).size
         )
       )
     }
   })
-
-  private def getAccount(userName: String, email: String): Account = {
-    getAccountByMailAddress(email).getOrElse {
-      Account(
-        userName = userName,
-        fullName = userName,
-        mailAddress = email,
-        password = "xxx",
-        isAdmin = false,
-        url = None,
-        registeredDate = new java.util.Date(),
-        updatedDate = new java.util.Date(),
-        lastLoginDate = None,
-        image = None,
-        isGroupAccount = false,
-        isRemoved = true,
-        description = None
-      )
-    }
-  }
 
   /*
    * iii. Get the SHA-1 of a commit reference

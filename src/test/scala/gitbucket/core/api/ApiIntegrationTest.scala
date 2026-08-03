@@ -4,7 +4,7 @@ import gitbucket.core.TestingGitBucketServer
 import gitbucket.core.api.ApiError
 import org.apache.commons.io.IOUtils
 import org.eclipse.jgit.api.Git
-import org.json4s.{DefaultFormats, jvalue2extractable}
+import org.json4s.{DefaultFormats, JArray, JObject, JNull, JString, jvalue2extractable}
 import org.json4s.jackson.JsonMethods.parse
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -168,6 +168,55 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(tags.size() == 1)
         assert(tags.get(0).getName == "v1.0")
       }
+    }
+  }
+
+  test("commit APIs return null account fields for an unmapped Git author") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("unmapped_commit_author").autoInit(true).create()
+
+      val bareRepository = new File(server.getDirectory(), "repositories/root/unmapped_commit_author")
+      val workTree = new File(server.getDirectory(), "unmapped_commit_author-worktree")
+      val commitId =
+        Using.resource(Git.cloneRepository().setURI(bareRepository.toURI.toString).setDirectory(workTree).call()) {
+          git =>
+            val commit = git
+              .commit()
+              .setAllowEmpty(true)
+              .setMessage("Commit from an unmapped Git identity")
+              .setAuthor("Unmapped Author", "unmapped-author@example.invalid")
+              .setCommitter("Unmapped Committer", "unmapped-committer@example.invalid")
+              .call()
+            git.push().call()
+            commit.getName
+        }
+
+      val listResponse = server.getApi("/api/v3/repos/root/unmapped_commit_author/commits", "root", "root")
+      assert(listResponse.status == 200)
+      val listCommit = parse(listResponse.body).asInstanceOf[JArray].arr.head
+      def field(json: JObject, name: String) = json.obj.collectFirst { case (`name`, value) => value }.get
+      assert(field(listCommit.asInstanceOf[JObject], "author") == JNull)
+      assert(field(listCommit.asInstanceOf[JObject], "committer") == JNull)
+
+      val singleResponse =
+        server.getApi(s"/api/v3/repos/root/unmapped_commit_author/commits/${commitId}", "root", "root")
+      assert(singleResponse.status == 200)
+      val singleCommit = parse(singleResponse.body).asInstanceOf[JObject]
+      assert(field(singleCommit, "author") == JNull)
+      assert(field(singleCommit, "committer") == JNull)
+
+      val singleCommitInfo = field(singleCommit, "commit").asInstanceOf[JObject]
+      val singleCommitAuthor = field(singleCommitInfo, "author").asInstanceOf[JObject]
+      val singleCommitCommitter = field(singleCommitInfo, "committer").asInstanceOf[JObject]
+      assert(
+        field(singleCommitAuthor, "name") == JString("Unmapped Author") &&
+          field(singleCommitAuthor, "email") == JString("unmapped-author@example.invalid")
+      )
+      assert(
+        field(singleCommitCommitter, "name") == JString("Unmapped Committer") &&
+          field(singleCommitCommitter, "email") == JString("unmapped-committer@example.invalid")
+      )
     }
   }
 
