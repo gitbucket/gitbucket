@@ -25,6 +25,26 @@ class AccountServiceSpec extends AnyFunSuite with ServiceSpecBase {
     }
   }
 
+  test("getAccountById") {
+    withTestDB { implicit session =>
+      val root = AccountService.getAccountByUserName("root").get
+
+      assert(AccountService.getAccountById(root.accountId).get.userName == "root")
+      assert(AccountService.getAccountById(-1L).isEmpty)
+    }
+  }
+
+  test("getAccountById excludes removed accounts by default but can include them") {
+    withTestDB { implicit session =>
+      val created =
+        AccountService.createAccount("removed_id_user", "password", "Removed", "removed@example.com", false, None, None)
+      AccountService.updateAccount(created.copy(isRemoved = true))
+
+      assert(AccountService.getAccountById(created.accountId).isEmpty)
+      assert(AccountService.getAccountById(created.accountId, includeRemoved = true).isDefined)
+    }
+  }
+
   test("getAccountByMailAddress") {
     withTestDB { implicit session =>
       assert(AccountService.getAccountByMailAddress(RootMailAddress).isDefined)

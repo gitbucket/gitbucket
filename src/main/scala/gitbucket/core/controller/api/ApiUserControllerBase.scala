@@ -31,6 +31,17 @@ trait ApiUserControllerBase extends ControllerBase {
     } getOrElse Unauthorized()
   }
 
+  /**
+   * ii-b. Get a user using their ID
+   * https://docs.github.com/en/rest/users/users#get-a-user-using-their-id
+   * This API also returns group information (as GitHub).
+   */
+  get("/api/v3/user/:id") {
+    params("id").toLongOption.flatMap(getAccountById(_)).map { account =>
+      JsonFormat(ApiUser(account))
+    } getOrElse NotFound()
+  }
+
   /*
    * iii. Update the authenticated user
    * https://developer.github.com/v3/users/#update-the-authenticated-user
