@@ -48,7 +48,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     parentRepositoryName: Option[String]
   )
 
-  private val orphanRepairStartVersion = "4.47.0.1"
+  private val orphanRepairStartVersion = "4.47.0"
   private val schemaPreservationAuthor = "shakespeare"
   private val schemaPreservationConstraints = "limited"
   private val schemaPreservationOwnerUserName = "preserve-owner"
