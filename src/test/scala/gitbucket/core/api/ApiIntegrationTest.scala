@@ -640,4 +640,196 @@ class ApiIntegrationTest extends AnyFunSuite {
       assert(fork.getId != base.getId)
     }
   }
+
+  test("POST /admin/organizations creates an organization with the given profile") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response = server.postApi(
+        "/api/v3/admin/organizations",
+        """{"login":"json-response-org","admin":"root","profile_name":"JSON Response Org"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val organization = parse(response.body).extract[Map[String, Any]]
+      assert(organization("login") == "json-response-org")
+      assert(organization("description") == "JSON Response Org")
+    }
+  }
+
+  test("POST /admin/organizations with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response = server.postApi("/api/v3/admin/organizations", "{", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
+  test("POST /admin/users creates a user with the given login and email") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response = server.postApi(
+        "/api/v3/admin/users",
+        """{"login":"json-response-user","password":"json-response-pass","email":"json-response-user@example.invalid"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val user = parse(response.body).extract[Map[String, Any]]
+      assert(user("login") == "json-response-user")
+      assert(user("email") == "json-response-user@example.invalid")
+      assert(user("type") == "User")
+      assert(user("site_admin") == false)
+    }
+  }
+
+  test("POST /admin/users with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response = server.postApi("/api/v3/admin/users", "{", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
+  test("PATCH /user updates the authenticated user's profile") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser("patch-user-test", "patch-user-pass", "patch-user-test@example.invalid", "root", "root")
+
+      val response = server.patchApi(
+        "/api/v3/user",
+        """{"email":"patch-user-test-updated@example.invalid"}""",
+        "patch-user-test",
+        "patch-user-pass"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val user = parse(response.body).extract[Map[String, Any]]
+      assert(user("login") == "patch-user-test")
+      assert(user("email") == "patch-user-test-updated@example.invalid")
+    }
+  }
+
+  test("PATCH /user with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser("patch-user-bad-body", "patch-user-bad-pass", "patch-user-bad@example.invalid", "root", "root")
+
+      val response = server.patchApi("/api/v3/user", "{", "patch-user-bad-body", "patch-user-bad-pass")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
+  test("POST /repos/:owner/:repo/pulls creates a pull request with the given title and body") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val repo = github.createRepository("pulls_response_test").autoInit(true).create()
+      val sha1 = repo.getBranch("main").getSHA1
+      repo.createRef("refs/heads/feature", sha1)
+      repo
+        .createContent()
+        .content("feature content")
+        .path("feature.txt")
+        .message("Add feature file")
+        .branch("feature")
+        .commit()
+
+      val response = server.postApi(
+        "/api/v3/repos/root/pulls_response_test/pulls",
+        """{"title":"Add feature","head":"feature","base":"main","body":"feature description"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val pullRequest = parse(response.body).extract[Map[String, Any]]
+      assert(pullRequest("title") == "Add feature")
+      assert(pullRequest("body") == "feature description")
+      assert(pullRequest("state") == "open")
+      assert(pullRequest("head").asInstanceOf[Map[String, Any]]("ref") == "feature")
+      assert(pullRequest("base").asInstanceOf[Map[String, Any]]("ref") == "main")
+    }
+  }
+
+  test("POST /repos/:owner/:repo/pulls with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("pulls_bad_body_test").autoInit(true).create()
+
+      val response = server.postApi("/api/v3/repos/root/pulls_bad_body_test/pulls", "{", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
+  test("POST /repos/:owner/:repo/releases creates a release with the given tag and body") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("releases_response_test").autoInit(true).create()
+
+      val response = server.postApi(
+        "/api/v3/repos/root/releases_response_test/releases",
+        """{"tag_name":"v1.0.0","name":"Version 1.0.0","body":"initial release"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val release = parse(response.body).extract[Map[String, Any]]
+      assert(release("tag_name") == "v1.0.0")
+      assert(release("name") == "Version 1.0.0")
+      assert(release("body") == "initial release")
+    }
+  }
+
+  test("POST /repos/:owner/:repo/releases with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("releases_bad_body_test").autoInit(true).create()
+
+      val response = server.postApi("/api/v3/repos/root/releases_bad_body_test/releases", "{", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
+  test("PATCH /repos/:owner/:repo/releases/:tag updates the release name and body") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("release_patch_test").autoInit(true).create()
+
+      val createResponse = server.postApi(
+        "/api/v3/repos/root/release_patch_test/releases",
+        """{"tag_name":"v1.0.0","name":"Version 1.0.0","body":"initial release"}""",
+        "root",
+        "root"
+      )
+      assert(createResponse.status == 200, s"Expected 200 but got ${createResponse.status}")
+
+      val response = server.patchApi(
+        "/api/v3/repos/root/release_patch_test/releases/v1.0.0",
+        """{"tag_name":"v1.0.0","name":"Version 1.0.0 - updated","body":"updated release notes"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val release = parse(response.body).extract[Map[String, Any]]
+      assert(release("tag_name") == "v1.0.0")
+      assert(release("name") == "Version 1.0.0 - updated")
+      assert(release("body") == "updated release notes")
+    }
+  }
+
+  test("PATCH /repos/:owner/:repo/releases/:tag with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("release_patch_bad_body_test").autoInit(true).create()
+
+      server.postApi(
+        "/api/v3/repos/root/release_patch_bad_body_test/releases",
+        """{"tag_name":"v1.0.0","name":"Version 1.0.0","body":"initial release"}""",
+        "root",
+        "root"
+      )
+
+      val response =
+        server.patchApi("/api/v3/repos/root/release_patch_bad_body_test/releases/v1.0.0", "{", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
 }

@@ -6,7 +6,7 @@ import java.io.File
 
 import gitbucket.core.util.{FileUtil, HttpClientUtil}
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.{HttpGet, HttpPost}
+import org.apache.http.client.methods.{HttpGet, HttpPatch, HttpPost}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
 import org.apache.http.message.BasicNameValuePair
@@ -170,6 +170,34 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
       val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
       get.setHeader("Authorization", s"Basic $credentials")
       val response = httpClient.execute(get)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
+  /** Perform an authenticated POST request with a JSON body and return the status code and response body. */
+  def postApi(path: String, body: String, login: String, password: String): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port$path")
+      val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
+      post.setHeader("Authorization", s"Basic $credentials")
+      post.setHeader("Content-Type", "application/json")
+      post.setEntity(new StringEntity(body, "UTF-8"))
+      val response = httpClient.execute(post)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
+  /** Perform an authenticated PATCH request with a JSON body and return the status code and response body. */
+  def patchApi(path: String, body: String, login: String, password: String): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val patch = new HttpPatch(s"http://localhost:$port$path")
+      val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
+      patch.setHeader("Authorization", s"Basic $credentials")
+      patch.setHeader("Content-Type", "application/json")
+      patch.setEntity(new StringEntity(body, "UTF-8"))
+      val response = httpClient.execute(patch)
       val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
       ApiResponse(response.getStatusLine.getStatusCode, responseBody)
     }
