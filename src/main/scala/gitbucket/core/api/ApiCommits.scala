@@ -55,8 +55,8 @@ object ApiCommits {
     repositoryName: RepositoryName,
     commitInfo: CommitInfo,
     diffs: Seq[DiffInfo],
-    author: Account,
-    committer: Account,
+    author: Option[Account],
+    committer: Option[Account],
     commentCount: Int
   ): ApiCommits = {
     val files = diffs.map { diff =>
@@ -113,8 +113,8 @@ object ApiCommits {
           sha = commitInfo.id
         )
       ),
-      author = ApiUser(author),
-      committer = ApiUser(committer),
+      author = author.map(ApiUser(_)).orNull,
+      committer = committer.map(ApiUser(_)).orNull,
       parents = commitInfo.parents.map { parent =>
         Tree(
           url = ApiPath(
