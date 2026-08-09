@@ -67,3 +67,11 @@ Run `./sbt executable`. The release war file and fingerprint are generated into 
 ./sbt executable
 ```
 Create new release from the corresponding tag on GitHub, then upload the generated jar file and fingerprints to the release.
+
+### Update docker image
+
+When you release a new version of GitBucket, you also need to update the docker image managed in the following repository:
+
+- https://github.com/gitbucket/gitbucket-docker
+
+Update `Dockerfile` in the same was as [this PR](https://github.com/gitbucket/gitbucket-docker/pull/87) and create the same tag as the GitBucket release.
