@@ -131,7 +131,6 @@ object GitBucketCoreModule
         "4.47.0",
         new LiquibaseMigration("update/gitbucket-core_4.47.0-0.xml"),
         new LiquibaseMigration("update/gitbucket-core_4.47.0-1.xml"),
-        new LiquibaseMigration("update/gitbucket-core_4.47.0-2.xml"),
         new Migration() {
           private val logger = LoggerFactory.getLogger(getClass)
 
@@ -165,8 +164,7 @@ object GitBucketCoreModule
               }
           }
         },
-        new LiquibaseMigration("update/gitbucket-core_4.47.0-3.xml"),
-        new LiquibaseMigration("update/gitbucket-core_4.47.0-4.xml")
+        new LiquibaseMigration("update/gitbucket-core_4.47.0-2.xml")
       ),
     ) {
   java.util.logging.Logger.getLogger("liquibase").setLevel(Level.SEVERE)
