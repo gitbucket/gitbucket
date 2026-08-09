@@ -2,7 +2,7 @@
 All changes to the project will be documented in this file.
 
 ## 4.47.0 - 9 Aug 2026
-- Add more secuiry options for creating repositories by cloning
+- Add more security options for creating repositories by cloning
 - Make the reset password token expiration period configurable
 - Improve GitHub API compatibility for repository IDs, fork management
 - Fix issue assignees not being preserved when a repository is renamed or transferred
