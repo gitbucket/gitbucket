@@ -68,7 +68,7 @@ What's New in 4.46.x
 - Fix issue assignees not being preserved when a repository is renamed or transferred
 - Improvements and bug fixes for markdown format actions in the text editor
 
-**Note 1:** This version includes a large database migration regarding core tables like `REPOSITORY` and `ACCOUNT` for imporving fork management. Highly recommend to take a backup of your database before upgrading.
+**Note 1:** This release includes a large database migration affecting core tables such as `REPOSITORY` and `ACCOUNT`. We strongly recommend backing up your database before upgrading to GitBucket 4.47.0.
 
 **Note 2:** You have to migrate h2 database file if you will upgrade GitBucket from 4.42 or before to 4.43 or later and you are using the default h2 database because h2 1.x and h2.x don't have compatibility: https://www.h2database.com/html/migration-to-v2.html
 
