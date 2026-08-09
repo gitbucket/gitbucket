@@ -59,9 +59,9 @@ Support
 - If you can't find same question and report, send it to our [Gitter chat room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.46.x
+What's New in 4.47.x
 -------------
-## 4.47.0 - 9 Aug 2026
+### 4.47.0 - 9 Aug 2026
 - Add more secuiry options for creating repositories by cloning
 - Make the reset password token expiration period configurable
 - Improve GitHub API compatibility for repository IDs, fork management
