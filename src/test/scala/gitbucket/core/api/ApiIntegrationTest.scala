@@ -587,6 +587,92 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("user and organization IDs are non-zero and distinct") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      server.createOrganization("testorg", "root", "root")
+
+      val user = github.getUser("root")
+      val org = github.getOrganization("testorg")
+
+      assert(user.getId != 0)
+      assert(org.getId != 0)
+      assert(user.getId != org.getId)
+    }
+  }
+
+  test("GET /user/:id returns the user") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val id = github.getUser("root").getId
+
+      val response = server.getApi(s"/api/v3/user/$id", "root", "root")
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val body = parse(response.body).extract[Map[String, Any]]
+      assert(body("id").asInstanceOf[BigInt].toLong == id)
+      assert(body("login") == "root")
+      assert(body("type") == "User")
+    }
+  }
+
+  test("GET /user/:id returns organization info for an organization ID") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      server.createOrganization("id_lookup_org", "root", "root")
+      val id = github.getOrganization("id_lookup_org").getId
+
+      val response = server.getApi(s"/api/v3/user/$id", "root", "root")
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val body = parse(response.body).extract[Map[String, Any]]
+      assert(body("id").asInstanceOf[BigInt].toLong == id)
+      assert(body("login") == "id_lookup_org")
+      assert(body("type") == "Organization")
+    }
+  }
+
+  test("GET /user/:id with an unknown ID returns 404") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response = server.getApi("/api/v3/user/999999999", "root", "root")
+      assert(response.status == 404, s"Expected 404 for an unknown ID but got ${response.status}")
+    }
+  }
+
+  test("GET /user/:id with a non-numeric ID returns 404") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response = server.getApi("/api/v3/user/not-a-number", "root", "root")
+      assert(response.status == 404, s"Expected 404 for a non-numeric ID but got ${response.status}")
+    }
+  }
+
+  test("GET /user/:id for a suspended user returns 404") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser("suspend_id_test", "suspend_id_test_pw", "suspend_id_test@example.com", "root", "root")
+      val id = server.client("root", "root").getUser("suspend_id_test").getId
+
+      server.suspendUser("suspend_id_test", "root", "root")
+
+      val response = server.getApi(s"/api/v3/user/$id", "root", "root")
+      assert(response.status == 404, s"Expected 404 for a suspended user but got ${response.status}")
+    }
+  }
+
+  test("GET /user/:id works without authentication and returns the same fields as an authenticated request") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val id = github.getUser("root").getId
+
+      val anonymous = server.getAnonymousApi(s"/api/v3/user/$id")
+      assert(anonymous.status == 200, s"Expected 200 for anonymous access but got ${anonymous.status}")
+
+      val authenticated = server.getApi(s"/api/v3/user/$id", "root", "root")
+      assert(authenticated.status == 200, s"Expected 200 for authenticated access but got ${authenticated.status}")
+
+      assert(anonymous.body == authenticated.body)
+    }
+  }
+
   test("Git refs APIs") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")

@@ -6,7 +6,7 @@ import java.io.File
 
 import gitbucket.core.util.{FileUtil, HttpClientUtil}
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.{HttpGet, HttpPatch, HttpPost}
+import org.apache.http.client.methods.{HttpGet, HttpPatch, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
 import org.apache.http.message.BasicNameValuePair
@@ -203,6 +203,24 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     }
   }
 
+  /** Perform an authenticated PUT request with no body and return the status code and response body. */
+  def putApi(path: String, login: String, password: String): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val put = new HttpPut(s"http://localhost:$port$path")
+      val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
+      put.setHeader("Authorization", s"Basic $credentials")
+      val response = httpClient.execute(put)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
+  /** Suspend a user via the admin REST API. */
+  def suspendUser(login: String, adminLogin: String, adminPassword: String): Unit = {
+    val response = putApi(s"/api/v3/users/$login/suspended", adminLogin, adminPassword)
+    assert(response.status == 204, s"suspendUser failed with status ${response.status}")
+  }
+
   /** Wait for a repository to appear via the API. Forking may be asynchronous, so
    *  callers cannot rely on the fork POST completing synchronously. */
   def waitForRepository(client: GitHub, fullName: String, timeoutMillis: Long = 10000): GHRepository = {
@@ -220,6 +238,15 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
       val response = httpClient.execute(new HttpGet(s"http://localhost:$port$path"))
       EntityUtils.consume(response.getEntity)
       response.getStatusLine.getStatusCode
+    }
+  }
+
+  /** Perform an unauthenticated GET request and return the status code and response body. */
+  def getAnonymousApi(path: String): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val response = httpClient.execute(new HttpGet(s"http://localhost:$port$path"))
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
     }
   }
 

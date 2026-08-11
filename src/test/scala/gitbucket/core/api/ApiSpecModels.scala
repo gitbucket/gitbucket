@@ -31,6 +31,7 @@ object ApiSpecModels {
   // Models
 
   val account: Account = Account(
+    accountId = 1L,
     userName = "octocat",
     fullName = "octocat",
     mailAddress = "octocat@example.com",
@@ -495,12 +496,12 @@ object ApiSpecModels {
   // JSON String for APIs
 
   val jsonUser: String = """{
+       |"id":1,
        |"login":"octocat",
        |"email":"octocat@example.com",
        |"type":"User",
        |"site_admin":false,
        |"created_at":"2011-04-14T16:00:49Z",
-       |"id":0,
        |"url":"http://gitbucket.exmple.com/api/v3/users/octocat",
        |"html_url":"http://gitbucket.exmple.com/octocat",
        |"avatar_url":"http://gitbucket.exmple.com/octocat/_avatar"
@@ -794,10 +795,10 @@ object ApiSpecModels {
        |}""".stripMargin
 
   val jsonGroup: String = """{
+       |"id":1,
        |"login":"octocat",
        |"description":"Admin group",
        |"created_at":"2011-04-14T16:00:49Z",
-       |"id":0,
        |"url":"http://gitbucket.exmple.com/api/v3/orgs/octocat",
        |"html_url":"http://gitbucket.exmple.com/octocat",
        |"avatar_url":"http://gitbucket.exmple.com/octocat/_avatar"
