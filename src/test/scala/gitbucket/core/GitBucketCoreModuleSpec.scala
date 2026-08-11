@@ -12,17 +12,19 @@ import org.apache.commons.io.FileUtils
 import org.junit.runner.Description
 import org.eclipse.jgit.api.Git
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Tag
+import org.scalatest.{BeforeAndAfterAll, Tag}
+import org.testcontainers.lifecycle.Startable
 import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
-class GitBucketCoreModuleSpec extends AnyFunSuite {
+class GitBucketCoreModuleSpec extends AnyFunSuite with BeforeAndAfterAll {
 
   private case class ColumnMetadata(name: String, sqlType: Int, size: Int, autoIncrement: Boolean)
   private case class TableSnapshot(columns: Seq[String], rows: Seq[Seq[String]])
@@ -633,103 +635,134 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   implicit private val suiteDescription: Description = Description.createSuiteDescription(getClass)
 
-  Seq("8.4", "5.7").foreach { tag =>
-    test(s"Migration MySQL $tag", ExternalDBTest) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
+  // Register Docker containers for testing to this list. The containers will be stopped after all tests.
+  private val containers = new ListBuffer[Startable]()
+
+  override def afterAll() = {
+    containers.foreach { container =>
       try {
-        new Solidbase().migrate(
-          DriverManager.getConnection(
-            container.getJdbcUrl,
-            container.getUsername,
-            container.getPassword
-          ),
-          Thread.currentThread().getContextClassLoader(),
-          new MySQLDatabase(),
-          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-        )
-      } finally {
         container.stop()
+      } catch {
+        case e: Exception => e.printStackTrace()
       }
+    }
+  }
+
+  private implicit class TestingMySQLContainer(container: MySQLContainer) {
+    def createDatabase(database: String): Unit = {
+      container.execInContainer("mysql", "-uroot", "-ptest", "-e", s"CREATE DATABASE ${database}")
+      container.execInContainer(
+        "mysql",
+        "-uroot",
+        "-ptest",
+        "-e",
+        s"GRANT ALL PRIVILEGES ON ${database}.* TO 'test'@'%'"
+      )
+    }
+
+    def jdbcUrl(database: String): String = {
+      s"jdbc:mysql://${container.getHost()}:${container.getMappedPort(MySQLContainer.MYSQL_PORT)}/${database}?permitMysqlScheme"
+    }
+  }
+
+  private implicit class TestingPostgreSQLContainer(container: PostgreSQLContainer) {
+    def createDatabase(database: String): Unit = {
+      container.execInContainer("psql", "-U", "test", "-c", s"CREATE DATABASE ${database}")
+    }
+    def jdbcUrl(database: String): String = {
+      s"jdbc:postgresql://${container.getHost()}:${container.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)}/${database}"
+    }
+  }
+
+  Seq("8.4", "5.7").foreach { tag =>
+    val container = new MySQLContainer(s"mysql:$tag") {
+      override def getDriverClassName = "org.mariadb.jdbc.Driver"
+      override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
+    }
+    container.start()
+    containers.addOne(container)
+
+    test(s"Migration MySQL $tag", ExternalDBTest) {
+      container.createDatabase("migration_test")
+
+      new Solidbase().migrate(
+        DriverManager.getConnection(
+          container.jdbcUrl("migration_test"),
+          container.getUsername,
+          container.getPassword
+        ),
+        Thread.currentThread().getContextClassLoader(),
+        new MySQLDatabase(),
+        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
+      )
     }
 
     test(
       s"Migration MySQL $tag repairs missing origin and parent repositories before adding self-referential constraints",
       ExternalDBTest
     ) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
-      try {
-        withRepositoryDirCleanup {
-          Using.resource(
-            DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
-          ) { conn =>
-            assertOrphanRepairMigration(conn, new MySQLDatabase())
-          }
+      container.createDatabase("migration_test_repair_missing_repos")
+
+      withRepositoryDirCleanup {
+        Using.resource(
+          DriverManager.getConnection(
+            container.jdbcUrl("migration_test_repair_missing_repos"),
+            container.getUsername,
+            container.getPassword
+          )
+        ) { conn =>
+          assertOrphanRepairMigration(conn, new MySQLDatabase())
         }
-      } finally {
-        container.stop()
       }
     }
 
     test(s"Migration MySQL $tag ensure repository data is preserved after 4.47 schema changes", ExternalDBTest) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
-      try {
-        Using.resource(
-          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
-        ) { conn =>
-          assertRepositoryDataPreservedBy447Migrations(conn, new MySQLDatabase())
-        }
-      } finally {
-        container.stop()
+      container.createDatabase("migration_test_preserve_repos")
+
+      Using.resource(
+        DriverManager.getConnection(
+          container.jdbcUrl("migration_test_preserve_repos"),
+          container.getUsername,
+          container.getPassword
+        )
+      ) { conn =>
+        assertRepositoryDataPreservedBy447Migrations(conn, new MySQLDatabase())
       }
     }
   }
 
   Seq("14", "18").foreach { tag =>
-    test(s"Migration PostgreSQL $tag", ExternalDBTest) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+    val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+    container.start()
+    containers.addOne(container)
 
-      container.start()
-      try {
-        new Solidbase().migrate(
-          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword),
-          Thread.currentThread().getContextClassLoader(),
-          new PostgresDatabase(),
-          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-        )
-      } finally {
-        container.stop()
-      }
+    test(s"Migration PostgreSQL $tag", ExternalDBTest) {
+      container.createDatabase("migration_test")
+
+      new Solidbase().migrate(
+        DriverManager.getConnection(container.jdbcUrl("migration_test"), container.getUsername, container.getPassword),
+        Thread.currentThread().getContextClassLoader(),
+        new PostgresDatabase(),
+        new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
+      )
     }
 
     test(
       s"Migration PostgreSQL $tag repairs missing origin and parent repositories before adding self-referential constraints",
       ExternalDBTest
     ) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+      container.createDatabase("migration_test_repair_missing_repos")
 
-      container.start()
-      try {
-        withRepositoryDirCleanup {
-          Using.resource(
-            DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
-          ) { conn =>
-            assertOrphanRepairMigration(conn, new PostgresDatabase())
-          }
+      withRepositoryDirCleanup {
+        Using.resource(
+          DriverManager.getConnection(
+            container.jdbcUrl("migration_test_repair_missing_repos"),
+            container.getUsername,
+            container.getPassword
+          )
+        ) { conn =>
+          assertOrphanRepairMigration(conn, new PostgresDatabase())
         }
-      } finally {
-        container.stop()
       }
     }
 
@@ -737,19 +770,17 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       s"Migration PostgreSQL $tag ensure repository data is preserved after 4.47 schema changes",
       ExternalDBTest
     ) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+      container.createDatabase("migration_test_preserve_repos")
 
-      container.start()
-      try {
-        Using.resource(
-          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
-        ) { conn =>
-          assertRepositoryDataPreservedBy447Migrations(conn, new PostgresDatabase())
-        }
-      } finally {
-        container.stop()
+      Using.resource(
+        DriverManager.getConnection(
+          container.jdbcUrl("migration_test_preserve_repos"),
+          container.getUsername,
+          container.getPassword
+        )
+      ) { conn =>
+        assertRepositoryDataPreservedBy447Migrations(conn, new PostgresDatabase())
       }
     }
   }
-
 }
