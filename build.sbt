@@ -100,6 +100,12 @@ Test / testOptions += Tests.Setup(() => new java.io.File("target/gitbucket_home_
 Test / fork := true
 Test / testForkedParallel := false
 
+// Provisions the ExecutorService that suites mixing in ParallelTestExecution
+// use to run their own tests concurrently. This does not make sbt schedule
+// different suites concurrently with each other; that remains governed by
+// Test/testForkedParallel and Test/testGrouping above.
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-P8")
+
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 

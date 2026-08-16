@@ -14,7 +14,7 @@ import org.apache.commons.io.FileUtils
 import org.junit.runner.Description
 import org.eclipse.jgit.api.Git
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Tag
+import org.scalatest.{ParallelTestExecution, Tag}
 import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -24,7 +24,7 @@ import scala.util.Using
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
-class GitBucketCoreModuleSpec extends AnyFunSuite {
+class GitBucketCoreModuleSpec extends AnyFunSuite with ParallelTestExecution {
 
   private case class ColumnMetadata(name: String, sqlType: Int, size: Int, autoIncrement: Boolean)
   private case class TableSnapshot(columns: Seq[String], rows: Seq[Seq[String]])
