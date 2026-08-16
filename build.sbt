@@ -98,6 +98,7 @@ Container / javaOptions += "-Dlogback.configurationFile=/logback-dev.xml"
 Test / javaOptions += "-Dgitbucket.home=target/gitbucket_home_for_test"
 Test / testOptions += Tests.Setup(() => new java.io.File("target/gitbucket_home_for_test").mkdir())
 Test / fork := true
+Test / testForkedParallel := false
 
 // Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
