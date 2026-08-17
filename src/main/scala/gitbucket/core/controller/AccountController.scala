@@ -359,7 +359,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
     getAccountByUserName(userName, includeRemoved = true).map { account =>
       if (isLastAdministrator(account)) {
-        flash.update("error", "Account can't be removed because this is last one administrator.")
+        flash.update("error", "Account can't be removed because this one is the last administrator.")
         redirect(s"/$userName/_danger_zone")
       } else {
 //      // Remove repositories
