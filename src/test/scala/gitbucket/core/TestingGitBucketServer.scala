@@ -142,6 +142,17 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     }
   }
 
+  /** Rename another user's account via the admin user management UI. */
+  def renameAccountAsAdmin(oldLogin: String, newLogin: String, adminLogin: String, adminPassword: String): Unit = {
+    withWebSession(adminLogin, adminPassword) { httpClient =>
+      val rename = new HttpPost(s"http://localhost:$port/admin/users/$oldLogin/_rename")
+      rename.setEntity(new UrlEncodedFormEntity(JArrays.asList(new BasicNameValuePair("newUserName", newLogin))))
+      val renameResponse = httpClient.execute(rename)
+      EntityUtils.consume(renameResponse.getEntity)
+      assert(renameResponse.getStatusLine.getStatusCode == 302, "admin rename account request failed")
+    }
+  }
+
   /** Delete a repository via the web settings form. */
   def deleteRepository(owner: String, name: String, login: String, password: String): Unit = {
     withWebSession(login, password) { httpClient =>
