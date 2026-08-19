@@ -64,6 +64,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     clearImage: Boolean
   )
 
+  private case class RenameAccountForm(newUserName: String)
+
   private case class SshKeyForm(title: String, publicKey: String)
 
   private case class GpgKeyForm(title: String, publicKey: String)
@@ -97,6 +99,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "fileId" -> trim(label("File ID", optional(text()))),
     "clearImage" -> trim(label("Clear image", boolean()))
   )(AccountEditForm.apply)
+
+  private val renameForm = mapping(
+    "newUserName" -> trim(
+      label("New user name", text(required, maxlength(100), identifier, reservedNames, renameUserName))
+    )
+  )(RenameAccountForm.apply)
 
   private val sshKeyForm = mapping(
     "title" -> trim(label("Title", text(required, maxlength(100)))),
@@ -353,6 +361,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       } getOrElse NotFound()
     }
   )
+
+  post("/:userName/_rename", renameForm)(oneselfOnlyWithForm { form =>
+    val userName = params("userName")
+    getAccountByUserName(userName).map { _ =>
+      if (userName != form.newUserName) {
+        renameAccount(userName, form.newUserName)
+        // Keep the current session in sync if the signed in user renamed themself
+        context.loginAccount.withFilter(_.userName == userName).foreach { account =>
+          session.setAttribute(Keys.Session.LoginAccount, account.copy(userName = form.newUserName))
+        }
+      }
+      redirect(s"/${form.newUserName}/_danger_zone")
+    } getOrElse NotFound()
+  })
 
   post("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
@@ -920,6 +942,27 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   private def existsAccount: Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if (getAccountByUserNameIgnoreCase(value).isEmpty) Some("User or group does not exist.") else None
+  }
+
+  /**
+   * Duplicate check for the rename user name.
+   */
+  private def renameUserName: Constraint = new Constraint() {
+    override def validate(
+      name: String,
+      value: String,
+      params: Map[String, Seq[String]],
+      messages: Messages
+    ): Option[String] = {
+      val currentUserName = params.optionValue("userName")
+      if (currentUserName.contains(value)) {
+        None
+      } else {
+        getAccountByUserNameIgnoreCase(value, true).collect {
+          case account if !currentUserName.contains(account.userName) => "Account already exists."
+        }
+      }
+    }
   }
 
   private def uniqueRepository: Constraint = new Constraint() {

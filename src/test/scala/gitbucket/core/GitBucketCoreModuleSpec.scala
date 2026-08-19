@@ -49,6 +49,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
   )
 
   private val orphanRepairStartVersion = "4.47.0"
+  private val accountCascadeStartVersion = "4.49.0"
   private val schemaPreservationAuthor = "shakespeare"
   private val schemaPreservationConstraints = "limited"
   private val schemaPreservationOwnerUserName = "preserve-owner"
@@ -120,6 +121,13 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     GitBucketCoreModule.getModuleId,
     GitBucketCoreModule.getVersions.asScala
       .takeWhile(_.getVersion != orphanRepairStartVersion)
+      .toList
+      .asJava
+  )
+  private val moduleBeforeAccountCascade = new Module(
+    GitBucketCoreModule.getModuleId,
+    GitBucketCoreModule.getVersions.asScala
+      .takeWhile(_.getVersion != accountCascadeStartVersion)
       .toList
       .asJava
   )
@@ -480,7 +488,12 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     val repositoryColumnsBeforeMigration = beforeSnapshots("REPOSITORY").columns
     val accountColumnsBeforeMigration = beforeSnapshots("ACCOUNT").columns
 
-    migrate(conn, db, fullModule)
+    // Scoped to moduleBeforeAccountCascade (not fullModule) deliberately: this asserts only
+    // the 4.47/4.48 schema changes preserve data. The 4.49.0 migration has its own intentional
+    // data-repair behavior (a dangling RELEASE_ASSET.UPLOADER such as schemaPreservationUploader
+    // below gets a placeholder account), which is verified instead by
+    // assertAccountCascadeMigration.
+    migrate(conn, db, moduleBeforeAccountCascade)
 
     schemaPreservationSnapshotTables.foreach { tableName =>
       val expected = beforeSnapshots(tableName)
@@ -505,6 +518,76 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     val accountIds = accountIdSnapshot.rows.map(_.last)
     assert(accountIds.forall(id => id.nonEmpty && id != "0"))
     assert(accountIds.distinct.size == accountIds.size)
+  }
+
+  private def extraMailAddressUserNames(conn: Connection): Seq[String] =
+    Using.resource(
+      conn.prepareStatement("SELECT USER_NAME FROM ACCOUNT_EXTRA_MAIL_ADDRESS ORDER BY USER_NAME")
+    ) { statement =>
+      Using.resource(statement.executeQuery()) { rs =>
+        Iterator.continually(rs.next()).takeWhile(identity).map(_ => rs.getString("USER_NAME")).toSeq
+      }
+    }
+
+  private def renameAccount(conn: Connection, oldUserName: String, newUserName: String): Unit =
+    Using.resource(conn.prepareStatement("UPDATE ACCOUNT SET USER_NAME = ? WHERE USER_NAME = ?")) { statement =>
+      statement.setString(1, newUserName)
+      statement.setString(2, oldUserName)
+      statement.executeUpdate()
+    }
+
+  /**
+   * Verifies the two things the 4.49.0 migration is responsible for:
+   *   - a dangling reference with no matching ACCOUNT row is repaired before its new constraint
+   *     is added (ACCOUNT_EXTRA_MAIL_ADDRESS rows are deleted, since unlike a pull request or a
+   *     comment they carry no meaning without the account they belong to)
+   *   - once the new constraints are in place, renaming an account (a plain UPDATE on
+   *     ACCOUNT.USER_NAME) actually cascades to a referencing row, rather than merely not
+   *     rejecting it
+   */
+  private def assertAccountCascadeMigration(conn: Connection, db: Database): Unit = {
+    migrate(conn, db, moduleBeforeAccountCascade)
+
+    insertRow(
+      conn,
+      "ACCOUNT",
+      Map(
+        "USER_NAME" -> "cascade-owner",
+        "MAIL_ADDRESS" -> "cascade-owner@example.com",
+        "PASSWORD" -> "cascade-password",
+        "FULL_NAME" -> "Cascade Owner",
+        "ADMINISTRATOR" -> false,
+        "URL" -> "https://example.invalid/cascade-owner",
+        "REGISTERED_DATE" -> fixedTimestamp,
+        "UPDATED_DATE" -> fixedTimestamp,
+        "LAST_LOGIN_DATE" -> fixedTimestamp,
+        "IMAGE" -> "cascade-owner.png",
+        "GROUP_ACCOUNT" -> false,
+        "REMOVED" -> false,
+        "DESCRIPTION" -> "cascade owner description"
+      )
+    )
+    insertRow(
+      conn,
+      "ACCOUNT_EXTRA_MAIL_ADDRESS",
+      Map("USER_NAME" -> "cascade-owner", "EXTRA_MAIL_ADDRESS" -> "cascade-extra@example.com")
+    )
+    insertRow(
+      conn,
+      "ACCOUNT_EXTRA_MAIL_ADDRESS",
+      Map("USER_NAME" -> "cascade-orphan", "EXTRA_MAIL_ADDRESS" -> "orphan-extra@example.com")
+    )
+
+    migrate(conn, db, fullModule)
+
+    assert(extraMailAddressUserNames(conn) == Seq("cascade-owner"), "orphaned extra mail address row was not removed")
+
+    renameAccount(conn, "cascade-owner", "cascade-owner-renamed")
+
+    assert(
+      extraMailAddressUserNames(conn) == Seq("cascade-owner-renamed"),
+      "renaming the account did not cascade to ACCOUNT_EXTRA_MAIL_ADDRESS"
+    )
   }
 
   private def accountRows(conn: Connection): Seq[AccountRow] =
@@ -640,6 +723,13 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     }
   }
 
+  test("Migration H2 repairs orphaned account references before enabling ON UPDATE CASCADE") {
+    Using.resource(DriverManager.getConnection("jdbc:h2:mem:test-account-cascade;DB_CLOSE_DELAY=-1", "sa", "sa")) {
+      conn =>
+        assertAccountCascadeMigration(conn, new H2Database())
+    }
+  }
+
   implicit private val suiteDescription: Description = Description.createSuiteDescription(getClass)
 
   Seq("8.4", "5.7").foreach { tag =>
@@ -703,6 +793,26 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
         container.stop()
       }
     }
+
+    test(
+      s"Migration MySQL $tag repairs orphaned account references before enabling ON UPDATE CASCADE",
+      ExternalDBTest
+    ) {
+      val container = new MySQLContainer(s"mysql:$tag") {
+        override def getDriverClassName = "org.mariadb.jdbc.Driver"
+        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
+      }
+      container.start()
+      try {
+        Using.resource(
+          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
+        ) { conn =>
+          assertAccountCascadeMigration(conn, new MySQLDatabase())
+        }
+      } finally {
+        container.stop()
+      }
+    }
   }
 
   Seq("14", "18").foreach { tag =>
@@ -754,6 +864,24 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
           DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
         ) { conn =>
           assertDataPreservedBySchemaMigrations(conn, new PostgresDatabase())
+        }
+      } finally {
+        container.stop()
+      }
+    }
+
+    test(
+      s"Migration PostgreSQL $tag repairs orphaned account references before enabling ON UPDATE CASCADE",
+      ExternalDBTest
+    ) {
+      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+
+      container.start()
+      try {
+        Using.resource(
+          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
+        ) { conn =>
+          assertAccountCascadeMigration(conn, new PostgresDatabase())
         }
       } finally {
         container.stop()

@@ -5,14 +5,17 @@ import gitbucket.core.model.{Account, AccountExtraMailAddress, AccountPreference
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
-import gitbucket.core.util.{LDAPUtil, StringUtil}
+import gitbucket.core.util.{LDAPUtil, LockUtil, StringUtil}
+import gitbucket.core.util.Directory._
 import StringUtil._
 import com.nimbusds.jose.{JWSAlgorithm, JWSHeader}
 import com.nimbusds.jose.crypto.{MACSigner, MACVerifier}
 import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+import org.apache.commons.io.FileUtils
 
+import java.io.File
 import java.security.SecureRandom
 
 trait AccountService {
@@ -232,6 +235,38 @@ trait AccountService {
         account.isRemoved,
         account.description
       )
+
+  /**
+   * Renames a user account.
+   *
+   * USER_NAME is referenced all over the schema, but every one of those foreign keys now
+   * carries ON UPDATE CASCADE (see the 4.49.0 migration), so a single UPDATE on ACCOUNT is
+   * enough for the database to propagate the new name everywhere - including transitively
+   * through REPOSITORY into every repository-scoped table. Only the on-disk directories (which
+   * the database knows nothing about) need to be moved by hand.
+   *
+   * Every repository/wiki/files directory GitBucket ever creates for a user lives directly
+   * under RepositoryHome/{userName}, and every uploaded file lives under
+   * DatabaseHome/{userName}, so each of those two directories can be moved as a single unit
+   * rather than walking the user's repositories one by one.
+   */
+  def renameAccount(oldUserName: String, newUserName: String)(implicit s: Session): Unit = {
+    if (oldUserName != newUserName) {
+      LockUtil.lock(oldUserName) {
+        Accounts.filter(_.userName === oldUserName.bind).map(_.userName).update(newUserName)
+
+        val repositoryDir = new File(RepositoryHome, oldUserName)
+        if (repositoryDir.isDirectory) {
+          FileUtils.moveDirectory(repositoryDir, new File(RepositoryHome, newUserName))
+        }
+
+        val uploadDir = new File(DatabaseHome, oldUserName)
+        if (uploadDir.isDirectory) {
+          FileUtils.moveDirectory(uploadDir, new File(DatabaseHome, newUserName))
+        }
+      }
+    }
+  }
 
   def updateAvatarImage(userName: String, image: Option[String])(implicit s: Session): Unit =
     Accounts.filter(_.userName === userName.bind).map(_.image.?).update(image)
