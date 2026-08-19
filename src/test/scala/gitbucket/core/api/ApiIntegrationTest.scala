@@ -851,6 +851,133 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("PATCH /admin/users/:userName renames a user") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser("rename-api-user", "rename-api-pass", "rename-api-user@example.invalid", "root", "root")
+
+      val response = server.patchApi(
+        "/api/v3/admin/users/rename-api-user",
+        """{"login":"rename-api-user-2"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+
+      val user = parse(response.body).extract[Map[String, Any]]
+      assert(user("login") == "rename-api-user-2")
+
+      val renamed = server.getAnonymousApi("/api/v3/users/rename-api-user-2")
+      assert(renamed.status == 200, s"expected renamed account to be reachable, got ${renamed.status}")
+
+      val old = server.getAnonymousApi("/api/v3/users/rename-api-user")
+      assert(old.status == 404, s"expected the old user name to no longer exist, got ${old.status}")
+    }
+  }
+
+  test("PATCH /admin/users/:userName is rejected for a non-administrator") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser(
+        "rename-api-nonadmin",
+        "rename-api-nonadmin-pass",
+        "rename-api-nonadmin@example.invalid",
+        "root",
+        "root"
+      )
+      server.createUser(
+        "rename-api-target",
+        "rename-api-target-pass",
+        "rename-api-target@example.invalid",
+        "root",
+        "root"
+      )
+
+      val response = server.patchApi(
+        "/api/v3/admin/users/rename-api-target",
+        """{"login":"rename-api-target-2"}""",
+        "rename-api-nonadmin",
+        "rename-api-nonadmin-pass"
+      )
+      assert(response.status == 401, s"Expected 401 but got ${response.status}")
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/rename-api-target")
+      assert(unchanged.status == 200, "the target account must be unaffected by the rejected rename")
+    }
+  }
+
+  test("PATCH /admin/users/:userName is rejected when the new user name is already taken") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser(
+        "rename-api-taken-a",
+        "rename-api-taken-a-pass",
+        "rename-api-taken-a@example.invalid",
+        "root",
+        "root"
+      )
+      server.createUser(
+        "rename-api-taken-b",
+        "rename-api-taken-b-pass",
+        "rename-api-taken-b@example.invalid",
+        "root",
+        "root"
+      )
+
+      val response = server.patchApi(
+        "/api/v3/admin/users/rename-api-taken-a",
+        """{"login":"rename-api-taken-b"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+      assert(parse(response.body).extract[ApiError] == ApiError("Account already exists."))
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/rename-api-taken-a")
+      assert(unchanged.status == 200, "the account must not have been renamed away")
+    }
+  }
+
+  test("PATCH /admin/users/:userName is rejected when the new user name is reserved") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser(
+        "rename-api-reserved",
+        "rename-api-reserved-pass",
+        "rename-api-reserved@example.invalid",
+        "root",
+        "root"
+      )
+
+      val response =
+        server.patchApi("/api/v3/admin/users/rename-api-reserved", """{"login":"admin"}""", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+      assert(parse(response.body).extract[ApiError] == ApiError("admin is reserved"))
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/rename-api-reserved")
+      assert(unchanged.status == 200, "the account must not have been renamed away")
+    }
+  }
+
+  test("PATCH /admin/users/:userName for an unknown user returns 404") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val response =
+        server.patchApi("/api/v3/admin/users/no-such-user", """{"login":"no-such-user-2"}""", "root", "root")
+      assert(response.status == 404, s"Expected 404 but got ${response.status}")
+    }
+  }
+
+  test("PATCH /admin/users/:userName with an unparsable request body returns 400") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser(
+        "rename-api-bad-body",
+        "rename-api-bad-body-pass",
+        "rename-api-bad-body@example.invalid",
+        "root",
+        "root"
+      )
+
+      val response = server.patchApi("/api/v3/admin/users/rename-api-bad-body", "{", "root", "root")
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
   test("POST /repos/:owner/:repo/pulls creates a pull request with the given title and body") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")
