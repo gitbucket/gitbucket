@@ -1,13 +1,13 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{ApiUser, CreateAUser, JsonFormat, UpdateAUser}
-import gitbucket.core.controller.ControllerBase
+import gitbucket.core.api.{ApiError, ApiUser, CreateAUser, JsonFormat, RenameAUser, UpdateAUser}
+import gitbucket.core.controller.AccountManagementControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
-import gitbucket.core.util.{AdminAuthenticator, UsersAuthenticator}
+import gitbucket.core.util.{AdminAuthenticator, Keys, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import org.scalatra.{BadRequest, NoContent}
 
-trait ApiUserControllerBase extends ControllerBase {
+trait ApiUserControllerBase extends AccountManagementControllerBase {
   self: RepositoryService & AccountService & AdminAuthenticator & UsersAuthenticator =>
 
   /**
@@ -91,6 +91,43 @@ trait ApiUserControllerBase extends ControllerBase {
       )
       JsonFormat(ApiUser(user))
     }) getOrElse BadRequest()
+  })
+
+  /*
+   * ghe: Update the username for a user
+   * https://docs.github.com/en/enterprise-server@3.14/rest/enterprise-admin/users#update-the-username-for-a-user
+   */
+  patch("/api/v3/admin/users/:userName")(adminOnly {
+    val oldUserName = params("userName")
+    getAccountByUserName(oldUserName, includeRemoved = true) match {
+      case None          => NotFound()
+      case Some(account) =>
+        extractFromJsonBody[RenameAUser] match {
+          case None       => BadRequest()
+          case Some(data) =>
+            val newUserName = data.login
+            // renameUserName needs the current user name to allow it to be unchanged (or
+            // changed only in case); it reads it from a "userName" param, matching the
+            // :userName path parameter used by this route.
+            val currentUserNameParam = Map("userName" -> Seq(oldUserName))
+            val validationError = identifier
+              .validate("login", newUserName, messages)
+              .orElse(reservedNames.validate("login", newUserName, messages))
+              .orElse(renameUserName.validate("login", newUserName, currentUserNameParam, messages))
+            validationError match {
+              case Some(message) => BadRequest(JsonFormat(ApiError(message)))
+              case None          =>
+                if (oldUserName != newUserName) {
+                  renameAccount(oldUserName, newUserName)
+                  // Keep the current session in sync if the signed in admin renamed themself
+                  context.loginAccount.withFilter(_.userName == oldUserName).foreach { a =>
+                    session.setAttribute(Keys.Session.LoginAccount, a.copy(userName = newUserName))
+                  }
+                }
+                JsonFormat(ApiUser(account.copy(userName = newUserName)))
+            }
+        }
+    }
   })
 
   /*
