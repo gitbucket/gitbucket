@@ -2,16 +2,31 @@
 @gitbucket.core.html.main(if(account.isEmpty) "New user" else "Update user"){
   @gitbucket.core.admin.html.menu("users"){
     @gitbucket.core.helper.html.error(error)
+    @if(account.isDefined){
+      <form id="rename-form" method="post" action="@context.path/admin/users/@account.get.userName/_rename" validate="true" autocomplete="off">
+        <div class="row">
+          <div class="col-md-6">
+            <fieldset class="form-group">
+              <label for="newUserName" class="strong">Username:</label>
+              <div>
+                <span id="error-newUserName" class="error"></span>
+              </div>
+              <div style="display: flex; align-items: center;">
+                <input type="text" name="newUserName" id="newUserName" class="form-control" style="flex: 1; margin-right: 8px;" value="@account.get.userName" aria-label="New user name"/>
+                <input type="submit" class="btn btn-danger" value="Rename"/>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </form>
+      <fieldset class="border-top"></fieldset>
+    }
     <form method="POST" validate="true" autocomplete="off">
       <div class="row">
         <div class="col-md-6">
-          <fieldset class="form-group">
-            <label for="userName" class="strong">Username:</label>
-            <div>
-              <span id="error-userName" class="error"></span>
-            </div>
-            <input type="text" name="userName" id="userName" class="form-control" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
-            @if(account.isDefined){
+          @if(account.isDefined){
+            <input type="hidden" name="userName" id="userName" value="@account.get.userName"/>
+            <fieldset class="form-group">
               <label for="removed">
                 <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
                 Disable
@@ -19,8 +34,16 @@
               <div>
                 <span id="error-removed" class="error"></span>
               </div>
-            }
-          </fieldset>
+            </fieldset>
+          } else {
+            <fieldset class="form-group">
+              <label for="userName" class="strong">Username:</label>
+              <div>
+                <span id="error-userName" class="error"></span>
+              </div>
+              <input type="text" name="userName" id="userName" class="form-control" value="@account.map(_.userName)"/>
+            </fieldset>
+          }
           @if(account.map(_.password.nonEmpty).getOrElse(true)){
             <fieldset class="form-group">
               <label for="password" class="strong">
@@ -106,6 +129,13 @@ $(function(){
   $('#update').click(function(){
     if($('#password').val() != ''){
       return confirm('Are you sure you want to change password of this user?');
+    } else {
+      return true;
+    }
+  });
+  $('#rename-form').submit(function(){
+    if($('#rename-form').data('validated') === true){
+      return confirm('Rename this user as you entered. The user\'s current URL will be unavailable.\nAre you sure?');
     } else {
       return true;
     }

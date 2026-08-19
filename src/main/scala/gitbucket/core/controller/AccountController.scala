@@ -944,27 +944,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       if (getAccountByUserNameIgnoreCase(value).isEmpty) Some("User or group does not exist.") else None
   }
 
-  /**
-   * Duplicate check for the rename user name.
-   */
-  private def renameUserName: Constraint = new Constraint() {
-    override def validate(
-      name: String,
-      value: String,
-      params: Map[String, Seq[String]],
-      messages: Messages
-    ): Option[String] = {
-      val currentUserName = params.optionValue("userName")
-      if (currentUserName.contains(value)) {
-        None
-      } else {
-        getAccountByUserNameIgnoreCase(value, true).collect {
-          case account if !currentUserName.contains(account.userName) => "Account already exists."
-        }
-      }
-    }
-  }
-
   private def uniqueRepository: Constraint = new Constraint() {
     override def validate(
       name: String,
