@@ -431,7 +431,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName, includeRemoved = true).map { account =>
       if (account.isAdmin && (form.isRemoved || !form.isAdmin) && isLastAdministrator(account)) {
-        flash.update("error", "Account can't be turned off because this is last one administrator.")
+        flash.update("error", "Account can't be downgraded or turned off because this one is the last administrator.")
         redirect(s"/admin/users/${userName}/_edituser")
       } else {
         if (form.isRemoved) {

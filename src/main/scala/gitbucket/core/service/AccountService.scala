@@ -160,7 +160,7 @@ trait AccountService {
 
   def isLastAdministrator(account: Account)(implicit s: Session): Boolean = {
     if (account.isAdmin) {
-      (Accounts filter (_.removed === false.bind) filter (_.isAdmin === true.bind) map (_.userName.length)).first == 1
+      Query(Accounts.filter(_.removed === false.bind).filter(_.isAdmin === true.bind).length).first == 1
     } else false
   }
 

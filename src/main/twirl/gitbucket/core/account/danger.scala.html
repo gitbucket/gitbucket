@@ -1,0 +1,29 @@
+@(account: gitbucket.core.model.Account, info: Option[Any], error: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Danger Zone"){
+  @gitbucket.core.account.html.menu("profile", context.loginAccount.get.userName, false){
+    @gitbucket.core.account.html.profilemenu("danger", account.userName){
+      @gitbucket.core.helper.html.information(info)
+      @gitbucket.core.helper.html.error(error)
+      <div class="panel panel-default">
+        <div class="panel-heading strong">Danger Zone</div>
+        <div class="panel-body">
+          <fieldset class="form-group">
+            <label class="strong">Delete account</label>
+            <div>
+              Permanently delete this account. This cannot be undone.
+              <a href="@helpers.url(account.userName)/_delete" class="btn btn-danger pull-right" id="delete">Delete account</a>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    }
+  }
+}
+<script>
+$(function(){
+  $('#delete').click(function(){
+    return confirm('Once you delete your account, there is no going back.\nAre you sure?');
+  });
+});
+</script>
