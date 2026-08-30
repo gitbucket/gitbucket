@@ -44,7 +44,7 @@
         <div class="pull-right pc" style="margin-right: 5px;">
           <div class="btn-group">
             @if(context.platform != "linux" && context.platform != null){
-              <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default" title="Open with GitHub Desktop"><i class="octicon octicon-desktop-download" aria-label="Open with GitHub Desktop"></i></a>
+              <a href="#" id="repository-clone-url" data-url="@RepositoryService.openRepoUrl(repository.httpUrl)" class="btn btn-sm btn-default" title="Open with GitHub Desktop"><i class="octicon octicon-desktop-download" aria-label="Open with GitHub Desktop"></i></a>
             }
           </div>
         </div>
@@ -225,19 +225,42 @@
   }
 }
 <script>
+  let windowHasFocus = true;
+
+  $(window).focus(function() {
+    windowHasFocus = true;
+  }).blur(function() {
+    windowHasFocus = false;
+  });
+
+  $('#repository-clone-url').on('click', function() {
+    goToUri($(this).attr('data-url'));
+  })
+
+  function goToUri(uri) {
+    window.location = uri;
+    setTimeout(function() {
+      // Check if the window has focus after a short period of time
+      // so that the user will be transfered to the download page only when the custom scheme is not available.
+      if (windowHasFocus) {
+        window.location = 'https://desktop.github.com/';
+      }
+    }, 500);
+  }
+
 $(function() {
   @repository.sshUrl.map { sshUrl =>
     $('#repository-url-http').click(function(){
       $('#repository-url-proto').text('HTTP');
       $('#repository-url').val('@repository.httpUrl');
-      $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(repository.httpUrl)')
+      $('#repository-clone-url').attr('data-url', '@RepositoryService.openRepoUrl(repository.httpUrl)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
 
     $('#repository-url-ssh').click(function(){
       $('#repository-url-proto').text('SSH');
       $('#repository-url').val('@sshUrl');
-      $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(sshUrl)');
+      $('#repository-clone-url').attr('data-url', '@RepositoryService.openRepoUrl(sshUrl)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }
