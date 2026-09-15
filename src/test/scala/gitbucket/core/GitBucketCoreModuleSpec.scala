@@ -1,9 +1,11 @@
 package gitbucket.core
 
+import java.io.File
+import java.nio.file.Files
 import java.sql.{Clob, Connection, DriverManager, Timestamp, Types}
 import java.time.Instant
 import java.util.Locale
-import gitbucket.core.util.{Directory, JGitUtil}
+import gitbucket.core.util.JGitUtil
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
 import liquibase.database.Database
@@ -12,7 +14,7 @@ import org.apache.commons.io.FileUtils
 import org.junit.runner.Description
 import org.eclipse.jgit.api.Git
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Tag
+import org.scalatest.{ParallelTestExecution, Tag}
 import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -22,7 +24,7 @@ import scala.util.Using
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
-class GitBucketCoreModuleSpec extends AnyFunSuite {
+class GitBucketCoreModuleSpec extends AnyFunSuite with ParallelTestExecution {
 
   private case class ColumnMetadata(name: String, sqlType: Int, size: Int, autoIncrement: Boolean)
   private case class TableSnapshot(columns: Seq[String], rows: Seq[Seq[String]])
@@ -111,37 +113,45 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     (missingOriginUserName, missingOriginRepositoryName),
     (missingParentUserName, missingParentRepositoryName)
   )
-  private val ownerRepositoryDir = Directory.getRepositoryDir(ownerUserName, ownerRepositoryName)
-  private val missingRepositoryDirs = Seq(
-    Directory.getRepositoryDir(missingOriginUserName, missingOriginRepositoryName),
-    Directory.getRepositoryDir(missingParentUserName, missingParentRepositoryName)
-  )
-  private val moduleBeforeOrphanRepair = new Module(
-    GitBucketCoreModule.getModuleId,
-    GitBucketCoreModule.getVersions.asScala
+
+  private def moduleBeforeOrphanRepair(module: GitBucketCoreModule) = new Module(
+    module.getModuleId,
+    module.getVersions.asScala
       .takeWhile(_.getVersion != orphanRepairStartVersion)
       .toList
       .asJava
   )
-  private val fullModule = new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
 
   private def migrate(conn: Connection, db: Database, module: Module): Unit =
     new Solidbase().migrate(conn, Thread.currentThread().getContextClassLoader(), db, module)
 
-  private def withRepositoryDirCleanup[A](action: => A): A = {
-    val dirs = ownerRepositoryDir +: missingRepositoryDirs
-    dirs.foreach(FileUtils.deleteQuietly)
+  /**
+   * Gives the action a fresh, uniquely-named gitbucket home directory (deleted afterwards) and a
+   * GitBucketCoreModule bound to it, so concurrently running tests never share on-disk repository
+   * or activity-log state via the global Directory object.
+   */
+  private def withTestModule[A](action: ((String, String) => File, GitBucketCoreModule) => A): A = {
+    val home = Files.createTempDirectory("gitbucket-core-module-spec-").toFile
+    val repositoryDir: (String, String) => File = (owner, repository) =>
+      new File(home, s"repositories/$owner/$repository.git")
+    val module = new GitBucketCoreModule(
+      repositoryDir = repositoryDir,
+      activityLogFile = () => new File(home, "activity.log")
+    )
     try {
-      action
+      action(repositoryDir, module)
     } finally {
-      dirs.foreach(FileUtils.deleteQuietly)
+      FileUtils.deleteQuietly(home)
     }
   }
 
-  private def assertMissingRepositoryDirsCreated(): Unit = {
-    assert(!ownerRepositoryDir.exists())
+  private def assertMissingRepositoryDirsCreated(repositoryDir: (String, String) => File): Unit = {
+    assert(!repositoryDir(ownerUserName, ownerRepositoryName).exists())
 
-    missingRepositoryDirs.foreach { dir =>
+    Seq(
+      repositoryDir(missingOriginUserName, missingOriginRepositoryName),
+      repositoryDir(missingParentUserName, missingParentRepositoryName)
+    ).foreach { dir =>
       assert(dir.exists(), s"Expected repository directory to be created: ${dir.getAbsolutePath}")
       Using.resource(Git.open(dir)) { git =>
         assert(JGitUtil.isEmpty(git))
@@ -471,8 +481,12 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     insertRow(conn, "RELEASE_ASSET", Map("SIZE" -> 12345L))
   }
 
-  private def assertDataPreservedBySchemaMigrations(conn: Connection, db: Database): Unit = {
-    migrate(conn, db, moduleBeforeOrphanRepair)
+  private def assertDataPreservedBySchemaMigrations(
+    conn: Connection,
+    db: Database,
+    module: GitBucketCoreModule
+  ): Unit = {
+    migrate(conn, db, moduleBeforeOrphanRepair(module))
     insertSchemaPreservationData(conn)
 
     val beforeSnapshots =
@@ -480,7 +494,7 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     val repositoryColumnsBeforeMigration = beforeSnapshots("REPOSITORY").columns
     val accountColumnsBeforeMigration = beforeSnapshots("ACCOUNT").columns
 
-    migrate(conn, db, fullModule)
+    migrate(conn, db, module)
 
     schemaPreservationSnapshotTables.foreach { tableName =>
       val expected = beforeSnapshots(tableName)
@@ -567,10 +581,15 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       }
     }
 
-  private def assertOrphanRepairMigration(conn: Connection, db: Database): Unit = {
-    migrate(conn, db, moduleBeforeOrphanRepair)
+  private def assertOrphanRepairMigration(
+    conn: Connection,
+    db: Database,
+    module: GitBucketCoreModule,
+    repositoryDir: (String, String) => File
+  ): Unit = {
+    migrate(conn, db, moduleBeforeOrphanRepair(module))
     insertRepositoryWithMissingOriginAndParent(conn)
-    migrate(conn, db, fullModule)
+    migrate(conn, db, module)
 
     val accounts = accountRows(conn)
     assert(accounts.map(_.userName).toSet == expectedAccountNames)
@@ -612,31 +631,38 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
         assert(repository.parentRepositoryName.isEmpty)
     }
 
-    assertMissingRepositoryDirsCreated()
+    assertMissingRepositoryDirsCreated(repositoryDir)
   }
 
   test("Migration H2") {
-    new Solidbase().migrate(
-      DriverManager.getConnection("jdbc:h2:mem:test", "sa", "sa"),
-      Thread.currentThread().getContextClassLoader(),
-      new H2Database(),
-      new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-    )
+    withTestModule { (_, module) =>
+      Using.resource(DriverManager.getConnection("jdbc:h2:mem:test", "sa", "sa")) { conn =>
+        new Solidbase().migrate(
+          conn,
+          Thread.currentThread().getContextClassLoader(),
+          new H2Database(),
+          module
+        )
+      }
+    }
   }
 
   test("Migration H2 repairs missing origin and parent repositories before adding self-referential constraints") {
-    withRepositoryDirCleanup {
+    withTestModule { (repositoryDir, module) =>
       Using.resource(DriverManager.getConnection("jdbc:h2:mem:test-orphan-repair;DB_CLOSE_DELAY=-1", "sa", "sa")) {
         conn =>
-          assertOrphanRepairMigration(conn, new H2Database())
+          assertOrphanRepairMigration(conn, new H2Database(), module, repositoryDir)
       }
     }
   }
 
   test("Migration H2 ensure data is preserved after 4.47 and 4.48 schema changes") {
-    Using.resource(DriverManager.getConnection("jdbc:h2:mem:test-schema-preservation;DB_CLOSE_DELAY=-1", "sa", "sa")) {
-      conn =>
-        assertDataPreservedBySchemaMigrations(conn, new H2Database())
+    withTestModule { (_, module) =>
+      Using.resource(
+        DriverManager.getConnection("jdbc:h2:mem:test-schema-preservation;DB_CLOSE_DELAY=-1", "sa", "sa")
+      ) { conn =>
+        assertDataPreservedBySchemaMigrations(conn, new H2Database(), module)
+      }
     }
   }
 
@@ -644,24 +670,26 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   Seq("8.4", "5.7").foreach { tag =>
     test(s"Migration MySQL $tag", ExternalDBTest) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
-      try {
-        new Solidbase().migrate(
-          DriverManager.getConnection(
-            container.getJdbcUrl,
-            container.getUsername,
-            container.getPassword
-          ),
-          Thread.currentThread().getContextClassLoader(),
-          new MySQLDatabase(),
-          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-        )
-      } finally {
-        container.stop()
+      withTestModule { (_, module) =>
+        val container = new MySQLContainer(s"mysql:$tag") {
+          override def getDriverClassName = "org.mariadb.jdbc.Driver"
+          override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
+        }
+        container.start()
+        try {
+          Using.resource(
+            DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
+          ) { conn =>
+            new Solidbase().migrate(
+              conn,
+              Thread.currentThread().getContextClassLoader(),
+              new MySQLDatabase(),
+              module
+            )
+          }
+        } finally {
+          container.stop()
+        }
       }
     }
 
@@ -669,56 +697,64 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       s"Migration MySQL $tag repairs missing origin and parent repositories before adding self-referential constraints",
       ExternalDBTest
     ) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
-      try {
-        withRepositoryDirCleanup {
+      withTestModule { (repositoryDir, module) =>
+        val container = new MySQLContainer(s"mysql:$tag") {
+          override def getDriverClassName = "org.mariadb.jdbc.Driver"
+          override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
+        }
+        container.start()
+        try {
           Using.resource(
             DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
           ) { conn =>
-            assertOrphanRepairMigration(conn, new MySQLDatabase())
+            assertOrphanRepairMigration(conn, new MySQLDatabase(), module, repositoryDir)
           }
+        } finally {
+          container.stop()
         }
-      } finally {
-        container.stop()
       }
     }
 
     test(s"Migration MySQL $tag ensure data is preserved after 4.47 and 4.48 schema changes", ExternalDBTest) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
-      try {
-        Using.resource(
-          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
-        ) { conn =>
-          assertDataPreservedBySchemaMigrations(conn, new MySQLDatabase())
+      withTestModule { (_, module) =>
+        val container = new MySQLContainer(s"mysql:$tag") {
+          override def getDriverClassName = "org.mariadb.jdbc.Driver"
+          override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
         }
-      } finally {
-        container.stop()
+        container.start()
+        try {
+          Using.resource(
+            DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
+          ) { conn =>
+            assertDataPreservedBySchemaMigrations(conn, new MySQLDatabase(), module)
+          }
+        } finally {
+          container.stop()
+        }
       }
     }
   }
 
   Seq("14", "18").foreach { tag =>
     test(s"Migration PostgreSQL $tag", ExternalDBTest) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+      withTestModule { (_, module) =>
+        val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
 
-      container.start()
-      try {
-        new Solidbase().migrate(
-          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword),
-          Thread.currentThread().getContextClassLoader(),
-          new PostgresDatabase(),
-          new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
-        )
-      } finally {
-        container.stop()
+        container.start()
+        try {
+          Using.resource(
+            DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
+          ) { conn =>
+            new Solidbase().migrate(
+              conn,
+              Thread.currentThread().getContextClassLoader(),
+              new PostgresDatabase(),
+              module
+            )
+          }
+        } finally {
+          container.stop()
+        }
       }
     }
 
@@ -726,19 +762,19 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       s"Migration PostgreSQL $tag repairs missing origin and parent repositories before adding self-referential constraints",
       ExternalDBTest
     ) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+      withTestModule { (repositoryDir, module) =>
+        val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
 
-      container.start()
-      try {
-        withRepositoryDirCleanup {
+        container.start()
+        try {
           Using.resource(
             DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
           ) { conn =>
-            assertOrphanRepairMigration(conn, new PostgresDatabase())
+            assertOrphanRepairMigration(conn, new PostgresDatabase(), module, repositoryDir)
           }
+        } finally {
+          container.stop()
         }
-      } finally {
-        container.stop()
       }
     }
 
@@ -746,17 +782,19 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       s"Migration PostgreSQL $tag ensure data is preserved after 4.47 and 4.48 schema changes",
       ExternalDBTest
     ) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+      withTestModule { (_, module) =>
+        val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
 
-      container.start()
-      try {
-        Using.resource(
-          DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
-        ) { conn =>
-          assertDataPreservedBySchemaMigrations(conn, new PostgresDatabase())
+        container.start()
+        try {
+          Using.resource(
+            DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
+          ) { conn =>
+            assertDataPreservedBySchemaMigrations(conn, new PostgresDatabase(), module)
+          }
+        } finally {
+          container.stop()
         }
-      } finally {
-        container.stop()
       }
     }
   }

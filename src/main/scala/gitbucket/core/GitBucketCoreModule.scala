@@ -1,11 +1,11 @@
 package gitbucket.core
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.nio.charset.StandardCharsets
 import java.sql.Connection
 import java.util.UUID
 import gitbucket.core.model.Activity
-import gitbucket.core.util.Directory.{ActivityLog, getRepositoryDir}
+import gitbucket.core.util.Directory
 import gitbucket.core.util.{JDBCUtil, JGitUtil}
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.migration.{LiquibaseMigration, Migration}
@@ -19,8 +19,10 @@ import org.slf4j.LoggerFactory
 import java.util.logging.Level
 import scala.util.Using
 
-object GitBucketCoreModule
-    extends Module(
+class GitBucketCoreModule(
+  repositoryDir: (String, String) => File = Directory.getRepositoryDir,
+  activityLogFile: () => File = () => Directory.ActivityLog
+) extends Module(
       "gitbucket-core",
       new Version("4.0.0", new LiquibaseMigration("update/gitbucket-core_4.0.xml")),
       new Version("4.1.0"),
@@ -93,7 +95,7 @@ object GitBucketCoreModule
                 activityDate = rs.getTimestamp("ACTIVITY_DATE")
               )
             }
-            Using.resource(new FileOutputStream(ActivityLog, true)) { out =>
+            Using.resource(new FileOutputStream(activityLogFile(), true)) { out =>
               list.foreach { activity =>
                 out.write((write(activity) + "\n").getBytes(StandardCharsets.UTF_8))
               }
@@ -155,7 +157,7 @@ object GitBucketCoreModule
                 )
               }
               .foreach { case (owner, repository, defaultBranch) =>
-                val gitdir = getRepositoryDir(owner, repository)
+                val gitdir = repositoryDir(owner, repository)
                 if (!gitdir.exists()) {
                   logger.info(s"Create missing repository directory for ${owner}/${repository}")
                   FileUtils.forceMkdirParent(gitdir)
@@ -170,3 +172,5 @@ object GitBucketCoreModule
     ) {
   java.util.logging.Logger.getLogger("liquibase").setLevel(Level.SEVERE)
 }
+
+object GitBucketCoreModule extends GitBucketCoreModule(Directory.getRepositoryDir, () => Directory.ActivityLog)
