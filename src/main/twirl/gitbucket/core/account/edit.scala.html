@@ -3,68 +3,67 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Edit your profile"){
   @gitbucket.core.account.html.menu("profile", context.loginAccount.get.userName, false){
-    @gitbucket.core.helper.html.information(info)
-    @gitbucket.core.helper.html.error(error)
-    @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
-    <form action="@helpers.url(account.userName)/_edit" method="POST" validate="true" autocomplete="off">
-      <div class="panel panel-default">
-        <div class="panel-heading strong">Profile</div>
-        <div class="panel-body">
-          <div class="row">
-            <div class="col-md-6">
-              @if(account.password.nonEmpty){
-                <fieldset class="form-group">
-                  <label for="password" class="strong">
-                    Password (input to change password):
-                  </label>
-                  <input type="password" name="password" id="password" class="form-control" value="" autocomplete="off"/>
-                  <span id="error-password" class="error"></span>
-                </fieldset>
-              }
-              <fieldset class="form-group">
-                <label for="fullName" class="strong">Full Name:</label>
-                <input type="text" name="fullName" id="fullName" class="form-control" value="@account.fullName"/>
-                <span id="error-fullName" class="error"></span>
-              </fieldset>
-              <fieldset class="form-group">
-                <label for="mailAddress" class="strong">Mail Address:</label>
-                <input type="text" name="mailAddress" id="mailAddress" class="form-control" value="@if(!LDAPUtil.isDummyMailAddress(account)){@account.mailAddress}"/>
-                <span id="error-mailAddress" class="error"></span>
-              </fieldset>
-              <fieldset class="form-group" id="extraMailAddresses">
-                <span class="strong">Additional Mail Address:</span>
-                @extraMailAddresses.zipWithIndex.map { case (mail, idx) =>
-                  <input type="text" name="extraMailAddresses[@idx]" id="extraMailAddresses[@idx]" class="form-control extraMailAddress" value="@mail" aria-label="Additional mail address"/>
-                  <span id="error-extraMailAddresses_@idx" class="error"></span>
+    @gitbucket.core.account.html.profilemenu("general", account.userName){
+      @gitbucket.core.helper.html.information(info)
+      @gitbucket.core.helper.html.error(error)
+      @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
+      <form action="@helpers.url(account.userName)/_edit" method="POST" validate="true" autocomplete="off">
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Profile</div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                @if(account.password.nonEmpty){
+                  <fieldset class="form-group">
+                    <label for="password" class="strong">
+                      Password (input to change password):
+                    </label>
+                    <input type="password" name="password" id="password" class="form-control" value="" autocomplete="off"/>
+                    <span id="error-password" class="error"></span>
+                  </fieldset>
                 }
-              </fieldset>
-              <fieldset class="form-group">
-                <label for="url" class="strong">URL (optional):</label>
-                <input type="text" name="url" id="url" class="form-control" value="@account.url"/>
-                <span id="error-url" class="error"></span>
-              </fieldset>
-              <fieldset class="form-group">
-                <label for="description" class="strong">Bio (optional):</label>
-                <textarea name="description" id="description" class="form-control">@account.description</textarea>
-                <span id="error-description" class="error"></span>
-              </fieldset>
-            </div>
-            <div class="col-md-6">
-              <fieldset class="form-group">
-                <label for="avatar" class="strong">Image (optional):</label>
-                @gitbucket.core.helper.html.uploadavatar(Some(account))
-              </fieldset>
+                <fieldset class="form-group">
+                  <label for="fullName" class="strong">Full Name:</label>
+                  <input type="text" name="fullName" id="fullName" class="form-control" value="@account.fullName"/>
+                  <span id="error-fullName" class="error"></span>
+                </fieldset>
+                <fieldset class="form-group">
+                  <label for="mailAddress" class="strong">Mail Address:</label>
+                  <input type="text" name="mailAddress" id="mailAddress" class="form-control" value="@if(!LDAPUtil.isDummyMailAddress(account)){@account.mailAddress}"/>
+                  <span id="error-mailAddress" class="error"></span>
+                </fieldset>
+                <fieldset class="form-group" id="extraMailAddresses">
+                  <span class="strong">Additional Mail Address:</span>
+                  @extraMailAddresses.zipWithIndex.map { case (mail, idx) =>
+                    <input type="text" name="extraMailAddresses[@idx]" id="extraMailAddresses[@idx]" class="form-control extraMailAddress" value="@mail" aria-label="Additional mail address"/>
+                    <span id="error-extraMailAddresses_@idx" class="error"></span>
+                  }
+                </fieldset>
+                <fieldset class="form-group">
+                  <label for="url" class="strong">URL (optional):</label>
+                  <input type="text" name="url" id="url" class="form-control" value="@account.url"/>
+                  <span id="error-url" class="error"></span>
+                </fieldset>
+                <fieldset class="form-group">
+                  <label for="description" class="strong">Bio (optional):</label>
+                  <textarea name="description" id="description" class="form-control">@account.description</textarea>
+                  <span id="error-description" class="error"></span>
+                </fieldset>
+              </div>
+              <div class="col-md-6">
+                <fieldset class="form-group">
+                  <label for="avatar" class="strong">Image (optional):</label>
+                  @gitbucket.core.helper.html.uploadavatar(Some(account))
+                </fieldset>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div>
-        <div class="pull-right">
-          <a href="@context.path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
+        <div>
+          <input type="submit" class="btn btn-success" value="Save" id="save"/>
         </div>
-        <input type="submit" class="btn btn-success" value="Save" id="save"/>
-      </div>
-    </form>
+      </form>
+    }
   }
 }
 <script>
@@ -78,10 +77,6 @@ $(function(){
     } else {
       return true;
     }
-  });
-
-  $('#delete').click(function(){
-    return confirm('Once you delete your account, there is no going back.\nAre you sure?');
   });
 });
 </script>
