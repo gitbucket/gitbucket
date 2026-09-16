@@ -166,6 +166,7 @@ object GitBucketCoreModule
         },
         new LiquibaseMigration("update/gitbucket-core_4.47.0-2.xml")
       ),
+      new Version("4.47.1"),
     ) {
   java.util.logging.Logger.getLogger("liquibase").setLevel(Level.SEVERE)
 }
