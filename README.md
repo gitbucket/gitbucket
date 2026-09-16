@@ -61,6 +61,9 @@ Support
 
 What's New in 4.47.x
 -------------
+### 4.47.1 - 16 Sep 2026
+- Fix an error in Gist plugin
+
 ### 4.47.0 - 9 Aug 2026
 - Add more security options for creating repositories by cloning
 - Make the reset password token expiration period configurable
