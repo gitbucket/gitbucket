@@ -51,7 +51,7 @@ trait PrioritiesControllerBase extends ControllerBase {
     html.edit(None, repository)
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/new", priorityForm)(writableUsersOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issues/priorities/new", priorityForm)(writableUsersOnlyWithForm { (form, repository) =>
     val priorityId =
       createPriority(repository.owner, repository.name, form.priorityName, form.description, form.color.substring(1))
     html.priority(
@@ -68,7 +68,7 @@ trait PrioritiesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/priorities/:priorityId/edit", priorityForm)(writableUsersOnly {
+  ajaxPost("/:owner/:repository/issues/priorities/:priorityId/edit", priorityForm)(writableUsersOnlyWithForm {
     (form, repository) =>
       updatePriority(
         repository.owner,

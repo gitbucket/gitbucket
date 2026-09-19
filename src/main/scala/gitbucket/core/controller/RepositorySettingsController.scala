@@ -153,7 +153,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Save the repository options.
    */
-  post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/options", optionsForm)(ownerOnlyWithForm { (form, repository) =>
     saveRepositoryOptions(
       repository.owner,
       repository.name,
@@ -181,18 +181,19 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Update default branch */
-  post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
-    if (!repository.branchList.contains(form.defaultBranch)) {
-      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
-    } else {
-      saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
-      // Change repository HEAD
-      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
+  post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnlyWithForm {
+    (form, repository) =>
+      if (!repository.branchList.contains(form.defaultBranch)) {
+        redirect(s"/${repository.owner}/${repository.name}/settings/branches")
+      } else {
+        saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
+        // Change repository HEAD
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
+        }
+        flash.update("info", "Repository default branch has been updated.")
+        redirect(s"/${repository.owner}/${repository.name}/settings/branches")
       }
-      flash.update("info", "Repository default branch has been updated.")
-      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
-    }
   })
 
   /** Branch protection for branch */
@@ -259,7 +260,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Add the web hook URL.
    */
-  post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnlyWithForm { (form, repository) =>
     addWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
     flash.update("info", s"Webhook ${form.url} created")
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
@@ -382,7 +383,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Update web hook settings.
    */
-  post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnlyWithForm { (form, repository) =>
     updateWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
     flash.update("info", s"webhook ${form.url} updated")
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
@@ -398,7 +399,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Rename repository.
    */
-  post("/:owner/:repository/settings/rename", renameForm)(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/rename", renameForm)(ownerOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       if (context.settings.basicBehavior.repositoryOperation.rename || loginAccount.isAdmin) {
         if (repository.name != form.repositoryName) {
@@ -421,7 +422,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Transfer repository ownership.
    */
-  post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/transfer", transferForm)(ownerOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       if (context.settings.basicBehavior.repositoryOperation.transfer || loginAccount.isAdmin) {
         // Change repository owner
@@ -474,7 +475,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Register a deploy key */
-  post("/:owner/:repository/settings/deploykey", deployKeyForm)(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/deploykey", deployKeyForm)(ownerOnlyWithForm { (form, repository) =>
     addDeployKey(repository.owner, repository.name, form.title, form.publicKey, form.allowWrite)
     redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
   })
@@ -498,7 +499,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Add custom field */
-  ajaxPost("/:owner/:repository/settings/issues/fields/new", customFieldForm)(ownerOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/settings/issues/fields/new", customFieldForm)(ownerOnlyWithForm { (form, repository) =>
     val fieldId = createCustomField(
       repository.owner,
       repository.name,
@@ -519,7 +520,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Update custom field */
-  ajaxPost("/:owner/:repository/settings/issues/fields/:fieldId/edit", customFieldForm)(ownerOnly {
+  ajaxPost("/:owner/:repository/settings/issues/fields/:fieldId/edit", customFieldForm)(ownerOnlyWithForm {
     (form, repository) =>
       updateCustomField(
         repository.owner,

@@ -85,7 +85,7 @@ trait MilestonesControllerBase extends ControllerBase {
     html.edit(None, _)
   })
 
-  post("/:owner/:repository/issues/milestones/new", milestoneForm)(writableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/issues/milestones/new", milestoneForm)(writableUsersOnlyWithForm { (form, repository) =>
     createMilestone(repository.owner, repository.name, form.title, form.description, form.dueDate)
     redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
   })
@@ -96,7 +96,7 @@ trait MilestonesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(writableUsersOnly {
+  post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(writableUsersOnlyWithForm {
     (form, repository) =>
       params("milestoneId").toIntOpt.flatMap { milestoneId =>
         getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
