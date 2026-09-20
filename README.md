@@ -59,19 +59,14 @@ Support
 - If you can't find same question and report, send it to our [Gitter chat room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.47.x
+What's New in 4.48.x
 -------------
-### 4.47.1 - 16 Sep 2026
-- Fix an error in Gist plugin
+### 4.48.0 - 20 Sep 2026
+- Add numeric user/account id to GitHub compatibility api; add new API for managing users by numeric id
+- Authentication-related API changes. Some plugins might not work with this version
+- Fix a bug in the last admin user delete prevention; add Danger-zone tab to the user settings page
 
-### 4.47.0 - 9 Aug 2026
-- Add more security options for creating repositories by cloning
-- Make the reset password token expiration period configurable
-- Improve GitHub API compatibility for repository IDs, fork management
-- Fix issue assignees not being preserved when a repository is renamed or transferred
-- Improvements and bug fixes for markdown format actions in the text editor
-
-**Note 1:** This release includes a large database migration affecting core tables such as `REPOSITORY` and `ACCOUNT`. We strongly recommend backing up your database before upgrading to GitBucket 4.47.0.
+**Note 1:** GitBuclet 4.47.0 and 4.48.0 contain large database migrations affecting core tables such as `REPOSITORY` and `ACCOUNT`. We strongly recommend backing up your database before upgrading.
 
 **Note 2:** You have to migrate h2 database file if you will upgrade GitBucket from 4.42 or before to 4.43 or later and you are using the default h2 database because h2 1.x and h2.x don't have compatibility: https://www.h2database.com/html/migration-to-v2.html
 

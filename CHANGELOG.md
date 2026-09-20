@@ -1,6 +1,11 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+### 4.48.0 - 20 Sep 2026
+- Add numeric user/account id to GitHub compatibility api; add new API for managing users by numeric id
+- Authentication-related API changes. Some plugins might not work with this version
+- Fix a bug in the last admin user delete prevention; add Danger-zone tab to the user settings page
+
 ## 4.47.1 - 16 Sep 2026
 - Fix an error in Gist plugin
 
