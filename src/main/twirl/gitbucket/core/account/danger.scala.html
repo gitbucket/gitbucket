@@ -8,13 +8,15 @@
       <div class="panel panel-default">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
-          <fieldset class="form-group">
-            <label class="strong">Delete account</label>
-            <div>
-              Permanently delete this account. This cannot be undone.
-              <a href="@helpers.url(account.userName)/_delete" class="btn btn-danger pull-right" id="delete">Delete account</a>
-            </div>
-          </fieldset>
+          <form id="delete-form" method="post" action="@helpers.url(account.userName)/_delete">
+            <fieldset class="form-group">
+              <label class="strong">Delete account</label>
+              <div>
+                Permanently delete this account. This cannot be undone.
+                <input type="submit" class="btn btn-danger pull-right" value="Delete account"/>
+              </div>
+            </fieldset>
+          </form>
         </div>
       </div>
     }
@@ -22,7 +24,7 @@
 }
 <script>
 $(function(){
-  $('#delete').click(function(){
+  $('#delete-form').submit(function(){
     return confirm('Once you delete your account, there is no going back.\nAre you sure?');
   });
 });

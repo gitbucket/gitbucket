@@ -354,7 +354,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  get("/:userName/_delete")(oneselfOnly {
+  post("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
     getAccountByUserName(userName, includeRemoved = true).map { account =>
@@ -370,6 +370,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
         suspendAccount(account)
+        if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
+          deleteLoginAccountFromLocalFile()
+        }
         session.invalidate()
         redirect("/")
       }

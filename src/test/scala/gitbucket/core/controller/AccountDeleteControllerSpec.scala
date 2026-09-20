@@ -17,7 +17,7 @@ import scala.util.Using
  */
 class AccountDeleteControllerSpec extends AnyFunSuite {
 
-  test("GET /:userName/_delete does not delete the last administrator on a fresh install") {
+  test("POST /:userName/_delete does not delete the last administrator on a fresh install") {
     Using.resource(new TestingGitBucketServer(19996)) { server =>
       Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
         val signin = new HttpPost(s"http://localhost:${server.port}/signin")
@@ -33,7 +33,7 @@ class AccountDeleteControllerSpec extends AnyFunSuite {
         EntityUtils.consume(signinResponse.getEntity)
         assert(signinResponse.getStatusLine.getStatusCode < 400, "signin failed")
 
-        val delete = new HttpGet(s"http://localhost:${server.port}/root/_delete")
+        val delete = new HttpPost(s"http://localhost:${server.port}/root/_delete")
         delete.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build())
         val deleteResponse = httpClient.execute(delete)
         EntityUtils.consume(deleteResponse.getEntity)
