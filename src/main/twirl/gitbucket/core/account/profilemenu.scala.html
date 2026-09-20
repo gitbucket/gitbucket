@@ -1,0 +1,11 @@
+@(active: String, userName: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<ul class="nav nav-tabs" style="margin-bottom: 20px;">
+  <li@if(active=="general"){ class="active"}>
+    <a href="@helpers.url(userName)/_edit">General</a>
+  </li>
+  <li@if(active=="danger"){ class="active"}>
+    <a href="@helpers.url(userName)/_danger_zone">Danger Zone</a>
+  </li>
+</ul>
+@body

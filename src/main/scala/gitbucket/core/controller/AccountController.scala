@@ -345,13 +345,22 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound()
   })
 
+  get("/:userName/_danger_zone")(
+    oneselfOnly {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { x =>
+        html.danger(x, flash.get("info"), flash.get("error"))
+      } getOrElse NotFound()
+    }
+  )
+
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
     getAccountByUserName(userName, includeRemoved = true).map { account =>
       if (isLastAdministrator(account)) {
-        flash.update("error", "Account can't be removed because this is last one administrator.")
-        redirect(s"/$userName/_edit")
+        flash.update("error", "Account can't be removed because this one is the last administrator.")
+        redirect(s"/$userName/_danger_zone")
       } else {
 //      // Remove repositories
 //      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
