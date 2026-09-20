@@ -351,7 +351,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       params("id").toIntOpt.flatMap { issueId =>
         mergePullRequest(
@@ -638,7 +638,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       val manageable = isManageable(repository)
 

@@ -134,7 +134,7 @@ trait IssuesControllerBase extends ControllerBase {
     } else Unauthorized()
   })
 
-  post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       if (isIssueEditable(repository)) { // TODO Should this check is provided by authenticator?
         val issue = createIssue(
@@ -170,31 +170,32 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnly { (title, repository) =>
-    context.withLoginAccount { loginAccount =>
-      getIssue(repository.owner, repository.name, params("id")).map { issue =>
-        if (isEditableContent(repository.owner, repository.name, issue.openedUserName, loginAccount)) {
-          if (issue.title != title) {
-            // update issue
-            updateIssue(repository.owner, repository.name, issue.issueId, title, issue.content)
-            // extract references and create refer comment
-            createReferComment(repository.owner, repository.name, issue.copy(title = title), title, loginAccount)
-            createComment(
-              repository.owner,
-              repository.name,
-              loginAccount.userName,
-              issue.issueId,
-              issue.title + "\r\n" + title,
-              "change_title"
-            )
-          }
-          redirect(s"/${repository.owner}/${repository.name}/issues/_data/${issue.issueId}")
-        } else Unauthorized()
-      } getOrElse NotFound()
-    }
+  ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnlyWithForm {
+    (title, repository) =>
+      context.withLoginAccount { loginAccount =>
+        getIssue(repository.owner, repository.name, params("id")).map { issue =>
+          if (isEditableContent(repository.owner, repository.name, issue.openedUserName, loginAccount)) {
+            if (issue.title != title) {
+              // update issue
+              updateIssue(repository.owner, repository.name, issue.issueId, title, issue.content)
+              // extract references and create refer comment
+              createReferComment(repository.owner, repository.name, issue.copy(title = title), title, loginAccount)
+              createComment(
+                repository.owner,
+                repository.name,
+                loginAccount.userName,
+                issue.issueId,
+                issue.title + "\r\n" + title,
+                "change_title"
+              )
+            }
+            redirect(s"/${repository.owner}/${repository.name}/issues/_data/${issue.issueId}")
+          } else Unauthorized()
+        } getOrElse NotFound()
+      }
   })
 
-  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (content, repository) =>
+  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnlyWithForm { (content, repository) =>
     context.withLoginAccount { loginAccount =>
       getIssue(repository.owner, repository.name, params("id")).map { issue =>
         if (isEditableContent(repository.owner, repository.name, issue.openedUserName, loginAccount)) {
@@ -209,7 +210,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
         val actionOpt =
@@ -225,7 +226,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
         val actionOpt =
@@ -241,7 +242,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       getComment(repository.owner, repository.name, params("id")).map { comment =>
         if (isEditableContent(repository.owner, repository.name, comment.commentedUserName, loginAccount)) {

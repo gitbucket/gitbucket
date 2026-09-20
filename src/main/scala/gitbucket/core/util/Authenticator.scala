@@ -11,7 +11,7 @@ import Implicits._
  */
 trait OneselfAuthenticator { self: ControllerBase =>
   protected def oneselfOnly(action: => Any) = { authenticate(action) }
-  protected def oneselfOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+  protected def oneselfOnlyWithForm[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
   private def authenticate(action: => Any) = {
     context.loginAccount match {
@@ -27,7 +27,9 @@ trait OneselfAuthenticator { self: ControllerBase =>
  */
 trait OwnerAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def ownerOnly(action: RepositoryInfo => Any) = { authenticate(action) }
-  protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+  protected def ownerOnlyWithForm[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
+    authenticate(action(form, _))
+  }
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     val userName = params("owner")
@@ -54,7 +56,7 @@ trait OwnerAuthenticator { self: ControllerBase & RepositoryService & AccountSer
  */
 trait UsersAuthenticator { self: ControllerBase =>
   protected def usersOnly(action: => Any) = { authenticate(action) }
-  protected def usersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+  protected def usersOnlyWithForm[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
   private def authenticate(action: => Any) = {
     context.loginAccount match {
@@ -69,7 +71,7 @@ trait UsersAuthenticator { self: ControllerBase =>
  */
 trait AdminAuthenticator { self: ControllerBase =>
   protected def adminOnly(action: => Any) = { authenticate(action) }
-  protected def adminOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+  protected def adminOnlyWithForm[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
   private def authenticate(action: => Any) = {
     context.loginAccount match {
@@ -84,7 +86,9 @@ trait AdminAuthenticator { self: ControllerBase =>
  */
 trait ReferrerAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def referrersOnly(action: RepositoryInfo => Any) = { authenticate(action) }
-  protected def referrersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+  protected def referrersOnlyWithForm[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
+    authenticate(action(form, _))
+  }
 
   private def authenticate(action: RepositoryInfo => Any) = {
     val userName = params("owner")
@@ -104,7 +108,7 @@ trait ReferrerAuthenticator { self: ControllerBase & RepositoryService & Account
  */
 trait ReadableUsersAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def readableUsersOnly(action: RepositoryInfo => Any) = { authenticate(action) }
-  protected def readableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
+  protected def readableUsersOnlyWithForm[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
     authenticate(action(form, _))
   }
 
@@ -126,7 +130,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase & RepositoryService & Ac
  */
 trait WritableUsersAuthenticator { self: ControllerBase & RepositoryService & AccountService =>
   protected def writableUsersOnly(action: RepositoryInfo => Any) = { authenticate(action) }
-  protected def writableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
+  protected def writableUsersOnlyWithForm[T](action: (T, RepositoryInfo) => Any) = (form: T) => {
     authenticate(action(form, _))
   }
 
@@ -148,7 +152,7 @@ trait WritableUsersAuthenticator { self: ControllerBase & RepositoryService & Ac
  */
 trait GroupManagerAuthenticator { self: ControllerBase & AccountService =>
   protected def managersOnly(action: => Any) = { authenticate(action) }
-  protected def managersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+  protected def managersOnlyWithForm[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
   private def authenticate(action: => Any) = {
     context.loginAccount match {

@@ -198,7 +198,7 @@ trait WikiControllerBase extends ControllerBase {
     } else Unauthorized()
   })
 
-  post("/:owner/:repository/wiki/_edit", editForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/wiki/_edit", editForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
         saveWikiPage(
@@ -236,7 +236,7 @@ trait WikiControllerBase extends ControllerBase {
     } else Unauthorized()
   })
 
-  post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
         saveWikiPage(

@@ -321,7 +321,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     html.settings(flash.get("info"))
   })
 
-  post("/admin/system", form)(adminOnly { form =>
+  post("/admin/system", form)(adminOnlyWithForm { form =>
     saveSystemSettings(form)
 
     if (
@@ -339,7 +339,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/system")
   })
 
-  post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
+  post("/admin/system/sendmail", sendMailForm)(adminOnlyWithForm { form =>
     try {
       new Mailer(
         context.settings.copy(
@@ -404,7 +404,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     html.user(None, Nil)
   })
 
-  post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
+  post("/admin/users/_newuser", newUserForm)(adminOnlyWithForm { form =>
     createAccount(
       form.userName,
       pbkdf2_sha256(form.password),
@@ -427,7 +427,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  post("/admin/users/:name/_edituser", editUserForm)(adminOnly { form =>
+  post("/admin/users/:name/_edituser", editUserForm)(adminOnlyWithForm { form =>
     val userName = params("userName")
     getAccountByUserName(userName, includeRemoved = true).map { account =>
       if (account.isAdmin && (form.isRemoved || !form.isAdmin) && isLastAdministrator(account)) {
@@ -473,7 +473,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     html.usergroup(None, Nil)
   })
 
-  post("/admin/users/_newgroup", newGroupForm)(adminOnly { form =>
+  post("/admin/users/_newgroup", newGroupForm)(adminOnlyWithForm { form =>
     createGroup(form.groupName, form.description, form.url)
     updateGroupMembers(
       form.groupName,
@@ -497,7 +497,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
+  post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnlyWithForm { form =>
     val groupName = params("groupName")
     val members = form.members
       .split(",")

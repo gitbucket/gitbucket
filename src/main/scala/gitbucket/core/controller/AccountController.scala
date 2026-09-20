@@ -324,7 +324,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  post("/:userName/_edit", editForm)(oneselfOnly { form =>
+  post("/:userName/_edit", editForm)(oneselfOnlyWithForm { form =>
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(
@@ -385,7 +385,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  post("/:userName/_ssh", sshKeyForm)(oneselfOnly { form =>
+  post("/:userName/_ssh", sshKeyForm)(oneselfOnlyWithForm { form =>
     val userName = params("userName")
     addPublicKey(userName, form.title, form.publicKey)
     redirect(s"/$userName/_ssh")
@@ -410,7 +410,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  post("/:userName/_gpg", gpgKeyForm)(oneselfOnly { form =>
+  post("/:userName/_gpg", gpgKeyForm)(oneselfOnlyWithForm { form =>
     val userName = params("userName")
     addGpgPublicKey(userName, form.title, form.publicKey)
     redirect(s"/$userName/_gpg")
@@ -442,7 +442,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:userName/_personalToken", personalTokenForm)(oneselfOnly { form =>
+  post("/:userName/_personalToken", personalTokenForm)(oneselfOnlyWithForm { form =>
     val userName = params("userName")
     getAccountByUserName(userName).foreach { _ =>
       val (tokenId, token) = generateAccessToken(userName, form.note)
@@ -479,7 +479,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Update the syntax highlighter setting of user
    */
-  post("/:userName/_preferences/highlighter", syntaxHighlighterThemeForm)(oneselfOnly { form =>
+  post("/:userName/_preferences/highlighter", syntaxHighlighterThemeForm)(oneselfOnlyWithForm { form =>
     val userName = params("userName")
     addOrUpdateAccountPreference(userName, form.theme)
     redirect(s"/$userName/_preferences")
@@ -510,7 +510,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Add the account web hook URL.
    */
-  post("/:userName/_hooks/new", accountWebHookForm(false))(managersOnly { form =>
+  post("/:userName/_hooks/new", accountWebHookForm(false))(managersOnlyWithForm { form =>
     val userName = params("userName")
     addAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
     flash.update("info", s"Webhook ${form.url} created")
@@ -546,7 +546,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Update account web hook settings.
    */
-  post("/:userName/_hooks/edit", accountWebHookForm(true))(managersOnly { form =>
+  post("/:userName/_hooks/edit", accountWebHookForm(true))(managersOnlyWithForm { form =>
     val userName = params("userName")
     updateAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
     flash.update("info", s"webhook ${form.url} updated")
@@ -711,7 +711,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   })
 
-  post("/groups/new", newGroupForm)(usersOnly { form =>
+  post("/groups/new", newGroupForm)(usersOnlyWithForm { form =>
     createGroup(form.groupName, form.description, form.url)
     updateGroupMembers(
       form.groupName,
@@ -755,7 +755,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect("/")
   })
 
-  post("/:groupName/_editgroup", editGroupForm)(managersOnly { form =>
+  post("/:groupName/_editgroup", editGroupForm)(managersOnlyWithForm { form =>
     val groupName = params("groupName")
     val members = form.members
       .split(",")
@@ -799,7 +799,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Create new repository.
    */
-  post("/new", newRepositoryForm)(usersOnly { form =>
+  post("/new", newRepositoryForm)(usersOnlyWithForm { form =>
     context.withLoginAccount { loginAccount =>
       if (context.settings.basicBehavior.repositoryOperation.create || loginAccount.isAdmin) {
         LockUtil.lock(s"${form.owner}/${form.name}") {
@@ -890,7 +890,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   })
 
-  post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/fork", accountForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       if (
         repository.repository.options.allowFork && (context.settings.basicBehavior.repositoryOperation.fork || loginAccount.isAdmin)

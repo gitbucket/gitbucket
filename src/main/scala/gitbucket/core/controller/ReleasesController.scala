@@ -100,7 +100,7 @@ trait ReleaseControllerBase extends ControllerBase {
       .getOrElse(NotFound())
   })
 
-  post("/:owner/:repository/releases/*/create", releaseForm)(writableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/releases/*/create", releaseForm)(writableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       val tagName = multiParams("splat").head
 
@@ -162,7 +162,7 @@ trait ReleaseControllerBase extends ControllerBase {
     }).getOrElse(NotFound())
   })
 
-  post("/:owner/:repository/releases/*/edit", releaseForm)(writableUsersOnly { (form, repository) =>
+  post("/:owner/:repository/releases/*/edit", releaseForm)(writableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
       val tagName = multiParams("splat").head
 
