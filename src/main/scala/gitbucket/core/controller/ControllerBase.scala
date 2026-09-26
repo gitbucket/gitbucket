@@ -427,8 +427,9 @@ trait AccountManagementControllerBase extends ControllerBase {
 
   /**
    * Duplicate check for the rename user name. Unlike uniqueUserName, this allows the value to be
-   * unchanged (or changed only in case) from the current user name, taken from the "userName"
-   * path parameter of the rename route.
+   * unchanged from the current user name, taken from the "userName" path parameter of the rename
+   * route. Case-only changes are not supported because they cannot be safely represented by every
+   * filesystem GitBucket supports.
    */
   protected def renameUserName: Constraint = new Constraint() {
     override def validate(
@@ -440,6 +441,8 @@ trait AccountManagementControllerBase extends ControllerBase {
       val currentUserName = params.optionValue("userName")
       if (currentUserName.contains(value)) {
         None
+      } else if (currentUserName.exists(_.equalsIgnoreCase(value))) {
+        Some("Case-only account renames are not supported.")
       } else {
         getAccountByUserNameIgnoreCase(value, true).collect {
           case account if !currentUserName.contains(account.userName) => "Account already exists."

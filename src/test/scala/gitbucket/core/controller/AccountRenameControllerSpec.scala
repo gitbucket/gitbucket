@@ -143,6 +143,18 @@ class AccountRenameControllerSpec extends AnyFunSuite {
     }
   }
 
+  test("POST /:userName/_rename is rejected when only the user name's case changes") {
+    Using.resource(new TestingGitBucketServer(19987)) { server =>
+      server.createUser("CaseUser", "casepw", "case@example.com", "root", "root")
+
+      val status = postWeb(server, "/CaseUser/_rename", "CaseUser", "casepw", Map("newUserName" -> "caseuser"))
+      assert(status == 400, "a case-only rename must be rejected")
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/CaseUser")
+      assert(unchanged.status == 200, "the rejected rename must leave the account unchanged")
+    }
+  }
+
   test("POST /:userName/_rename is rejected when LDAP authentication is enabled") {
     Using.resource(new TestingGitBucketServer(19988)) { server =>
       server.createUser("irene", "irenepw", "irene@example.com", "root", "root")

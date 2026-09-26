@@ -148,4 +148,22 @@ class AdminUserRenameControllerSpec extends AnyFunSuite {
       assert(noahStillExists.status == 200, "noah's account must not have been renamed away")
     }
   }
+
+  test("POST /admin/users/:userName/_rename is rejected when only the user name's case changes") {
+    Using.resource(new TestingGitBucketServer(19983)) { server =>
+      server.createUser("AdminCaseUser", "admincasepw", "admincase@example.com", "root", "root")
+
+      val status = postWeb(
+        server,
+        "/admin/users/AdminCaseUser/_rename",
+        "root",
+        "root",
+        Map("newUserName" -> "admincaseuser")
+      )
+      assert(status == 400, "a case-only rename must be rejected")
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/AdminCaseUser")
+      assert(unchanged.status == 200, "the rejected rename must leave the account unchanged")
+    }
+  }
 }

@@ -955,6 +955,30 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("PATCH /admin/users/:userName rejects a case-only rename") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      server.createUser(
+        "ApiCaseUser",
+        "api-case-pass",
+        "api-case@example.invalid",
+        "root",
+        "root"
+      )
+
+      val response = server.patchApi(
+        "/api/v3/admin/users/ApiCaseUser",
+        """{"login":"apicaseuser"}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 400, s"Expected 400 but got ${response.status}")
+      assert(parse(response.body).extract[ApiError] == ApiError("Case-only account renames are not supported."))
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/ApiCaseUser")
+      assert(unchanged.status == 200, "the rejected rename must leave the account unchanged")
+    }
+  }
+
   test("PATCH /admin/users/:userName for an unknown user returns 404") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val response =
