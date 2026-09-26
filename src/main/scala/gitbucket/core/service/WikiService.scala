@@ -6,7 +6,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util._
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import org.eclipse.jgit.treewalk.{CanonicalTreeParser, TreeWalk}
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
@@ -76,16 +76,25 @@ trait WikiService {
     Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
       if (!JGitUtil.isEmpty(git)) {
         val fileName = pageName + ".md"
-        JGitUtil.getLatestCommitFromPath(git, fileName, branch).map { latestCommit =>
-          val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
-          WikiPageInfo(
-            fileName,
-            StringUtil.convertFromByteArray(content.getOrElse(Array.empty)),
-            latestCommit.getAuthorIdent.getName,
-            latestCommit.getAuthorIdent.getWhen,
-            latestCommit.getName
-          )
-        }
+        JGitUtil
+          .getLatestCommitFromPath(git, fileName, branch)
+          .filter { latestCommit =>
+            // If the page has been deleted, its latest commit is the deleting one, which no longer contains the file
+            Option(TreeWalk.forPath(git.getRepository, fileName, latestCommit.getTree)).exists { treeWalk =>
+              treeWalk.close()
+              true
+            }
+          }
+          .map { latestCommit =>
+            val content = JGitUtil.getContentFromPath(git, latestCommit.getTree, fileName, true)
+            WikiPageInfo(
+              fileName,
+              StringUtil.convertFromByteArray(content.getOrElse(Array.empty)),
+              latestCommit.getAuthorIdent.getName,
+              latestCommit.getAuthorIdent.getWhen,
+              latestCommit.getName
+            )
+          }
       } else None
     }
   }
