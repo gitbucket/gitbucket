@@ -63,7 +63,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
   override def service(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     val agent = req.getHeader("USER-AGENT")
-    val index = req.getRequestURI.indexOf(".git")
+    val index = req.getRequestURI.lastIndexOf(".git")
     if (index >= 0 && (agent == null || agent.toLowerCase.indexOf("git") < 0)) {
       // redirect for browsers
       val paths = req.getRequestURI.substring(0, index).split("/")
@@ -104,7 +104,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
         throw new IllegalStateException("lfs.server_url is not configured.")
       }
       case Some(baseUrl) => {
-        val index = req.getRequestURI.indexOf(".git")
+        val index = req.getRequestURI.lastIndexOf(".git")
         if (index >= 0) {
           req.getRequestURI.substring(0, index).split("/").reverse match {
             case Array(repository, owner, _*) =>
