@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--
+    ISSUE_CUSTOM_FIELD_FK1 originally indexed (USER_NAME, REPOSITORY_NAME, FIELD_ID).
+    The replacement FK in 4.49.0-1 references globally unique FIELD_ID only, because making
+    both ISSUE_CUSTOM_FIELD FKs cascade would create two converging cascade paths when an
+    account owner is renamed. Since FIELD_ID is no longer a leading column of the replacement
+    FK, MySQL cannot reuse the old supporting index left behind after FK1 was dropped.
+  -->
+  <dropIndex tableName="ISSUE_CUSTOM_FIELD" indexName="IDX_ISSUE_CUSTOM_FIELD_FK1"/>
+</changeSet>

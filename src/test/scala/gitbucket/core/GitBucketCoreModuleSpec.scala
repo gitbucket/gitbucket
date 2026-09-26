@@ -303,8 +303,15 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       case x            => statement.setObject(index, x)
     }
 
-  private def insertRow(conn: Connection, tableName: String, overrides: Map[String, Any] = Map.empty): Unit = {
-    val columns = columnMetadata(conn, tableName).filterNot(_.autoIncrement)
+  private def insertRow(
+    conn: Connection,
+    tableName: String,
+    overrides: Map[String, Any] = Map.empty,
+    excludedColumns: Set[String] = Set.empty
+  ): Unit = {
+    val normalizedExcludedColumns = excludedColumns.map(canonicalColumnName)
+    val columns =
+      columnMetadata(conn, tableName).filter(column => !column.autoIncrement && !normalizedExcludedColumns(column.name))
     val normalizedOverrides = overrides.map { case (name, value) => canonicalColumnName(name) -> value }
     val sql =
       s"INSERT INTO ${tableName} (${columns.map(_.name).mkString(", ")}) VALUES (${List.fill(columns.size)("?").mkString(", ")})"
@@ -584,6 +591,25 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       "ACCOUNT_EXTRA_MAIL_ADDRESS",
       Map("USER_NAME" -> "cascade-orphan", "EXTRA_MAIL_ADDRESS" -> "orphan-extra@example.com")
     )
+    insertRow(
+      conn,
+      "ACCOUNT",
+      Map(
+        "USER_NAME" -> "cascade-actor",
+        "MAIL_ADDRESS" -> "cascade-actor@example.com",
+        "PASSWORD" -> "cascade-actor-password",
+        "FULL_NAME" -> "Cascade Actor",
+        "ADMINISTRATOR" -> false,
+        "URL" -> "https://example.invalid/cascade-actor",
+        "REGISTERED_DATE" -> fixedTimestamp,
+        "UPDATED_DATE" -> fixedTimestamp,
+        "LAST_LOGIN_DATE" -> fixedTimestamp,
+        "IMAGE" -> "cascade-actor.png",
+        "GROUP_ACCOUNT" -> false,
+        "REMOVED" -> false,
+        "DESCRIPTION" -> "cascade actor description"
+      )
+    )
 
     insertRow(
       conn,
@@ -617,6 +643,40 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
         "TARGET_COMMITISH" -> schemaPreservationDefaultBranch
       )
     )
+    insertRow(
+      conn,
+      "ISSUE",
+      Map(
+        "USER_NAME" -> "cascade-owner",
+        "REPOSITORY_NAME" -> "cascade-repository",
+        "OPENED_USER_NAME" -> "cascade-actor",
+        "MILESTONE_ID" -> null,
+        "PRIORITY_ID" -> null
+      )
+    )
+    insertRow(
+      conn,
+      "CUSTOM_FIELD",
+      Map(
+        "USER_NAME" -> "cascade-owner",
+        "REPOSITORY_NAME" -> "cascade-repository"
+      )
+    )
+    val customFieldId = selectSingleInt(
+      conn,
+      "SELECT FIELD_ID FROM CUSTOM_FIELD WHERE USER_NAME = ? AND REPOSITORY_NAME = ?",
+      Seq("cascade-owner", "cascade-repository")
+    )
+    insertRow(
+      conn,
+      "ISSUE_CUSTOM_FIELD",
+      Map(
+        "USER_NAME" -> "cascade-owner",
+        "REPOSITORY_NAME" -> "cascade-repository",
+        "FIELD_ID" -> customFieldId
+      ),
+      excludedColumns = Set("VALUE")
+    )
 
     migrate(conn, db, fullModule)
 
@@ -632,6 +692,14 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
     assert(
       extraMailAddressUserNames(conn) == Seq("cascade-owner-renamed"),
       "renaming the account did not cascade to ACCOUNT_EXTRA_MAIL_ADDRESS"
+    )
+    assert(
+      selectSingleInt(
+        conn,
+        "SELECT COUNT(*) FROM ISSUE_CUSTOM_FIELD WHERE USER_NAME = ? AND REPOSITORY_NAME = ?",
+        Seq("cascade-owner-renamed", "cascade-repository")
+      ) == 1,
+      "renaming the account did not cascade to ISSUE_CUSTOM_FIELD"
     )
 
     renameAccount(conn, "cascade-orphan-author", "cascade-orphan-author-renamed")
