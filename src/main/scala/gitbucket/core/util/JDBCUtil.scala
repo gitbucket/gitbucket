@@ -172,7 +172,9 @@ object JDBCUtil {
         val tableNames = new ListBuffer[String]
         while (rs.next) {
           val name = rs.getString("TABLE_NAME").toUpperCase
-          if (name != "VERSIONS" && name != "PLUGIN") {
+          // H2 2.x reports its INFORMATION_SCHEMA tables as TABLE too
+          val schema = Option(rs.getString("TABLE_SCHEM")).getOrElse("")
+          if (name != "VERSIONS" && name != "PLUGIN" && !schema.equalsIgnoreCase("INFORMATION_SCHEMA")) {
             tableNames += name
           }
         }
@@ -192,7 +194,8 @@ object JDBCUtil {
         val children = new ListBuffer[String]
         while (rs.next) {
           val childTableName = rs.getString("FKTABLE_NAME").toUpperCase
-          if (!children.contains(childTableName)) {
+          // Skip self-references (e.g. REPOSITORY fork origin/parent) to avoid infinite recursion
+          if (childTableName != tableName.toUpperCase && !children.contains(childTableName)) {
             children += childTableName
             children ++= childTables(meta, childTableName)
           }
