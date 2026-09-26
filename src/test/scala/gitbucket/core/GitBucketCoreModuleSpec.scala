@@ -529,6 +529,13 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       }
     }
 
+  private def releaseTagAuthors(conn: Connection): Seq[String] =
+    Using.resource(conn.prepareStatement("SELECT AUTHOR FROM RELEASE_TAG ORDER BY AUTHOR")) { statement =>
+      Using.resource(statement.executeQuery()) { rs =>
+        Iterator.continually(rs.next()).takeWhile(identity).map(_ => rs.getString("AUTHOR")).toSeq
+      }
+    }
+
   private def renameAccount(conn: Connection, oldUserName: String, newUserName: String): Unit =
     Using.resource(conn.prepareStatement("UPDATE ACCOUNT SET USER_NAME = ? WHERE USER_NAME = ?")) { statement =>
       statement.setString(1, newUserName)
@@ -578,15 +585,60 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       Map("USER_NAME" -> "cascade-orphan", "EXTRA_MAIL_ADDRESS" -> "orphan-extra@example.com")
     )
 
+    insertRow(
+      conn,
+      "REPOSITORY",
+      Map(
+        "USER_NAME" -> "cascade-owner",
+        "REPOSITORY_NAME" -> "cascade-repository",
+        "ORIGIN_USER_NAME" -> null,
+        "ORIGIN_REPOSITORY_NAME" -> null,
+        "PARENT_USER_NAME" -> null,
+        "PARENT_REPOSITORY_NAME" -> null,
+        "PRIVATE" -> false,
+        "REGISTERED_DATE" -> fixedTimestamp,
+        "UPDATED_DATE" -> fixedTimestamp,
+        "LAST_ACTIVITY_DATE" -> fixedTimestamp,
+        "ALLOW_FORK" -> true,
+        "WIKI_OPTION" -> "PUBLIC",
+        "ISSUES_OPTION" -> "PUBLIC",
+        "MERGE_OPTIONS" -> "merge-commit,squash,rebase",
+        "DEFAULT_MERGE_OPTION" -> "merge-commit",
+        "SAFE_MODE" -> true
+      )
+    )
+    insertRow(
+      conn,
+      "RELEASE_TAG",
+      Map(
+        "USER_NAME" -> "cascade-owner",
+        "REPOSITORY_NAME" -> "cascade-repository",
+        "AUTHOR" -> "cascade-orphan-author",
+        "TARGET_COMMITISH" -> schemaPreservationDefaultBranch
+      )
+    )
+
     migrate(conn, db, fullModule)
 
     assert(extraMailAddressUserNames(conn) == Seq("cascade-owner"), "orphaned extra mail address row was not removed")
+    assert(
+      accountRows(conn).exists(row => row.userName == "cascade-orphan-author" && row.removed),
+      "orphaned release author was not repaired with a placeholder account"
+    )
+    assert(releaseTagAuthors(conn) == Seq("cascade-orphan-author"))
 
     renameAccount(conn, "cascade-owner", "cascade-owner-renamed")
 
     assert(
       extraMailAddressUserNames(conn) == Seq("cascade-owner-renamed"),
       "renaming the account did not cascade to ACCOUNT_EXTRA_MAIL_ADDRESS"
+    )
+
+    renameAccount(conn, "cascade-orphan-author", "cascade-orphan-author-renamed")
+
+    assert(
+      releaseTagAuthors(conn) == Seq("cascade-orphan-author-renamed"),
+      "renaming the account did not cascade to RELEASE_TAG.AUTHOR"
     )
   }
 

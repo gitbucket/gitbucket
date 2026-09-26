@@ -5,11 +5,11 @@
   <!--================================================================================================-->
 
   <!--
-    These columns record who requested a pull request, wrote a commit/issue comment, uploaded a release
-    asset, or is assigned to an issue. None have had a foreign key - ISSUE_ASSIGNEE.ASSIGNEE_USER_NAME's
-    constraint was written into the 4.38 migration but left commented out, and the rest never had one at
-    all - so it is possible (however unlikely, since ACCOUNT rows are never deleted, only marked removed)
-    for a value to no longer match any ACCOUNT row.
+    These columns record who requested a pull request, wrote a commit/issue comment, authored a release,
+    uploaded a release asset, or is assigned to an issue. None have had a foreign key;
+    ISSUE_ASSIGNEE.ASSIGNEE_USER_NAME's constraint was written into the 4.38 migration but left commented
+    out, and the rest never had one at all - so it is possible (however unlikely, since ACCOUNT rows are
+    never deleted, only marked removed) for a value to no longer match any ACCOUNT row.
 
     Insert an inactive (removed) account for any such orphaned username so the new constraints added
     below are satisfied. This is similar to the fork owner/parent repair in the 4.47.0-0 migration, but
@@ -36,6 +36,8 @@
       SELECT COMMENTED_USER_NAME AS USER_NAME FROM COMMIT_COMMENT
       UNION
       SELECT COMMENTED_USER_NAME AS USER_NAME FROM ISSUE_COMMENT
+      UNION
+      SELECT AUTHOR AS USER_NAME FROM RELEASE_TAG
       UNION
       SELECT UPLOADER AS USER_NAME FROM RELEASE_ASSET
       UNION
@@ -70,6 +72,9 @@
   <createIndex tableName="ISSUE_COMMENT" indexName="IDX_ISSUE_COMMENT_COMMENTED_USER_NAME">
     <column name="COMMENTED_USER_NAME"/>
   </createIndex>
+  <createIndex tableName="RELEASE_TAG" indexName="IDX_RELEASE_TAG_AUTHOR">
+    <column name="AUTHOR"/>
+  </createIndex>
   <createIndex tableName="RELEASE_ASSET" indexName="IDX_RELEASE_ASSET_UPLOADER">
     <column name="UPLOADER"/>
   </createIndex>
@@ -82,6 +87,7 @@
   <addForeignKeyConstraint constraintName="IDX_PULL_REQUEST_FK1" baseTableName="PULL_REQUEST" baseColumnNames="REQUEST_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
   <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK1" baseTableName="COMMIT_COMMENT" baseColumnNames="COMMENTED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
   <addForeignKeyConstraint constraintName="IDX_ISSUE_COMMENT_FK1" baseTableName="ISSUE_COMMENT" baseColumnNames="COMMENTED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_TAG_FK1" baseTableName="RELEASE_TAG" baseColumnNames="AUTHOR" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
   <!-- IDX_RELEASE_ASSET_FK1 as a constraint name is intentionally not reused: it named a constraint
        against the RELEASE table (dropped in the 4.23 migration) and reusing it here would be
        confusing to read against the migration history. -->
