@@ -276,7 +276,7 @@ abstract class ControllerBase
       contentType = FileUtil.getSafeMimeType(path, repository.repository.options.safeMode)
 
       if (loader.isLarge) {
-        response.setContentLength(loader.getSize.toInt)
+        response.setContentLengthLong(loader.getSize)
         loader.copyTo(response.outputStream)
       } else {
         val bytes = loader.getCachedBytes
@@ -284,7 +284,7 @@ abstract class ControllerBase
 
         val attrs = JGitUtil.getLfsObjects(text)
         if (attrs.nonEmpty) {
-          response.setContentLength(attrs("size").toInt)
+          response.setContentLengthLong(attrs("size").toLong)
           val oid = attrs("oid").split(":")(1)
 
           Using.resource(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))) { in =>
