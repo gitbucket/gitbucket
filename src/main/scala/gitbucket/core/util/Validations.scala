@@ -28,6 +28,9 @@ trait Validations {
         Some(s"${name} contains invalid character.")
       } else if (value.startsWith("_") || value.startsWith("-")) {
         Some(s"${name} starts with invalid character.")
+      } else if (value.toLowerCase.endsWith(".git") || value.toLowerCase.endsWith(".wiki")) {
+        // Would clash with the directories of another repository or its wiki
+        Some(s"${name} must not end with .git or .wiki.")
       } else {
         None
       }
