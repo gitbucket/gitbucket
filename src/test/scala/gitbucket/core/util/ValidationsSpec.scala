@@ -14,6 +14,17 @@ class ValidationsSpec extends AnyFunSpec with Validations {
     }
   }
 
+  describe("repository") {
+    it("should validate repository name") {
+      assert(repository.validate("name", "my-repo.v2+x", null) == None)
+      assert(repository.validate("name", "repo.github.io", null) == None)
+      assert(repository.validate("name", "repo.git", null) == Some("name must not end with .git or .wiki."))
+      assert(repository.validate("name", "repo.GIT", null) == Some("name must not end with .git or .wiki."))
+      assert(repository.validate("name", "repo.wiki", null) == Some("name must not end with .git or .wiki."))
+      assert(repository.validate("name", "_repo", null) == Some("name starts with invalid character."))
+    }
+  }
+
   describe("color") {
     it("should validate color string ") {
       val messages = Messages()
