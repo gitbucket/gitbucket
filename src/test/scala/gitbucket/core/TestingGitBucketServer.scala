@@ -215,6 +215,20 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     }
   }
 
+  /** Perform an authenticated PUT request with a JSON body and return the status code and response body. */
+  def putApi(path: String, body: String, login: String, password: String): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val put = new HttpPut(s"http://localhost:$port$path")
+      val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
+      put.setHeader("Authorization", s"Basic $credentials")
+      put.setHeader("Content-Type", "application/json")
+      put.setEntity(new StringEntity(body, "UTF-8"))
+      val response = httpClient.execute(put)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
   /** Suspend a user via the admin REST API. */
   def suspendUser(login: String, adminLogin: String, adminPassword: String): Unit = {
     val response = putApi(s"/api/v3/users/$login/suspended", adminLogin, adminPassword)

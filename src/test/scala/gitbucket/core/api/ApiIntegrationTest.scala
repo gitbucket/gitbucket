@@ -296,6 +296,34 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(label2.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/duplicate")
       }
 
+      // Add labels with a plain array body
+      {
+        val response = server.postApi(
+          s"/api/v3/repos/root/issue_label_test/issues/${issue.getNumber}/labels",
+          """["enhancement"]""",
+          "root",
+          "root"
+        )
+        assert(response.status == 200)
+
+        val labels = repo.getIssue(issue.getNumber).getLabels
+        assert(labels.size() == 3)
+        issue.removeLabel("enhancement")
+      }
+
+      // Bodies in no documented form are rejected and don't change the labels
+      {
+        val path = s"/api/v3/repos/root/issue_label_test/issues/${issue.getNumber}/labels"
+        Seq("{}", """{"labels":"bug"}""", """[{"name":"bug"}]""", "[1]", "null").foreach { body =>
+          assert(server.putApi(path, body, "root", "root").status == 400, s"PUT $body")
+          assert(server.postApi(path, body, "root", "root").status == 400, s"POST $body")
+        }
+        assert(repo.getIssue(issue.getNumber).getLabels.size() == 2)
+
+        assert(server.putApi(path, """{"labels":["bug","duplicate"]}""", "root", "root").status == 200)
+        assert(repo.getIssue(issue.getNumber).getLabels.size() == 2)
+      }
+
       // Remove a label
       {
         issue.removeLabel("duplicate")
