@@ -1,10 +1,11 @@
 package gitbucket.core.controller.api
-import gitbucket.core.api.{AddLabelsToAnIssue, ApiError, ApiLabel, CreateALabel, JsonFormat}
+import gitbucket.core.api.{ApiError, ApiLabel, CreateALabel, JsonFormat}
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-import org.scalatra.{Created, NoContent, UnprocessableEntity}
+import org.json4s.{JArray, JObject, JString, JValue}
+import org.scalatra.{BadRequest, Created, NoContent, UnprocessableEntity}
 
 trait ApiIssueLabelControllerBase extends ControllerBase {
   self: AccountService & IssuesService & LabelsService & ReferrerAuthenticator & WritableUsersAuthenticator =>
@@ -115,10 +116,10 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
    */
   post("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
-    JsonFormat(for {
+    (for {
       labels <- extractLabelNames()
       issueId <- params("id").toIntOpt
-    } yield {
+    } yield JsonFormat {
       labels.map { labelName =>
         val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
           getLabel(
@@ -130,7 +131,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
         registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
         ApiLabel(label, RepositoryName(repository.owner, repository.name))
       }
-    })
+    }) getOrElse BadRequest()
   })
 
   /*
@@ -154,10 +155,10 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/labels/#replace-all-labels-for-an-issue
    */
   put("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
-    JsonFormat(for {
+    (for {
       labels <- extractLabelNames()
       issueId <- params("id").toIntOpt
-    } yield {
+    } yield JsonFormat {
       deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
       labels.map { labelName =>
         val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
@@ -170,7 +171,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
         registerIssueLabel(repository.owner, repository.name, issueId, label.labelId, true)
         ApiLabel(label, RepositoryName(repository.owner, repository.name))
       }
-    })
+    }) getOrElse BadRequest()
   })
 
   /*
@@ -189,9 +190,21 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
 
   /**
-   * Accepts both ["bug"] and {"labels":["bug"]}, like GitHub. The array must be tried first: json4s extracts an
-   * array into AddLabelsToAnIssue(Nil) without failing. A null body is ignored.
+   * Returns the label names of the request body in the documented forms: {"labels":["bug"]}, ["bug"] and "bug".
+   * Any other body returns None, so that it is rejected rather than read as an empty list: for PUT, an empty list
+   * removes all labels of the issue. The raw JSON is matched because json4s extracts almost any JSON into a case
+   * class or a Seq without failing (e.g. {} into AddLabelsToAnIssue(Nil)).
    */
-  private def extractLabelNames(): Option[Seq[String]] =
-    extractFromJsonBody[Option[Either[Seq[String], AddLabelsToAnIssue]]].flatten.map(_.fold(identity, _.labels))
+  private def extractLabelNames(): Option[Seq[String]] = {
+    def names(values: List[JValue]): Option[Seq[String]] = {
+      val strings = values.collect { case JString(name) => name }
+      Option.when(strings.size == values.size)(strings)
+    }
+    extractFromJsonBody[JValue].flatMap {
+      case JArray(values)  => names(values)
+      case JObject(fields) => fields.collectFirst { case ("labels", JArray(values)) => values }.flatMap(names)
+      case JString(name)   => Some(Seq(name))
+      case _               => None
+    }
+  }
 }
