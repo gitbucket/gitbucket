@@ -363,17 +363,21 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   )
 
   post("/:userName/_rename", renameForm)(oneselfOnlyWithForm { form =>
-    val userName = params("userName")
-    getAccountByUserName(userName).map { _ =>
-      if (userName != form.newUserName) {
-        renameAccount(userName, form.newUserName)
-        // Keep the current session in sync if the signed in user renamed themself
-        context.loginAccount.withFilter(_.userName == userName).foreach { account =>
-          session.setAttribute(Keys.Session.LoginAccount, account.copy(userName = form.newUserName))
+    if (context.settings.ldapAuthentication) {
+      Forbidden()
+    } else {
+      val userName = params("userName")
+      getAccountByUserName(userName).map { _ =>
+        if (userName != form.newUserName) {
+          renameAccount(userName, form.newUserName)
+          // Keep the current session in sync if the signed in user renamed themself
+          context.loginAccount.withFilter(_.userName == userName).foreach { account =>
+            session.setAttribute(Keys.Session.LoginAccount, account.copy(userName = form.newUserName))
+          }
         }
-      }
-      redirect(s"/${form.newUserName}/_danger_zone")
-    } getOrElse NotFound()
+        redirect(s"/${form.newUserName}/_danger_zone")
+      } getOrElse NotFound()
+    }
   })
 
   post("/:userName/_delete")(oneselfOnly {

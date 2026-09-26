@@ -8,6 +8,7 @@
       <div class="panel panel-default">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
+          @if(!context.settings.ldapAuthentication){
           <form id="rename-form" method="post" action="@helpers.url(account.userName)/_rename" validate="true" autocomplete="off">
             <fieldset class="form-group">
               <label class="strong">Rename account</label>
@@ -23,6 +24,16 @@
               </div>
             </fieldset>
           </form>
+          } else {
+          <fieldset class="form-group">
+            <label class="strong">Rename account</label>
+            <div class="pull-right">
+              <input type="text" id="newUserName" class="form-control" style="width: 200px; display: inline; vertical-align: middle;" value="@account.userName" aria-label="User name" disabled/>
+            </div>
+            <div style="clear: both;"></div>
+            <div class="help-block">Account rename disabled because LDAP is enabled.</div>
+          </fieldset>
+          }
           <form id="delete-form" method="post" action="@helpers.url(account.userName)/_delete">
             <fieldset class="form-group">
               <label class="strong">Delete account</label>

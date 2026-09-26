@@ -15,6 +15,9 @@
                 <input type="text" name="newUserName" id="newUserName" class="form-control" style="flex: 1; margin-right: 8px;" value="@account.get.userName" aria-label="New user name"/>
                 <input type="submit" class="btn btn-danger" value="Rename"/>
               </div>
+              @if(context.settings.ldapAuthentication){
+                <div class="help-block">Warning: LDAP is enabled; renaming may impact access or security.</div>
+              }
             </fieldset>
           </div>
         </div>

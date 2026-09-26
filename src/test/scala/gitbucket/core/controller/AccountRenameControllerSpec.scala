@@ -9,7 +9,9 @@ import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.scalatest.funsuite.AnyFunSuite
 
+import java.io.{File, FileOutputStream}
 import java.util.{Arrays => JArrays}
+import java.util.Properties
 import scala.util.Using
 
 /**
@@ -49,6 +51,18 @@ class AccountRenameControllerSpec extends AnyFunSuite {
       val response = httpClient.execute(post)
       EntityUtils.consume(response.getEntity)
       response.getStatusLine.getStatusCode
+    }
+  }
+
+  private def enableLdapAuthentication(server: TestingGitBucketServer): Unit = {
+    val properties = new Properties()
+    properties.setProperty("ldap_authentication", "true")
+    properties.setProperty("ldap.host", "127.0.0.1")
+    properties.setProperty("ldap.port", "1")
+    properties.setProperty("ldap.baseDN", "dc=example,dc=com")
+    properties.setProperty("ldap.username_attribute", "uid")
+    Using.resource(new FileOutputStream(new File(server.getDirectory(), "gitbucket.conf"))) { output =>
+      properties.store(output, null)
     }
   }
 
@@ -126,6 +140,19 @@ class AccountRenameControllerSpec extends AnyFunSuite {
 
       val noReservedAccount = server.getAnonymousApi("/api/v3/users/admin")
       assert(noReservedAccount.status == 404, "no account should have been created under the reserved name")
+    }
+  }
+
+  test("POST /:userName/_rename is rejected when LDAP authentication is enabled") {
+    Using.resource(new TestingGitBucketServer(19988)) { server =>
+      server.createUser("irene", "irenepw", "irene@example.com", "root", "root")
+      enableLdapAuthentication(server)
+
+      val status = postWeb(server, "/irene/_rename", "irene", "irenepw", Map("newUserName" -> "irene2"))
+      assert(status == 403, "LDAP-authenticated accounts must not be self-renamed")
+
+      val unchanged = server.getAnonymousApi("/api/v3/users/irene")
+      assert(unchanged.status == 200, "the rejected rename must leave the account unchanged")
     }
   }
 }
