@@ -40,7 +40,10 @@ class WikiControllerSpec extends AnyFunSuite {
       assert(deleteStatus == 302)
       val (_, pageList) = get(httpClient, s"$base/_pages")
       assert(!pageList.contains(s"/wiki/${StringUtil.urlEncode("title+")}\""), "title+ should be deleted")
-      assert(pageList.contains(s"/wiki/${StringUtil.urlEncode("a b")}\""), "deleting title+ must not delete other pages")
+      assert(
+        pageList.contains(s"/wiki/${StringUtil.urlEncode("a b")}\""),
+        "deleting title+ must not delete other pages"
+      )
       val (otherStatus, otherBody) = get(httpClient, s"$base/${StringUtil.urlEncode("a b")}")
       assert(otherStatus == 200 && otherBody.contains(content("a b")), "deleting title+ must not affect other pages")
     }
