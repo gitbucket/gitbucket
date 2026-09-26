@@ -15,7 +15,7 @@
     }
     @wikis.drop((page - 1) * RepositorySearchService.CodeLimit).take(RepositorySearchService.CodeLimit).map { file =>
       <div>
-        <h5><a href="@helpers.url(repository)/wiki/@file.path">@file.path</a></h5>
+        <h5><a href="@helpers.url(repository)/wiki/@helpers.urlEncode(file.path)">@file.path</a></h5>
         <div class="small muted">Last committed @gitbucket.core.helper.html.datetimeago(file.lastModified)</div>
         <pre class="prettyprint linenums:@file.highlightLineNumber" style="padding-left: 25px;">@Html(file.highlightText)</pre>
       </div>
