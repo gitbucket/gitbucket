@@ -1,8 +1,14 @@
 package gitbucket.core.service
 
+import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
+import gitbucket.core.api.JsonFormat
 import gitbucket.core.model.{WebHook, RepositoryWebHook}
 import org.scalatest.funsuite.AnyFunSuite
 import gitbucket.core.model.WebHookContentType
+
+import java.net.InetSocketAddress
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
   lazy val service = new WebHookPullRequestService
@@ -147,6 +153,47 @@ class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
           RepositoryWebHook("user1", "repo1", 3, "http://example.com/3", ctype, Some("key"))
         )
       )
+    }
+  }
+
+  test("an account webhook registered before an account rename still receives deliveries") {
+    val delivered = new CountDownLatch(1)
+    val receivedEvent = new AtomicReference[String]
+    val server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+    server.createContext(
+      "/",
+      new HttpHandler {
+        override def handle(exchange: HttpExchange): Unit = {
+          receivedEvent.set(exchange.getRequestHeaders.getFirst("X-Github-Event"))
+          exchange.getRequestBody.close()
+          exchange.sendResponseHeaders(204, -1)
+          exchange.close()
+          delivered.countDown()
+        }
+      }
+    )
+    server.start()
+
+    try {
+      withTestDB { implicit session =>
+        implicit val context: JsonFormat.Context = JsonFormat.Context("http://localhost:8080", None)
+        val oldOwner = "webhook-owner"
+        val newOwner = "renamed-webhook-owner"
+        val url = s"http://127.0.0.1:${server.getAddress.getPort}/"
+
+        generateNewAccount(oldOwner)
+        service.addAccountWebHook(oldOwner, url, Set(WebHook.Push), WebHookContentType.JSON, None)
+        service.renameAccount(oldOwner, newOwner)
+
+        service.callWebHookOf(newOwner, "repository", WebHook.Push, createSystemSettings())(
+          Some(WebHookService.WebHookPushPayload.createDummyPayload(user(newOwner)))
+        )
+
+        assert(delivered.await(5, TimeUnit.SECONDS))
+        assert(receivedEvent.get == "push")
+      }
+    } finally {
+      server.stop(0)
     }
   }
 }
