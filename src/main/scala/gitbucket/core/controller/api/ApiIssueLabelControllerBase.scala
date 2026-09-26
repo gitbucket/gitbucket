@@ -116,10 +116,10 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
   post("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
     JsonFormat(for {
-      data <- extractFromJsonBody[AddLabelsToAnIssue]
+      labels <- extractLabelNames()
       issueId <- params("id").toIntOpt
     } yield {
-      data.labels.map { labelName =>
+      labels.map { labelName =>
         val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
           getLabel(
             repository.owner,
@@ -155,11 +155,11 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    */
   put("/api/v3/repos/:owner/:repository/issues/:id/labels")(writableUsersOnly { repository =>
     JsonFormat(for {
-      data <- extractFromJsonBody[AddLabelsToAnIssue]
+      labels <- extractLabelNames()
       issueId <- params("id").toIntOpt
     } yield {
       deleteAllIssueLabels(repository.owner, repository.name, issueId, true)
-      data.labels.map { labelName =>
+      labels.map { labelName =>
         val label = getLabel(repository.owner, repository.name, labelName).getOrElse(
           getLabel(
             repository.owner,
@@ -187,4 +187,11 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * xi Get labels for every issue in a milestone
    * https://developer.github.com/v3/issues/labels/#get-labels-for-every-issue-in-a-milestone
    */
+
+  /**
+   * Accepts both ["bug"] and {"labels":["bug"]}, like GitHub. The array must be tried first: json4s extracts an
+   * array into AddLabelsToAnIssue(Nil) without failing. A null body is ignored.
+   */
+  private def extractLabelNames(): Option[Seq[String]] =
+    extractFromJsonBody[Option[Either[Seq[String], AddLabelsToAnIssue]]].flatten.map(_.fold(identity, _.labels))
 }

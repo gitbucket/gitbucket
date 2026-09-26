@@ -296,6 +296,21 @@ class ApiIntegrationTest extends AnyFunSuite {
         assert(label2.getUrl == "http://localhost:19999/api/v3/repos/root/issue_label_test/labels/duplicate")
       }
 
+      // Add labels with a plain array body
+      {
+        val response = server.postApi(
+          s"/api/v3/repos/root/issue_label_test/issues/${issue.getNumber}/labels",
+          """["enhancement"]""",
+          "root",
+          "root"
+        )
+        assert(response.status == 200)
+
+        val labels = repo.getIssue(issue.getNumber).getLabels
+        assert(labels.size() == 3)
+        issue.removeLabel("enhancement")
+      }
+
       // Remove a label
       {
         issue.removeLabel("duplicate")
