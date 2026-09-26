@@ -8,6 +8,21 @@
       <div class="panel panel-default">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
+          <form id="rename-form" method="post" action="@helpers.url(account.userName)/_rename" validate="true" autocomplete="off">
+            <fieldset class="form-group">
+              <label class="strong">Rename account</label>
+              <div>
+                Rename this account. This will make the user's current URL unavailable.
+                <div class="pull-right">
+                  <input type="text" name="newUserName" id="newUserName" class="form-control" style="width: 200px; display: inline; vertical-align: middle;" value="@account.userName" aria-label="User name"/>
+                  <input type="submit" class="btn btn-danger" value="Rename"/>
+                  <div>
+                    <span id="error-newUserName" class="error"></span>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </form>
           <form id="delete-form" method="post" action="@helpers.url(account.userName)/_delete">
             <fieldset class="form-group">
               <label class="strong">Delete account</label>
@@ -24,6 +39,13 @@
 }
 <script>
 $(function(){
+  $('#rename-form').submit(function(){
+    if($('#rename-form').data('validated') === true){
+      return confirm('Rename this account as you entered. The user\'s current URL will be unavailable.\nAre you sure?');
+    } else {
+      return true;
+    }
+  });
   $('#delete-form').submit(function(){
     return confirm('Once you delete your account, there is no going back.\nAre you sure?');
   });

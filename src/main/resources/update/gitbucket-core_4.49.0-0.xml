@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- ACCOUNT - PART 1 - REPAIR ORPHANED REFERENCES BEFORE ADDING NEW CONSTRAINTS                    -->
+  <!--================================================================================================-->
+
+  <!--
+    These columns record who requested a pull request, wrote a commit/issue comment, uploaded a release
+    asset, or is assigned to an issue. None have had a foreign key - ISSUE_ASSIGNEE.ASSIGNEE_USER_NAME's
+    constraint was written into the 4.38 migration but left commented out, and the rest never had one at
+    all - so it is possible (however unlikely, since ACCOUNT rows are never deleted, only marked removed)
+    for a value to no longer match any ACCOUNT row.
+
+    Insert an inactive (removed) account for any such orphaned username so the new constraints added
+    below are satisfied. This is similar to the fork owner/parent repair in the 4.47.0-0 migration, but
+    portable using CONCAT since no platform specific approaches are required elsewhere.
+  -->
+  <sql>
+    INSERT INTO ACCOUNT
+    (
+      USER_NAME, MAIL_ADDRESS, PASSWORD, ADMINISTRATOR, REGISTERED_DATE, UPDATED_DATE, GROUP_ACCOUNT, FULL_NAME, REMOVED
+    )
+    SELECT
+      mu.USER_NAME,
+      CONCAT('missing+', mu.USER_NAME, '@invalid.local'),
+      'missing-account-placeholder',
+      FALSE,
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP,
+      FALSE,
+      mu.USER_NAME,
+      TRUE
+    FROM (
+      SELECT REQUEST_USER_NAME AS USER_NAME FROM PULL_REQUEST
+      UNION
+      SELECT COMMENTED_USER_NAME AS USER_NAME FROM COMMIT_COMMENT
+      UNION
+      SELECT COMMENTED_USER_NAME AS USER_NAME FROM ISSUE_COMMENT
+      UNION
+      SELECT UPLOADER AS USER_NAME FROM RELEASE_ASSET
+      UNION
+      SELECT ASSIGNEE_USER_NAME AS USER_NAME FROM ISSUE_ASSIGNEE
+    ) mu
+    LEFT JOIN ACCOUNT ea
+      ON ea.USER_NAME = mu.USER_NAME
+    WHERE ea.USER_NAME IS NULL
+  </sql>
+
+  <!--
+    Since ACCOUNT_EXTRA_MAIL_ADDRESS rows are meaningless without the account they belong to, orphaned
+    rows are simply removed rather than repaired.
+  -->
+  <sql>
+    DELETE FROM ACCOUNT_EXTRA_MAIL_ADDRESS
+    WHERE USER_NAME NOT IN (SELECT USER_NAME FROM ACCOUNT)
+  </sql>
+
+  <!--================================================================================================-->
+  <!-- ACCOUNT - PART 2 - ADD MISSING FOREIGN KEYS WITH ON UPDATE CASCADE                              -->
+  <!--================================================================================================-->
+
+  <!-- MySQL InnoDB requires an index on the FK referencing column; H2 and PostgreSQL accept the
+       constraint without one but benefit from the same index for cascade performance -->
+  <createIndex tableName="PULL_REQUEST" indexName="IDX_PULL_REQUEST_REQUEST_USER_NAME">
+    <column name="REQUEST_USER_NAME"/>
+  </createIndex>
+  <createIndex tableName="COMMIT_COMMENT" indexName="IDX_COMMIT_COMMENT_COMMENTED_USER_NAME">
+    <column name="COMMENTED_USER_NAME"/>
+  </createIndex>
+  <createIndex tableName="ISSUE_COMMENT" indexName="IDX_ISSUE_COMMENT_COMMENTED_USER_NAME">
+    <column name="COMMENTED_USER_NAME"/>
+  </createIndex>
+  <createIndex tableName="RELEASE_ASSET" indexName="IDX_RELEASE_ASSET_UPLOADER">
+    <column name="UPLOADER"/>
+  </createIndex>
+  <!-- ASSIGNEE_USER_NAME is the last column of ISSUE_ASSIGNEE's composite primary key, so
+       (unlike ACCOUNT_EXTRA_MAIL_ADDRESS.USER_NAME below) it is not a usable index prefix -->
+  <createIndex tableName="ISSUE_ASSIGNEE" indexName="IDX_ISSUE_ASSIGNEE_ASSIGNEE_USER_NAME">
+    <column name="ASSIGNEE_USER_NAME"/>
+  </createIndex>
+
+  <addForeignKeyConstraint constraintName="IDX_PULL_REQUEST_FK1" baseTableName="PULL_REQUEST" baseColumnNames="REQUEST_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK1" baseTableName="COMMIT_COMMENT" baseColumnNames="COMMENTED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_COMMENT_FK1" baseTableName="ISSUE_COMMENT" baseColumnNames="COMMENTED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <!-- IDX_RELEASE_ASSET_FK1 as a constraint name is intentionally not reused: it named a constraint
+       against the RELEASE table (dropped in the 4.23 migration) and reusing it here would be
+       confusing to read against the migration history. -->
+  <addForeignKeyConstraint constraintName="IDX_RELEASE_ASSET_FK2" baseTableName="RELEASE_ASSET" baseColumnNames="UPLOADER" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <!-- the constraint was originally meant to be added by the 4.38 migration; see the comment
+       at the top of this file -->
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ASSIGNEE_FK1" baseTableName="ISSUE_ASSIGNEE" baseColumnNames="ASSIGNEE_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <!-- USER_NAME is already the leading column of the composite primary key, which MySQL InnoDB
+       can use to satisfy the FK requirement, so no extra index is needed here. -->
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_EXTRA_MAIL_ADDRESS_FK0" baseTableName="ACCOUNT_EXTRA_MAIL_ADDRESS" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+</changeSet>

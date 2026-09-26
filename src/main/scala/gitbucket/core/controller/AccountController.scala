@@ -64,6 +64,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     clearImage: Boolean
   )
 
+  private case class RenameAccountForm(newUserName: String)
+
   private case class SshKeyForm(title: String, publicKey: String)
 
   private case class GpgKeyForm(title: String, publicKey: String)
@@ -97,6 +99,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "fileId" -> trim(label("File ID", optional(text()))),
     "clearImage" -> trim(label("Clear image", boolean()))
   )(AccountEditForm.apply)
+
+  private val renameForm = mapping(
+    "newUserName" -> trim(
+      label("New user name", text(required, maxlength(100), identifier, reservedNames, renameUserName))
+    )
+  )(RenameAccountForm.apply)
 
   private val sshKeyForm = mapping(
     "title" -> trim(label("Title", text(required, maxlength(100)))),
@@ -353,6 +361,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       } getOrElse NotFound()
     }
   )
+
+  post("/:userName/_rename", renameForm)(oneselfOnlyWithForm { form =>
+    val userName = params("userName")
+    getAccountByUserName(userName).map { _ =>
+      if (userName != form.newUserName) {
+        renameAccount(userName, form.newUserName)
+        // Keep the current session in sync if the signed in user renamed themself
+        context.loginAccount.withFilter(_.userName == userName).foreach { account =>
+          session.setAttribute(Keys.Session.LoginAccount, account.copy(userName = form.newUserName))
+        }
+      }
+      redirect(s"/${form.newUserName}/_danger_zone")
+    } getOrElse NotFound()
+  })
 
   post("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")

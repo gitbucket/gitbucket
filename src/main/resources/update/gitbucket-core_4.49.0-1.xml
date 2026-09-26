@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--================================================================================================-->
+  <!-- ACCOUNT - PART 3 - ENABLE ON UPDATE CASCADE FOR EXISTING REFERENCES TO ACCOUNT.USER_NAME        -->
+  <!--================================================================================================-->
+
+  <!--
+    These columns already have a foreign key to ACCOUNT.USER_NAME, so (unlike PART 2) no orphan
+    repair is required here - the existing constraint already guarantees every value matches a
+    real account. They just need to be dropped and re-added with ON UPDATE CASCADE so renaming
+    an account propagates automatically, the same way repository renames already cascade through
+    the constraints added in the 4.47.0-2 migration.
+
+    ACCESS_TOKEN.USER_NAME, ACCOUNT_PREFERENCE.USER_NAME, COMMIT_STATUS.USER_NAME and
+    COMMIT_STATUS.CREATOR already carry ON UPDATE CASCADE (from the 4.0 and 4.35 migrations) and
+    are left untouched.
+
+    ACTIVITY.ACTIVITY_USER_NAME (added in the 4.0 migration) is not touched here either: the
+    ACTIVITY table itself was dropped in the 4.34 migration once activity data moved to the
+    file-based log, so the constraint no longer exists to update.
+
+    ISSUE_ASSIGNEE.ASSIGNEE_USER_NAME is also not touched here: its FK was written into the
+    4.38 migration but left commented out, so it was never actually created. It is added for
+    the first time in the 4.49.0-0 migration instead, alongside the same orphan repair given to
+    the other columns that never had a working constraint.
+  -->
+
+  <!-- from 4.0 migration -->
+  <dropForeignKeyConstraint constraintName="IDX_REPOSITORY_FK0" baseTableName="REPOSITORY"/>
+  <dropForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK1" baseTableName="COLLABORATOR"/>
+  <dropForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK0" baseTableName="GROUP_MEMBER"/>
+  <dropForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK1" baseTableName="GROUP_MEMBER"/>
+  <dropForeignKeyConstraint constraintName="IDX_ISSUE_FK1" baseTableName="ISSUE"/>
+  <dropForeignKeyConstraint constraintName="IDX_SSH_KEY_FK0" baseTableName="SSH_KEY"/>
+
+  <!-- from 4.14 migration -->
+  <dropForeignKeyConstraint constraintName="IDX_ACCOUNT_WEB_HOOK_FK0" baseTableName="ACCOUNT_WEB_HOOK"/>
+
+  <!-- from 4.21 migration -->
+  <dropForeignKeyConstraint constraintName="IDX_ACCOUNT_FEDERATION_FK0" baseTableName="ACCOUNT_FEDERATION"/>
+
+  <!-- from 4.31 migration -->
+  <dropForeignKeyConstraint constraintName="IDX_GPG_KEY_FK0" baseTableName="GPG_KEY"/>
+
+  <!-- from 4.44 migration -->
+  <dropForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_FK1" baseTableName="PROTECTED_BRANCH_RESTRICTION"/>
+
+  <!-- from 4.0 migration -->
+  <addForeignKeyConstraint constraintName="IDX_REPOSITORY_FK0" baseTableName="REPOSITORY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK1" baseTableName="COLLABORATOR" baseColumnNames="COLLABORATOR_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK0" baseTableName="GROUP_MEMBER" baseColumnNames="GROUP_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK1" baseTableName="GROUP_MEMBER" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK1" baseTableName="ISSUE" baseColumnNames="OPENED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_SSH_KEY_FK0" baseTableName="SSH_KEY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+
+  <!-- from 4.14 migration -->
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_WEB_HOOK_FK0" baseTableName="ACCOUNT_WEB_HOOK" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+
+  <!-- from 4.21 migration -->
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_FEDERATION_FK0" baseTableName="ACCOUNT_FEDERATION" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+
+  <!-- from 4.31 migration -->
+  <addForeignKeyConstraint constraintName="IDX_GPG_KEY_FK0" baseTableName="GPG_KEY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+
+  <!-- from 4.44 migration -->
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_RESTRICTION_FK1" baseTableName="PROTECTED_BRANCH_RESTRICTION" baseColumnNames="ALLOWED_USER" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onUpdate="CASCADE"/>
+</changeSet>
