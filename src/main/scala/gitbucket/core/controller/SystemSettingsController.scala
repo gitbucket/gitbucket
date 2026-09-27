@@ -551,7 +551,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     contentType = "application/octet-stream"
     response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
-    response.setContentLength(file.length.toInt)
+    response.setContentLengthLong(file.length)
 
     Using.resource(new FileInputStream(file)) { in =>
       IOUtils.copy(in, response.outputStream)
