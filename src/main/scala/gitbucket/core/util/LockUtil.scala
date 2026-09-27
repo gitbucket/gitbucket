@@ -13,12 +13,8 @@ object LockUtil {
   /**
    * Returns the lock object for the specified repository.
    */
-  private def getLockObject(key: String): Lock = synchronized {
-    if (!locks.containsKey(key)) {
-      locks.put(key, new ReentrantLock())
-    }
-    locks.get(key)
-  }
+  private def getLockObject(key: String): Lock =
+    locks.computeIfAbsent(key, _ => new ReentrantLock())
 
   /**
    * Synchronizes a given function which modifies the working copy of the wiki repository.
