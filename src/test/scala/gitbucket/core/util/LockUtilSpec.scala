@@ -404,4 +404,148 @@ class LockUtilSpec extends AnyFunSuite {
     contender.join(SafetyTimeoutMillis)
   }
 
+  test("lockUserForRead waits for an in-progress lockUser on that user to release") {
+    val user = uniqueUser()
+    val holderAcquired = new CountDownLatch(1)
+    val releaseGate = new CountDownLatch(1)
+    val contenderAcquired = new CountDownLatch(1)
+    val contenderDone = new CountDownLatch(1)
+
+    val holder = runInThread("lock-util-spec-holder") {
+      LockUtil.lockUser(user) {
+        holderAcquired.countDown()
+        await(releaseGate)
+      }
+    }
+
+    await(holderAcquired)
+
+    val contender = runInThread("lock-util-spec-contender") {
+      LockUtil.lockUserForRead(user) {
+        contenderAcquired.countDown()
+      }
+      contenderDone.countDown()
+    }
+
+    awaitQueued(contender)(LockUtil.getUserLock(user).hasQueuedThread)
+    assert(contenderAcquired.getCount == 1)
+
+    releaseGate.countDown()
+
+    await(contenderAcquired)
+    await(contenderDone)
+
+    holder.join(SafetyTimeoutMillis)
+    contender.join(SafetyTimeoutMillis)
+  }
+
+  test("lockUser waits for an in-progress lockUserForRead on that user to release") {
+    val user = uniqueUser()
+    val holderAcquired = new CountDownLatch(1)
+    val releaseGate = new CountDownLatch(1)
+    val contenderAcquired = new CountDownLatch(1)
+    val contenderDone = new CountDownLatch(1)
+
+    val holder = runInThread("lock-util-spec-holder") {
+      LockUtil.lockUserForRead(user) {
+        holderAcquired.countDown()
+        await(releaseGate)
+      }
+    }
+
+    await(holderAcquired)
+
+    val contender = runInThread("lock-util-spec-contender") {
+      LockUtil.lockUser(user) {
+        contenderAcquired.countDown()
+      }
+      contenderDone.countDown()
+    }
+
+    awaitQueued(contender)(LockUtil.getUserLock(user).hasQueuedThread)
+    assert(contenderAcquired.getCount == 1)
+
+    releaseGate.countDown()
+
+    await(contenderAcquired)
+    await(contenderDone)
+
+    holder.join(SafetyTimeoutMillis)
+    contender.join(SafetyTimeoutMillis)
+  }
+
+  test("lockUserForRead does not serialize two concurrent calls for the same user") {
+    val user = uniqueUser()
+    val holderAcquired = new CountDownLatch(1)
+    val releaseGate = new CountDownLatch(1)
+    val secondAcquired = new CountDownLatch(1)
+
+    val holder = runInThread("lock-util-spec-holder") {
+      LockUtil.lockUserForRead(user) {
+        holderAcquired.countDown()
+        await(releaseGate)
+      }
+    }
+
+    await(holderAcquired)
+
+    val second = runInThread("lock-util-spec-second") {
+      LockUtil.lockUserForRead(user) {
+        secondAcquired.countDown()
+      }
+    }
+
+    // If lockUserForRead incorrectly excluded another reader, this would time out, since the
+    // holder is deliberately not releasing yet.
+    await(secondAcquired)
+
+    releaseGate.countDown()
+    holder.join(SafetyTimeoutMillis)
+    second.join(SafetyTimeoutMillis)
+  }
+
+  test(
+    "a repository transfer (lockRepository on the source nested in lockUserForRead on the destination) " +
+      "waits for an in-progress lockUser on the destination user to release"
+  ) {
+    val sourceUser = uniqueUser()
+    val destinationUser = uniqueUser()
+    val holderAcquired = new CountDownLatch(1)
+    val releaseGate = new CountDownLatch(1)
+    val contenderAcquired = new CountDownLatch(1)
+    val contenderDone = new CountDownLatch(1)
+
+    // Simulates a concurrent rename of the transfer's destination user.
+    val holder = runInThread("lock-util-spec-holder") {
+      LockUtil.lockUser(destinationUser) {
+        holderAcquired.countDown()
+        await(releaseGate)
+      }
+    }
+
+    await(holderAcquired)
+
+    // Simulates RepositoryService.renameRepository transferring a repository from
+    // sourceUser to destinationUser.
+    val contender = runInThread("lock-util-spec-contender") {
+      LockUtil.lockUserForRead(destinationUser) {
+        LockUtil.lockRepository(sourceUser, "repo1") {
+          contenderAcquired.countDown()
+        }
+      }
+      contenderDone.countDown()
+    }
+
+    awaitQueued(contender)(LockUtil.getUserLock(destinationUser).hasQueuedThread)
+    assert(contenderAcquired.getCount == 1)
+
+    releaseGate.countDown()
+
+    await(contenderAcquired)
+    await(contenderDone)
+
+    holder.join(SafetyTimeoutMillis)
+    contender.join(SafetyTimeoutMillis)
+  }
+
 }

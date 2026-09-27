@@ -76,46 +76,54 @@ trait RepositoryService {
       (Repositories filter { t =>
         t.byRepository(oldUserName, oldRepositoryName)
       } firstOption).foreach { repository =>
-        LockUtil.lockRepository(repository.userName, repository.repositoryName) {
-          // Update pull request source-repo columns (no foreign key constraint)
-          PullRequests
-            .filter { t =>
-              (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
+        // A transfer (destination user differs from the source) also takes a read lock on
+        // the destination user, to block a concurrent rename of that user while this moves
+        // directories into their tree - lockRepository below only protects the source user.
+        def withDestinationUserLock[R](f: => R): R =
+          if (oldUserName == newUserName) f else LockUtil.lockUserForRead(newUserName)(f)
+
+        withDestinationUserLock {
+          LockUtil.lockRepository(repository.userName, repository.repositoryName) {
+            // Update pull request source-repo columns (no foreign key constraint)
+            PullRequests
+              .filter { t =>
+                (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
+              }
+              .map(t => t.requestUserName -> t.requestRepositoryName)
+              .update(newUserName, newRepositoryName)
+
+            // Rename will cascade via constraint
+            Repositories
+              .filter(_.byRepository(oldUserName, oldRepositoryName))
+              .map(t => t.userName -> t.repositoryName)
+              .update(newUserName, newRepositoryName)
+
+            // TODO Drop transferred owner from collaborators?
+
+            // Move git repository
+            val repoDir = getRepositoryDir(oldUserName, oldRepositoryName)
+            if (repoDir.isDirectory) {
+              FileUtils.moveDirectory(repoDir, getRepositoryDir(newUserName, newRepositoryName))
             }
-            .map(t => t.requestUserName -> t.requestRepositoryName)
-            .update(newUserName, newRepositoryName)
+            // Move wiki repository
+            val wikiDir = getWikiRepositoryDir(oldUserName, oldRepositoryName)
+            if (wikiDir.isDirectory) {
+              FileUtils.moveDirectory(wikiDir, getWikiRepositoryDir(newUserName, newRepositoryName))
+            }
+            // Move files directory
+            val filesDir = getRepositoryFilesDir(oldUserName, oldRepositoryName)
+            if (filesDir.isDirectory) {
+              FileUtils.moveDirectory(filesDir, getRepositoryFilesDir(newUserName, newRepositoryName))
+            }
+            // Delete parent directory
+            FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(oldUserName, oldRepositoryName))
 
-          // Rename will cascade via constraint
-          Repositories
-            .filter(_.byRepository(oldUserName, oldRepositoryName))
-            .map(t => t.userName -> t.repositoryName)
-            .update(newUserName, newRepositoryName)
-
-          // TODO Drop transferred owner from collaborators?
-
-          // Move git repository
-          val repoDir = getRepositoryDir(oldUserName, oldRepositoryName)
-          if (repoDir.isDirectory) {
-            FileUtils.moveDirectory(repoDir, getRepositoryDir(newUserName, newRepositoryName))
-          }
-          // Move wiki repository
-          val wikiDir = getWikiRepositoryDir(oldUserName, oldRepositoryName)
-          if (wikiDir.isDirectory) {
-            FileUtils.moveDirectory(wikiDir, getWikiRepositoryDir(newUserName, newRepositoryName))
-          }
-          // Move files directory
-          val filesDir = getRepositoryFilesDir(oldUserName, oldRepositoryName)
-          if (filesDir.isDirectory) {
-            FileUtils.moveDirectory(filesDir, getRepositoryFilesDir(newUserName, newRepositoryName))
-          }
-          // Delete parent directory
-          FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(oldUserName, oldRepositoryName))
-
-          // Call hooks
-          if (oldUserName == newUserName) {
-            PluginRegistry().getRepositoryHooks.foreach(_.renamed(oldUserName, oldRepositoryName, newRepositoryName))
-          } else {
-            PluginRegistry().getRepositoryHooks.foreach(_.transferred(oldUserName, newUserName, newRepositoryName))
+            // Call hooks
+            if (oldUserName == newUserName) {
+              PluginRegistry().getRepositoryHooks.foreach(_.renamed(oldUserName, oldRepositoryName, newRepositoryName))
+            } else {
+              PluginRegistry().getRepositoryHooks.foreach(_.transferred(oldUserName, newUserName, newRepositoryName))
+            }
           }
         }
       }

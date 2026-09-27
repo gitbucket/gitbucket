@@ -54,10 +54,8 @@ object LockUtil {
   private[gitbucket] def lockWiki[T](user: String, repo: String)(f: => T): T =
     withRepositoryLock(user, s"$user/$repo/wiki")(f)
 
-  private def withRepositoryLock[T](user: String, repoKey: String)(f: => T): T = {
-    val userReadLock = getUserLock(user).readLock()
-    userReadLock.lock()
-    try {
+  private def withRepositoryLock[T](user: String, repoKey: String)(f: => T): T =
+    lockUserForRead(user) {
       val repoLock = getRepoLock(repoKey)
       repoLock.lock()
       try {
@@ -65,6 +63,19 @@ object LockUtil {
       } finally {
         repoLock.unlock()
       }
+    }
+
+  /**
+   * Lock a user for read. Does not take any repository-level lock of its own. Used to block
+   * a concurrent [[lockUser]] (e.g. a rename) on `user`, without excluding other repository
+   * operations on `user`'s repositories - for example, while moving a repository into
+   * `user`'s directory tree as part of a transfer to `user`.
+   */
+  private[gitbucket] def lockUserForRead[T](user: String)(f: => T): T = {
+    val userReadLock = getUserLock(user).readLock()
+    userReadLock.lock()
+    try {
+      f
     } finally {
       userReadLock.unlock()
     }
