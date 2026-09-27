@@ -14,6 +14,8 @@ case class CreateARepository(
     name.length <= 100 &&
     name.matches("[a-zA-Z0-9\\-\\+_.]+") &&
     !name.startsWith("_") &&
-    !name.startsWith("-")
+    !name.startsWith("-") &&
+    !name.toLowerCase.endsWith(".git") &&
+    !name.toLowerCase.endsWith(".wiki")
   }
 }
