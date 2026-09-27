@@ -887,7 +887,7 @@ object WebHookService {
             page_name = pageName,
             title = pageName,
             sha = sha,
-            html_url = ApiPath(s"/${RepositoryName(repository).fullName}/wiki/${StringUtil.urlDecode(pageName)}")
+            html_url = ApiPath(s"/${RepositoryName(repository).fullName}/wiki/${StringUtil.urlEncode(pageName)}")
           )
         },
         repository = ApiRepository(repository, repositoryUser),

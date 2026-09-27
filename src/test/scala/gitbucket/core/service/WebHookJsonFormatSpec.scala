@@ -189,4 +189,19 @@ class WebHookJsonFormatSpec extends AnyFunSuite {
     assert(payload, expected)
   }
 
+  test("WebHookGollumPayload encodes the page name in html_url") {
+    val payload = WebHookGollumPayload(
+      pages = Seq(("created", "100% a+b", sha1)),
+      repository = repositoryInfo,
+      repositoryUser = account,
+      sender = account
+    )
+    val expected = s"""{
+        |"pages":[{"page_name":"100% a+b","title":"100% a+b","action":"created","sha":"6dcb09b5b57875f334f61aebed695e2e4193db5e","html_url":"http://gitbucket.exmple.com/octocat/Hello-World/wiki/100%25%20a%2Bb"}],
+        |"repository":$jsonRepository,
+        |"sender":$jsonUser
+        |}""".stripMargin
+    assert(payload, expected)
+  }
+
 }

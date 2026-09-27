@@ -508,17 +508,17 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                     val fileName = diff.newPath
                     updateLastActivityDate(owner, repository)
                     buildWikiRecord(action, owner, repository, commit, fileName).foreach(recordActivity)
-                    (action, fileName, commit.id)
+                    (action, fileName.dropRight(".md".length), commit.id)
                 }
               }
             }
 
             val pages = commits
-              .groupBy { case (_, fileName, _) => fileName }
-              .map { case (fileName, commits) =>
+              .groupBy { case (_, pageName, _) => pageName }
+              .map { case (pageName, commits) =>
                 val (commitHeadAction, _, _) = commits.head
                 val (_, _, commitLastId) = commits.last
-                (commitHeadAction, fileName, commitLastId)
+                (commitHeadAction, pageName, commitLastId)
               }
 
             callWebHookOf(owner, repository, WebHook.Gollum, settings) {
