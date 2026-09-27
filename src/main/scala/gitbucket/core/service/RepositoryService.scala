@@ -76,7 +76,7 @@ trait RepositoryService {
       (Repositories filter { t =>
         t.byRepository(oldUserName, oldRepositoryName)
       } firstOption).foreach { repository =>
-        LockUtil.lock(s"${repository.userName}/${repository.repositoryName}") {
+        LockUtil.lockRepository(repository.userName, repository.repositoryName) {
           // Update pull request source-repo columns (no foreign key constraint)
           PullRequests
             .filter { t =>
@@ -123,7 +123,7 @@ trait RepositoryService {
   }
 
   def deleteRepository(repository: Repository)(implicit s: Session): Unit = {
-    LockUtil.lock(s"${repository.userName}/${repository.repositoryName}") {
+    LockUtil.lockRepository(repository.userName, repository.repositoryName) {
       deleteRepositoryOnModel(repository.userName, repository.repositoryName)
 
       FileUtil.deleteRecursively(getRepositoryDir(repository.userName, repository.repositoryName))

@@ -1326,7 +1326,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val repository = params("repository")
       val branch = params("branch")
 
-      LockUtil.lock(s"$owner/$repository") {
+      LockUtil.lockRepository(owner, repository) {
         Using.resource(Git.open(getRepositoryDir(owner, repository))) { git =>
           val headName = s"refs/heads/$branch"
           val headTip = git.getRepository.resolve(headName)

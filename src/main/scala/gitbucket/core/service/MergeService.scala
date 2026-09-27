@@ -341,7 +341,7 @@ trait MergeService {
   )(implicit s: Session, c: JsonFormat.Context, context: Context): Either[String, MergeResult] = {
     if (!isDraft) {
       if (repository.repository.options.mergeOptions.split(",").contains(strategy)) {
-        LockUtil.lock(s"${repository.owner}/${repository.name}") {
+        LockUtil.lockRepository(repository.owner, repository.name) {
           getPullRequest(repository.owner, repository.name, issueId)
             .map {
               case (issue, pullRequest) =>

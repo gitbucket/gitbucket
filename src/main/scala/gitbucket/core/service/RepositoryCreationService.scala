@@ -198,7 +198,7 @@ trait RepositoryCreationService {
   def forkRepository(accountName: String, repository: RepositoryInfo, loginUserName: String): Future[Unit] = Future {
     RepositoryCreationService.startCreation(accountName, repository.name)
     try {
-      LockUtil.lock(s"${accountName}/${repository.name}") {
+      LockUtil.lockRepository(accountName, repository.name) {
         Database() withTransaction { implicit session =>
           val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
           val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)

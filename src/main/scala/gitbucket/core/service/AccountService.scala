@@ -252,7 +252,7 @@ trait AccountService {
    */
   def renameAccount(oldUserName: String, newUserName: String)(implicit s: Session): Unit = {
     if (oldUserName != newUserName) {
-      LockUtil.lock(oldUserName) {
+      LockUtil.lockUser(oldUserName) {
         Accounts.filter(_.userName === oldUserName.bind).map(_.userName).update(newUserName)
 
         val repositoryDir = new File(RepositoryHome, oldUserName)

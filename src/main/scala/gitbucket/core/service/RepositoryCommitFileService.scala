@@ -145,7 +145,7 @@ trait RepositoryCommitFileService {
   )(
     f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => R
   )(implicit s: Session, c: JsonFormat.Context): Either[String, (ObjectId, R)] = {
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
+    LockUtil.lockRepository(repository.owner, repository.name) {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()

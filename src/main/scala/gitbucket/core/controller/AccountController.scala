@@ -831,7 +831,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnlyWithForm { form =>
     context.withLoginAccount { loginAccount =>
       if (context.settings.basicBehavior.repositoryOperation.create || loginAccount.isAdmin) {
-        LockUtil.lock(s"${form.owner}/${form.name}") {
+        LockUtil.lockRepository(form.owner, form.name) {
           if (getRepository(form.owner, form.name).isDefined) {
             // redirect to the repository if repository already exists
             redirect(s"/${form.owner}/${form.name}")

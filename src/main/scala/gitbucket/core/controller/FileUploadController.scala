@@ -84,7 +84,7 @@ class FileUploadController
         execute(
           { (file, fileId) =>
             val fileName = file.getName
-            LockUtil.lock(s"$owner/$repository/wiki") {
+            LockUtil.lockWiki(owner, repository) {
               Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
                 val builder = DirCache.newInCore.builder()
                 val inserter = git.getRepository.newObjectInserter()

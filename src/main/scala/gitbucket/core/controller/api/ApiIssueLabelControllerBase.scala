@@ -37,7 +37,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
     (for {
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
-      LockUtil.lock(RepositoryName(repository).fullName) {
+      LockUtil.lockRepository(repository.owner, repository.name) {
         if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
           val labelId = createLabel(repository.owner, repository.name, data.name, data.color)
           getLabel(repository.owner, repository.name, labelId).map { label =>
@@ -64,7 +64,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
     (for {
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
-      LockUtil.lock(RepositoryName(repository).fullName) {
+      LockUtil.lockRepository(repository.owner, repository.name) {
         getLabel(repository.owner, repository.name, params("labelName")).map { label =>
           if (getLabel(repository.owner, repository.name, data.name).isEmpty) {
             updateLabel(repository.owner, repository.name, label.labelId, data.name, data.color)
@@ -93,7 +93,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/labels/#delete-a-label
    */
   delete("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
-    LockUtil.lock(RepositoryName(repository).fullName) {
+    LockUtil.lockRepository(repository.owner, repository.name) {
       getLabel(repository.owner, repository.name, params("labelName")).map { label =>
         deleteLabel(repository.owner, repository.name, label.labelId)
         NoContent()

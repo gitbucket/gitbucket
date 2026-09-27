@@ -206,7 +206,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap { issueId =>
       getPullRequest(repository.owner, repository.name, issueId) map { case (issue, pullreq) =>
-        val conflictMessage = LockUtil.lock(s"${repository.owner}/${repository.name}") {
+        val conflictMessage = LockUtil.lockRepository(repository.owner, repository.name) {
           checkConflict(repository.owner, repository.name, pullreq.branch, issueId)
         }
         val hasMergePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
@@ -301,7 +301,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       if (branchProtection.needStatusCheck(loginAccount.userName)) {
         flash.update("error", s"branch ${pullreq.requestBranch} is protected need status check.")
       } else {
-        LockUtil.lock(s"$owner/$name") {
+        LockUtil.lockRepository(owner, name) {
           val alias =
             if (
               pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName
@@ -623,7 +623,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       ) { case (oldGit, newGit) =>
         val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
         val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
-        val conflict = LockUtil.lock(s"${originRepository.owner}/${originRepository.name}") {
+        val conflict = LockUtil.lockRepository(originRepository.owner, originRepository.name) {
           checkConflict(
             originRepository.owner,
             originRepository.name,

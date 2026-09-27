@@ -82,8 +82,10 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   }
 
   private def withLockRepository[T](req: HttpServletRequest)(f: => T): T = {
-    if (req.hasAttribute(Keys.Request.RepositoryLockKey)) {
-      LockUtil.lock(req.getAttribute(Keys.Request.RepositoryLockKey).asInstanceOf[String]) {
+    if (req.hasAttribute(Keys.Request.RepositoryLockOwner)) {
+      val owner = req.getAttribute(Keys.Request.RepositoryLockOwner).asInstanceOf[String]
+      val repository = req.getAttribute(Keys.Request.RepositoryLockRepository).asInstanceOf[String]
+      LockUtil.lockRepository(owner, repository) {
         f
       }
     } else {
