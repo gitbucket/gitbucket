@@ -12,17 +12,23 @@ import org.apache.commons.io.FileUtils
 import org.junit.runner.Description
 import org.eclipse.jgit.api.Git
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Tag
+import org.scalatest.{BeforeAndAfterAll, Tag}
+import org.testcontainers.lifecycle.Startable
 import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.*
+import scala.concurrent.{Await, Future}
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
+import scala.util.control.NonFatal
 
 object ExternalDBTest extends Tag("ExternalDBTest")
 
-class GitBucketCoreModuleSpec extends AnyFunSuite {
+class GitBucketCoreModuleSpec extends AnyFunSuite with BeforeAndAfterAll {
 
   private case class ColumnMetadata(name: String, sqlType: Int, size: Int, autoIncrement: Boolean)
   private case class TableSnapshot(columns: Seq[String], rows: Seq[Seq[String]])
@@ -642,13 +648,41 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
 
   implicit private val suiteDescription: Description = Description.createSuiteDescription(getClass)
 
+  // Kick off container start while tests are registering. This results in containers starting in
+  // parallel, substantially reducing test suite execution time.
+  //
+  // Due to the Directory singleton, the tests themselves cannot run in parallel.
+  //
+  // Every container is tracked so afterAll can stop it even if that container's own test never
+  // ran (e.g. via an sbt test filter) instead of leaving it running until Ryuk reaps it.
+  private val containersToStop = ArrayBuffer.empty[Future[Startable]]
+
+  private def newMySQLContainer(tag: String): Future[MySQLContainer] = {
+    val container = new MySQLContainer(s"mysql:$tag") {
+      override def getDriverClassName = "org.mariadb.jdbc.Driver"
+      override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
+    }
+    val started = Future(container.start()).map(_ => container)
+    containersToStop += started
+    started
+  }
+
+  private def newPostgreSQLContainer(tag: String): Future[PostgreSQLContainer] = {
+    val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
+    val started = Future(container.start()).map(_ => container)
+    containersToStop += started
+    started
+  }
+
+  override def afterAll(): Unit = {
+    val stopped = containersToStop.map(_.map(_.stop()).recover { case NonFatal(_) => () })
+    Await.result(Future.sequence(stopped), 5.minutes)
+  }
+
   Seq("8.4", "5.7").foreach { tag =>
+    val plainContainerStarted = newMySQLContainer(tag)
     test(s"Migration MySQL $tag", ExternalDBTest) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
+      val container = Await.result(plainContainerStarted, 5.minutes)
       try {
         new Solidbase().migrate(
           DriverManager.getConnection(
@@ -665,15 +699,12 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       }
     }
 
+    val repairsContainerStarted = newMySQLContainer(tag)
     test(
       s"Migration MySQL $tag repairs missing origin and parent repositories before adding self-referential constraints",
       ExternalDBTest
     ) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
+      val container = Await.result(repairsContainerStarted, 5.minutes)
       try {
         withRepositoryDirCleanup {
           Using.resource(
@@ -687,12 +718,9 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       }
     }
 
+    val preservedContainerStarted = newMySQLContainer(tag)
     test(s"Migration MySQL $tag ensure data is preserved after 4.47 and 4.48 schema changes", ExternalDBTest) {
-      val container = new MySQLContainer(s"mysql:$tag") {
-        override def getDriverClassName = "org.mariadb.jdbc.Driver"
-        override def getJdbcUrl: String = super.getJdbcUrl + "?permitMysqlScheme"
-      }
-      container.start()
+      val container = Await.result(preservedContainerStarted, 5.minutes)
       try {
         Using.resource(
           DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
@@ -706,10 +734,9 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
   }
 
   Seq("14", "18").foreach { tag =>
+    val plainContainerStarted = newPostgreSQLContainer(tag)
     test(s"Migration PostgreSQL $tag", ExternalDBTest) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
-
-      container.start()
+      val container = Await.result(plainContainerStarted, 5.minutes)
       try {
         new Solidbase().migrate(
           DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword),
@@ -722,13 +749,12 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       }
     }
 
+    val repairsContainerStarted = newPostgreSQLContainer(tag)
     test(
       s"Migration PostgreSQL $tag repairs missing origin and parent repositories before adding self-referential constraints",
       ExternalDBTest
     ) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
-
-      container.start()
+      val container = Await.result(repairsContainerStarted, 5.minutes)
       try {
         withRepositoryDirCleanup {
           Using.resource(
@@ -742,13 +768,12 @@ class GitBucketCoreModuleSpec extends AnyFunSuite {
       }
     }
 
+    val preservedContainerStarted = newPostgreSQLContainer(tag)
     test(
       s"Migration PostgreSQL $tag ensure data is preserved after 4.47 and 4.48 schema changes",
       ExternalDBTest
     ) {
-      val container = new PostgreSQLContainer(DockerImageName.parse(s"postgres:$tag"))
-
-      container.start()
+      val container = Await.result(preservedContainerStarted, 5.minutes)
       try {
         Using.resource(
           DriverManager.getConnection(container.getJdbcUrl, container.getUsername, container.getPassword)
