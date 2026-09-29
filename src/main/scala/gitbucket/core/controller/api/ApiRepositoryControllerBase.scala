@@ -81,7 +81,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
     (for {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
-      LockUtil.lock(s"${owner}/${data.name}") {
+      LockUtil.lockRepository(owner, data.name) {
         if (getRepository(owner, data.name).isDefined) {
           ApiError(
             "A repository with this name already exists on this account",
@@ -117,7 +117,7 @@ trait ApiRepositoryControllerBase extends ControllerBase {
     (for {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
-      LockUtil.lock(s"${groupName}/${data.name}") {
+      LockUtil.lockRepository(groupName, data.name) {
         if (getRepository(groupName, data.name).isDefined) {
           ApiError(
             "A repository with this name already exists for this group",
