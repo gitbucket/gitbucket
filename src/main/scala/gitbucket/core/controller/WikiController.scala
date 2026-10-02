@@ -74,7 +74,7 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/wiki/:page")(referrersOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
+    val pageName = requestPageName
     val branch = getWikiBranch(repository.owner, repository.name)
 
     getWikiPage(repository.owner, repository.name, pageName, branch).map { page =>
@@ -92,7 +92,7 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/wiki/:page/_history")(referrersOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
+    val pageName = requestPageName
     val branch = getWikiBranch(repository.owner, repository.name)
 
     Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
@@ -104,7 +104,7 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/wiki/:page/_compare/:commitId")(referrersOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
+    val pageName = requestPageName
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     Using.resource(Git.open(getWikiRepositoryDir(repository.owner, repository.name))) { git =>
@@ -157,7 +157,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/:page/_revert/:commitId")(readableUsersOnly { repository =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
-        val pageName = StringUtil.urlDecode(params("page"))
+        val pageName = requestPageName
         val Array(from, to) = params("commitId").split("\\.\\.\\.")
         val branch = getWikiBranch(repository.owner, repository.name)
 
@@ -191,7 +191,7 @@ trait WikiControllerBase extends ControllerBase {
 
   get("/:owner/:repository/wiki/:page/_edit")(readableUsersOnly { repository =>
     if (isEditable(repository)) {
-      val pageName = StringUtil.urlDecode(params("page"))
+      val pageName = requestPageName
       val branch = getWikiBranch(repository.owner, repository.name)
 
       html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName, branch), repository)
@@ -272,7 +272,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/:page/_delete")(readableUsersOnly { repository =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
-        val pageName = StringUtil.urlDecode(params("page"))
+        val pageName = requestPageName
         deleteWikiPage(
           repository.owner,
           repository.name,
@@ -321,6 +321,16 @@ trait WikiControllerBase extends ControllerBase {
       } getOrElse NotFound()
     }
   })
+
+  /**
+   * Returns the page name of the request, decoded once from the raw request URI (/:owner/:repository/wiki/:page/...).
+   * params("page") can't be used: it is already decoded, so decoding it again turned "%2B" into a space and failed on "%".
+   * A raw "+" still means a space, as in links created before GitBucket 3.8.
+   */
+  private def requestPageName: String = {
+    val segment = request.getRequestURI.stripPrefix(request.getContextPath).split("/")(4)
+    StringUtil.urlDecode(segment.takeWhile(_ != ';')) // drop path parameters such as ;jsessionid=
+  }
 
   private def unique: Constraint = new Constraint() {
     override def validate(
