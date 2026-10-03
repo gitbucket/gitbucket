@@ -1911,14 +1911,16 @@ body.sidebar-collapse .main-sidebar li:hover > a > span {
   text-overflow: ellipsis;
 }
 
-body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-right-container {
-  display: inline !important;
-  position: absolute;
-  top: 8px;
-  right: 0px;
-  font-size: 9px;
-}
+@media (min-width: 768px) {
+  body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-right-container {
+    display: inline !important;
+    position: absolute;
+    top: 8px;
+    right: 0px;
+    font-size: 9px;
+  }
 
-body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
-  padding: 2px 4px;
+  body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
+    padding: 2px 4px;
+  }
 }
