@@ -3,7 +3,6 @@ package gitbucket.core.service
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.{AccountFederations, Accounts}
 import gitbucket.core.model.{Account, AccountFederation}
-import gitbucket.core.util.SyntaxSugars.~
 import org.slf4j.LoggerFactory
 
 trait AccountFederationService {
@@ -76,8 +75,8 @@ trait AccountFederationService {
     AccountFederations
       .filter(_.byPrimaryKey(issuer, subject))
       .join(Accounts)
-      .on { case af ~ ac => af.userName === ac.userName }
-      .map { case _ ~ ac => ac }
+      .on { case af -> ac => af.userName === ac.userName }
+      .map { case _ -> ac => ac }
       .firstOption
 
   def hasAccountFederation(userName: String)(implicit s: Session): Boolean =

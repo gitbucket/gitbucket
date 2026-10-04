@@ -16,6 +16,7 @@ object SyntaxSugars {
       case _: Exception => ()
     }
 
+  @deprecated("Use Predef.-> instead", "4.49.0")
   object ~ {
     def unapply[A, B](t: (A, B)): Option[(A, B)] = Some(t)
   }

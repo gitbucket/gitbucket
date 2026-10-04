@@ -4,7 +4,6 @@ import gitbucket.core.plugin.ReceiveHook
 import gitbucket.core.model.Profile.*
 import gitbucket.core.model.Profile.profile.blockingApi.*
 import gitbucket.core.model.{CommitState, ProtectedBranch, ProtectedBranchContext, ProtectedBranchRestriction, Role}
-import gitbucket.core.util.SyntaxSugars.*
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
 trait ProtectedBranchService {
@@ -14,10 +13,10 @@ trait ProtectedBranchService {
   ): Option[ProtectedBranchInfo] =
     ProtectedBranches
       .joinLeft(ProtectedBranchContexts)
-      .on { case pb ~ c => pb.byBranch(c.userName, c.repositoryName, c.branch) }
+      .on { case pb -> c => pb.byBranch(c.userName, c.repositoryName, c.branch) }
       .joinLeft(ProtectedBranchRestrictions)
-      .on { case pb ~ c ~ r => pb.byBranch(r.userName, r.repositoryName, r.branch) }
-      .map { case pb ~ c ~ r => pb -> (c.map(_.context), r.map(_.allowedUser)) }
+      .on { case pb -> c -> r => pb.byBranch(r.userName, r.repositoryName, r.branch) }
+      .map { case pb -> c -> r => pb -> (c.map(_.context), r.map(_.allowedUser)) }
       .filter(_._1.byPrimaryKey(owner, repository, branch))
       .list
       .groupBy(_._1)
