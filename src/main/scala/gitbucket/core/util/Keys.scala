@@ -92,9 +92,11 @@ object Keys {
     val UserName = "USER_NAME"
 
     /**
-     * Request key for the Lock key which is used during Git repository write access.
+     * Request keys for the repository owner/name which are used to take a repository lock
+     * during Git repository write access.
      */
-    val RepositoryLockKey = "REPOSITORY_LOCK_KEY"
+    val RepositoryLockOwner = "REPOSITORY_LOCK_OWNER"
+    val RepositoryLockRepository = "REPOSITORY_LOCK_REPOSITORY"
 
     /**
      * Generate request key for the request cache.

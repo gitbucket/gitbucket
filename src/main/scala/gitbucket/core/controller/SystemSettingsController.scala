@@ -8,7 +8,7 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.ssh.SshServer
 import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.StringUtil.*
-import gitbucket.core.util.{AdminAuthenticator, Mailer}
+import gitbucket.core.util.{AdminAuthenticator, Keys, Mailer}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.mail.EmailException
 import org.json4s.jackson.Serialization
@@ -185,6 +185,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     isRemoved: Boolean
   )
 
+  private case class AdminRenameUserForm(newUserName: String)
+
   private case class NewGroupForm(
     groupName: String,
     description: Option[String],
@@ -232,6 +234,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "clearImage" -> trim(label("Clear image", boolean())),
     "removed" -> trim(label("Disable", boolean(disableByNotYourself("userName"))))
   )(EditUserForm.apply)
+
+  private val adminRenameUserForm = mapping(
+    "newUserName" -> trim(
+      label("New user name", text(required, maxlength(100), identifier, reservedNames, renameUserName))
+    )
+  )(AdminRenameUserForm.apply)
 
   private val newGroupForm = mapping(
     "groupName" -> trim(label("Group name", text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
@@ -466,6 +474,20 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
         redirect("/admin/users")
       }
+    } getOrElse NotFound()
+  })
+
+  post("/admin/users/:userName/_rename", adminRenameUserForm)(adminOnlyWithForm { form =>
+    val userName = params("userName")
+    getAccountByUserName(userName, includeRemoved = true).map { _ =>
+      if (userName != form.newUserName) {
+        renameAccount(userName, form.newUserName)
+        // Keep the current session in sync if the signed in admin renamed themself
+        context.loginAccount.withFilter(_.userName == userName).foreach { account =>
+          session.setAttribute(Keys.Session.LoginAccount, account.copy(userName = form.newUserName))
+        }
+      }
+      redirect(s"/admin/users/${form.newUserName}/_edituser")
     } getOrElse NotFound()
   })
 

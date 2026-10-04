@@ -460,7 +460,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Run GC
    */
   post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
+    LockUtil.lockRepository(repository.owner, repository.name) {
       Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         git.gc().call()
       }

@@ -52,7 +52,7 @@ trait WikiService {
   import WikiService._
 
   def createWikiRepository(loginAccount: Account, owner: String, repository: String, defaultBranch: String): Unit =
-    LockUtil.lock(s"${owner}/${repository}/wiki") {
+    LockUtil.lockWiki(owner, repository) {
       val dir = Directory.getWikiRepositoryDir(owner, repository)
       if (!dir.exists) {
         JGitUtil.initRepository(dir, defaultBranch)
@@ -120,7 +120,7 @@ trait WikiService {
     case class RevertInfo(operation: String, filePath: String, source: String)
 
     try {
-      LockUtil.lock(s"${owner}/${repository}/wiki") {
+      LockUtil.lockWiki(owner, repository) {
         Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
           val reader = git.getRepository.newObjectReader
           val oldTreeIter = new CanonicalTreeParser
@@ -239,7 +239,7 @@ trait WikiService {
     message: String,
     currentId: Option[String]
   ): Option[String] = {
-    LockUtil.lock(s"${owner}/${repository}/wiki") {
+    LockUtil.lockWiki(owner, repository) {
       Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
@@ -310,7 +310,7 @@ trait WikiService {
     mailAddress: String,
     message: String
   ): Unit = {
-    LockUtil.lock(s"${owner}/${repository}/wiki") {
+    LockUtil.lockWiki(owner, repository) {
       Using.resource(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()

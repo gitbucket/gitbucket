@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <!--
+    ACCOUNT_WEB_HOOK_EVENT is a child of ACCOUNT_WEB_HOOK, but it historically had no foreign key.
+    Rows without a matching webhook configuration cannot be repaired: the URL's content type and token
+    are unknown, so discard those orphaned event subscriptions before adding the constraint.
+  -->
+  <sql>
+    DELETE FROM ACCOUNT_WEB_HOOK_EVENT
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM ACCOUNT_WEB_HOOK
+      WHERE ACCOUNT_WEB_HOOK.USER_NAME = ACCOUNT_WEB_HOOK_EVENT.USER_NAME
+        AND ACCOUNT_WEB_HOOK.URL = ACCOUNT_WEB_HOOK_EVENT.URL
+    )
+  </sql>
+
+  <createIndex tableName="ACCOUNT_WEB_HOOK_EVENT" indexName="IDX_ACCOUNT_WEB_HOOK_EVENT_USER_NAME_URL">
+    <column name="USER_NAME"/>
+    <column name="URL"/>
+  </createIndex>
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_WEB_HOOK_EVENT_FK0" baseTableName="ACCOUNT_WEB_HOOK_EVENT" baseColumnNames="USER_NAME, URL" referencedTableName="ACCOUNT_WEB_HOOK" referencedColumnNames="USER_NAME, URL" onUpdate="CASCADE" onDelete="CASCADE"/>
+</changeSet>
