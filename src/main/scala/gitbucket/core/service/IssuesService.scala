@@ -3,7 +3,6 @@ package gitbucket.core.service
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{
   Account,
@@ -48,10 +47,10 @@ trait IssuesService {
       .filter(_.byIssue(owner, repository, issueId))
       .filter(_.action inSetBind Set("comment", "close_comment", "reopen_comment"))
       .join(Accounts)
-      .on { case t1 ~ t2 => t1.commentedUserName === t2.userName }
+      .on { case t1 -> t2 => t1.commentedUserName === t2.userName }
       .join(Issues)
-      .on { case t1 ~ t2 ~ t3 => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
-      .map { case t1 ~ t2 ~ t3 => (t1, t2, t3) }
+      .on { case t1 -> t2 -> t3 => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
+      .map { case t1 -> t2 -> t3 => (t1, t2, t3) }
       .list
 
   def getMergedComment(owner: String, repository: String, issueId: Int)(implicit
@@ -61,8 +60,8 @@ trait IssuesService {
       .filter(_.byIssue(owner, repository, issueId))
       .filter(_.action === "merge".bind)
       .join(Accounts)
-      .on { case t1 ~ t2 => t1.commentedUserName === t2.userName }
-      .map { case t1 ~ t2 => (t1, t2) }
+      .on { case t1 -> t2 => t1.commentedUserName === t2.userName }
+      .map { case t1 -> t2 => (t1, t2) }
       .firstOption
   }
 
@@ -82,20 +81,20 @@ trait IssuesService {
       .filter(_.commentId === commentId)
       .filter(_.action inSetBind Set("comment", "close_comment", "reopen_comment"))
       .join(Accounts)
-      .on { case t1 ~ t2 => t1.commentedUserName === t2.userName }
+      .on { case t1 -> t2 => t1.commentedUserName === t2.userName }
       .join(Issues)
-      .on { case t1 ~ t2 ~ t3 => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
-      .map { case t1 ~ t2 ~ t3 => (t1, t2, t3) }
+      .on { case t1 -> t2 -> t3 => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
+      .map { case t1 -> t2 -> t3 => (t1, t2, t3) }
       .firstOption
 
   def getIssueLabels(owner: String, repository: String, issueId: Int)(implicit s: Session): List[Label] = {
     IssueLabels
       .join(Labels)
-      .on { case t1 ~ t2 =>
+      .on { case t1 -> t2 =>
         t1.byLabel(t2.userName, t2.repositoryName, t2.labelId)
       }
-      .filter { case t1 ~ t2 => t1.byIssue(owner, repository, issueId) }
-      .map { case t1 ~ t2 => t2 }
+      .filter { case t1 -> t2 => t1.byIssue(owner, repository, issueId) }
+      .map { case t1 -> t2 => t2 }
       .list
   }
 
@@ -135,14 +134,14 @@ trait IssuesService {
 
     searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), IssueSearchOption.Issues)
       .join(IssueLabels)
-      .on { case t1 ~ t2 =>
+      .on { case t1 -> t2 =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
       .join(Labels)
-      .on { case t1 ~ t2 ~ t3 =>
+      .on { case t1 -> t2 -> t3 =>
         t2.byLabel(t3.userName, t3.repositoryName, t3.labelId)
       }
-      .groupBy { case t1 ~ t2 ~ t3 =>
+      .groupBy { case t1 -> t2 -> t3 =>
         t3.labelName
       }
       .map { case (labelName, t) =>
@@ -168,10 +167,10 @@ trait IssuesService {
 
     searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), IssueSearchOption.Issues)
       .join(Priorities)
-      .on { case t1 ~ t2 =>
+      .on { case t1 -> t2 =>
         t1.byPriority(t2.userName, t2.repositoryName, t2.priorityId)
       }
-      .groupBy { case t1 ~ t2 =>
+      .groupBy { case t1 -> t2 =>
         t2.priorityName
       }
       .map { case (priorityName, t) =>
@@ -201,19 +200,21 @@ trait IssuesService {
     // get issues and comment count and labels
     val result = searchIssueQueryBase(condition, searchOption, offset, limit, repos)
       .joinLeft(IssueLabels)
-      .on { case t1 ~ t2 ~ i ~ t3 => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+      .on { case t1 -> t2 -> i -> t3 => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
       .joinLeft(Labels)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 => t3.map(_.byLabel(t4.userName, t4.repositoryName, t4.labelId)) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 => t3.map(_.byLabel(t4.userName, t4.repositoryName, t4.labelId)) }
       .joinLeft(Milestones)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
       .joinLeft(Priorities)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t1.byPriority(t6.userName, t6.repositoryName, t6.priorityId) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 => t1.byPriority(t6.userName, t6.repositoryName, t6.priorityId) }
       .joinLeft(PullRequests)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t1.byIssue(t7.userName, t7.repositoryName, t7.issueId) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 => t1.byIssue(t7.userName, t7.repositoryName, t7.issueId) }
       .joinLeft(IssueAssignees)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => t1.byIssue(t8.userName, t8.repositoryName, t8.issueId) }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => i asc }
-      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 =>
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 -> t8 =>
+        t1.byIssue(t8.userName, t8.repositoryName, t8.issueId)
+      }
+      .sortBy { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 -> t8 => i asc }
+      .map { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 -> t8 =>
         (
           t1,
           t2.commentCount,
@@ -261,13 +262,13 @@ trait IssuesService {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, IssueSearchOption.Issues, offset, limit, repos)
       .join(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 => t3.userName === t1.openedUserName }
+      .on { case t1 -> t2 -> i -> t3 => t3.userName === t1.openedUserName }
       .joinLeft(IssueAssignees)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 => t4.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 => t4.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
       .joinLeft(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t5.userName === t4.map(_.assigneeUserName) }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => i asc }
-      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => (t1, t3, t5) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 => t5.userName === t4.map(_.assigneeUserName) }
+      .sortBy { case t1 -> t2 -> i -> t3 -> t4 -> t5 => i asc }
+      .map { case t1 -> t2 -> i -> t3 -> t4 -> t5 => (t1, t3, t5) }
       .list
       .groupBy { case (issue, account, _) =>
         (issue, account)
@@ -287,19 +288,19 @@ trait IssuesService {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, IssueSearchOption.PullRequests, offset, limit, repos)
       .join(PullRequests)
-      .on { case t1 ~ t2 ~ i ~ t3 => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
+      .on { case t1 -> t2 -> i -> t3 => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
       .join(Repositories)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 => t4.byRepository(t1.userName, t1.repositoryName) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 => t4.byRepository(t1.userName, t1.repositoryName) }
       .join(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t5.userName === t1.openedUserName }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 => t5.userName === t1.openedUserName }
       .join(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t6.userName === t4.userName }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 => t6.userName === t4.userName }
       .joinLeft(IssueAssignees)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t7.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 => t7.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
       .joinLeft(Accounts)
-      .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => t8.userName === t7.map(_.assigneeUserName) }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => i asc }
-      .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 => (t1, t5, t2.commentCount, t3, t4, t6, t8) }
+      .on { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 -> t8 => t8.userName === t7.map(_.assigneeUserName) }
+      .sortBy { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 -> t8 => i asc }
+      .map { case t1 -> t2 -> i -> t3 -> t4 -> t5 -> t6 -> t7 -> t8 => (t1, t5, t2.commentCount, t3, t4, t6, t8) }
       .list
       .groupBy { case (issue, openedUser, commentCount, pullRequest, repository, account, assignedUser) =>
         (issue, openedUser, commentCount, pullRequest, repository, account)
