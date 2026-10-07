@@ -352,7 +352,8 @@ trait WebHookService {
               body.setContentType(entity.getContentType)
               res.setEntity(body)
             }
-            httpPost.releaseConnection()
+            // Close the client, otherwise the connection stays open in its pool after the body was read.
+            httpClient.close()
             logger.debug(s"end web hook invocation for ${webHook}")
             res
           } catch {
