@@ -149,4 +149,51 @@ class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
       )
     }
   }
+
+  test("callWebHook keeps the response body, up to MaxResponseBodySize") {
+    import com.sun.net.httpserver.HttpServer
+    import gitbucket.core.api.JsonFormat
+    import java.net.InetSocketAddress
+    import org.apache.http.util.EntityUtils
+    import scala.concurrent.Await
+    import scala.concurrent.duration.*
+
+    val smallBody = """{"message": "ok"}"""
+    val largeBody = "x" * (WebHookService.MaxResponseBodySize + 1000)
+
+    val server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+    server.createContext(
+      "/",
+      exchange => {
+        exchange.getRequestBody.readAllBytes()
+        val body = (if (exchange.getRequestURI.getPath == "/large") largeBody else smallBody).getBytes("UTF-8")
+        exchange.sendResponseHeaders(200, body.length)
+        exchange.getResponseBody.write(body)
+        exchange.close()
+      }
+    )
+    server.start()
+    try {
+      implicit val context: JsonFormat.Context = JsonFormat.Context("http://gitbucket.example.com", None)
+      def callAndReadBody(path: String): String = {
+        val url = s"http://127.0.0.1:${server.getAddress.getPort}$path"
+        val webHook = RepositoryWebHook("user1", "repo1", 0, url, WebHookContentType.JSON, None)
+        val (_, _, _, resFuture) = service
+          .callWebHook(WebHook.Push, List(webHook), WebHookServiceSpec.TestPayload("test"), createSystemSettings())
+          .head
+        val res = Await.result(resFuture, 20.seconds)
+        assert(res.getStatusLine.getStatusCode == 200)
+        EntityUtils.toString(res.getEntity)
+      }
+
+      assert(callAndReadBody("/small") == smallBody)
+      assert(callAndReadBody("/large") == largeBody.take(WebHookService.MaxResponseBodySize))
+    } finally {
+      server.stop(0)
+    }
+  }
+}
+
+object WebHookServiceSpec {
+  case class TestPayload(message: String) extends WebHookService.WebHookPayload
 }

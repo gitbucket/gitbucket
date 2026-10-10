@@ -37,7 +37,7 @@ import gitbucket.core.model.WebHookContentType
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.view.helpers.getApiMilestone
 import org.apache.http.client.entity.EntityBuilder
-import org.apache.http.entity.ContentType
+import org.apache.http.entity.{ByteArrayEntity, ContentType}
 
 trait WebHookService {
   import WebHookService._
@@ -345,7 +345,15 @@ trait WebHookService {
             }
 
             val res = httpClient.execute(httpPost)
-            httpPost.releaseConnection()
+            // Read the response body before the connection is released, so that the test hook pages can show it.
+            // Keep only its beginning because the hook target may send a large body.
+            Option(res.getEntity).foreach { entity =>
+              val body = new ByteArrayEntity(entity.getContent.readNBytes(MaxResponseBodySize))
+              body.setContentType(entity.getContentType)
+              res.setEntity(body)
+            }
+            // Close the client, otherwise the connection stays open in its pool after the body was read.
+            httpClient.close()
             logger.debug(s"end web hook invocation for ${webHook}")
             res
           } catch {
@@ -610,6 +618,9 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
 
 object WebHookService {
   trait WebHookPayload
+
+  /** The maximum size of a web hook response body that is kept to be shown on the test hook pages */
+  val MaxResponseBodySize: Int = 64 * 1024
 
   // https://developer.github.com/v3/activity/events/types/#createevent
   case class WebHookCreatePayload(
