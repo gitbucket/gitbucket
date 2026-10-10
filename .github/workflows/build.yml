@@ -27,8 +27,6 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
         distribution: temurin
-    - name: Make sbt wrapper executable
-      run: chmod +x ./sbt
     - name: Run tests
       run: ./sbt scalafmtSbtCheck scalafmtCheckAll test doc
     - name: Scala 3
