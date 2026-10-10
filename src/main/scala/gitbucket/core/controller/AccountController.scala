@@ -611,7 +611,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           resFuture
             .map(res =>
               Map(
-                "status" -> res.getStatusLine,
+                "status" -> res.getStatusLine.getStatusCode,
                 "body" -> EntityUtils.toString(res.getEntity),
                 "headers" -> _headers(res.getAllHeaders)
               )
