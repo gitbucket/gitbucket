@@ -16,19 +16,19 @@
 )
 <div class="pull-right">
   <input type="button" id="cancel-issue" class="btn btn-default" value="Cancel"/>
-  <input type="button" id="update-issue" class="btn btn-success" value="Update comment"/>
+  <input type="button" id="update-issue" class="btn btn-success" value="Update"/>
 </div>
 <script>
 $(function(){
   var callback = function(data){
-    $('#update, #cancel').removeAttr('disabled');
+    $('#update-issue, #cancel-issue').removeAttr('disabled');
     $('#issueContent').empty().html(data.content);
     prettyPrint();
   };
 
   $('#update-issue').click(function(){
     var content = $(this).parent().parent().find('textarea[name=content]').val();
-    $('#update, #cancel').attr('disabled', 'disabled');
+    $('#update-issue, #cancel-issue').attr('disabled', 'disabled');
     $.ajax({
       url: '@context.path/@repository.owner/@repository.name/issues/edit/@issueId',
       type: 'POST',
@@ -36,12 +36,12 @@ $(function(){
     }).done(
       callback
     ).fail(function(req) {
-      $('#update, #cancel').removeAttr('disabled');
+      $('#update-issue, #cancel-issue').removeAttr('disabled');
     });
   });
 
   $('#cancel-issue').click(function(){
-    $('#update, #cancel').attr('disabled', 'disabled');
+    $('#update-issue, #cancel-issue').attr('disabled', 'disabled');
     $.get('@context.path/@repository.owner/@repository.name/issues/_data/@issueId', callback);
     return false;
   });
