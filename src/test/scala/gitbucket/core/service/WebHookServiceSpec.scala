@@ -150,6 +150,35 @@ class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
     }
   }
 
+  test("repository webhook ID operations are scoped to the repository") {
+    withTestDB { implicit session =>
+      val ctype = WebHookContentType.FORM
+      generateNewUserWithDBRepository("user1", "repo1")
+      generateNewUserWithDBRepository("user2", "repo2")
+      service.addWebHook("user1", "repo1", "http://example.com/1", Set(WebHook.Push), ctype, Some("key1"))
+      service.addWebHook("user2", "repo2", "http://example.com/2", Set(WebHook.Issues), ctype, Some("key2"))
+
+      assert(service.getWebHookById("user1", "repo1", 2).isEmpty)
+      assert(
+        !service.updateWebHookByApi(
+          2,
+          "user1",
+          "repo1",
+          "http://example.com/updated",
+          Set(WebHook.PullRequest),
+          WebHookContentType.JSON,
+          Some("updated")
+        )
+      )
+      assert(!service.deleteWebHookById("user1", "repo1", 2))
+      assert(
+        service.getWebHookById("user2", "repo2", 2) == Some(
+          RepositoryWebHook("user2", "repo2", 2, "http://example.com/2", ctype, Some("key2")) -> Set(WebHook.Issues)
+        )
+      )
+    }
+  }
+
   test("callWebHook keeps the response body, up to MaxResponseBodySize") {
     import com.sun.net.httpserver.HttpServer
     import gitbucket.core.api.JsonFormat

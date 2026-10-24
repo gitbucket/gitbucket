@@ -95,11 +95,11 @@ trait WebHookService {
       .headOption
 
   /** get All WebHook informations of repository */
-  def getWebHookById(id: Int)(implicit
+  def getWebHookById(owner: String, repository: String, id: Int)(implicit
     s: Session
   ): Option[(RepositoryWebHook, Set[WebHook.Event])] =
     RepositoryWebHooks
-      .filter(_.byId(id))
+      .filter(_.byRepositoryId(owner, repository, id))
       .join(RepositoryWebHookEvents)
       .on { (w, t) =>
         t.byRepositoryWebHook(w)
@@ -158,14 +158,19 @@ trait WebHookService {
     events: Set[WebHook.Event],
     ctype: WebHookContentType,
     token: Option[String]
-  )(implicit s: Session): Unit = {
-    RepositoryWebHooks
-      .filter(_.byId(id))
+  )(implicit s: Session): Boolean = {
+    val updated = RepositoryWebHooks
+      .filter(_.byRepositoryId(owner, repository, id))
       .map(w => (w.url, w.ctype, w.token))
       .update((url, ctype, token))
-    RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
-    events.map { (event: WebHook.Event) =>
-      RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
+    if (updated > 0) {
+      RepositoryWebHookEvents.filter(_.byRepositoryWebHook(owner, repository, url)).delete
+      events.foreach { event =>
+        RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
+      }
+      true
+    } else {
+      false
     }
   }
 
@@ -174,8 +179,8 @@ trait WebHookService {
     RepositoryWebHooks.filter(_.byRepositoryUrl(owner, repository, url)).delete
 
   // Records in WEB_HOOK_EVENT will be deleted automatically by cascaded constraint
-  def deleteWebHookById(id: Int)(implicit s: Session): Unit =
-    RepositoryWebHooks.filter(_.byId(id)).delete
+  def deleteWebHookById(owner: String, repository: String, id: Int)(implicit s: Session): Boolean =
+    RepositoryWebHooks.filter(_.byRepositoryId(owner, repository, id)).delete > 0
 
   /** get All AccountWebHook informations of user */
   def getAccountWebHooks(owner: String)(implicit s: Session): List[(AccountWebHook, Set[WebHook.Event])] =

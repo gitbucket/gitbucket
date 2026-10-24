@@ -19,8 +19,8 @@ trait RepositoryWebHookComponent extends TemplateComponent { self: Profile =>
     def byRepositoryUrl(owner: String, repository: String, url: String) =
       byRepository(owner, repository) && (this.url === url.bind)
 
-    def byId(id: Int) =
-      (this.hookId === id.bind)
+    def byRepositoryId(owner: String, repository: String, id: Int) =
+      byRepository(owner, repository) && (this.hookId === id.bind)
   }
 }
 
