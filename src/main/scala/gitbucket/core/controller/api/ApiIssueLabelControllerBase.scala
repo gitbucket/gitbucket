@@ -193,7 +193,7 @@ trait ApiIssueLabelControllerBase extends ControllerBase {
    * Returns the label names of the request body in the documented forms: {"labels":["bug"]}, ["bug"] and "bug".
    * Any other body returns None, so that it is rejected rather than read as an empty list: for PUT, an empty list
    * removes all labels of the issue. The raw JSON is matched because json4s extracts almost any JSON into a case
-   * class or a Seq without failing (e.g. {} into AddLabelsToAnIssue(Nil)).
+   * class or a Seq without failing (e.g. {} into a case class with an empty list).
    */
   private def extractLabelNames(): Option[Seq[String]] = {
     def names(values: List[JValue]): Option[Seq[String]] = {
