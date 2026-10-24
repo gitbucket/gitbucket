@@ -54,7 +54,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repository/hooks/:id")(referrersOnly { repository =>
     val hookId = params("id").toInt
-    getWebHookById(hookId) match {
+    getWebHookById(repository.owner, repository.name, hookId) match {
       case Some(hook) => JsonFormat(ApiWebhook("Repository", hook._1, hook._2))
       case _          => NotFound()
     }
@@ -77,18 +77,23 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
         .filterNot(p => data.remove_events.contains(p))
         .map(p => WebHook.Event.valueOf(p))
         .toSet
-      updateWebHookByApi(
-        hookId,
-        repository.owner,
-        repository.name,
-        data.config.url,
-        events,
-        ctype,
-        data.config.secret
-      )
-      getWebHookById(hookId) match {
-        case Some(updatedHook) => JsonFormat(ApiWebhook("Repository", updatedHook._1, updatedHook._2))
-        case _                 =>
+      if (
+        updateWebHookByApi(
+          hookId,
+          repository.owner,
+          repository.name,
+          data.config.url,
+          events,
+          ctype,
+          data.config.secret
+        )
+      ) {
+        getWebHookById(repository.owner, repository.name, hookId) match {
+          case Some(updatedHook) => JsonFormat(ApiWebhook("Repository", updatedHook._1, updatedHook._2))
+          case _                 => NotFound()
+        }
+      } else {
+        NotFound()
       }
     }) getOrElse NotFound()
   })
@@ -99,12 +104,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    */
   delete("/api/v3/repos/:owner/:repository/hooks/:id")(writableUsersOnly { repository =>
     val hookId = params("id").toInt
-    getWebHookById(hookId) match {
-      case Some(_) =>
-        deleteWebHookById(params("id").toInt)
-        NoContent()
-      case _ => NotFound()
-    }
+    if (deleteWebHookById(repository.owner, repository.name, hookId)) NoContent() else NotFound()
   })
 
   /*
