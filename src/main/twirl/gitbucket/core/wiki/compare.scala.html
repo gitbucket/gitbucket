@@ -18,9 +18,9 @@
       }
       @if(isEditable) {
         @if(pageName.isDefined) {
-          <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
+          <a data-method="post" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
         } else {
-          <a href="@helpers.url(repository)/wiki/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
+          <a data-method="post" href="@helpers.url(repository)/wiki/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
         }
       }
     </div>

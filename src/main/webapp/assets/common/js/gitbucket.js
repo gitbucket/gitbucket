@@ -18,6 +18,16 @@ $(function(){
     $(document).bind('keydown', $(target).data('hotkey'), function(){ target.click(); });
   });
 
+  // links that change data are sent as POST, so that opening their URL doesn't change anything
+  $(document).on('click', 'a[data-method=post]', function(e){
+    // a confirm dialog of the link that was cancelled
+    if(e.isDefaultPrevented()){
+      return;
+    }
+    e.preventDefault();
+    $('<form method="post"></form>').attr('action', $(this).attr('href')).appendTo('body').submit();
+  });
+
   // anchor icon for markdown
   $('.markdown-head').on('mouseenter', function(e){
     $(this).find('span.octicon').css('visibility', 'visible');

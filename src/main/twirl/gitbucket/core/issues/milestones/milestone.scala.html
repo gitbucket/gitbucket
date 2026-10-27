@@ -56,7 +56,7 @@
                   } else {
                     <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
                   }
-                  <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
+                  <a data-method="post" href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                 }
                 </div>
               </div>

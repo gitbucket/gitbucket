@@ -8,7 +8,7 @@
     <div class="pull-right">
       @if(page.isDefined){
         <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
-        <a class="btn btn-danger" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_delete" id="delete">Delete Page</a>
+        <a data-method="post" class="btn btn-danger" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_delete" id="delete">Delete Page</a>
       }
     </div>
     <h1 class="body-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>

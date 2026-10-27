@@ -74,7 +74,7 @@
                       @if(isProtected || repository.repository.defaultBranch == branch.name) {
                         <a class="disabled" data-toggle="tooltip" title="You can’t delete a protected branch."><i class="octicon octicon-trashcan"></i></a>
                       } else {
-                        <a href="@helpers.url(repository)/delete/@helpers.encodeRefName(branch.name)" class="delete-branch" data-name="@branch.name" @if(info.isMerged) {
+                        <a data-method="post" href="@helpers.url(repository)/delete/@helpers.encodeRefName(branch.name)" class="delete-branch" data-name="@branch.name" @if(info.isMerged) {
                           data-toggle="tooltip" title="this branch is merged" }><i class="octicon octicon-trashcan @if(info.isMerged) {warning} else {danger}"></i></a>
                       }
                     }

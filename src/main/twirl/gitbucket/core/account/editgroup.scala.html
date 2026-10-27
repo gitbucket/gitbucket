@@ -10,7 +10,7 @@
       @gitbucket.core.account.html.groupform(Some(account), members, false)
       <fieldset class="border-top">
         <div class="pull-right">
-          <a href="@helpers.url(account.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
+          <a data-method="post" href="@helpers.url(account.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
         </div>
         <input type="submit" class="btn btn-success" value="Update group"/>
       </fieldset>

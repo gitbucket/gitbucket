@@ -18,7 +18,7 @@
           @if(key.allowWrite){
             <label class="label label-warning">Write access</label>
           }
-          <a href="@helpers.url(repository)/settings/deploykey/delete/@key.deployKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
+          <a data-method="post" href="@helpers.url(repository)/settings/deploykey/delete/@key.deployKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
           }
         </div>
       </div>
