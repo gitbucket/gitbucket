@@ -88,6 +88,7 @@ trait SystemSettingsService {
     props.setProperty(ShowMailAddress, settings.showMailAddress.toString)
     props.setProperty(WebHookBlockPrivateAddress, settings.webHook.blockPrivateAddress.toString)
     props.setProperty(WebHookWhitelist, settings.webHook.whitelist.mkString("\n"))
+    props.setProperty(WebHookTimeout, settings.webHook.timeout.toString)
     props.setProperty(UploadMaxFileSize, settings.upload.maxFileSize.toString)
     props.setProperty(UploadTimeout, settings.upload.timeout.toString)
     props.setProperty(UploadLargeMaxFileSize, settings.upload.largeMaxFileSize.toString)
@@ -206,7 +207,11 @@ trait SystemSettingsService {
       getValue(props, SkinName, "skin-blue"),
       getOptionValue(props, UserDefinedCss, None),
       getValue(props, ShowMailAddress, false),
-      WebHook(getValue(props, WebHookBlockPrivateAddress, false), getSeqValue(props, WebHookWhitelist, "")),
+      WebHook(
+        getValue(props, WebHookBlockPrivateAddress, true),
+        getSeqValue(props, WebHookWhitelist, ""),
+        getValue(props, WebHookTimeout, DefaultWebHookTimeout)
+      ),
       Upload(
         getValue(props, UploadMaxFileSize, 3 * 1024 * 1024),
         getValue(props, UploadTimeout, 3 * 10000),
@@ -396,7 +401,8 @@ object SystemSettingsService {
       }
   }
 
-  case class WebHook(blockPrivateAddress: Boolean, whitelist: Seq[String])
+  /** `timeout` in seconds, for connecting and for each wait for data while delivering a webhook. */
+  case class WebHook(blockPrivateAddress: Boolean, whitelist: Seq[String], timeout: Int = DefaultWebHookTimeout)
 
   case class Upload(maxFileSize: Long, timeout: Long, largeMaxFileSize: Long, largeTimeout: Long)
 
@@ -407,6 +413,7 @@ object SystemSettingsService {
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
+  val DefaultWebHookTimeout = 10
 
   private val BaseURL = "base_url"
   private val Information = "information"
@@ -462,8 +469,9 @@ object SystemSettingsService {
   private val SkinName = "skinName"
   private val UserDefinedCss = "userDefinedCss"
   private val ShowMailAddress = "showMailAddress"
-  private val WebHookBlockPrivateAddress = "webhook.block_private_address"
-  private val WebHookWhitelist = "webhook.whitelist"
+  val WebHookBlockPrivateAddress = "webhook.block_private_address"
+  val WebHookWhitelist = "webhook.whitelist"
+  private val WebHookTimeout = "webhook.timeout"
   private val UploadMaxFileSize = "upload.maxFileSize"
   private val UploadTimeout = "upload.timeout"
   private val UploadLargeMaxFileSize = "upload.largeMaxFileSize"

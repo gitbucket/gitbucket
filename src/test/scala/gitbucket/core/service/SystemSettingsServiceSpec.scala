@@ -81,6 +81,32 @@ class SystemSettingsServiceSpec extends AnyWordSpecLike with Matchers {
       val settings = loadSystemSettings(props)
       settings.basicBehavior.compareNoCheckByDefault shouldBe true
     }
+    "default webhook.block_private_address to true if not specified" in new SystemSettingsService {
+      val props = new Properties()
+
+      val settings = loadSystemSettings(props)
+      settings.webHook.blockPrivateAddress shouldBe true
+    }
+    "read webhook.block_private_address configuration when false" in new SystemSettingsService {
+      val props = new Properties()
+      props.setProperty("webhook.block_private_address", "false")
+
+      val settings = loadSystemSettings(props)
+      settings.webHook.blockPrivateAddress shouldBe false
+    }
+    "default webhook.timeout to 10 seconds if not specified" in new SystemSettingsService {
+      val props = new Properties()
+
+      val settings = loadSystemSettings(props)
+      settings.webHook.timeout shouldBe 10
+    }
+    "read webhook.timeout configuration" in new SystemSettingsService {
+      val props = new Properties()
+      props.setProperty("webhook.timeout", "30")
+
+      val settings = loadSystemSettings(props)
+      settings.webHook.timeout shouldBe 30
+    }
   }
 
   "SshAddress" can {

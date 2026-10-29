@@ -68,6 +68,9 @@ object WebHook {
       Watch
     )
 
+    /** Events GitBucket sends. The others are accepted for API compatibility, but never sent. */
+    val sent: Set[Event] = Set(Create, Gollum, IssueComment, Issues, PullRequest, PullRequestReviewComment, Push)
+
     private val map: Map[String, Event] = values.map(e => e.name -> e).toMap
     def valueOf(name: String): Event = map(name)
     def valueOpt(name: String): Option[Event] = map.get(name)

@@ -179,6 +179,54 @@ class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
     }
   }
 
+  test("saving a webhook with events that GitBucket doesn't send logs a warning") {
+    import ch.qos.logback.classic.{Level, Logger}
+    import ch.qos.logback.classic.spi.ILoggingEvent
+    import ch.qos.logback.core.read.ListAppender
+    import org.slf4j.LoggerFactory
+    import scala.jdk.CollectionConverters.*
+
+    val logger = LoggerFactory.getLogger(classOf[WebHookService]).asInstanceOf[Logger]
+    def warnings(f: => Unit): List[String] = {
+      val appender = new ListAppender[ILoggingEvent]()
+      appender.start()
+      logger.addAppender(appender)
+      try f
+      finally logger.detachAppender(appender)
+      appender.list.asScala.filter(_.getLevel == Level.WARN).map(_.getFormattedMessage).toList
+    }
+
+    withTestDB { implicit session =>
+      val ctype = WebHookContentType.JSON
+      val url = "https://hooks.example.com/services/secret-token"
+      generateNewUserWithDBRepository("user1", "repo1")
+      val unsent = Set[WebHook.Event](WebHook.Push, WebHook.Release, WebHook.Delete)
+      def warning(target: String, host: String, events: String) =
+        List(s"Webhook of $target to $host subscribes to events that GitBucket doesn't send: $events")
+      val repo = "repository user1/repo1"
+      val host = "hooks.example.com"
+
+      assert(warnings(service.addWebHook("user1", "repo1", url, Set(WebHook.Push), ctype, None)).isEmpty)
+      assert(
+        warnings(service.updateWebHook("user1", "repo1", url, unsent, ctype, None)) ==
+          warning(repo, host, "delete, release")
+      )
+      assert(
+        warnings(service.updateWebHookByApi(1, "user1", "repo1", url, unsent, ctype, None)) ==
+          warning(repo, host, "delete, release")
+      )
+      assert(
+        warnings(service.addAccountWebHook("user1", url, unsent, ctype, None)) ==
+          warning("account user1", host, "delete, release")
+      )
+      assert(warnings(service.updateAccountWebHook("user1", url, WebHook.Event.sent, ctype, None)).isEmpty)
+      assert(
+        warnings(service.addWebHook("user1", "repo1", "not a url", Set(WebHook.Status), ctype, None)) ==
+          warning(repo, "an invalid URL", "status")
+      )
+    }
+  }
+
   test("callWebHook keeps the response body, up to MaxResponseBodySize") {
     import com.sun.net.httpserver.HttpServer
     import gitbucket.core.api.JsonFormat
@@ -218,6 +266,53 @@ class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
       assert(callAndReadBody("/small") == smallBody)
       assert(callAndReadBody("/large") == largeBody.take(WebHookService.MaxResponseBodySize))
     } finally {
+      server.stop(0)
+    }
+  }
+
+  test("callWebHook gives up on a receiver that doesn't answer within the timeout") {
+    import ch.qos.logback.classic.Logger
+    import ch.qos.logback.classic.spi.ILoggingEvent
+    import ch.qos.logback.core.read.ListAppender
+    import com.sun.net.httpserver.HttpServer
+    import gitbucket.core.api.JsonFormat
+    import java.net.InetSocketAddress
+    import java.util.concurrent.CountDownLatch
+    import org.slf4j.LoggerFactory
+    import scala.concurrent.Await
+    import scala.concurrent.duration.*
+    import scala.jdk.CollectionConverters.*
+
+    val release = new CountDownLatch(1)
+    val server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+    server.createContext("/", _ => release.await()) // accepts the request, never answers
+    server.start()
+    val logger = LoggerFactory.getLogger(classOf[WebHookService]).asInstanceOf[Logger]
+    val appender = new ListAppender[ILoggingEvent]()
+    appender.start()
+    logger.addAppender(appender)
+    try {
+      implicit val context: JsonFormat.Context = JsonFormat.Context("http://gitbucket.example.com", None)
+      val url = s"http://127.0.0.1:${server.getAddress.getPort}/"
+      val webHook = RepositoryWebHook("user1", "repo1", 0, url, WebHookContentType.JSON, None)
+      val settings = createSystemSettings()
+      val oneSecond = settings.copy(webHook = settings.webHook.copy(timeout = 1))
+
+      val start = System.currentTimeMillis
+      val (_, _, _, resFuture) =
+        service.callWebHook(WebHook.Push, List(webHook), WebHookServiceSpec.TestPayload("test"), oneSecond).head
+      intercept[java.net.SocketTimeoutException](Await.result(resFuture, 10.seconds))
+      assert(System.currentTimeMillis - start < 5000)
+
+      // The failure is logged after the future completes
+      val expected = s"Timed out after 1 s: web hook request to $url"
+      val deadline = System.currentTimeMillis + 2000
+      def logged = appender.list.asScala.exists(_.getFormattedMessage == expected)
+      while (!logged && System.currentTimeMillis < deadline) Thread.sleep(50)
+      assert(logged)
+    } finally {
+      logger.detachAppender(appender)
+      release.countDown()
       server.stop(0)
     }
   }

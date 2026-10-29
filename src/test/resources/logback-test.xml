@@ -22,7 +22,8 @@
   </root>
 
   <!--
-  <logger name="service.WebHookService" level="DEBUG" />
+  <logger name="gitbucket.core.service.WebHookService" level="DEBUG" />
+  <logger name="gitbucket.core.util.OutboundRequests" level="INFO" />
   <logger name="servlet" level="DEBUG" />
   <logger name="scala.slick.jdbc.JdbcBackend.statement" level="DEBUG" />
   -->

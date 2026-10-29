@@ -154,6 +154,13 @@
     <textarea name="webhook.whitelist" class="form-control" style="height: 100px;">@context.settings.webHook.whitelist.mkString("\n")</textarea>
   </fieldset>
 </div>
+<div style="margin-top: 8px;">
+  <label for="webhookTimeout"><span class="strong">Webhook timeout</span> <span class="muted normal">(seconds, for connecting and for each wait for the response)</span></label>
+  <fieldset>
+    <input type="text" id="webhookTimeout" name="webhook.timeout" class="form-control input-mini" value="@context.settings.webHook.timeout"/>
+    <span id="error-webhook_timeout" class="error"></span>
+  </fieldset>
+</div>
 
 <script>
 $(function(){

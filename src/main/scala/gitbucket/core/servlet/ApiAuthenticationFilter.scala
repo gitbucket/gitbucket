@@ -34,7 +34,10 @@ class ApiAuthenticationFilter extends Filter with AccessTokenService with Accoun
         Option(req.getParameter("access_token")).map(AccessTokenService.getAccountByAccessToken(_).toRight(()))
       }
       .orElse {
-        Option(request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]).map(Right(_))
+        // The account as it is now; a disabled or removed account is anonymous
+        Option(request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account])
+          .flatMap(account => getAccountByUserName(account.userName))
+          .map(Right(_))
       } match {
       case Some(Right(account)) =>
         request.setAttribute(Keys.Session.LoginAccount, account)
