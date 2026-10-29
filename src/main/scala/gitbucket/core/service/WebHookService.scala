@@ -20,7 +20,7 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
 import gitbucket.core.util.JGitUtil.CommitInfo
-import gitbucket.core.util.{HttpClientUtil, RepositoryName, StringUtil}
+import gitbucket.core.util.{OutboundRequests, RepositoryName, StringUtil}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
@@ -30,7 +30,7 @@ import org.eclipse.jgit.lib.ObjectId
 import org.slf4j.LoggerFactory
 
 import scala.concurrent._
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
@@ -43,6 +43,19 @@ trait WebHookService {
   import WebHookService._
 
   private val logger = LoggerFactory.getLogger(classOf[WebHookService])
+
+  /** Log a warning if a webhook subscribes to events that GitBucket never sends. */
+  private def warnUnsentEvents(target: String, url: String, events: Set[WebHook.Event]): Unit = {
+    val unsent = events.filterNot(WebHook.Event.sent.contains)
+    if (unsent.nonEmpty) {
+      // Only the host: webhook URLs often contain tokens
+      val host = Try(new java.net.URI(url).getHost).toOption.flatMap(Option(_)).getOrElse("an invalid URL")
+      logger.warn(
+        s"Webhook of $target to $host subscribes to events that GitBucket doesn't send: " +
+          unsent.map(_.name).toSeq.sorted.mkString(", ")
+      )
+    }
+  }
 
   /** get All WebHook informations of repository */
   def getWebHooks(owner: String, repository: String)(implicit
@@ -130,6 +143,7 @@ trait WebHookService {
     events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
+    warnUnsentEvents(s"repository $owner/$repository", url, events)
   }
 
   def updateWebHook(
@@ -148,6 +162,7 @@ trait WebHookService {
     events.map { (event: WebHook.Event) =>
       RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
     }
+    warnUnsentEvents(s"repository $owner/$repository", url, events)
   }
 
   def updateWebHookByApi(
@@ -168,6 +183,7 @@ trait WebHookService {
       events.foreach { event =>
         RepositoryWebHookEvents insert RepositoryWebHookEvent(owner, repository, url, event)
       }
+      warnUnsentEvents(s"repository $owner/$repository", url, events)
       true
     } else {
       false
@@ -237,6 +253,7 @@ trait WebHookService {
     events.map { (event: WebHook.Event) =>
       AccountWebHookEvents insert AccountWebHookEvent(owner, url, event)
     }
+    warnUnsentEvents(s"account $owner", url, events)
   }
 
   def updateAccountWebHook(
@@ -251,6 +268,7 @@ trait WebHookService {
     events.map { (event: WebHook.Event) =>
       AccountWebHookEvents insert AccountWebHookEvent(owner, url, event)
     }
+    warnUnsentEvents(s"account $owner", url, events)
   }
 
   def deleteAccountWebHook(owner: String, url: String)(implicit s: Session): Unit =
@@ -269,19 +287,21 @@ trait WebHookService {
     }
   }
 
-  private def validateTargetAddress(settings: SystemSettings, url: String): Boolean = {
-    val host = new java.net.URI(url).toURL.getHost
-
-    !settings.webHook.blockPrivateAddress ||
-    !HttpClientUtil.isPrivateAddress(host) ||
-    settings.webHook.whitelist.exists(range => HttpClientUtil.inIpRange(range, host))
+  private def validateTargetAddress(settings: SystemSettings, webHook: WebHook): Boolean = {
+    val host = new java.net.URI(webHook.url).toURL.getHost
+    val target = webHook match {
+      case h: RepositoryWebHook => s"webhook of repository ${h.userName}/${h.repositoryName}"
+      case h: AccountWebHook    => s"webhook of account ${h.userName}"
+      case _                    => "webhook"
+    }
+    OutboundRequests.isAllowed(settings.webHook, host, target)
   }
 
   def callWebHook(event: WebHook.Event, webHooks: List[WebHook], payload: WebHookPayload, settings: SystemSettings)(
     implicit c: JsonFormat.Context
   ): List[(WebHook, String, Future[HttpRequest], Future[HttpResponse])] = {
     import org.apache.http.impl.client.HttpClientBuilder
-    import ExecutionContext.Implicits.global // TODO Shouldn't use the default execution context
+    implicit val ec: ExecutionContext = deliveryExecutionContext
     import org.apache.http.protocol.HttpContext
     import org.apache.http.client.methods.HttpPost
 
@@ -297,10 +317,19 @@ trait WebHookService {
             }
           }
           try {
-            if (!validateTargetAddress(settings, webHook.url)) {
-              throw new IllegalArgumentException(s"Illegal address: ${webHook.url}")
+            if (!validateTargetAddress(settings, webHook)) {
+              throw new OutboundRequests.BlockedAddressException(s"Illegal address: ${webHook.url}")
             }
-            val httpClient = HttpClientBuilder.create.useSystemProperties.addInterceptorLast(itcp).build
+            val timeout = settings.webHook.timeout * 1000
+            val requestConfig = org.apache.http.client.config.RequestConfig.custom
+              .setConnectTimeout(timeout)
+              .setConnectionRequestTimeout(timeout)
+              .setSocketTimeout(timeout)
+              .build
+            val httpClient = HttpClientBuilder.create.useSystemProperties
+              .setDefaultRequestConfig(requestConfig)
+              .addInterceptorLast(itcp)
+              .build
             logger.debug(s"start web hook invocation for ${webHook.url}")
             val httpPost = new HttpPost(webHook.url)
             logger.debug(s"Content-Type: ${webHook.ctype.ctype}")
@@ -372,6 +401,9 @@ trait WebHookService {
         }
         f.onComplete {
           case Success(_) => logger.debug(s"Success: web hook request to ${webHook.url}")
+          case Failure(_: OutboundRequests.BlockedAddressException) => // logged by OutboundRequests
+          case Failure(_: java.io.InterruptedIOException)           =>
+            logger.error(s"Timed out after ${settings.webHook.timeout} s: web hook request to ${webHook.url}")
           case Failure(t) => logger.error(s"Failed: web hook request to ${webHook.url}", t)
         }
         (webHook, json, reqPromise.future, f)
@@ -626,6 +658,16 @@ object WebHookService {
 
   /** The maximum size of a web hook response body that is kept to be shown on the test hook pages */
   val MaxResponseBodySize: Int = 64 * 1024
+
+  /** Deliveries run on their own threads, so slow receivers can't hold up repository creation and forks. */
+  lazy val deliveryExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(java.util.concurrent.Executors.newFixedThreadPool(4, deliveryThread(_)))
+
+  private def deliveryThread(runnable: Runnable): Thread = {
+    val thread = new Thread(runnable, "webhook-delivery")
+    thread.setDaemon(true)
+    thread
+  }
 
   // https://developer.github.com/v3/activity/events/types/#createevent
   case class WebHookCreatePayload(

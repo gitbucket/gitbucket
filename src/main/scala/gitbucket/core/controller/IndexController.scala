@@ -214,6 +214,8 @@ trait IndexControllerBase extends ControllerBase {
    * Set account information into HttpSession and redirect.
    */
   private def signin(account: Account, redirectUrl: String = "/") = {
+    // A new session ID on sign-in, so an ID known before sign-in doesn't become a signed-in session
+    request.changeSessionId()
     session.setAttribute(Keys.Session.LoginAccount, account)
     if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
       saveLoginAccountToLocalFile(account)

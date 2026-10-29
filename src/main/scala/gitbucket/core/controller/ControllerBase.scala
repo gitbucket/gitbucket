@@ -107,12 +107,34 @@ abstract class ControllerBase
   private def LoginAccount: Option[Account] = {
     request
       .getAs[Account](Keys.Session.LoginAccount)
-      .orElse(session.getAs[Account](Keys.Session.LoginAccount))
+      .orElse(session.getAs[Account](Keys.Session.LoginAccount).flatMap(currentAccount))
       .orElse {
         if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
           getLoginAccountFromLocalFile()
         } else None
       }
+  }
+
+  /**
+   * The signed-in account as it is now, so that disabling a user or changing the admin flag applies to existing
+   * sessions. The session ends if the account is disabled or removed.
+   */
+  private def currentAccount(account: Account): Option[Account] = {
+    if (request.getAttribute(Keys.Request.DBSession) == null) {
+      Some(account) // assets and git-lfs requests have no database session
+    } else {
+      AccountService.getAccountByUserName(account.userName) match {
+        case Some(current) =>
+          if (current != account) {
+            session.setAttribute(Keys.Session.LoginAccount, current)
+          }
+          Some(current)
+        case None =>
+          logger.info(s"Ended the session of ${account.userName}: the account is disabled or removed")
+          session.invalidate()
+          None
+      }
+    }
   }
 
   def ajaxGet(path: String)(action: => Any): Route =

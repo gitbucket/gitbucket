@@ -5,7 +5,7 @@ import java.io.{File, FileOutputStream}
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.SystemSettingsService
-import gitbucket.core.util.DatabaseConfig
+import gitbucket.core.util.{DatabaseConfig, OutboundRequests}
 import gitbucket.core.util.Directory.*
 import gitbucket.core.util.JDBCUtil.*
 import gitbucket.core.model.Profile.profile.blockingApi.*
@@ -91,6 +91,8 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
         logger.info("Initialize plugins")
         PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
       }
+
+      OutboundRequests.logSettings(loadSystemSettings().webHook)
 
       //    // Start Quartz scheduler
       //    val scheduler = QuartzSchedulerExtension(system)

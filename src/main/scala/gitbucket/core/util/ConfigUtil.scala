@@ -8,9 +8,20 @@ object ConfigUtil {
     getSystemProperty(key).orElse(getEnvironmentVariable(key))
   }
 
+  def environmentVariableName(key: String): String =
+    (if (key.startsWith("gitbucket.")) "" else "GITBUCKET_") + key.toUpperCase.replace('.', '_')
+
+  def systemPropertyName(key: String): String =
+    if (key.startsWith("gitbucket.")) key else "gitbucket." + key
+
+  /** Where a value set outside gitbucket.conf comes from, if it is set there. */
+  def getConfigSource(key: String): Option[String] =
+    getSystemProperty[String](key)
+      .map(_ => s"system property ${systemPropertyName(key)}")
+      .orElse(getEnvironmentVariable[String](key).map(_ => s"environment variable ${environmentVariableName(key)}"))
+
   def getEnvironmentVariable[A: ClassTag](key: String): Option[A] = {
-    val name = (if (key.startsWith("gitbucket.")) "" else "GITBUCKET_") + key.toUpperCase.replace('.', '_')
-    val value = System.getenv(name)
+    val value = System.getenv(environmentVariableName(key))
     if (value != null && value.nonEmpty) {
       Some(convertType(value))
     } else {
@@ -19,8 +30,7 @@ object ConfigUtil {
   }
 
   def getSystemProperty[A: ClassTag](key: String): Option[A] = {
-    val name = if (key.startsWith("gitbucket.")) key else "gitbucket." + key
-    val value = System.getProperty(name)
+    val value = System.getProperty(systemPropertyName(key))
     if (value != null && value.nonEmpty) {
       Some(convertType(value))
     } else {

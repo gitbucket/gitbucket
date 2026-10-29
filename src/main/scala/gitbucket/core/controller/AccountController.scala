@@ -575,8 +575,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val url = params("url")
     val token = Some(params("token"))
     val ctype = WebHookContentType.valueOf(params("ctype"))
-    val dummyWebHookInfo =
-      RepositoryWebHook(userName = userName, repositoryName = "dummy", url = url, ctype = ctype, token = token)
+    val dummyWebHookInfo = AccountWebHook(userName = userName, url = url, ctype = ctype, token = token)
     val dummyPayload = {
       val ownerAccount = getAccountByUserName(userName).get
       WebHookPushPayload.createDummyPayload(ownerAccount)
@@ -585,8 +584,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val (webHook, json, reqFuture, resFuture) =
       callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload, context.settings).head
 
+    // Connecting and waiting for the response can each take up to the timeout
+    val maxWait = (context.settings.webHook.timeout * 2 + 5).seconds
     val toErrorMap: PartialFunction[Throwable, Map[String, String]] = {
       case e: java.net.UnknownHostException                  => Map("error" -> s"Unknown host ${e.getMessage}")
+      case _: java.io.InterruptedIOException                 => Map("error" -> "timed out")
       case _: java.lang.IllegalArgumentException             => Map("error" -> "invalid url")
       case _: org.apache.http.client.ClientProtocolException => Map("error" -> "invalid url")
       case NonFatal(e)                                       => Map("error" -> s"${e.getClass} ${e.getMessage}")
@@ -605,7 +607,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
               )
             )
             .recover(toErrorMap),
-          20 seconds
+          maxWait
         ),
         "response" -> Await.result(
           resFuture
@@ -617,7 +619,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
               )
             )
             .recover(toErrorMap),
-          20 seconds
+          maxWait
         )
       )
     )
@@ -821,10 +823,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
               case Some(src) =>
                 try {
                   val host = new java.net.URI(src).toURL.getHost
-                  val isPrivate = HttpClientUtil.isPrivateAddress(host)
-                  val whitelisted =
-                    context.settings.webHook.whitelist.exists(range => HttpClientUtil.inIpRange(range, host))
-                  if (context.settings.webHook.blockPrivateAddress && isPrivate && !whitelisted) {
+                  val target = s"clone from URL into ${form.owner}/${form.name} by ${loginAccount.userName}"
+                  if (!OutboundRequests.isAllowed(context.settings.webHook, host, target)) {
                     BadRequest("Creating repositories by cloning from this address is blocked by system settings.")
                   } else {
                     // OK - proceed to create

@@ -4,7 +4,7 @@ import gitbucket.core.TestingGitBucketServer
 import gitbucket.core.api.ApiError
 import org.apache.commons.io.IOUtils
 import org.eclipse.jgit.api.Git
-import org.json4s.{DefaultFormats, JArray, JObject, JNull, JString, jvalue2extractable}
+import org.json4s.{DefaultFormats, JArray, JObject, JNull, JString, jvalue2extractable, jvalue2monadic}
 import org.json4s.jackson.JsonMethods.parse
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -993,6 +993,70 @@ class ApiIntegrationTest extends AnyFunSuite {
       val response =
         server.patchApi("/api/v3/repos/root/release_patch_bad_body_test/releases/v1.0.0", "{", "root", "root")
       assert(response.status == 400, s"Expected 400 but got ${response.status}")
+    }
+  }
+
+  test("POST /repos/:owner/:repo/hooks with unknown event names returns 422 and stores nothing") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("hook_unknown_event_test").autoInit(true).create()
+
+      val response = server.postApi(
+        "/api/v3/repos/root/hook_unknown_event_test/hooks",
+        """{"config":{"url":"http://example.com/hook","content_type":"json"},"events":["push","*","foo","*"]}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 422, s"Expected 422 but got ${response.status}")
+      assert(
+        parse(response.body).extract[ApiError] == ApiError(
+          "Unknown webhook events: *, foo",
+          Some("https://docs.github.com/en/rest/repos/webhooks#create-a-repository-webhook")
+        )
+      )
+      val hooks = server.getApi("/api/v3/repos/root/hook_unknown_event_test/hooks", "root", "root")
+      assert(parse(hooks.body) == JArray(Nil))
+    }
+  }
+
+  test("POST /repos/:owner/:repo/hooks stores known events that GitBucket doesn't send") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("hook_unsent_event_test").autoInit(true).create()
+
+      val response = server.postApi(
+        "/api/v3/repos/root/hook_unsent_event_test/hooks",
+        """{"config":{"url":"http://example.com/hook","content_type":"json"},"events":["push","release"]}""",
+        "root",
+        "root"
+      )
+      assert(response.status == 200, s"Expected 200 but got ${response.status}")
+      assert((parse(response.body) \ "events").extract[List[String]].sorted == List("push", "release"))
+    }
+  }
+
+  test("PATCH /repos/:owner/:repo/hooks/:id with unknown event names returns 422 and keeps the events") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      github.createRepository("hook_patch_unknown_event_test").autoInit(true).create()
+      val config = """"config":{"url":"http://example.com/hook","content_type":"json"}"""
+
+      val created =
+        server.postApi("/api/v3/repos/root/hook_patch_unknown_event_test/hooks", s"""{$config}""", "root", "root")
+      assert(created.status == 200, s"Expected 200 but got ${created.status}")
+      val id = (parse(created.body) \ "id").extract[Int]
+
+      val path = s"/api/v3/repos/root/hook_patch_unknown_event_test/hooks/$id"
+      val response = server.patchApi(path, s"""{$config,"add_events":["*"]}""", "root", "root")
+      assert(response.status == 422, s"Expected 422 but got ${response.status}")
+      assert(
+        parse(response.body).extract[ApiError] == ApiError(
+          "Unknown webhook events: *",
+          Some("https://docs.github.com/en/rest/repos/webhooks#update-a-repository-webhook")
+        )
+      )
+      val hook = server.getApi(path, "root", "root")
+      assert((parse(hook.body) \ "events").extract[List[String]] == List("push"))
     }
   }
 }

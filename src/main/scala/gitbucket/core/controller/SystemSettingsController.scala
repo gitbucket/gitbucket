@@ -8,7 +8,7 @@ import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.ssh.SshServer
 import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.StringUtil.*
-import gitbucket.core.util.{AdminAuthenticator, Mailer}
+import gitbucket.core.util.{AdminAuthenticator, Mailer, OutboundRequests}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.mail.EmailException
 import org.json4s.jackson.Serialization
@@ -115,7 +115,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "showMailAddress" -> trim(label("Show mail address", boolean())),
     "webhook" -> mapping(
       "blockPrivateAddress" -> trim(label("Block private address", boolean())),
-      "whitelist" -> trim(label("Whitelist", multiLineText()))
+      "whitelist" -> trim(label("Whitelist", multiLineText())),
+      "timeout" -> trim(label("Webhook timeout", number(required)))
     )(WebHook.apply),
     "upload" -> mapping(
       "maxFileSize" -> trim(label("Max file size", long(required))),
@@ -322,6 +323,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/system", form)(adminOnlyWithForm { form =>
+    context.loginAccount.foreach { account =>
+      OutboundRequests.logSettingsChange(context.settings.webHook, form.webHook, account.userName)
+    }
     saveSystemSettings(form)
 
     if (

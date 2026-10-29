@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Read by Tomcat only: SameSite=Lax for the session cookie (Jetty uses the marker in WEB-INF/web.xml) -->
+<Context>
+  <CookieProcessor sameSiteCookies="lax"/>
+</Context>

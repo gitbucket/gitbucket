@@ -332,8 +332,11 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val (webHook, json, reqFuture, resFuture) =
         callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload, context.settings).head
 
+      // Connecting and waiting for the response can each take up to the timeout
+      val maxWait = (context.settings.webHook.timeout * 2 + 5).seconds
       val toErrorMap: PartialFunction[Throwable, Map[String, String]] = {
         case e: java.net.UnknownHostException                  => Map("error" -> s"Unknown host ${e.getMessage}")
+        case _: java.io.InterruptedIOException                 => Map("error" -> "timed out")
         case _: java.lang.IllegalArgumentException             => Map("error" -> "invalid url")
         case _: org.apache.http.client.ClientProtocolException => Map("error" -> "invalid url")
         case NonFatal(e)                                       => Map("error" -> s"${e.getClass} ${e.getMessage}")
@@ -352,7 +355,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
                 )
               )
               .recover(toErrorMap),
-            20 seconds
+            maxWait
           ),
           "response" -> Await.result(
             resFuture
@@ -364,7 +367,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
                 )
               )
               .recover(toErrorMap),
-            20 seconds
+            maxWait
           )
         )
       )
