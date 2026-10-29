@@ -74,7 +74,7 @@
       <div class="text-right">
       @if(!create){
         <input type="submit" class="btn btn-success" value="Update webhook" formaction="@editButtonUrl" />
-        <a href="@deleteButtonUrl?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+        <a data-method="post" href="@deleteButtonUrl?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
           Delete webhook
         </a>
       } else {

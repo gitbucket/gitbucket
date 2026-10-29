@@ -30,7 +30,7 @@
                   <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
                     <span class="octicon octicon-pencil"></span>
                   </a>
-                  <a href="@helpers.url(repository)/settings/hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                  <a data-method="post" href="@helpers.url(repository)/settings/hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
                     <span class="octicon octicon-x"></span>
                   </a>
                 </div>

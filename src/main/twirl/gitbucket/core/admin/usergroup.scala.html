@@ -7,7 +7,7 @@
       <fieldset class="border-top">
         @if(account.isDefined){
           <div class="pull-right">
-            <a href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
+            <a data-method="post" href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
           </div>
         }
         <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create group} else {Update group}"/>

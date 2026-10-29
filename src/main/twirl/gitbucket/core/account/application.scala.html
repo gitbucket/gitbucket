@@ -16,7 +16,7 @@
           <div class="alert alert-info">
             Make sure to copy your new personal access token now. You won't be able to see it again!
           </div>
-          <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
+          <a data-method="post" href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
           <div style="width: 50%;">
             @gitbucket.core.helper.html.copy("generated-token", "generated-token-copy", tokenString){
               <input type="text" value="@tokenString" class="form-control input-sm" id="generated-token" readonly>
@@ -29,7 +29,7 @@
             <hr>
           }
           <strong style="line-height: 30px;">@token.note</strong>
-          <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
+          <a data-method="post" href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
         }
       </div>
     </div>

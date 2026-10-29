@@ -29,7 +29,7 @@
               <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
                 <span class="octicon octicon-pencil" aria-label="Edit hook"></span>
               </a>
-              <a href="@helpers.url(account.userName)/_hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+              <a data-method="post" href="@helpers.url(account.userName)/_hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
                 <span class="octicon octicon-x" aria-label="Remove hook"></span>
               </a>
             </div>

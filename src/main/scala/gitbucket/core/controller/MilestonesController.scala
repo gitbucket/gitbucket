@@ -124,7 +124,7 @@ trait MilestonesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:owner/:repository/issues/milestones/:milestoneId/delete")(writableUsersOnly { repository =>
+  post("/:owner/:repository/issues/milestones/:milestoneId/delete")(writableUsersOnly { repository =>
     params("milestoneId").toIntOpt.flatMap { milestoneId =>
       getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
         deleteMilestone(repository.owner, repository.name, milestone.milestoneId)

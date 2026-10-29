@@ -13,7 +13,7 @@
             <hr>
           }
           <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
-          <a href="@context.path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
+          <a data-method="post" href="@context.path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
         }
       </div>
     </div>

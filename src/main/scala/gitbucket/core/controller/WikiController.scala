@@ -154,7 +154,7 @@ trait WikiControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/wiki/:page/_revert/:commitId")(readableUsersOnly { repository =>
+  post("/:owner/:repository/wiki/:page/_revert/:commitId")(readableUsersOnly { repository =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
         val pageName = requestPageName
@@ -173,7 +173,7 @@ trait WikiControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/wiki/_revert/:commitId")(readableUsersOnly { repository =>
+  post("/:owner/:repository/wiki/_revert/:commitId")(readableUsersOnly { repository =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
         val Array(from, to) = params("commitId").split("\\.\\.\\.")
@@ -269,7 +269,7 @@ trait WikiControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/wiki/:page/_delete")(readableUsersOnly { repository =>
+  post("/:owner/:repository/wiki/:page/_delete")(readableUsersOnly { repository =>
     context.withLoginAccount { loginAccount =>
       if (isEditable(repository)) {
         val pageName = requestPageName

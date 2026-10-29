@@ -246,7 +246,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:owner/:repository/pull/:id/delete_branch")(readableUsersOnly { baseRepository =>
+  post("/:owner/:repository/pull/:id/delete_branch")(readableUsersOnly { baseRepository =>
     context.withLoginAccount { _ =>
       (for {
         issueId <- params("id").toIntOpt

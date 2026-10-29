@@ -269,7 +269,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Delete the web hook URL.
    */
-  get("/:owner/:repository/settings/hooks/delete")(ownerOnly { repository =>
+  post("/:owner/:repository/settings/hooks/delete")(ownerOnly { repository =>
     deleteWebHook(repository.owner, repository.name, params("url"))
     flash.update("info", s"Webhook ${params("url")} deleted")
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
@@ -481,7 +481,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /** Delete a deploy key */
-  get("/:owner/:repository/settings/deploykey/delete/:id")(ownerOnly { repository =>
+  post("/:owner/:repository/settings/deploykey/delete/:id")(ownerOnly { repository =>
     val deployKeyId = params("id").toInt
     deleteDeployKey(repository.owner, repository.name, deployKeyId)
     redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")

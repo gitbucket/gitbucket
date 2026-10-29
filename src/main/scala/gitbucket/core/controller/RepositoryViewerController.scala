@@ -1051,7 +1051,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Deletes branch.
    */
-  get("/:owner/:repository/delete/*")(writableUsersOnly { repository =>
+  post("/:owner/:repository/delete/*")(writableUsersOnly { repository =>
     context.withLoginAccount { loginAccount =>
       val branchName = multiParams("splat").head
       if (repository.repository.defaultBranch != branchName) {

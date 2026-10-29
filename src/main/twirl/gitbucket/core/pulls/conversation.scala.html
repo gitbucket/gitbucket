@@ -50,7 +50,7 @@
                   </form>
                 }
                 @if(isBranchDeletable) {
-                  <a href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-default pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+                  <a data-method="post" href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-default pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
                 }
               <div>
                 <span class="strong">Pull request successfully merged and closed</span>

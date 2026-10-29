@@ -394,7 +394,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_ssh")
   })
 
-  get("/:userName/_ssh/delete/:id")(
+  post("/:userName/_ssh/delete/:id")(
     oneselfOnly {
       val userName = params("userName")
       val sshKeyId = params("id").toInt
@@ -419,7 +419,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_gpg")
   })
 
-  get("/:userName/_gpg/delete/:id")(
+  post("/:userName/_gpg/delete/:id")(
     oneselfOnly {
       val userName = params("userName")
       val keyId = params("id").toInt
@@ -454,7 +454,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/$userName/_application")
   })
 
-  get("/:userName/_personalToken/delete/:id")(
+  post("/:userName/_personalToken/delete/:id")(
     oneselfOnly {
       val userName = params("userName")
       val tokenId = params("id").toInt
@@ -523,7 +523,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Delete the account web hook URL.
    */
-  get("/:userName/_hooks/delete")(
+  post("/:userName/_hooks/delete")(
     managersOnly {
       val userName = params("userName")
       deleteAccountWebHook(userName, params("url"))
@@ -740,7 +740,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   )
 
-  get("/:groupName/_deletegroup")(managersOnly {
+  post("/:groupName/_deletegroup")(managersOnly {
     val groupName = params("groupName")
     // Remove from GROUP_MEMBER
     updateGroupMembers(groupName, Nil)
