@@ -151,7 +151,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * v. Update a pull request
    * https://docs.github.com/en/rest/reference/pulls#update-a-pull-request
    */
-  patch("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/pulls/:id")(writableUsersOnly { repository =>
     (for {
       issueId <- params("id").toIntOpt
       account <- context.loginAccount
@@ -225,7 +225,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
    * ix. Merge a pull request (Merge Button)
    * https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request
    */
-  put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(referrersOnly { repository =>
+  put("/api/v3/repos/:owner/:repository/pulls/:id/merge")(writableUsersOnly { repository =>
     (for {
       // TODO: crash when body is empty
       // TODO: Implement sha parameter

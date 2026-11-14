@@ -920,6 +920,47 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("PATCH and PUT merge pull request APIs require write permission") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val repo = github.createRepository("pulls_write_permission_test").autoInit(true).create()
+      val sha1 = repo.getBranch("main").getSHA1
+      repo.createRef("refs/heads/feature", sha1)
+      repo
+        .createContent()
+        .content("feature content")
+        .path("feature.txt")
+        .message("Add feature file")
+        .branch("feature")
+        .commit()
+      server.createUser("pulls-reader", "pulls-reader-pass", "pulls-reader@example.invalid", "root", "root")
+
+      val createResponse = server.postApi(
+        "/api/v3/repos/root/pulls_write_permission_test/pulls",
+        """{"title":"Add feature","head":"feature","base":"main"}""",
+        "root",
+        "root"
+      )
+      assert(createResponse.status == 200, s"Expected 200 but got ${createResponse.status}")
+
+      val updateResponse = server.patchApi(
+        "/api/v3/repos/root/pulls_write_permission_test/pulls/1",
+        """{"title":"Unauthorized update"}""",
+        "pulls-reader",
+        "pulls-reader-pass"
+      )
+      assert(updateResponse.status == 401, s"Expected 401 but got ${updateResponse.status}")
+
+      val mergeResponse = server.putApi(
+        "/api/v3/repos/root/pulls_write_permission_test/pulls/1/merge",
+        """{"merge_method":"merge"}""",
+        "pulls-reader",
+        "pulls-reader-pass"
+      )
+      assert(mergeResponse.status == 401, s"Expected 401 but got ${mergeResponse.status}")
+    }
+  }
+
   test("POST /repos/:owner/:repo/releases creates a release with the given tag and body") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")
