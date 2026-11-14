@@ -6,6 +6,7 @@
 @import gitbucket.core.view.helpers
 @if(isEditable){
   <form method="POST" validate="true" autocomplete="off">
+    @helpers.csrfField
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
         @gitbucket.core.helper.html.preview(

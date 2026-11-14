@@ -5,7 +5,7 @@ import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ByteArrayEntity
-import org.apache.http.impl.client.{CloseableHttpClient, HttpClients}
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.scalatest.funsuite.AnyFunSuite
@@ -22,8 +22,12 @@ class FileUploadControllerSpec extends AnyFunSuite {
 
   private val noRedirects = RequestConfig.custom().setRedirectsEnabled(false).build()
 
-  private def withClient[T](f: CloseableHttpClient => T): T =
-    Using.resource(HttpClients.custom().build())(f)
+  /** A client with a session and its CSRF token, as a browser has after opening a page. */
+  private def withClient[T](port: Int)(f: CloseableHttpClient => T): T =
+    Using.resource(TestingGitBucketServer.webClient()) { client =>
+      TestingGitBucketServer.openSigninPage(client, port)
+      f(client)
+    }
 
   private def signin(
     client: CloseableHttpClient,
@@ -68,7 +72,7 @@ class FileUploadControllerSpec extends AnyFunSuite {
 
   test("anonymous users can't upload files") {
     Using.resource(new TestingGitBucketServer(19993)) { server =>
-      withClient { client =>
+      withClient(server.port) { client =>
         assert(upload(client, s"http://localhost:${server.port}/upload/tmp", "a.txt", 10) == 400)
         assert(upload(client, s"http://localhost:${server.port}/upload/image", "a.png", 10) == 400)
         assert(uploadedFiles(server).isEmpty)
@@ -79,7 +83,7 @@ class FileUploadControllerSpec extends AnyFunSuite {
   test("anonymous users can upload an avatar image if account registration is allowed") {
     Using.resource(new TestingGitBucketServer(19993)) { server =>
       server.updateSettings("allow_account_registration" -> "true")
-      withClient { client =>
+      withClient(server.port) { client =>
         assert(upload(client, s"http://localhost:${server.port}/upload/image", "a.png", 10) == 200)
         assert(upload(client, s"http://localhost:${server.port}/upload/tmp", "a.txt", 10) == 400)
         assert(uploadedFiles(server).size == 1)
@@ -90,7 +94,7 @@ class FileUploadControllerSpec extends AnyFunSuite {
   test("a disabled user can't upload with a session from before") {
     Using.resource(new TestingGitBucketServer(19993)) { server =>
       server.createUser("user1", "user1", "user1@example.invalid", "root", "root")
-      withClient { client =>
+      withClient(server.port) { client =>
         signin(client, server.port, "user1", "user1")
         val url = s"http://localhost:${server.port}/upload/tmp"
         assert(upload(client, url, "a.txt", 10) == 200)
@@ -105,7 +109,7 @@ class FileUploadControllerSpec extends AnyFunSuite {
   test("files larger than upload.maxFileSize are refused") {
     Using.resource(new TestingGitBucketServer(19993)) { server =>
       server.updateSettings("upload.maxFileSize" -> "1000")
-      withClient { client =>
+      withClient(server.port) { client =>
         signin(client, server.port)
         val url = s"http://localhost:${server.port}/upload/tmp"
         assert(upload(client, url, "a.txt", 1000) == 200)
@@ -119,7 +123,7 @@ class FileUploadControllerSpec extends AnyFunSuite {
     Using.resource(new TestingGitBucketServer(19993)) { server =>
       server.client("root", "root").createRepository("repo1").autoInit(true).create()
       server.updateSettings("upload.maxFileSize" -> "1000", "upload.largeMaxFileSize" -> "100000")
-      withClient { client =>
+      withClient(server.port) { client =>
         signin(client, server.port)
         val url = s"http://localhost:${server.port}/upload/release/root/repo1/v1.0"
         assert(upload(client, url, "a.zip", 50000) == 200)

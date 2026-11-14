@@ -5,11 +5,13 @@ import java.nio.file.Files
 import java.io.File
 
 import gitbucket.core.util.{FileUtil, HttpClientUtil}
+import org.apache.http.{HttpRequest, HttpRequestInterceptor}
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPatch, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
 import org.apache.http.message.BasicNameValuePair
+import org.apache.http.protocol.HttpContext
 import org.apache.http.util.EntityUtils
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.{Handler, Server}
@@ -18,6 +20,7 @@ import org.kohsuke.github.{GHRepository, GitHub, GitHubBuilder}
 
 import java.util.{Arrays => JArrays}
 import java.util.Base64
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
@@ -327,7 +330,8 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   }
 
   private def withWebSession[T](login: String, password: String)(f: CloseableHttpClient => T): T = {
-    Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+    Using.resource(TestingGitBucketServer.webClient()) { httpClient =>
+      TestingGitBucketServer.openSigninPage(httpClient, port)
       val signin = new HttpPost(s"http://localhost:$port/signin")
       signin.setEntity(
         new UrlEncodedFormEntity(
@@ -357,4 +361,34 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     if (previousHome == null) System.clearProperty("gitbucket.home")
     else System.setProperty("gitbucket.home", previousHome)
   }
+}
+
+object TestingGitBucketServer {
+
+  /**
+   * A client that keeps cookies and sends the CSRF token from the XSRF-TOKEN cookie with requests that change
+   * something, like gitbucket.js does in the browser.
+   */
+  /**
+   * Opens the sign-in page, as a browser does before signing in: the session and its CSRF token come from it, and a
+   * sign-in without them is refused.
+   */
+  def openSigninPage(httpClient: CloseableHttpClient, port: Int): Unit =
+    Using.resource(httpClient.execute(new HttpGet(s"http://localhost:$port/signin"))) { response =>
+      EntityUtils.consume(response.getEntity)
+    }
+
+  def webClient(cookies: BasicCookieStore = new BasicCookieStore()): CloseableHttpClient =
+    HttpClients
+      .custom()
+      .setDefaultCookieStore(cookies)
+      .addInterceptorLast(new HttpRequestInterceptor {
+        override def process(request: HttpRequest, context: HttpContext): Unit =
+          if (request.getRequestLine.getMethod != "GET") {
+            cookies.getCookies.asScala.find(_.getName == "XSRF-TOKEN").foreach { cookie =>
+              request.setHeader("X-CSRF-TOKEN", cookie.getValue)
+            }
+          }
+      })
+      .build()
 }

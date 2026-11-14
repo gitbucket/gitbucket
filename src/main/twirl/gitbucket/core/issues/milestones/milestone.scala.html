@@ -92,6 +92,7 @@
       @gitbucket.core.issues.milestones.html.listparts(issues, page, openCount, closedCount, condition, collaborators, milestones.map(p => p._1), priorities, labels, Some(repository), hasWritePermission)
       @if(hasWritePermission){
         <form id="batcheditForm" method="POST">
+          @helpers.csrfField
           <input type="hidden" name="value"/>
           <input type="hidden" name="checked"/>
           <input type="hidden" name="uri" value="@context.path/@repository.owner/@repository.name/milestone/@milestone.milestoneId@if(condition.state=="closed"){?state=closed}">

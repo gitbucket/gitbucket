@@ -16,6 +16,7 @@
       <div class="alert alert-danger">branch @branch is protected.</div>
     }
     <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true" autocomplete="off">
+      @helpers.csrfField
       <span class="error" id="error-newFileName"></span>
       <span class="error" id="error-commit"></span>
       <div class="head">

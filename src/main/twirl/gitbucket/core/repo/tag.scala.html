@@ -5,6 +5,7 @@
   Add tag
 </h2>
 <form action="@helpers.url(repository)/tag" id="tag" method="post" validate="true">
+  @helpers.csrfField
   <fieldset style="margin-top: 20px;">
     <div class="form-group">
       <label class="control-label" for="tagName">Tag name</label>

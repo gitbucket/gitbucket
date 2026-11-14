@@ -1,4 +1,5 @@
 @(account: gitbucket.core.model.Account, sshKeys: List[gitbucket.core.model.SshKey])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @import gitbucket.core.ssh.SshUtil
 @gitbucket.core.html.main("SSH Keys"){
   @gitbucket.core.account.html.menu("ssh", context.loginAccount.get.userName, false){
@@ -18,6 +19,7 @@
       </div>
     </div>
     <form method="POST" action="@context.path/@account.userName/_ssh" validate="true" autocomplete="off">
+      @helpers.csrfField
       <div class="panel panel-default">
         <div class="panel-heading strong">Add a public SSH Key</div>
         <div class="panel-body">

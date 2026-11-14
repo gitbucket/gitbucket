@@ -12,6 +12,7 @@ import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 import org.apache.commons.codec.digest.DigestUtils
 import org.json4s.Formats
+import gitbucket.core.scalatra.CsrfTokenSupport
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -331,6 +332,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Returns the url to the path of assets.
    */
   def assets(path: String)(implicit context: Context): String = s"${context.path}/assets${path}?${hashQuery}"
+
+  /**
+   * Hidden form field with the session's CSRF token, for forms that send POST requests.
+   */
+  def csrfField(implicit context: Context): Html =
+    Html(s"""<input type="hidden" name="${CsrfTokenSupport.DefaultKey}" value="${HtmlFormat.escape(context.csrfToken)}"/>""")
 
   def displayUserName(userName: String, mailAddress: String = "")(implicit context: Context): String = {
     val displayName = if (!context.settings.showFullName) {

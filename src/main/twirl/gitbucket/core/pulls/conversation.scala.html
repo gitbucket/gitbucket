@@ -46,6 +46,7 @@
             <div class="box-content" style="border: 1px solid #ddd; padding: 10px;">
                 @if(isRevertible) {
                   <form method="post" action="@helpers.url(repository)/pull/@issue.issueId/revert" style="display:inline;">
+                    @helpers.csrfField
                     <button type="submit" class="btn btn-default pull-right" onclick="return confirm('Would you create a revert pull request?');" style="margin-left: 4px;">Revert</button>
                   </form>
                 }

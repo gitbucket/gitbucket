@@ -11,6 +11,7 @@
 @gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("issues", repository){
     <form action="@helpers.url(repository)/issues/new" method="POST" validate="true" class="form-group" autocomplete="off">
+      @helpers.csrfField
       <div class="row-fluid">
         <div class="col-md-9">
           <span id="error-title" class="error"></span>

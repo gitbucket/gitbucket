@@ -22,6 +22,7 @@
             @if(hasWritePermission){
               <div class="pull-right">
                 <form method="POST" action="@helpers.url(repository)/releases/@release.tag/delete" id="delete-form">
+                  @helpers.csrfField
                   <a class="btn btn-default" href="@helpers.url(repository)/releases/@release.tag/edit" id="edit">Edit</a>
                   <input type="submit" class="btn btn-danger" value="Delete">
                 </form>

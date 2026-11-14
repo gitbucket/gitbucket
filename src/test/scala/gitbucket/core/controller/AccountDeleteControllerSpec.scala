@@ -4,7 +4,6 @@ import gitbucket.core.TestingGitBucketServer
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost}
-import org.apache.http.impl.client.{BasicCookieStore, HttpClients}
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.scalatest.funsuite.AnyFunSuite
@@ -19,7 +18,8 @@ class AccountDeleteControllerSpec extends AnyFunSuite {
 
   test("POST /:userName/_delete does not delete the last administrator on a fresh install") {
     Using.resource(new TestingGitBucketServer(19996)) { server =>
-      Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+      Using.resource(TestingGitBucketServer.webClient()) { httpClient =>
+        TestingGitBucketServer.openSigninPage(httpClient, server.port)
         val signin = new HttpPost(s"http://localhost:${server.port}/signin")
         signin.setEntity(
           new UrlEncodedFormEntity(
