@@ -1,17 +1,16 @@
 package gitbucket.core.controller
 
 import java.io.File
-
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, ReleaseService, RepositoryService}
 import gitbucket.core.servlet.Database
-import gitbucket.core.util._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
+import gitbucket.core.util.*
+import gitbucket.core.util.Directory.*
+import gitbucket.core.util.Implicits.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{Constants, FileMode}
-import org.scalatra._
+import org.scalatra.*
 import org.scalatra.servlet.{FileItem, FileUploadSupport, MultipartConfig}
 import org.apache.commons.io.{FileUtils, IOUtils}
 
@@ -58,18 +57,27 @@ class FileUploadController
 
   post("/file/:owner/:repository") {
     setMultipartConfig()
-    execute(
-      { (file, fileId) =>
-        FileUtils.writeByteArrayToFile(
-          new File(
-            getAttachedDir(params("owner"), params("repository")),
-            FileUtil.checkFilename(fileId + "." + FileUtil.getExtension(file.getName))
-          ),
-          file.get()
+    // Don't accept not logged-in users
+    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
+      val owner = params("owner")
+      val repository = params("repository")
+
+      // Check whether logged-in user can read the repository
+      onlyRepositoryReadableUser(owner, repository, loginAccount) {
+        execute(
+          { (file, fileId) =>
+            FileUtils.writeByteArrayToFile(
+              new File(
+                getAttachedDir(owner, repository),
+                FileUtil.checkFilename(fileId + "." + FileUtil.getExtension(file.getName))
+              ),
+              file.get()
+            )
+          },
+          _ => true
         )
-      },
-      _ => true
-    )
+      }
+    } getOrElse BadRequest()
   }
 
   post("/wiki/:owner/:repository") {
@@ -79,8 +87,8 @@ class FileUploadController
       val owner = params("owner")
       val repository = params("repository")
 
-      // Check whether logged-in user is collaborator
-      onlyWikiEditable(owner, repository, loginAccount) {
+      // Check whether logged-in user can edit Wiki
+      onlyWikiEditableUser(owner, repository, loginAccount) {
         execute(
           { (file, fileId) =>
             val fileName = file.getName
@@ -133,19 +141,21 @@ class FileUploadController
     setMultipartConfigForLargeFile()
     session
       .get(Keys.Session.LoginAccount)
-      .collect { case _: Account =>
+      .collect { case loginAccount: Account =>
         val owner = params("owner")
         val repository = params("repository")
         val tag = multiParams("splat").head
-        execute(
-          { (file, fileId) =>
-            FileUtils.writeByteArrayToFile(
-              new File(getReleaseFilesDir(owner, repository), FileUtil.checkFilename(tag + "/" + fileId)),
-              file.get()
-            )
-          },
-          _ => true
-        )
+        onlyRepositoryWritableUser(owner, repository, loginAccount) {
+          execute(
+            { (file, fileId) =>
+              FileUtils.writeByteArrayToFile(
+                new File(getReleaseFilesDir(owner, repository), FileUtil.checkFilename(tag + "/" + fileId)),
+                file.get()
+              )
+            },
+            _ => true
+          )
+        }
       }
       .getOrElse(BadRequest())
   }
@@ -177,7 +187,27 @@ class FileUploadController
     config.apply(request.getServletContext)
   }
 
-  private def onlyWikiEditable(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
+  private def onlyRepositoryReadableUser(owner: String, repository: String, loginAccount: Account)(
+    action: => Any
+  ): Any = {
+    implicit val session: Session = Database.getSession(request)
+    getRepository(owner, repository) match {
+      case Some(x) if isReadable(x.repository, Some(loginAccount)) => action
+      case _                                                       => BadRequest()
+    }
+  }
+
+  private def onlyRepositoryWritableUser(owner: String, repository: String, loginAccount: Account)(
+    action: => Any
+  ): Any = {
+    implicit val session: Session = Database.getSession(request)
+    getRepository(owner, repository) match {
+      case Some(x) if isWritable(x.repository, Some(loginAccount)) => action
+      case _                                                       => BadRequest()
+    }
+  }
+
+  private def onlyWikiEditableUser(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
     implicit val session: Session = Database.getSession(request)
     getRepository(owner, repository) match {
       case Some(x) =>

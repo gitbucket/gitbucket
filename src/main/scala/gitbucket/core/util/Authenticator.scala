@@ -116,7 +116,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase & RepositoryService & Ac
     val userName = params("owner")
     val repoName = params("repository")
     getRepository(userName, repoName).map { repository =>
-      if (isReadable(repository.repository, context.loginAccount) || !repository.repository.isPrivate) {
+      if (isReadable(repository.repository, context.loginAccount)) {
         action(repository)
       } else {
         Unauthorized()
