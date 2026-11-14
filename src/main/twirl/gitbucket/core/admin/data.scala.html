@@ -1,10 +1,12 @@
 @(tableNames: Seq[String])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Data export / import"){
   @gitbucket.core.admin.html.menu("data") {
     <div class="panel panel-default">
       <div class="panel-heading strong">Export</div>
       <div class="panel-body">
         <form class="form form-horizontal" action="@context.path/admin/export" method="POST">
+          @helpers.csrfField
           @tableNames.map { tableName =>
             <div class="checkbox">
               <label>
@@ -21,6 +23,7 @@
       <div class="panel-heading strong">Import</div>
       <div class="panel-body">
         <form class="form form-horizontal" action="@context.path/upload/import" method="POST" enctype="multipart/form-data" id="import-form">
+          @helpers.csrfField
           <input type="file" name="file" id="file" aria-label="Upload file">
           <input type="submit" class="btn btn-success pull-right" value="Import" id="import">
         </form>

@@ -27,7 +27,12 @@ function validate(e){
       form.data('validated', false);
       displayErrors(data, form);
     }
-  }, 'json');
+  }, 'json').fail(function(){
+    // the server refused the check (e.g. 403 without a valid CSRF token): send the form, the server answers it
+    form.data('validated', true);
+    form.submit();
+    form.data('validated', false);
+  });
   return false;
 }
 

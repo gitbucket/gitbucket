@@ -44,6 +44,7 @@
     @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, priorities, labels, Some(repository), isManageable)
     @if(isManageable){
       <form id="batcheditForm" method="POST">
+        @helpers.csrfField
         <input type="hidden" name="value"/>
         <input type="hidden" name="checked"/>
         <input type="hidden" name="uri"/>

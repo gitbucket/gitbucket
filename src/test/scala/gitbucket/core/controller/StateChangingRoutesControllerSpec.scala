@@ -5,7 +5,7 @@ import gitbucket.core.util.StringUtil
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost, HttpRequestBase}
-import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.bouncycastle.bcpg.{ArmoredOutputStream, PublicKeyAlgorithmTags, PublicKeyPacket}
@@ -274,8 +274,9 @@ class StateChangingRoutesControllerSpec extends AnyFunSuite {
   }
 
   private def withSession(server: TestingGitBucketServer)(f: WebSession => Unit): Unit =
-    Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+    Using.resource(TestingGitBucketServer.webClient()) { httpClient =>
       val web = new WebSession(httpClient)
+      TestingGitBucketServer.openSigninPage(httpClient, server.port)
       assert(web.post(s"http://localhost:${server.port}/signin", "userName" -> "root", "password" -> "root") == 302)
       f(web)
     }

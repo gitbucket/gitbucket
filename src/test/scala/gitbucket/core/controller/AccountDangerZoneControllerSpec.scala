@@ -3,7 +3,6 @@ package gitbucket.core.controller
 import gitbucket.core.TestingGitBucketServer
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost}
-import org.apache.http.impl.client.{BasicCookieStore, HttpClients}
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.scalatest.funsuite.AnyFunSuite
@@ -18,7 +17,8 @@ class AccountDangerZoneControllerSpec extends AnyFunSuite {
 
   /** Perform a GET request through a signed-in web session (cookie-based) and return the HTTP status code. */
   private def getWeb(server: TestingGitBucketServer, path: String, login: String, password: String): Int = {
-    Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+    Using.resource(TestingGitBucketServer.webClient()) { httpClient =>
+      TestingGitBucketServer.openSigninPage(httpClient, server.port)
       val signin = new HttpPost(s"http://localhost:${server.port}/signin")
       signin.setEntity(
         new UrlEncodedFormEntity(

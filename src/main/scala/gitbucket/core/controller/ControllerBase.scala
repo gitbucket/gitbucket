@@ -383,6 +383,15 @@ case class Context(
   }
   val sidebarCollapse: Boolean = request.getSession.getAttribute("sidebar-collapse") != null
 
+  /**
+   * The session's CSRF token for forms, see [[PreProcessControllerBase]]. Creates the session and the token if
+   * needed.
+   */
+  def csrfToken: String = PreProcessControllerBase.csrfToken(request)
+
+  /** The CSRF token for the layout's meta tag: empty if the request has no session, so that no session is created. */
+  def csrfTokenIfSession: String = if (request.getSession(false) == null) "" else csrfToken
+
   def withLoginAccount(f: Account => Any): Any = {
     loginAccount match {
       case Some(loginAccount) => f(loginAccount)

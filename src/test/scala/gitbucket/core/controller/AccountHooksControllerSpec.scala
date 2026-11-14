@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpServer
 import gitbucket.core.TestingGitBucketServer
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.{BasicCookieStore, HttpClients}
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.json4s.*
@@ -25,7 +24,8 @@ class AccountHooksControllerSpec extends AnyFunSuite {
 
   /** Call the account test hook endpoint through a signed-in web session and return the JSON response. */
   private def testHook(server: TestingGitBucketServer, hookUrl: String): JValue = {
-    Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+    Using.resource(TestingGitBucketServer.webClient()) { httpClient =>
+      TestingGitBucketServer.openSigninPage(httpClient, server.port)
       val signin = new HttpPost(s"http://localhost:${server.port}/signin")
       signin.setEntity(
         new UrlEncodedFormEntity(

@@ -5,7 +5,7 @@ import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost}
 import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
+import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient}
 import org.apache.http.impl.cookie.BasicClientCookie
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
@@ -24,7 +24,7 @@ class SigninSessionControllerSpec extends AnyFunSuite {
 
   private def withClient[T](f: (CloseableHttpClient, BasicCookieStore) => T): T = {
     val cookies = new BasicCookieStore()
-    Using.resource(HttpClients.custom().setDefaultCookieStore(cookies).build())(f(_, cookies))
+    Using.resource(TestingGitBucketServer.webClient(cookies))(f(_, cookies))
   }
 
   private def sessionId(cookies: BasicCookieStore): Option[String] =
@@ -57,6 +57,7 @@ class SigninSessionControllerSpec extends AnyFunSuite {
 
   /** Signs in and returns the Set-Cookie headers of the response. */
   private def signin(client: CloseableHttpClient, port: Int, user: String = "root"): Seq[String] = {
+    TestingGitBucketServer.openSigninPage(client, port)
     val (status, cookies) =
       postForm(client, s"http://localhost:$port/signin", "userName" -> user, "password" -> user)
     assert(status == 302, "signin failed")

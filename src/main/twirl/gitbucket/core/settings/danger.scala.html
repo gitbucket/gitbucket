@@ -8,6 +8,7 @@
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
           <form id="gc-form" method="post" action="@helpers.url(repository)/settings/gc">
+            @helpers.csrfField
             <fieldset class="form-group">
               <label class="strong">Garbage collection</label>
               <div>
@@ -18,6 +19,7 @@
           </form>
           @if(context.settings.basicBehavior.repositoryOperation.rename || context.loginAccount.get.isAdmin){
             <form id="rename-form" method="post" action="@helpers.url(repository)/settings/rename" validate="true" autocomplete="off">
+              @helpers.csrfField
               <fieldset class="border-top form-group">
                 <label class="strong">Rename repository</label>
                 <div>
@@ -35,6 +37,7 @@
           }
           @if(context.settings.basicBehavior.repositoryOperation.transfer || context.loginAccount.get.isAdmin){
             <form id="transfer-form" method="post" action="@helpers.url(repository)/settings/transfer" validate="true" autocomplete="off">
+              @helpers.csrfField
               <fieldset class="border-top form-group">
                 <label class="strong">Transfer Ownership</label>
                 <div>
@@ -52,6 +55,7 @@
           }
           @if(context.settings.basicBehavior.repositoryOperation.delete || context.loginAccount.get.isAdmin){
             <form id="delete-form" method="post" action="@helpers.url(repository)/settings/delete">
+              @helpers.csrfField
               <fieldset class="border-top form-group">
                 <label class="strong">Delete repository</label>
                 <div>

@@ -216,6 +216,10 @@ trait IndexControllerBase extends ControllerBase {
   private def signin(account: Account, redirectUrl: String = "/") = {
     // A new session ID on sign-in, so an ID known before sign-in doesn't become a signed-in session
     request.changeSessionId()
+    // changeSessionId keeps the attributes: a new CSRF token too, so a token known before sign-in isn't valid after it
+    // (Context.csrfToken creates it and sets its cookie in this response)
+    gitbucket.core.scalatra.CsrfTokenSupport.resetToken(request)
+    context.csrfToken
     session.setAttribute(Keys.Session.LoginAccount, account)
     if (isDevFeatureEnabled(DevFeatures.KeepSession)) {
       saveLoginAccountToLocalFile(account)

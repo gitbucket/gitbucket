@@ -5,7 +5,7 @@ import gitbucket.core.util.StringUtil
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost}
-import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.scalatest.funsuite.AnyFunSuite
@@ -72,7 +72,8 @@ class WikiControllerSpec extends AnyFunSuite {
     Using.resource(new TestingGitBucketServer(19995)) { server =>
       server.client("root", "root").createRepository("wiki_test").autoInit(true).create()
 
-      Using.resource(HttpClients.custom().setDefaultCookieStore(new BasicCookieStore()).build()) { httpClient =>
+      Using.resource(TestingGitBucketServer.webClient()) { httpClient =>
+        TestingGitBucketServer.openSigninPage(httpClient, server.port)
         post(httpClient, s"http://localhost:${server.port}/signin", "userName" -> "root", "password" -> "root")
 
         pageNames.foreach { pageName =>

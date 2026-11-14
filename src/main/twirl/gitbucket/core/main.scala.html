@@ -7,6 +7,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="csrf-param" content="@gitbucket.core.scalatra.CsrfTokenSupport.DefaultKey" />
+    <meta name="csrf-token" content="@context.csrfTokenIfSession" />
     <title>@title</title>
     <meta property="og:title" content="@title" />
     <meta property="og:type" content="object" />
