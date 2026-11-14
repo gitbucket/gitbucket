@@ -30,7 +30,7 @@ import org.eclipse.jgit.lib.ObjectId
 import org.slf4j.LoggerFactory
 
 import scala.concurrent._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, Using}
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
@@ -326,70 +326,72 @@ trait WebHookService {
               .setConnectionRequestTimeout(timeout)
               .setSocketTimeout(timeout)
               .build
-            val httpClient = HttpClientBuilder.create.useSystemProperties
-              .setDefaultRequestConfig(requestConfig)
-              .addInterceptorLast(itcp)
-              .build
-            logger.debug(s"start web hook invocation for ${webHook.url}")
-            val httpPost = new HttpPost(webHook.url)
-            logger.debug(s"Content-Type: ${webHook.ctype.ctype}")
-            httpPost.addHeader("Content-Type", webHook.ctype.ctype)
-            httpPost.addHeader("X-Github-Event", event.name)
-            httpPost.addHeader("X-Github-Delivery", java.util.UUID.randomUUID().toString)
-            def addXHubSignature(content: Array[Byte]): Unit = {
-              webHook.token
-                .filter(_.trim.nonEmpty)
-                .foreach { token =>
-                  // https://developer.github.com/webhooks/securing/#validating-payloads-from-github
-                  // SHA1 is required for backward compatibility, but SHA256 is recommended.
-                  httpPost.addHeader(
-                    "X-Hub-Signature",
-                    XHub.generateHeaderXHubToken(
-                      XHubConverter.HEXA_LOWERCASE,
-                      XHubDigest.SHA1,
-                      token,
-                      content
+            // Closed on every path, also when the request fails or times out
+            Using.resource(
+              HttpClientBuilder.create.useSystemProperties
+                .setDefaultRequestConfig(requestConfig)
+                .addInterceptorLast(itcp)
+                .build
+            ) { httpClient =>
+              logger.debug(s"start web hook invocation for ${webHook.url}")
+              val httpPost = new HttpPost(webHook.url)
+              logger.debug(s"Content-Type: ${webHook.ctype.ctype}")
+              httpPost.addHeader("Content-Type", webHook.ctype.ctype)
+              httpPost.addHeader("X-Github-Event", event.name)
+              httpPost.addHeader("X-Github-Delivery", java.util.UUID.randomUUID().toString)
+              def addXHubSignature(content: Array[Byte]): Unit = {
+                webHook.token
+                  .filter(_.trim.nonEmpty)
+                  .foreach { token =>
+                    // https://developer.github.com/webhooks/securing/#validating-payloads-from-github
+                    // SHA1 is required for backward compatibility, but SHA256 is recommended.
+                    httpPost.addHeader(
+                      "X-Hub-Signature",
+                      XHub.generateHeaderXHubToken(
+                        XHubConverter.HEXA_LOWERCASE,
+                        XHubDigest.SHA1,
+                        token,
+                        content
+                      )
                     )
-                  )
-                  httpPost.addHeader(
-                    "X-Hub-Signature-256",
-                    XHub.generateHeaderXHubToken(
-                      XHubConverter.HEXA_LOWERCASE,
-                      XHubDigest.SHA256,
-                      token,
-                      content
+                    httpPost.addHeader(
+                      "X-Hub-Signature-256",
+                      XHub.generateHeaderXHubToken(
+                        XHubConverter.HEXA_LOWERCASE,
+                        XHubDigest.SHA256,
+                        token,
+                        content
+                      )
                     )
-                  )
+                  }
+              }
+              webHook.ctype match {
+                case WebHookContentType.FORM => {
+                  val params: java.util.List[NameValuePair] = new java.util.ArrayList()
+                  params.add(new BasicNameValuePair("payload", json))
+                  def postContent = new UrlEncodedFormEntity(params, "UTF-8")
+                  httpPost.setEntity(postContent)
+                  addXHubSignature(URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8"))
                 }
-            }
-            webHook.ctype match {
-              case WebHookContentType.FORM => {
-                val params: java.util.List[NameValuePair] = new java.util.ArrayList()
-                params.add(new BasicNameValuePair("payload", json))
-                def postContent = new UrlEncodedFormEntity(params, "UTF-8")
-                httpPost.setEntity(postContent)
-                addXHubSignature(URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8"))
+                case WebHookContentType.JSON => {
+                  httpPost.setEntity(
+                    EntityBuilder.create().setContentType(ContentType.APPLICATION_JSON).setText(json).build()
+                  )
+                  addXHubSignature(json.getBytes("UTF-8"))
+                }
               }
-              case WebHookContentType.JSON => {
-                httpPost.setEntity(
-                  EntityBuilder.create().setContentType(ContentType.APPLICATION_JSON).setText(json).build()
-                )
-                addXHubSignature(json.getBytes("UTF-8"))
-              }
-            }
 
-            val res = httpClient.execute(httpPost)
-            // Read the response body before the connection is released, so that the test hook pages can show it.
-            // Keep only its beginning because the hook target may send a large body.
-            Option(res.getEntity).foreach { entity =>
-              val body = new ByteArrayEntity(entity.getContent.readNBytes(MaxResponseBodySize))
-              body.setContentType(entity.getContentType)
-              res.setEntity(body)
+              val res = httpClient.execute(httpPost)
+              // Read the response body before the connection is released, so that the test hook pages can show it.
+              // Keep only its beginning because the hook target may send a large body.
+              Option(res.getEntity).foreach { entity =>
+                val body = new ByteArrayEntity(entity.getContent.readNBytes(MaxResponseBodySize))
+                body.setContentType(entity.getContentType)
+                res.setEntity(body)
+              }
+              logger.debug(s"end web hook invocation for ${webHook}")
+              res
             }
-            // Close the client, otherwise the connection stays open in its pool after the body was read.
-            httpClient.close()
-            logger.debug(s"end web hook invocation for ${webHook}")
-            res
           } catch {
             case e: Throwable => {
               if (!reqPromise.isCompleted) {
