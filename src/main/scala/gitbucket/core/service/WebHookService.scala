@@ -382,8 +382,8 @@ trait WebHookService {
               }
 
               val res = httpClient.execute(httpPost)
-              // Read the response body before the connection is released, so that the test hook pages can show it.
-              // Keep only its beginning because the hook target may send a large body.
+              // Read the response body before the connection is released, but only its beginning because the hook
+              // target may send a large body.
               Option(res.getEntity).foreach { entity =>
                 val body = new ByteArrayEntity(entity.getContent.readNBytes(MaxResponseBodySize))
                 body.setContentType(entity.getContentType)
