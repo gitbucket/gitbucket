@@ -25,6 +25,8 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
 
   private var server: Server = null
   private var dir: File = null
+  // Restored on close, so that later tests in this JVM don't get this server's (deleted) home as Directory.GitBucketHome
+  private val previousHome = System.getProperty("gitbucket.home")
 
   start()
 
@@ -352,5 +354,7 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
   def close(): Unit = {
     server.stop()
     FileUtil.deleteIfExists(dir)
+    if (previousHome == null) System.clearProperty("gitbucket.home")
+    else System.setProperty("gitbucket.home", previousHome)
   }
 }
