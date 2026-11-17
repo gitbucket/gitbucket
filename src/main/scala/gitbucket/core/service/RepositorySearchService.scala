@@ -132,7 +132,7 @@ object RepositorySearchService {
         )
       (highlightText, lineNumber + 1)
     } else {
-      (content.split("\n").take(5).mkString("\n"), 1)
+      (StringUtil.escapeHtml(content.split("\n").take(5).mkString("\n")), 1)
     }
   }
 
