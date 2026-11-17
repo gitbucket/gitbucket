@@ -264,6 +264,44 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     }
   }
 
+  /** Set system settings in gitbucket.conf; it is read on every request. */
+  def updateSettings(settings: (String, String)*): Unit = {
+    val conf = new File(dir, "gitbucket.conf")
+    val props = new java.util.Properties()
+    if (conf.exists) {
+      Using.resource(new java.io.FileInputStream(conf))(props.load)
+    }
+    settings.foreach { case (key, value) => props.setProperty(key, value) }
+    Using.resource(new java.io.FileOutputStream(conf))(props.store(_, null))
+  }
+
+  /** Create a repository by cloning from a URL via the web form and return the status code and response body. */
+  def createRepositoryByClone(
+    owner: String,
+    name: String,
+    sourceUrl: String,
+    login: String,
+    password: String
+  ): ApiResponse = {
+    withWebSession(login, password) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port/new")
+      post.setEntity(
+        new UrlEncodedFormEntity(
+          JArrays.asList(
+            new BasicNameValuePair("owner", owner),
+            new BasicNameValuePair("name", name),
+            new BasicNameValuePair("isPrivate", "false"),
+            new BasicNameValuePair("initOption", "COPY"),
+            new BasicNameValuePair("sourceUrl", sourceUrl)
+          )
+        )
+      )
+      val response = httpClient.execute(post)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
   /** Disable forking on a repository via the web settings options form. */
   def disableFork(owner: String, name: String, login: String, password: String): Unit = {
     withWebSession(login, password) { httpClient =>

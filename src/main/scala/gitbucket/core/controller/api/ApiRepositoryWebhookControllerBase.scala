@@ -10,6 +10,15 @@ import org.scalatra.NoContent
 trait ApiRepositoryWebhookControllerBase extends ControllerBase {
   self: RepositoryService & WebHookService & ReferrerAuthenticator & WritableUsersAuthenticator =>
 
+  /** Map event names to events; unknown names end the request with 422. */
+  private def toEvents(names: Seq[String], documentationUrl: String): Set[WebHook.Event] = {
+    val unknown = names.filter(WebHook.Event.valueOpt(_).isEmpty).distinct
+    if (unknown.nonEmpty) {
+      halt(422, JsonFormat(ApiError(s"Unknown webhook events: ${unknown.mkString(", ")}", Some(documentationUrl))))
+    }
+    names.map(WebHook.Event.valueOf).toSet
+  }
+
   /*
    * i. List repository webhooks
    * https://docs.github.com/en/rest/reference/repos#list-repository-webhooks
@@ -31,7 +40,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
     (for {
       data <- extractFromJsonBody[CreateARepositoryWebhook] if data.isValid
       ctype = if (data.config.content_type == "form") WebHookContentType.FORM else WebHookContentType.JSON
-      events = data.events.map(p => WebHook.Event.valueOf(p)).toSet
+      events = toEvents(data.events, "https://docs.github.com/en/rest/repos/webhooks#create-a-repository-webhook")
     } yield {
       addWebHook(
         repository.owner,
@@ -73,10 +82,10 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
         case _      => WebHookContentType.FORM
       }
     } yield {
-      val events = (data.events ++ data.add_events)
-        .filterNot(p => data.remove_events.contains(p))
-        .map(p => WebHook.Event.valueOf(p))
-        .toSet
+      val events = toEvents(
+        (data.events ++ data.add_events).filterNot(p => data.remove_events.contains(p)),
+        "https://docs.github.com/en/rest/repos/webhooks#update-a-repository-webhook"
+      )
       if (
         updateWebHookByApi(
           hookId,

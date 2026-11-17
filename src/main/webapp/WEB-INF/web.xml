@@ -76,8 +76,12 @@
   <session-config>
     <session-timeout>1440</session-timeout>
     <cookie-config>
+      <!-- Jetty's marker for SameSite=Lax; the servlet API has no SameSite setting -->
+      <comment>__SAME_SITE_LAX__</comment>
       <http-only>true</http-only>
     </cookie-config>
+    <!-- Session ID in the cookie only, never in URLs (;jsessionid=) -->
+    <tracking-mode>COOKIE</tracking-mode>
   </session-config>
 
   <mime-mapping>
