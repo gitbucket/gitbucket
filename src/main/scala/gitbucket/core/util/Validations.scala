@@ -14,6 +14,9 @@ trait Validations {
         Some(s"${name} contains invalid character.")
       } else if (value.startsWith("_") || value.startsWith("-")) {
         Some(s"${name} starts with invalid character.")
+      } else if (value.endsWith(".")) {
+        // "." and ".." are path segments, and Windows drops a trailing dot from directory names
+        Some(s"${name} must not end with a dot.")
       } else {
         None
       }
@@ -31,6 +34,9 @@ trait Validations {
       } else if (value.toLowerCase.endsWith(".git") || value.toLowerCase.endsWith(".wiki")) {
         // Would clash with the directories of another repository or its wiki
         Some(s"${name} must not end with .git or .wiki.")
+      } else if (value.endsWith(".")) {
+        // "." and ".." are path segments, and Windows drops a trailing dot from directory names
+        Some(s"${name} must not end with a dot.")
       } else {
         None
       }

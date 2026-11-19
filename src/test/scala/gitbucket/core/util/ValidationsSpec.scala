@@ -1,5 +1,6 @@
 package gitbucket.core.util
 
+import gitbucket.core.api.CreateARepository
 import org.scalatra.i18n.Messages
 import org.scalatest.funspec.AnyFunSpec
 
@@ -11,6 +12,9 @@ class ValidationsSpec extends AnyFunSpec with Validations {
       assert(identifier.validate("id", "_aaaa", null) == Some("id starts with invalid character."))
       assert(identifier.validate("id", "-aaaa", null) == Some("id starts with invalid character."))
       assert(identifier.validate("id", "aa_ZZ#01", null) == Some("id contains invalid character."))
+      Seq(".", "..", "aaaa.").foreach { value =>
+        assert(identifier.validate("id", value, null) == Some("id must not end with a dot."), value)
+      }
     }
   }
 
@@ -22,6 +26,15 @@ class ValidationsSpec extends AnyFunSpec with Validations {
       assert(repository.validate("name", "repo.GIT", null) == Some("name must not end with .git or .wiki."))
       assert(repository.validate("name", "repo.wiki", null) == Some("name must not end with .git or .wiki."))
       assert(repository.validate("name", "_repo", null) == Some("name starts with invalid character."))
+      Seq(".", "..", "repo.").foreach { value =>
+        assert(repository.validate("name", value, null) == Some("name must not end with a dot."), value)
+      }
+    }
+    it("should validate repository name in the API") {
+      assert(CreateARepository("my-repo.v2+x", None).isValid)
+      Seq(".", "..", "repo.").foreach { value =>
+        assert(!CreateARepository(value, None).isValid, value)
+      }
     }
   }
 
