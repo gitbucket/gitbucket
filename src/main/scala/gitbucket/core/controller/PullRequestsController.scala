@@ -298,7 +298,9 @@ trait PullRequestsControllerBase extends ControllerBase {
       if hasDeveloperRole(owner, name, context.loginAccount)
     } yield {
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
-      if (branchProtection.needStatusCheck(loginAccount.userName)) {
+      if (!branchProtection.isPushAllowed(loginAccount.userName)) {
+        flash.update("error", s"You do not have permission to push to branch ${pullreq.requestBranch}.")
+      } else if (branchProtection.needStatusCheck(loginAccount.userName)) {
         flash.update("error", s"branch ${pullreq.requestBranch} is protected need status check.")
       } else {
         LockUtil.lock(s"$owner/$name") {
@@ -450,6 +452,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     (for (
       originRepositoryName <- getOriginRepositoryName(originOwner, forkedOwner, forkedRepository);
       originRepository <- getRepository(originOwner, originRepositoryName)
+      if isReadable(originRepository.repository, context.loginAccount)
     ) yield {
       val members =
         ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
@@ -640,6 +643,12 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnlyWithForm { (form, repository) =>
     context.withLoginAccount { loginAccount =>
+      if (
+        !getRepository(form.requestUserName, form.requestRepositoryName)
+          .exists(x => isReadable(x.repository, Some(loginAccount)))
+      ) {
+        halt(NotFound())
+      }
       val manageable = isManageable(repository)
 
       val issueId = insertIssue(
