@@ -74,7 +74,7 @@ trait ApiRepositoryBranchControllerBase extends ControllerBase {
    * v. Delete branch protection
    * https://docs.github.com/en/rest/reference/repos#delete-branch-protection
    */
-  delete("/api/v3/repos/:owner/:repository/branches/:branch/protection")(writableUsersOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/branches/:branch/protection")(ownerOnly { repository =>
     val branch = params("branch")
     if (repository.branchList.contains(branch)) {
       val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
