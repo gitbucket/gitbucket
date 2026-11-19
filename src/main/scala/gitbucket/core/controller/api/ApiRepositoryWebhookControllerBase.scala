@@ -8,7 +8,7 @@ import gitbucket.core.util.Implicits._
 import org.scalatra.NoContent
 
 trait ApiRepositoryWebhookControllerBase extends ControllerBase {
-  self: RepositoryService & WebHookService & ReferrerAuthenticator & WritableUsersAuthenticator =>
+  self: RepositoryService & WebHookService & OwnerAuthenticator =>
 
   /** Map event names to events; unknown names end the request with 422. */
   private def toEvents(names: Seq[String], documentationUrl: String): Set[WebHook.Event] = {
@@ -23,7 +23,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    * i. List repository webhooks
    * https://docs.github.com/en/rest/reference/repos#list-repository-webhooks
    */
-  get("/api/v3/repos/:owner/:repository/hooks")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/hooks")(ownerOnly { repository =>
     val apiWebhooks = for {
       (hook, events) <- getWebHooks(repository.owner, repository.name)
     } yield {
@@ -36,7 +36,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    * ii. Create a repository webhook
    * https://docs.github.com/en/rest/reference/repos#create-a-repository-webhook
    */
-  post("/api/v3/repos/:owner/:repository/hooks")(writableUsersOnly { repository =>
+  post("/api/v3/repos/:owner/:repository/hooks")(ownerOnly { repository =>
     (for {
       data <- extractFromJsonBody[CreateARepositoryWebhook] if data.isValid
       ctype = if (data.config.content_type == "form") WebHookContentType.FORM else WebHookContentType.JSON
@@ -61,7 +61,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    * iii. Get a repository webhook
    * https://docs.github.com/en/rest/reference/repos#get-a-repository-webhook
    */
-  get("/api/v3/repos/:owner/:repository/hooks/:id")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/hooks/:id")(ownerOnly { repository =>
     val hookId = params("id").toInt
     getWebHookById(repository.owner, repository.name, hookId) match {
       case Some(hook) => JsonFormat(ApiWebhook("Repository", hook._1, hook._2))
@@ -73,7 +73,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    * iv. Update a repository webhook
    * https://docs.github.com/en/rest/reference/repos#update-a-repository-webhook
    */
-  patch("/api/v3/repos/:owner/:repository/hooks/:id")(writableUsersOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/hooks/:id")(ownerOnly { repository =>
     val hookId = params("id").toInt
     (for {
       data <- extractFromJsonBody[UpdateARepositoryWebhook] if data.isValid
@@ -111,7 +111,7 @@ trait ApiRepositoryWebhookControllerBase extends ControllerBase {
    * v. Delete a repository webhook
    * https://docs.github.com/en/rest/reference/repos#delete-a-repository-webhook
    */
-  delete("/api/v3/repos/:owner/:repository/hooks/:id")(writableUsersOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/hooks/:id")(ownerOnly { repository =>
     val hookId = params("id").toInt
     if (deleteWebHookById(repository.owner, repository.name, hookId)) NoContent() else NotFound()
   })
