@@ -15,7 +15,11 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
       context.getSessionCookieConfig.setSecure(true)
     }
 
-    // Register TransactionFilter at first
+    // Register RequestPathFilter and TransactionFilter at first
+    context.addFilter("requestPathFilter", new RequestPathFilter)
+    context
+      .getFilterRegistration("requestPathFilter")
+      .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*")
     context.addFilter("transactionFilter", new TransactionFilter)
     context
       .getFilterRegistration("transactionFilter")
