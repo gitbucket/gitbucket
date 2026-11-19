@@ -113,6 +113,15 @@ object LDAPUtil {
     }
   }
 
+  /**
+   * Escapes a value for an LDAP search filter (RFC 4515), so that "*" or "(" in a login are not filter syntax.
+   */
+  def escapeFilterValue(value: String): String =
+    value.flatMap {
+      case c @ ('\\' | '*' | '(' | ')' | '\u0000') => f"\\${c.toInt}%02x"
+      case c                                       => c.toString
+    }
+
   private def getUserNameFromMailAddress(userName: String): String = {
     (userName.indexOf('@') match {
       case i if i >= 0 => userName.substring(0, i)
@@ -200,8 +209,8 @@ object LDAPUtil {
     }
 
     val filterCond = additionalFilterCondition.getOrElse("") match {
-      case "" => userNameAttribute + "=" + userName
-      case x  => "(&(" + x + ")(" + userNameAttribute + "=" + userName + "))"
+      case "" => userNameAttribute + "=" + escapeFilterValue(userName)
+      case x  => "(&(" + x + ")(" + userNameAttribute + "=" + escapeFilterValue(userName) + "))"
     }
 
     getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, filterCond, null, false)).collectFirst { case x =>
@@ -219,7 +228,7 @@ object LDAPUtil {
     val results = conn.search(
       userDN,
       LDAPConnection.SCOPE_BASE,
-      userNameAttribute + "=" + userName,
+      userNameAttribute + "=" + escapeFilterValue(userName),
       Array[String](mailAttribute),
       false
     )
@@ -238,7 +247,7 @@ object LDAPUtil {
     val results = conn.search(
       userDN,
       LDAPConnection.SCOPE_BASE,
-      userNameAttribute + "=" + userName,
+      userNameAttribute + "=" + escapeFilterValue(userName),
       Array[String](nameAttribute),
       false
     )

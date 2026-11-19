@@ -16,6 +16,7 @@ case class CreateARepository(
     !name.startsWith("_") &&
     !name.startsWith("-") &&
     !name.toLowerCase.endsWith(".git") &&
-    !name.toLowerCase.endsWith(".wiki")
+    !name.toLowerCase.endsWith(".wiki") &&
+    !name.endsWith(".")
   }
 }
