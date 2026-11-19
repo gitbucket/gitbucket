@@ -77,6 +77,11 @@ object Keys {
     val DBSession = "DB_SESSION"
 
     /**
+     * Request key for the flag that the user of a Git LFS batch request may upload objects.
+     */
+    val LfsUploadAllowed = "LFS_UPLOAD_ALLOWED"
+
+    /**
      * Request key for the Ajax request flag.
      */
     val Ajax = "AJAX"

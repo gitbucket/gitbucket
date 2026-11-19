@@ -10,7 +10,7 @@ import org.json4s.Formats
 import org.json4s.jackson.Serialization._
 import org.apache.http.HttpStatus
 
-import scala.util.Using
+import scala.util.{Try, Using}
 
 /**
  * Provides GitLFS Transfer API
@@ -24,7 +24,7 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, oid)
+      (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, owner, repository, "download", oid, res)
     } yield {
       val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
       if (file.exists()) {
@@ -43,7 +43,7 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doPut(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, oid)
+      (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, owner, repository, "upload", oid, res)
     } yield {
       val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
       FileUtils.forceMkdir(file.getParentFile)
@@ -54,14 +54,25 @@ class GitLfsTransferServlet extends HttpServlet {
     }
   }
 
-  private def checkToken(req: HttpServletRequest, oid: String): Boolean = {
-    val token = req.getHeader("Authorization")
-    if (token != null) {
-      val Array(expireAt, targetOid) = StringUtil.decodeBlowfish(token).split(" ")
-      oid == targetOid && expireAt.toLong > System.currentTimeMillis
-    } else {
-      false
-    }
+  /** The token from the batch API is valid for one object, repository and operation until it expires. */
+  private def checkToken(
+    req: HttpServletRequest,
+    owner: String,
+    repository: String,
+    operation: String,
+    oid: String,
+    res: HttpServletResponse
+  ): Boolean = {
+    val valid = Option(req.getHeader("Authorization"))
+      .flatMap(token => Try(StringUtil.decodeBlowfish(token).split(" ")).toOption)
+      .exists {
+        case Array(expireAt, target, targetOperation, targetOid) =>
+          target == s"$owner/$repository" && targetOperation == operation && targetOid == oid &&
+          expireAt.toLong > System.currentTimeMillis
+        case _ => false
+      }
+    if (!valid) sendError(res, HttpStatus.SC_UNAUTHORIZED, "Invalid or expired token")
+    valid
   }
 
   private def getPathInfo(req: HttpServletRequest, res: HttpServletResponse): Option[(String, String, String)] = {

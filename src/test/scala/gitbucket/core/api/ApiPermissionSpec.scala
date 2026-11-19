@@ -4,9 +4,14 @@ import gitbucket.core.TestingGitBucketServer
 import gitbucket.core.util.FileUtil
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.{RefSpec, RemoteRefUpdate, UsernamePasswordCredentialsProvider}
+import org.apache.http.client.methods.{HttpGet, HttpPost, HttpPut}
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.util.EntityUtils
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 
+import java.util.Base64
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
@@ -268,5 +273,71 @@ class ApiPermissionSpec extends AnyFunSuite with BeforeAndAfterAll {
       "developer"
     )
     assert(repo.getBranch("main").getSHA1 == mainId, "main was changed")
+  }
+
+  /** Calls the LFS batch API like git-lfs; returns the status and the Authorization header of the first action. */
+  private def lfsBatch(repository: String, operation: String, oid: String, size: Int, login: Option[String]) = {
+    Using.resource(HttpClients.createDefault()) { client =>
+      val post = new HttpPost(s"http://localhost:${server.port}/git/root/$repository.git/info/lfs/objects/batch")
+      post.setHeader("User-Agent", "git-lfs/3.4.0")
+      post.setHeader("Accept", "application/vnd.git-lfs+json")
+      login.foreach { l =>
+        post.setHeader("Authorization", "Basic " + Base64.getEncoder.encodeToString(s"$l:$l".getBytes("UTF-8")))
+      }
+      post.setEntity(
+        new StringEntity(s"""{"operation":"$operation","objects":[{"oid":"$oid","size":$size}]}""", "UTF-8")
+      )
+      Using.resource(client.execute(post)) { response =>
+        val body = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+        val token = "\"Authorization\":\"([^\"]+)\"".r.findFirstMatchIn(body).map(_.group(1))
+        (response.getStatusLine.getStatusCode, token)
+      }
+    }
+  }
+
+  private def lfsTransfer(repository: String, oid: String, token: String, upload: Option[String]): (Int, String) =
+    Using.resource(HttpClients.createDefault()) { client =>
+      val url = s"http://localhost:${server.port}/git-lfs/root/$repository/$oid"
+      val request = upload match {
+        case Some(content) =>
+          val put = new HttpPut(url)
+          put.setEntity(new StringEntity(content, "UTF-8"))
+          put
+        case None => new HttpGet(url)
+      }
+      request.setHeader("Authorization", token)
+      Using.resource(client.execute(request)) { response =>
+        val body = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+        (response.getStatusLine.getStatusCode, body)
+      }
+    }
+
+  test("LFS tokens are only valid for their repository and operation") {
+    server.updateSettings("base_url" -> s"http://localhost:${server.port}")
+    server.client("root", "root").createRepository("lfs_public").autoInit(true).create()
+    server.client("root", "root").createRepository("lfs_private").private_(true).autoInit(true).create()
+    val content = "private content"
+    val oid = java.security.MessageDigest
+      .getInstance("SHA-256")
+      .digest(content.getBytes("UTF-8"))
+      .map("%02x".format(_))
+      .mkString
+    val (_, ownerUpload) = lfsBatch("lfs_private", "upload", oid, content.length, Some("root"))
+    assert(lfsTransfer("lfs_private", oid, ownerUpload.get, Some(content))._1 == 200, "owner uploads")
+
+    // A token for the public repository, which anyone may read
+    val (_, publicDownload) = lfsBatch("lfs_public", "download", oid, content.length, None)
+    val read = lfsTransfer("lfs_private", oid, publicDownload.get, None)
+    assert(read._2 != content, "read another repository's object")
+    val overwrite = lfsTransfer("lfs_private", oid, publicDownload.get, Some("replaced"))
+    assert(lfsTransfer("lfs_private", oid, ownerUpload.get, None)._2 != content, "download with an upload token")
+    val (_, ownerDownload) = lfsBatch("lfs_private", "download", oid, content.length, Some("root"))
+    assert(lfsTransfer("lfs_private", oid, ownerDownload.get, None)._2 == content, s"overwritten (${overwrite._1})")
+
+    // Reading a repository doesn't allow uploading to it
+    val (status, anonymousUpload) = lfsBatch("lfs_public", "upload", oid, content.length, None)
+    assert(anonymousUpload.isEmpty, s"anonymous upload token ($status)")
+    assert(status == 401, "git-lfs asks for credentials")
+    assert(lfsBatch("lfs_public", "upload", oid, content.length, Some("root"))._2.isDefined, "owner upload token")
   }
 }

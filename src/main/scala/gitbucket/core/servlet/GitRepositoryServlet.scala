@@ -110,6 +110,10 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
             case Array(repository, owner, _*) =>
               val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
               val batchResponse = batchRequest.operation match {
+                case "upload" if !req.hasAttribute(Keys.Request.LfsUploadAllowed) =>
+                  res.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
+                  res.setHeader("LFS-Authenticate", "Basic realm=\"GitBucket\"")
+                  GitLfs.BatchUploadResponse("basic", Nil)
                 case "upload" =>
                   GitLfs.BatchUploadResponse(
                     "basic",
@@ -122,8 +126,11 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                           upload = Some(
                             GitLfs.Action(
                               href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
-                              header =
-                                Map("Authorization" -> StringUtil.encodeBlowfish(s"$timeout ${requestObject.oid}")),
+                              header = Map(
+                                "Authorization" -> StringUtil.encodeBlowfish(
+                                  s"$timeout $owner/$repository upload ${requestObject.oid}"
+                                )
+                              ),
                               expires_at = new Date(timeout)
                             )
                           )
@@ -143,8 +150,11 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                           download = Some(
                             GitLfs.Action(
                               href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
-                              header =
-                                Map("Authorization" -> StringUtil.encodeBlowfish(s"$timeout ${requestObject.oid}")),
+                              header = Map(
+                                "Authorization" -> StringUtil.encodeBlowfish(
+                                  s"$timeout $owner/$repository download ${requestObject.oid}"
+                                )
+                              ),
                               expires_at = new Date(timeout)
                             )
                           )
