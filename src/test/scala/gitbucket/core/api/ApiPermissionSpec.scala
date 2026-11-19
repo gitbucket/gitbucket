@@ -22,6 +22,8 @@ import scala.util.Using
  */
 class ApiPermissionSpec extends AnyFunSuite with BeforeAndAfterAll {
 
+  // TestingGitBucketServer sets gitbucket.home; later specs in the same JVM (DirectorySpec) expect it unchanged
+  private val previousHome = Option(System.getProperty("gitbucket.home"))
   private lazy val server = new TestingGitBucketServer(19992)
 
   override def beforeAll(): Unit = {
@@ -36,7 +38,10 @@ class ApiPermissionSpec extends AnyFunSuite with BeforeAndAfterAll {
     assert(added.status == 200, s"Expected 200 but got ${added.status}")
   }
 
-  override def afterAll(): Unit = server.close()
+  override def afterAll(): Unit = {
+    server.close()
+    previousHome.fold(System.clearProperty("gitbucket.home"))(System.setProperty("gitbucket.home", _))
+  }
 
   private def assertStatus(response: server.ApiResponse, expected: Int, label: String): Unit =
     assert(response.status == expected, s"$label: expected $expected but got ${response.status}")
