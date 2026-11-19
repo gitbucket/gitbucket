@@ -6,7 +6,7 @@ import java.io.File
 
 import gitbucket.core.util.{FileUtil, HttpClientUtil}
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.{HttpGet, HttpPatch, HttpPost, HttpPut}
+import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPatch, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCookieStore, CloseableHttpClient, HttpClients}
 import org.apache.http.message.BasicNameValuePair
@@ -226,6 +226,34 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
       val response = httpClient.execute(put)
       val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
       ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
+  /** Perform an authenticated DELETE request and return the status code and response body. */
+  def deleteApi(path: String, login: String, password: String): ApiResponse = {
+    HttpClientUtil.withHttpClient(None) { httpClient =>
+      val delete = new HttpDelete(s"http://localhost:$port$path")
+      val credentials = Base64.getEncoder.encodeToString(s"$login:$password".getBytes("UTF-8"))
+      delete.setHeader("Authorization", s"Basic $credentials")
+      val response = httpClient.execute(delete)
+      val responseBody = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, responseBody)
+    }
+  }
+
+  /** Post a web form as the given user; returns the status code and the Location header (or the body). */
+  def postForm(path: String, form: Seq[(String, String)], login: String, password: String): ApiResponse = {
+    withWebSession(login, password) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port$path")
+      post.setEntity(new UrlEncodedFormEntity(JArrays.asList(form.map { case (k, v) =>
+        new BasicNameValuePair(k, v)
+      }*)))
+      val response = httpClient.execute(post)
+      val body = Option(response.getFirstHeader("Location"))
+        .map(_.getValue)
+        .getOrElse(Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse(""))
+      EntityUtils.consume(response.getEntity)
+      ApiResponse(response.getStatusLine.getStatusCode, body)
     }
   }
 
