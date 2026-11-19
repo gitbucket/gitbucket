@@ -1,6 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.{Account, GroupMember}
+import gitbucket.core.util.LDAPUtil
 import java.util.Date
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -15,6 +16,21 @@ class AccountServiceSpec extends AnyFunSuite with ServiceSpecBase {
           true
         case _ => false
       })
+    }
+  }
+
+  test("isLdapAccountOf") {
+    withTestDB { implicit session =>
+      val root = AccountService.getAccountByUserName("root").get
+      val info = (userName: String, mailAddress: String) => LDAPUtil.LDAPUserInfo(userName, userName, mailAddress)
+
+      // The login is the account name
+      assert(AccountService.isLdapAccountOf(root, "root", info("root", "other@example.com")))
+      // The login is a mail address of the account's owner
+      assert(AccountService.isLdapAccountOf(root, "root@example.com", info("root", RootMailAddress)))
+      // Another directory entry whose login only reduces to the account name
+      assert(!AccountService.isLdapAccountOf(root, "root@example.com", info("root", "eve@example.com")))
+      assert(!AccountService.isLdapAccountOf(root, "root*", info("root", "eve@example.com")))
     }
   }
 

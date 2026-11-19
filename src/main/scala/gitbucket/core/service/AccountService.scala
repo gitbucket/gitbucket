@@ -56,6 +56,13 @@ trait AccountService {
   }
 
   /**
+   * Whether the directory user who signed in with this login owns the account: the login is the account name, or
+   * the directory has the account's mail address. A login like "name@domain" or "name*" only reduces to the name.
+   */
+  def isLdapAccountOf(account: Account, login: String, ldapUserInfo: LDAPUtil.LDAPUserInfo): Boolean =
+    account.userName == login || account.mailAddress.equalsIgnoreCase(ldapUserInfo.mailAddress)
+
+  /**
    * Authenticate by LDAP.
    */
   private def ldapAuthentication(settings: SystemSettings, userName: String, password: String)(implicit
@@ -65,6 +72,9 @@ trait AccountService {
       case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
         getAccountByUserName(ldapUserInfo.userName, true) match {
+          case Some(x) if !isLdapAccountOf(x, userName, ldapUserInfo) =>
+            logger.info(s"LDAP Authentication Failed: ${userName} doesn't belong to the account ${x.userName}.")
+            None
           case Some(x) =>
             if (x.isRemoved) {
               logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
