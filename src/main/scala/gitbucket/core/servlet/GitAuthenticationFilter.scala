@@ -97,6 +97,14 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
         Database() withSession { implicit session =>
           getRepository(repositoryOwner, repositoryName.replaceFirst("(\\.wiki)?\\.git$", "")) match {
             case Some(repository) => {
+              // The LFS batch request only needs read access; uploads need write access (GitRepositoryServlet)
+              if (request.getRequestURI.endsWith("/info/lfs/objects/batch")) {
+                for {
+                  header <- Option(request.getHeader("Authorization"))
+                  account <- authenticateByHeader(header, settings)
+                  if hasDeveloperRole(repository.owner, repository.name, Some(account))
+                } request.setAttribute(Keys.Request.LfsUploadAllowed, true)
+              }
               val execute =
                 if (!isUpdating && !repository.repository.isPrivate && settings.basicBehavior.allowAnonymousAccess) {
                   // Authentication is not required
