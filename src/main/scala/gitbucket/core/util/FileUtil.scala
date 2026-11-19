@@ -25,8 +25,12 @@ object FileUtil {
   }
 
   def getSafeMimeType(name: String, safeMode: Boolean = true): String = {
-    val mimeType = getMimeType(name)
-      .replace("text/html", "text/plain")
+    val mimeType = getMimeType(name) match {
+      // Browsers render HTML and XML (incl. XHTML) as a page and run its scripts
+      case "text/html" | "text/xml" | "application/xml"          => "text/plain"
+      case xml if xml.endsWith("+xml") && xml != "image/svg+xml" => "text/plain"
+      case other                                                 => other
+    }
 
     if (safeMode) {
       mimeType.replace("image/svg+xml", "text/plain; charset=UTF-8")
