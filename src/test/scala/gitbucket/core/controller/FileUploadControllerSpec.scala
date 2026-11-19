@@ -25,12 +25,17 @@ class FileUploadControllerSpec extends AnyFunSuite {
   private def withClient[T](f: CloseableHttpClient => T): T =
     Using.resource(HttpClients.custom().build())(f)
 
-  private def signin(client: CloseableHttpClient, port: Int): Unit = {
+  private def signin(
+    client: CloseableHttpClient,
+    port: Int,
+    login: String = "root",
+    password: String = "root"
+  ): Unit = {
     val post = new HttpPost(s"http://localhost:$port/signin")
     post.setConfig(noRedirects)
     post.setEntity(
       new UrlEncodedFormEntity(
-        Seq(new BasicNameValuePair("userName", "root"), new BasicNameValuePair("password", "root")).asJava
+        Seq(new BasicNameValuePair("userName", login), new BasicNameValuePair("password", password)).asJava
       )
     )
     Using.resource(client.execute(post)) { res =>
@@ -78,6 +83,21 @@ class FileUploadControllerSpec extends AnyFunSuite {
         assert(upload(client, s"http://localhost:${server.port}/upload/image", "a.png", 10) == 200)
         assert(upload(client, s"http://localhost:${server.port}/upload/tmp", "a.txt", 10) == 400)
         assert(uploadedFiles(server).size == 1)
+      }
+    }
+  }
+
+  test("a disabled user can't upload with a session from before") {
+    Using.resource(new TestingGitBucketServer(19993)) { server =>
+      server.createUser("user1", "user1", "user1@example.invalid", "root", "root")
+      withClient { client =>
+        signin(client, server.port, "user1", "user1")
+        val url = s"http://localhost:${server.port}/upload/tmp"
+        assert(upload(client, url, "a.txt", 10) == 200)
+        server.suspendUser("user1", "root", "root")
+        assert(upload(client, url, "a.txt", 10) == 400)
+        // The session ended, and with it its uploaded files
+        assert(uploadedFiles(server).isEmpty)
       }
     }
   }
