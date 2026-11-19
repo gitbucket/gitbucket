@@ -5,6 +5,7 @@ Developer's Guide
  * [Directory Structure](directory.md)
  * [Mapping and Validation](validation.md)
  * [Authentication in Controller](authenticator.md)
+ * [CSRF Protection](csrf.md)
  * [About Action in Issue Comment](comment_action.md)
  * [Activity Types](activity.md)
  * [Automatic Schema Updating](auto_update.md)

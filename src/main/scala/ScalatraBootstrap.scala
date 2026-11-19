@@ -14,6 +14,8 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
     if (settings.baseUrl.exists(_.startsWith("https://"))) {
       context.getSessionCookieConfig.setSecure(true)
     }
+    // SameSite=Lax for the other cookies on Jetty (Tomcat: META-INF/context.xml)
+    context.setAttribute("org.eclipse.jetty.cookie.sameSiteDefault", "Lax")
 
     // Register RequestPathFilter and TransactionFilter at first
     context.addFilter("requestPathFilter", new RequestPathFilter)

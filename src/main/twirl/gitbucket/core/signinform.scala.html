@@ -1,12 +1,14 @@
 @(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings,
   userName: Option[Any] = None,
   password: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 <div class="panel panel-default">
   <div class="panel-heading strong">Sign in</div>
   <ul class="list-group list-group-flush">
     @if(context.settings.oidcAuthentication){
       <li class="list-group-item">
         <form action="@context.path/signin/oidc" method="POST">
+          @helpers.csrfField
           <input type="hidden" name="hash"/>
           <input type="submit" class="btn btn-success" value="Sign in with OpenID Connect"
           onClick="this.form.hash.value = window.location.hash;"/>
@@ -15,6 +17,7 @@
     }
     <li class="list-group-item">
       <form action="@context.path/signin" method="POST" validate="true" autocomplete="off">
+        @helpers.csrfField
         <div class="form-group">
           <label for="userName">Username:</label>
           <span id="error-userName" class="error"></span>

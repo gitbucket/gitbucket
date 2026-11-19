@@ -60,6 +60,7 @@
             @if(status.hasUpdatePermission){
               <div class="pull-right">
                 <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/update_branch">
+                  @helpers.csrfField
                   <input type="hidden" name="expected_head_oid" value="@pullreq.commitIdFrom">
                   <button class="btn btn-default"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
                 </form>
@@ -191,6 +192,7 @@
     </div>
     <div id="confirm-merge-form" style="display: none; padding: 12px;">
       <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/merge" validate="true">
+        @helpers.csrfField
         <div class="strong">
           Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
         </div>

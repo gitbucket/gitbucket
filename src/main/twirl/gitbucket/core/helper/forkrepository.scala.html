@@ -6,6 +6,7 @@
   <a class="btn btn-default btn-sm" href="@helpers.url(repository)/network/members">Show forks</a>
 </h2>
 <form action="@helpers.url(repository)/fork" id="fork" method="post">
+  @helpers.csrfField
   <div class="block">
     @helpers.avatar(context.loginAccount.get.userName, 24) <a href="javascript:void(0);" class="js-fork-owner-select-target">@@@context.loginAccount.get.userName</a>
   </div>

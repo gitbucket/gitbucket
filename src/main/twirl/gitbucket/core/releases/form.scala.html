@@ -7,6 +7,7 @@
 @gitbucket.core.html.main(s"New Release - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("releases", repository){
     <form method="POST" validate="true" class="form-group" autocomplete="off">
+      @helpers.csrfField
       <div class="row-fluid">
         <div class="co`l-md-12">
           @if(release.isEmpty){

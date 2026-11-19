@@ -1,9 +1,11 @@
 @()(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Reset your password"){
   <div class="content-wrapper main-center">
     <div class="content body">
       <h2>Reset your password</h2>
       <form action="@context.path/reset" method="POST" validate="true" autocomplete="off">
+        @helpers.csrfField
         <fieldset class="form-group">
           Enter your email address to reset your password.
           <input type="text" name="mailAddress" id="mailAddress" class="form-control" value=""  value="" style="max-width: 400px;"/>
