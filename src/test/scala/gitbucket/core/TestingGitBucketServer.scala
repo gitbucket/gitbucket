@@ -243,6 +243,31 @@ class TestingGitBucketServer(val port: Int = 19999) extends AutoCloseable {
     }
   }
 
+  /** Post a web form as the given user; returns the status code and the Location header (or the body). */
+  def postForm(path: String, form: Seq[(String, String)], login: String, password: String): ApiResponse = {
+    withWebSession(login, password) { httpClient =>
+      val post = new HttpPost(s"http://localhost:$port$path")
+      post.setEntity(new UrlEncodedFormEntity(JArrays.asList(form.map { case (k, v) =>
+        new BasicNameValuePair(k, v)
+      }*)))
+      val response = httpClient.execute(post)
+      val body = Option(response.getFirstHeader("Location"))
+        .map(_.getValue)
+        .getOrElse(Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse(""))
+      EntityUtils.consume(response.getEntity)
+      ApiResponse(response.getStatusLine.getStatusCode, body)
+    }
+  }
+
+  /** Get a web page as the given user; returns the status code and the body. */
+  def getPage(path: String, login: String, password: String): ApiResponse = {
+    withWebSession(login, password) { httpClient =>
+      val response = httpClient.execute(new HttpGet(s"http://localhost:$port$path"))
+      val body = Option(response.getEntity).map(EntityUtils.toString(_, "UTF-8")).getOrElse("")
+      ApiResponse(response.getStatusLine.getStatusCode, body)
+    }
+  }
+
   /** Suspend a user via the admin REST API. */
   def suspendUser(login: String, adminLogin: String, adminPassword: String): Unit = {
     val response = putApi(s"/api/v3/users/$login/suspended", adminLogin, adminPassword)
