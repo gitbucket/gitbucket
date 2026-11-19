@@ -123,8 +123,9 @@ object ProtectedBranchService {
             pusher
           )
         }
+      } else if (command.getRefName.startsWith("refs/pull/")) {
+        Some(s"refusing to update ${command.getRefName}: refs/pull/ is managed by GitBucket.")
       } else {
-        println("-> else")
         None
       }
     }

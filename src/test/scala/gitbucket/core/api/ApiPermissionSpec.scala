@@ -1,8 +1,14 @@
 package gitbucket.core.api
 
 import gitbucket.core.TestingGitBucketServer
+import gitbucket.core.util.FileUtil
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.transport.{RefSpec, RemoteRefUpdate, UsernamePasswordCredentialsProvider}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
+
+import scala.jdk.CollectionConverters.*
+import scala.util.Using
 
 /**
  * Write collaborators may push, but not change the repository settings, as in the web UI.
@@ -153,6 +159,114 @@ class ApiPermissionSpec extends AnyFunSuite with BeforeAndAfterAll {
     assertStatus(pull, 200, "developer opens a pull request from main into feature")
 
     server.postForm("/root/update_repo/pull/1/update_branch", Nil, "developer", "developer")
+    assert(repo.getBranch("main").getSHA1 == mainId, "main was changed")
+  }
+
+  test("the refs API and git push keep branch protection and refs/pull") {
+    val repo = server.client("root", "root").createRepository("refs_repo").autoInit(true).create()
+    assertStatus(
+      server
+        .putApi("/api/v3/repos/root/refs_repo/collaborators/developer", """{"permission":"push"}""", "root", "root"),
+      200,
+      "developer added"
+    )
+    val mainId = repo.getBranch("main").getSHA1
+    val asDeveloper = server.client("developer", "developer").getRepository("root/refs_repo")
+    asDeveloper.createRef("refs/heads/other", mainId)
+    asDeveloper.createContent().content("other").path("other.txt").message("Other").branch("other").commit()
+    val otherId = asDeveloper.getBranch("other").getSHA1
+    asDeveloper.createRef("refs/heads/unrelated", mainId)
+    assertStatus(
+      server.patchApi(
+        "/api/v3/repos/root/refs_repo/branches/main",
+        """{"protection":{"enabled":true,"restrictions":{"users":["root"]}}}""",
+        "root",
+        "root"
+      ),
+      200,
+      "owner protects"
+    )
+
+    val workTree = java.nio.file.Files.createTempDirectory("refs_repo").toFile
+    val pushed =
+      try {
+        val credentials = new UsernamePasswordCredentialsProvider("developer", "developer")
+        Using.resource(
+          Git
+            .cloneRepository()
+            .setURI(s"http://localhost:${server.port}/git/root/refs_repo.git")
+            .setCredentialsProvider(credentials)
+            .setDirectory(workTree)
+            .call()
+        ) { git =>
+          git
+            .push()
+            .setCredentialsProvider(credentials)
+            .setRefSpecs(new RefSpec("HEAD:refs/pull/99/merge"))
+            .call()
+            .asScala
+            .flatMap(_.getRemoteUpdates.asScala)
+            .exists(_.getStatus == RemoteRefUpdate.Status.OK)
+        }
+      } finally FileUtil.deleteIfExists(workTree)
+
+    val path = "/api/v3/repos/root/refs_repo/git/refs"
+    val accepted = (Seq(
+      "update protected" -> server
+        .patchApi(s"$path/heads/main", s"""{"sha":"$otherId","force":false}""", "developer", "developer")
+        .status,
+      "delete protected" -> server.deleteApi(s"$path/heads/main", "developer", "developer").status,
+      "create refs/pull" -> server
+        .postApi(path, s"""{"ref":"refs/pull/99/head","sha":"$otherId"}""", "developer", "developer")
+        .status
+    ) ++ Seq("git push to refs/pull" -> (if (pushed) 200 else 400))).filter(_._2 < 400)
+    assert(accepted.isEmpty, accepted.map { case (label, status) => s"$label: $status" }.mkString(", "))
+    assert(repo.getBranch("main").getSHA1 == mainId, "main was changed")
+    assertStatus(server.deleteApi(s"$path/heads/unrelated", "developer", "developer"), 204, "delete unprotected")
+  }
+
+  test("merging respects the push restrictions of the base branch") {
+    val repo = server.client("root", "root").createRepository("merge_repo").autoInit(true).create()
+    assertStatus(
+      server
+        .putApi("/api/v3/repos/root/merge_repo/collaborators/developer", """{"permission":"push"}""", "root", "root"),
+      200,
+      "developer added"
+    )
+    val mainId = repo.getBranch("main").getSHA1
+    val asDeveloper = server.client("developer", "developer").getRepository("root/merge_repo")
+    asDeveloper.createRef("refs/heads/feature", mainId)
+    asDeveloper.createContent().content("feature").path("feature.txt").message("Feature").branch("feature").commit()
+    assertStatus(
+      server.patchApi(
+        "/api/v3/repos/root/merge_repo/branches/main",
+        """{"protection":{"enabled":true,"restrictions":{"users":["root"]}}}""",
+        "root",
+        "root"
+      ),
+      200,
+      "owner protects"
+    )
+    val pull = server.postApi(
+      "/api/v3/repos/root/merge_repo/pulls",
+      """{"title":"Feature","head":"feature","base":"main"}""",
+      "developer",
+      "developer"
+    )
+    assertStatus(pull, 200, "developer opens a pull request")
+
+    server.putApi(
+      "/api/v3/repos/root/merge_repo/pulls/1/merge",
+      """{"merge_method":"merge"}""",
+      "developer",
+      "developer"
+    )
+    server.postForm(
+      "/root/merge_repo/pull/1/merge",
+      Seq("message" -> "Merge", "strategy" -> "merge-commit", "isDraft" -> "false"),
+      "developer",
+      "developer"
+    )
     assert(repo.getBranch("main").getSHA1 == mainId, "main was changed")
   }
 }

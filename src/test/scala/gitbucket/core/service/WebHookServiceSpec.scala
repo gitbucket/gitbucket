@@ -10,6 +10,7 @@ class WebHookServiceSpec extends AnyFunSuite with ServiceSpecBase {
     with ActivityService
     with RepositoryService
     with MergeService
+    with ProtectedBranchService
     with PullRequestService
     with IssuesService
     with CommitsService

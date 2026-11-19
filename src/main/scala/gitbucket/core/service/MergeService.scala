@@ -24,7 +24,7 @@ import scala.util.Using
 
 trait MergeService {
   self: AccountService & ActivityService & IssuesService & RepositoryService & PullRequestService &
-    WebHookPullRequestService & WebHookService =>
+    WebHookPullRequestService & WebHookService & ProtectedBranchService =>
 
   import MergeService.*
 
@@ -330,6 +330,17 @@ trait MergeService {
     PluginRegistry().getReceiveHooks
   }
 
+  /** The protection of the base branch applies to merges as to pushes: push restriction and status checks. */
+  private def isMergeAllowed(repository: RepositoryInfo, pullRequest: PullRequest, loginAccount: Account)(implicit
+    s: Session
+  ): Boolean = {
+    val protection =
+      getProtectedBranchInfo(repository.owner, repository.name, pullRequest.branch)
+    protection.isPushAllowed(loginAccount.userName) &&
+    !(protection.needStatusCheck(loginAccount.userName) &&
+      protection.unSuccessedContexts(pullRequest.commitIdTo).nonEmpty)
+  }
+
   def mergePullRequest(
     repository: RepositoryInfo,
     issueId: Int,
@@ -344,6 +355,8 @@ trait MergeService {
         LockUtil.lock(s"${repository.owner}/${repository.name}") {
           getPullRequest(repository.owner, repository.name, issueId)
             .map {
+              case (_, pullRequest) if !isMergeAllowed(repository, pullRequest, loginAccount) =>
+                Left(s"Branch ${pullRequest.branch} is protected: push restriction or required status checks.")
               case (issue, pullRequest) =>
                 Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
                   val (commits, _) = getRequestCompareInfo(

@@ -15,6 +15,7 @@ class PullRequestServiceSpec
     extends AnyFunSpec
     with ServiceSpecBase
     with MergeService
+    with ProtectedBranchService
     with PullRequestService
     with IssuesService
     with AccountService
