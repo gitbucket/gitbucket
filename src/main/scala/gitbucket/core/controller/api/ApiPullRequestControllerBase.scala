@@ -117,34 +117,38 @@ trait ApiPullRequestControllerBase extends ControllerBase {
               NotFound()
             }
         case Right(createPullReqAlt) =>
-          val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReqAlt.head, repository.owner)
-          getRepository(reqOwner, repository.name)
-            .filter(source => context.loginAccount.exists(account => isReadable(source.repository, Some(account))))
-            .flatMap { forkedRepository =>
-              getPullRequestCommitFromTo(repository, forkedRepository, createPullReqAlt.base, reqBranch) match {
-                case (Some(commitIdFrom), Some(commitIdTo)) =>
-                  changeIssueToPullRequest(repository.owner, repository.name, createPullReqAlt.issue)
-                  createPullRequest(
-                    originRepository = repository,
-                    issueId = createPullReqAlt.issue,
-                    originBranch = createPullReqAlt.base,
-                    requestUserName = reqOwner,
-                    requestRepositoryName = repository.name,
-                    requestBranch = reqBranch,
-                    commitIdFrom = commitIdFrom.getName,
-                    commitIdTo = commitIdTo.getName,
-                    isDraft = false,
-                    loginAccount = context.loginAccount.get,
-                    settings = context.settings
-                  )
-                  getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
-                case _ =>
-                  None
+          if (!isWritable(repository.repository, context.loginAccount)) {
+            Unauthorized()
+          } else {
+            val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReqAlt.head, repository.owner)
+            getRepository(reqOwner, repository.name)
+              .filter(source => context.loginAccount.exists(account => isReadable(source.repository, Some(account))))
+              .flatMap { forkedRepository =>
+                getPullRequestCommitFromTo(repository, forkedRepository, createPullReqAlt.base, reqBranch) match {
+                  case (Some(commitIdFrom), Some(commitIdTo)) =>
+                    changeIssueToPullRequest(repository.owner, repository.name, createPullReqAlt.issue)
+                    createPullRequest(
+                      originRepository = repository,
+                      issueId = createPullReqAlt.issue,
+                      originBranch = createPullReqAlt.base,
+                      requestUserName = reqOwner,
+                      requestRepositoryName = repository.name,
+                      requestBranch = reqBranch,
+                      commitIdFrom = commitIdFrom.getName,
+                      commitIdTo = commitIdTo.getName,
+                      isDraft = false,
+                      loginAccount = context.loginAccount.get,
+                      settings = context.settings
+                    )
+                    getApiPullRequest(repository, createPullReqAlt.issue).map(JsonFormat(_))
+                  case _ =>
+                    None
+                }
               }
-            }
-            .getOrElse {
-              NotFound()
-            }
+              .getOrElse {
+                NotFound()
+              }
+          }
       }
     } getOrElse BadRequest()
   })

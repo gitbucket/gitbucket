@@ -910,6 +910,32 @@ class ApiIntegrationTest extends AnyFunSuite {
     }
   }
 
+  test("POST /repos/:owner/:repo/pulls requires write permission when converting an issue") {
+    Using.resource(new TestingGitBucketServer(19999)) { server =>
+      val github = server.client("root", "root")
+      val repo = github.createRepository("pulls_issue_permission_test").autoInit(true).create()
+      val sha1 = repo.getBranch("main").getSHA1
+      repo.createRef("refs/heads/feature", sha1)
+      server.createUser(
+        "pulls-issue-reader",
+        "pulls-issue-reader-pass",
+        "pulls-issue-reader@example.invalid",
+        "root",
+        "root"
+      )
+
+      val issue = repo.createIssue("Convert me").create()
+      val response = server.postApi(
+        "/api/v3/repos/root/pulls_issue_permission_test/pulls",
+        s"""{"issue":${issue.getNumber},"head":"feature","base":"main"}""",
+        "pulls-issue-reader",
+        "pulls-issue-reader-pass"
+      )
+
+      assert(response.status == 401, s"Expected 401 but got ${response.status}")
+    }
+  }
+
   test("POST /repos/:owner/:repo/pulls with an unparsable request body returns 400") {
     Using.resource(new TestingGitBucketServer(19999)) { server =>
       val github = server.client("root", "root")
