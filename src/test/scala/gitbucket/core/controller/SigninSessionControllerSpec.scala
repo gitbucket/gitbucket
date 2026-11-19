@@ -171,6 +171,8 @@ class SigninSessionControllerSpec extends AnyFunSuite {
 
   test("files uploaded before sign-in move to the new session ID") {
     Using.resource(new TestingGitBucketServer(19994)) { server =>
+      // Anonymous users can upload only an avatar on the registration page
+      server.updateSettings("allow_account_registration" -> "true")
       withClient { (client, cookies) =>
         val fileId = uploadImage(client, server.port)
         val before = sessionId(cookies).get

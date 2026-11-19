@@ -11,7 +11,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{Constants, FileMode}
 import org.scalatra.*
-import org.scalatra.servlet.{FileItem, FileUploadSupport, MultipartConfig}
+import org.scalatra.servlet.{FileItem, FileUploadSupport}
 import org.apache.commons.io.{FileUtils, IOUtils}
 
 import scala.util.Using
@@ -32,31 +32,36 @@ class FileUploadController
     with SystemSettingsService {
 
   post("/image") {
-    setMultipartConfig()
-    execute(
-      { (file, fileId) =>
-        FileUtils
-          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
-        session += Keys.Session.Upload(fileId) -> file.name
-      },
-      FileUtil.isImage(_)
-    )
+    // Anonymous users can upload only an avatar on the registration page
+    if (
+      session.get(Keys.Session.LoginAccount).isDefined || loadSystemSettings().basicBehavior.allowAccountRegistration
+    ) {
+      execute(
+        { (file, fileId) =>
+          FileUtils
+            .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
+          session += Keys.Session.Upload(fileId) -> file.name
+        },
+        FileUtil.isImage(_)
+      )
+    } else BadRequest()
   }
 
   post("/tmp") {
-    setMultipartConfig()
-    execute(
-      { (file, fileId) =>
-        FileUtils
-          .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
-        session += Keys.Session.Upload(fileId) -> file.name
-      },
-      _ => true
-    )
+    // Don't accept not logged-in users
+    session.get(Keys.Session.LoginAccount).collect { case _: Account =>
+      execute(
+        { (file, fileId) =>
+          FileUtils
+            .writeByteArrayToFile(new File(getTemporaryDir(session.getId), FileUtil.checkFilename(fileId)), file.get())
+          session += Keys.Session.Upload(fileId) -> file.name
+        },
+        _ => true
+      )
+    } getOrElse BadRequest()
   }
 
   post("/file/:owner/:repository") {
-    setMultipartConfig()
     // Don't accept not logged-in users
     session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
       val owner = params("owner")
@@ -81,7 +86,6 @@ class FileUploadController
   }
 
   post("/wiki/:owner/:repository") {
-    setMultipartConfig()
     // Don't accept not logged-in users
     session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
       val owner = params("owner")
@@ -138,7 +142,6 @@ class FileUploadController
   }
 
   post("/release/:owner/:repository/*") {
-    setMultipartConfigForLargeFile()
     session
       .get(Keys.Session.LoginAccount)
       .collect { case loginAccount: Account =>
@@ -153,7 +156,8 @@ class FileUploadController
                 file.get()
               )
             },
-            _ => true
+            _ => true,
+            loadSystemSettings().upload.largeMaxFileSize
           )
         }
       }
@@ -162,29 +166,17 @@ class FileUploadController
 
   post("/import") {
     import JDBCUtil.*
-    setMultipartConfig()
     session.get(Keys.Session.LoginAccount).collect {
       case loginAccount: Account if loginAccount.isAdmin =>
         execute(
           { (file, fileId) =>
             request2Session(request).conn.importAsSQL(file.getInputStream)
           },
-          _ => true
+          _ => true,
+          Long.MaxValue // Admins only; a database export can be larger than the upload limit
         )
     }
     redirect("/admin/data")
-  }
-
-  private def setMultipartConfig(): Unit = {
-    val settings = loadSystemSettings()
-    val config = MultipartConfig(maxFileSize = Some(settings.upload.maxFileSize))
-    config.apply(request.getServletContext)
-  }
-
-  private def setMultipartConfigForLargeFile(): Unit = {
-    val settings = loadSystemSettings()
-    val config = MultipartConfig(maxFileSize = Some(settings.upload.largeMaxFileSize))
-    config.apply(request.getServletContext)
   }
 
   private def onlyRepositoryReadableUser(owner: String, repository: String, loginAccount: Account)(
@@ -221,8 +213,14 @@ class FileUploadController
     }
   }
 
-  private def execute(f: (FileItem, String) => Unit, mimeTypeChecker: String => Boolean) =
+  // The container doesn't apply a MultipartConfig set at request time, so the size is checked here
+  private def execute(
+    f: (FileItem, String) => Unit,
+    mimeTypeChecker: String => Boolean,
+    maxFileSize: Long = loadSystemSettings().upload.maxFileSize
+  ) =
     fileParams.get("file") match {
+      case Some(file) if file.size > maxFileSize    => RequestEntityTooLarge()
       case Some(file) if mimeTypeChecker(file.name) =>
         val fileId = FileUtil.generateFileId
         f(file, fileId)
