@@ -80,6 +80,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
         case Left(createPullReq) =>
           val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReq.head, repository.owner)
           getRepository(reqOwner, repository.name)
+            .filter(source => context.loginAccount.exists(account => isReadable(source.repository, Some(account))))
             .flatMap { forkedRepository =>
               getPullRequestCommitFromTo(repository, forkedRepository, createPullReq.base, reqBranch) match {
                 case (Some(commitIdFrom), Some(commitIdTo)) =>
@@ -118,6 +119,7 @@ trait ApiPullRequestControllerBase extends ControllerBase {
         case Right(createPullReqAlt) =>
           val (reqOwner, reqBranch) = parseCompareIdentifier(createPullReqAlt.head, repository.owner)
           getRepository(reqOwner, repository.name)
+            .filter(source => context.loginAccount.exists(account => isReadable(source.repository, Some(account))))
             .flatMap { forkedRepository =>
               getPullRequestCommitFromTo(repository, forkedRepository, createPullReqAlt.base, reqBranch) match {
                 case (Some(commitIdFrom), Some(commitIdTo)) =>
