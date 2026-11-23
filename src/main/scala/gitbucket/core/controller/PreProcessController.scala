@@ -2,6 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.scalatra.CsrfTokenSupport
+import gitbucket.core.util.Keys
 import org.scalatra.{GenerateId, MovedPermanently}
 import org.slf4j.LoggerFactory
 
@@ -17,8 +18,8 @@ class PreProcessController extends PreProcessControllerBase
  * differences from Scalatra 3.2.1): an unsafe request with cookies needs the session's token. GitBucket's own rules
  * are here:
  *
- *  - Requests with an `Authorization` header are not checked.
- *  - A sign-in needs the token also without cookies (login CSRF).
+ *  - Requests with an `Authorization` header are not checked, unless their session has a signed-in user.
+ *  - A sign-in always needs the token, also without cookies or with an `Authorization` header (login CSRF).
  *  - The token is also accepted in the `X-XSRF-TOKEN` header, with the value of the `XSRF-TOKEN` cookie (the names
  *    axios and Angular use by default); the cookie is set here and in `Context.csrfToken`.
  *  - A rejected request gets 403 and a warning in the log.
@@ -40,17 +41,24 @@ trait PreProcessControllerBase extends ControllerBase with CsrfTokenSupport {
   }
 
   /**
-   * Requests with an `Authorization` header (API clients, git) don't use the session and are not checked. A sign-in
-   * needs the token from the sign-in page also without cookies, against signing in a user with someone else's account
-   * (login CSRF); with cookies, the trait's check already requires it.
+   * API clients and git authenticate with the `Authorization` header; they may keep the session cookie GitBucket sends
+   * them, but their session has no signed-in user, so they are not checked. A session with a signed-in user is checked
+   * also with an `Authorization` header: the web UI ignores the header and uses the session's account, and a browser
+   * sends cached Basic credentials by itself.
+   *
+   * A sign-in needs the token from the sign-in page in any case, also without cookies, against signing in a user with
+   * someone else's account (login CSRF).
    */
   override protected def isForged: Boolean =
-    request.getHeader("Authorization") == null && (super.isForged || isSigninWithoutCookie)
+    if (isSignin) super.isForged || request.getHeader("Cookie") == null
+    else super.isForged && (request.getHeader("Authorization") == null || hasSignedInSession)
 
-  private def isSigninWithoutCookie: Boolean =
+  private def isSignin: Boolean =
     request.getMethod == "POST" &&
-      PreProcessControllerBase.SigninPaths.contains(request.getRequestURI.stripPrefix(request.getContextPath)) &&
-      request.getHeader("Cookie") == null
+      PreProcessControllerBase.SigninPaths.contains(request.getRequestURI.stripPrefix(request.getContextPath))
+
+  private def hasSignedInSession: Boolean =
+    Option(request.getSession(false)).exists(_.getAttribute(Keys.Session.LoginAccount) != null)
 
   override protected def handleForgery(): Unit = {
     val user = context.loginAccount.map(_.userName).getOrElse("anonymous")

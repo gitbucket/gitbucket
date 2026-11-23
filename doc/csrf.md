@@ -6,9 +6,13 @@ valid session (expired, or lost by a server restart) is rejected too; reloading 
 
 Not checked:
 
-- requests with an `Authorization` header (API tokens, Basic auth, git and Git LFS clients)
-- requests without cookies (e.g. webhook receivers, scripts). Sign-in is the exception: it always needs the token from
-  the sign-in page.
+- requests with an `Authorization` header (API tokens, Basic auth, git and Git LFS clients), also when they send a
+  session cookie back, as long as that session has no signed-in user. A session with a signed-in user is checked
+  also with an `Authorization` header: the web UI ignores the header, and browsers send cached Basic credentials by
+  themselves.
+- requests without cookies (e.g. webhook receivers, scripts).
+
+Sign-in is the exception: it always needs the token from the sign-in page.
 
 GET requests are not checked, so they must not change anything.
 
@@ -65,7 +69,7 @@ the meta tag if present; older versions ignore it.
 ## Endpoints for other clients
 
 Endpoints called by other programs (package deploys, CI, scripts) must authenticate with the `Authorization` header,
-not with a session cookie.
+not with a session cookie, and must not store the account in the session.
 
 ## Implementation (for core developers)
 

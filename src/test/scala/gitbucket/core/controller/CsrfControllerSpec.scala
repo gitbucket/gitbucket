@@ -249,16 +249,53 @@ class CsrfControllerSpec extends AnyFunSuite {
     }
   }
 
-  test("API requests with an Authorization header are not checked, even with a session cookie") {
+  private val rootBasic = "Basic " + Base64.getEncoder.encodeToString("root:root".getBytes("UTF-8"))
+
+  /** Creates a repository through the API, authenticated with Basic authentication. */
+  private def createRepositoryWithBasic(client: CloseableHttpClient, name: String, headers: (String, String)*): Int = {
+    val post = new HttpPost(url("/api/v3/user/repos"))
+    post.setHeader("Authorization", rootBasic)
+    post.setHeader("Content-Type", "application/json")
+    headers.foreach { case (k, v) => post.setHeader(k, v) }
+    post.setEntity(new StringEntity(s"""{"name":"$name"}""", "UTF-8"))
+    execute(client, post)._1
+  }
+
+  test("API clients with an Authorization header are not checked, also when they keep the session cookie") {
     Using.resource(new TestingGitBucketServer(port)) { _ =>
-      withClient { (client, _) =>
-        assert(get(client, "/signin")._1 == 200) // the client now has a session with a token
-        val post = new HttpPost(url("/api/v3/user/repos"))
-        val credentials = Base64.getEncoder.encodeToString("root:root".getBytes("UTF-8"))
-        post.setHeader("Authorization", s"Basic $credentials")
-        post.setHeader("Content-Type", "application/json")
-        post.setEntity(new StringEntity("""{"name":"basic"}""", "UTF-8"))
-        assert(execute(client, post)._1 == 200)
+      withClient { (client, cookies) =>
+        assert(createRepositoryWithBasic(client, "first") == 200)
+        assert(cookie(cookies, "JSESSIONID").isDefined, "the API response sets no session cookie")
+        assert(createRepositoryWithBasic(client, "second") == 200) // sends the session cookie of the first call
+        assert(get(client, "/signin")._1 == 200) // a session with a token, but no signed-in user
+        assert(createRepositoryWithBasic(client, "third") == 200)
+      }
+    }
+  }
+
+  test("an Authorization header doesn't skip the check of a signed-in session") {
+    Using.resource(new TestingGitBucketServer(port)) { _ =>
+      withClient { (client, cookies) =>
+        val token = signin(client, cookies)
+        // the web UI uses the session's account and ignores the header, e.g. one the browser sends by itself
+        assert(postForm(client, "/root/_edit", editProfile("Forged"), "Authorization" -> "Basic eDp4") == 403)
+        assert(postForm(client, "/root/_edit", editProfile("Forged"), "Authorization" -> rootBasic) == 403)
+        assert(fullName(client) != "Forged")
+        assert(createRepositoryWithBasic(client, "forged") == 403)
+        assert(createRepositoryWithBasic(client, "allowed", "X-CSRF-TOKEN" -> token) == 200)
+      }
+    }
+  }
+
+  test("a sign-in with an Authorization header needs the token") {
+    Using.resource(new TestingGitBucketServer(port)) { _ =>
+      withClient { (client, cookies) =>
+        get(client, "/signin")
+        val credentials = Seq("userName" -> "root", "password" -> "root")
+        assert(postForm(client, "/signin", credentials, "Authorization" -> rootBasic) == 403)
+        cookies.clear()
+        assert(postForm(client, "/signin", credentials, "Authorization" -> rootBasic) == 403)
+        assert(get(client, "/root/_edit")._1 == 401, "signed in without the token")
       }
     }
   }
@@ -305,21 +342,17 @@ class CsrfControllerSpec extends AnyFunSuite {
     }
   }
 
-  test("a broken multipart body gets the same response as without the token check") {
+  test("a broken multipart body gets the upload servlet's response, not an error of the token check") {
     Using.resource(new TestingGitBucketServer(port)) { _ =>
       withClient { (client, cookies) =>
         val token = signin(client, cookies)
-        def postBroken(headers: (String, String)*): (Int, String) = {
-          val post = new HttpPost(url("/upload/image"))
-          post.setHeader("Content-Type", "multipart/form-data; boundary=----upload")
-          headers.foreach { case (k, v) => post.setHeader(k, v) }
-          post.setEntity(new StringEntity("not a multipart body", "UTF-8"))
-          execute(client, post)
-        }
-        // with an Authorization header the check doesn't read the body, so the upload servlet parses it as before
-        val unchecked = postBroken("X-CSRF-TOKEN" -> token, "Authorization" -> "Basic eDp4")
-        val checked = postBroken("X-CSRF-TOKEN" -> token)
-        assert(checked._1 == unchecked._1, s"checked: $checked, unchecked: $unchecked")
+        val post = new HttpPost(url("/upload/image"))
+        post.setHeader("Content-Type", "multipart/form-data; boundary=----upload")
+        post.setHeader("X-CSRF-TOKEN", token)
+        post.setEntity(new StringEntity("not a multipart body", "UTF-8"))
+        // 400 is the upload servlet's own answer, as for a request that skips the check
+        val response = execute(client, post)
+        assert(response._1 == 400, response)
       }
     }
   }
