@@ -120,6 +120,7 @@ trait ServiceSpecBase {
     with ActivityService
     with IssuesService
     with MergeService
+    with ProtectedBranchService
     with PullRequestService
     with CommitsService
     with CommitStatusService

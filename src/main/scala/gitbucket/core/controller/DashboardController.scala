@@ -12,6 +12,7 @@ class DashboardController
     extends DashboardControllerBase
     with IssuesService
     with MergeService
+    with ProtectedBranchService
     with PullRequestService
     with RepositoryService
     with AccountService

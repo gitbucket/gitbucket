@@ -31,6 +31,7 @@ import org.json4s.JsonAST.{JArray, JString}
 
 class MergeServiceSpec extends AnyFunSpec with ServiceSpecBase {
   val service = new MergeService
+    with ProtectedBranchService
     with AccountService
     with ActivityService
     with IssuesService
