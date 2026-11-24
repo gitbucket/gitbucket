@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import java.net.InetAddress
+import java.net.{Inet4Address, InetAddress}
 
 import gitbucket.core.service.SystemSettingsService
 import org.apache.commons.net.util.SubnetUtils
@@ -10,6 +10,13 @@ import org.apache.http.impl.client.{BasicCredentialsProvider, CloseableHttpClien
 import scala.util.Using
 
 object HttpClientUtil {
+
+  /** 100.64.0.0/10, the shared address space of RFC 6598 (carrier-grade NAT). */
+  private val sharedAddressSpace = {
+    val utils = new SubnetUtils("100.64.0.0/10")
+    utils.setInclusiveHostCount(true)
+    utils.getInfo
+  }
 
   def withHttpClient[T](proxy: Option[SystemSettingsService.Proxy])(f: CloseableHttpClient => T): T = {
     val builder = HttpClientBuilder.create.useSystemProperties
@@ -32,7 +39,16 @@ object HttpClientUtil {
 
   def isPrivateAddress(address: String): Boolean = {
     val ipAddress = InetAddress.getByName(address)
-    ipAddress.isSiteLocalAddress || ipAddress.isLinkLocalAddress || ipAddress.isLoopbackAddress
+    ipAddress.isAnyLocalAddress ||
+    ipAddress.isSiteLocalAddress ||
+    ipAddress.isLinkLocalAddress ||
+    ipAddress.isLoopbackAddress ||
+    isSharedAddressSpace(ipAddress)
+  }
+
+  private def isSharedAddressSpace(ipAddress: InetAddress): Boolean = ipAddress match {
+    case ipv4: Inet4Address => sharedAddressSpace.isInRange(ipv4.getHostAddress)
+    case _                  => false
   }
 
   def inIpRange(ipRange: String, ipAddress: String): Boolean = {
