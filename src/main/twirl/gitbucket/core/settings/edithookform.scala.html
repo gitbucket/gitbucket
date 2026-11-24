@@ -15,6 +15,7 @@
   <div class="panel-heading strong">Webhook / Manage webhook</div>
   <div class="panel-body">
     <form method="POST" validate="true" autocomplete="off">
+      @helpers.csrfField
       <fieldset class="form-group">
         <label class="strong" for="url">Payload URL</label>
         <div>

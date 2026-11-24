@@ -9,6 +9,7 @@
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
           <form id="delete-form" method="post" action="@helpers.url(account.userName)/_delete">
+            @helpers.csrfField
             <fieldset class="form-group">
               <label class="strong">Delete account</label>
               <div>

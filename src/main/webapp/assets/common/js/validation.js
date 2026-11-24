@@ -27,7 +27,17 @@ function validate(e){
       form.data('validated', false);
       displayErrors(data, form);
     }
-  }, 'json');
+  }, 'json').fail(function(xhr){
+    if(xhr.status === 403){
+      // refused, e.g. no valid CSRF token after the session ended: send the form, the server's answer says why
+      form.data('validated', true);
+      form.submit();
+      form.data('validated', false);
+    } else {
+      // e.g. a network or server error: stay on the page, so the input isn't lost
+      $(form).find('[type=submit]').removeAttr('disabled');
+    }
+  });
   return false;
 }
 

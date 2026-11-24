@@ -1,6 +1,7 @@
 @(account: gitbucket.core.model.Account,
   personalTokens: List[gitbucket.core.model.AccessToken],
   generatedToken: Option[(gitbucket.core.model.AccessToken, String)])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Applications"){
   @gitbucket.core.account.html.menu("application", context.loginAccount.get.userName, false){
     <div class="panel panel-default">
@@ -34,6 +35,7 @@
       </div>
     </div>
     <form method="POST" action="@context.path/@account.userName/_personalToken" validate="true" autocomplete="off">
+      @helpers.csrfField
       <div class="panel panel-default">
         <div class="panel-heading strong">Generate new token</div>
         <div class="panel-body">

@@ -73,6 +73,7 @@
     @if(commits.nonEmpty && context.loginAccount.isDefined && originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
       <div id="pull-request-form" style="margin-bottom: 20px;">
         <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+          @helpers.csrfField
           <div class="row">
             <div class="col-md-9">
               <span class="error" id="error-title"></span>

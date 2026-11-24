@@ -1,8 +1,10 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
     <form action="@context.path/admin/system" method="POST" validate="true" class="form-horizontal" autocomplete="off">
+      @helpers.csrfField
       <ul class="nav nav-tabs fill-width" id="settings-tab">
         <li><a href="#system">System settings</a></li>
         <li><a href="#integrations">Integrations</a></li>

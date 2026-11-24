@@ -1,6 +1,31 @@
+// CSRF token of the session (meta tags in main.scala.html): forms send it as a hidden field, Ajax requests and
+// uploads in the X-CSRF-TOKEN header
+var csrfParam = $('meta[name=csrf-param]').attr('content');
+var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+function csrfField(){
+  return $('<input type="hidden">').attr('name', csrfParam).val(csrfToken);
+}
+
+$.ajaxPrefilter(function(options, originalOptions, jqXHR){
+  if(!options.crossDomain){
+    jqXHR.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+  }
+});
+
+Dropzone.prototype.defaultOptions.headers = { 'X-CSRF-TOKEN': csrfToken };
+
 $(function(){
   // disable Ajax cache
   $.ajaxSetup({ cache: false });
+
+  // POST forms of plugins that don't render @helpers.csrfField get the field when they are submitted
+  $(document).on('submit', 'form', function(){
+    var form = $(this);
+    if(/^post$/i.test(form.attr('method')) && form.find('input[name="' + csrfParam + '"]').length == 0){
+      form.append(csrfField());
+    }
+  });
 
   // repository url text field
   $('#repository-url').click(function(){
@@ -25,7 +50,7 @@ $(function(){
       return;
     }
     e.preventDefault();
-    $('<form method="post"></form>').attr('action', $(this).attr('href')).appendTo('body').submit();
+    $('<form method="post"></form>').attr('action', $(this).attr('href')).append(csrfField()).appendTo('body').submit();
   });
 
   // anchor icon for markdown

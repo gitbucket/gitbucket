@@ -11,6 +11,7 @@
 @if(context.loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
   <form method="POST" validate="true">
+    @helpers.csrfField
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
         @gitbucket.core.helper.html.preview(

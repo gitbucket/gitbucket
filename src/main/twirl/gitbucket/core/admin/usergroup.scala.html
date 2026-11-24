@@ -3,6 +3,7 @@
 @gitbucket.core.html.main(if(account.isEmpty) "New group" else "Update group"){
   @gitbucket.core.admin.html.menu("users"){
     <form id="form" method="post" action="@context.path/admin/users/@(account.map(x => s"${x.userName}/_editgroup").getOrElse("_newgroup"))" validate="true" autocomplete="off">
+      @helpers.csrfField
       @gitbucket.core.account.html.groupform(account, members, true)
       <fieldset class="border-top">
         @if(account.isDefined){

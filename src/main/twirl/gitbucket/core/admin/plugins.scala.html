@@ -1,8 +1,10 @@
 @(plugins: List[gitbucket.core.plugin.PluginInfoBase], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
     @gitbucket.core.helper.html.information(info)
     <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
+      @helpers.csrfField
       <input type="submit" value="Reload plugins" class="btn btn-default">
     </form>
     <h1 class="system-settings-title">Plugins</h1>
@@ -17,6 +19,7 @@
         <div class="panel panel-default">
           <div class="panel-heading strong" id="@plugin.pluginId">
             <form method="POST" class="pull-right">
+              @helpers.csrfField
               <input type="submit" value="Uninstall" class="btn btn-danger btn-sm uninstall-plugin" style="position: relative; top: -5px; left: 10px;"
                      data-name="@plugin.pluginName" formaction="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall">
             </form>
