@@ -4,17 +4,17 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Directory.getRepositoryDir
-import gitbucket.core.util.Implicits._
+import gitbucket.core.util.Implicits.*
 import gitbucket.core.util.{ReferrerAuthenticator, RepositoryName, WritableUsersAuthenticator}
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.lib.{ObjectId, Repository}
 import org.eclipse.jgit.lib.RefUpdate.Result
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import org.scalatra.{BadRequest, NoContent, UnprocessableEntity}
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Try, Using}
 
 trait ApiGitReferenceControllerBase extends ControllerBase {
@@ -62,25 +62,27 @@ trait ApiGitReferenceControllerBase extends ControllerBase {
    */
   post("/api/v3/repos/:owner/:repository/git/refs")(writableUsersOnly { repository =>
     extractFromJsonBody[CreateARef].map { data =>
-      Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        val ref = git.getRepository.findRef(data.ref)
-        if (ref == null) {
-          checkPush(repository, git, new ReceiveCommand(ObjectId.zeroId, ObjectId.fromString(data.sha), data.ref))
-          val update = git.getRepository.updateRef(data.ref)
-          update.setNewObjectId(ObjectId.fromString(data.sha))
-          val result = update.update()
-          result match {
-            case Result.NEW =>
-              JsonFormat(
-                ApiRef
-                  .fromRef(RepositoryName(repository.owner, repository.name), git.getRepository.findRef(data.ref))
-              )
-            case _ => UnprocessableEntity(result.name())
+      if (Repository.isValidRefName(data.ref)) {
+        Using.resource(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+          val ref = git.getRepository.findRef(data.ref)
+          if (ref == null) {
+            checkPush(repository, git, new ReceiveCommand(ObjectId.zeroId, ObjectId.fromString(data.sha), data.ref))
+            val update = git.getRepository.updateRef(data.ref)
+            update.setNewObjectId(ObjectId.fromString(data.sha))
+            val result = update.update()
+            result match {
+              case Result.NEW =>
+                JsonFormat(
+                  ApiRef
+                    .fromRef(RepositoryName(repository.owner, repository.name), git.getRepository.findRef(data.ref))
+                )
+              case _ => UnprocessableEntity(result.name())
+            }
+          } else {
+            UnprocessableEntity("Ref already exists.")
           }
-        } else {
-          UnprocessableEntity("Ref already exists.")
         }
-      }
+      } else BadRequest()
     } getOrElse BadRequest()
   })
 
